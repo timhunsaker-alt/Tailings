@@ -3,6 +3,18 @@
     "tailings:stamp_mill",
     "tailings:hand_screen",
     "tailings:shaking_table",
-    "tailings:magnetic_separator"
+    "tailings:magnetic_separator",
+    "tailings:grizzly",
+    "tailings:jaw_crusher",
+    "tailings:cone_crusher",
+    "tailings:double_deck_screen",
+    "tailings:belt_conveyor",
+    "tailings:ball_mill",
+    "tailings:cyclone_cluster",
+    "tailings:conditioning_tank",
+    "tailings:flotation_cell",
+    "tailings:air_blower",
+    "tailings:concentrate_thickener",
+    "tailings:pressure_filter"
   ]
 }

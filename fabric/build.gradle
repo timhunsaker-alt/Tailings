@@ -7,8 +7,8 @@ dependencies {
 	minecraft("com.mojang:minecraft:${minecraft_version}")
 	implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 	implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
-	// The Fabric release jar. Not remapped or bundled: entry points only touch dev.wildcatter.Wildcatter.
-	compileOnly("dev.wildcatter:wildcatter-fabric:${wildcatter_version}")
+	// Official names, same as Loom's compile classpath, so common can call the motor. Not bundled.
+	compileOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
 }
 
 // Implement mcgradleconventions loader attribute

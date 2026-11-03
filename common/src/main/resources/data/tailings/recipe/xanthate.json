@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:lime",
+    "wildcatter:sulfur",
+    "minecraft:sugar"
+  ],
+  "result": {
+    "id": "tailings:xanthate",
+    "count": 4
+  }
+}

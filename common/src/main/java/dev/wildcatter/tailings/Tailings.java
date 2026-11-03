@@ -41,6 +41,12 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.HAND_SCREEN));
 		output.accept(new ItemStack(TailingsBlocks.SHAKING_TABLE));
 		output.accept(new ItemStack(TailingsBlocks.MAGNETIC_SEPARATOR));
+		for (dev.wildcatter.tailings.plant.Machine machine : dev.wildcatter.tailings.plant.Machine.values()) {
+			output.accept(new ItemStack(TailingsBlocks.plantBlock(machine)));
+		}
+		for (ItemStack stack : TailingsItems.REAGENTS.stream().map(ItemStack::new).toList()) {
+			output.accept(stack);
+		}
 		for (ItemStack stack : TailingsItems.SIZED.stream().map(ItemStack::new).toList()) {
 			output.accept(stack);
 		}

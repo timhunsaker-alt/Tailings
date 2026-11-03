@@ -9,8 +9,8 @@ grid at real voltages. What it is and why it is allowed is in `docs/VISION.md`. 
 machine's spec is in `docs/multiblocks/`.
 
 ## What's in it
-Phase 1 is playable as four hand-cranked blocks (no grid yet). The true-size circuit, flotation, leaching and the mine are not
-built. Textures are vanilla stand-ins.
+Phase 1 is four hand-cranked blocks. Phase 2 adds the true-size crushing circuit and flotation bank, which draw power from
+the Wildcatter grid. Leaching and the mine are not built. Textures are vanilla stand-ins.
 - **Rock crushing by rock type:** cobblestone, stone, granite, diorite, andesite, deepslate, tuff, sandstone, vanilla iron,
   copper and gold, and Wildcatter's 27 ores each have crushed rock, gravel, sand and fines. Fines are items only; the ball mill
   is later.
@@ -32,9 +32,9 @@ built. Textures are vanilla stand-ins.
   load without it. It has no grid, ores or pipe of its own; it uses Wildcatter's.
 
 ## The code
-One codebase, two loaders, laid out as Wildcatter is: `common/` (recovery math, rock lists, the starter machines), `fabric/`
-and `neoforge/` (entry points). Recovery and the rock lists are plain Java with no Minecraft imports. `./gradlew :common:test`
-checks the 25/50/75/95% ladder, the size steps, nuggets, and that no 50% route returns more than the block holds.
+One codebase, two loaders, laid out as Wildcatter is: `common/` (recovery math, rock lists, the machines), `fabric/` and
+`neoforge/` (entry points). Recovery, the rock lists and the plant math are plain Java with no Minecraft imports.
+`./gradlew :common:test` checks the ladder, the size steps, and that the 50% and 75% routes stay inside the block.
 
 ## Building
 Run Gradle on Java 25. Fabric Loom 1.19 refuses a Java 21 Gradle JVM. NeoForge's build tools also want a Java 21
@@ -47,8 +47,9 @@ bundled into the Tailings jar):
 - https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-neoforge-0.2.0.jar
 
 `fabric.mod.json` and `neoforge.mods.toml` require Wildcatter 0.2.0 or newer, so the game will not load Tailings without it.
-The NeoForge run also puts that jar on the runtime classpath. `./gradlew :neoforge:runGameTestServer` crushes cobble and pays
-two iron ingots from iron sand. The Fabric client game test is still later.
+The NeoForge run also puts that jar on the runtime classpath. `./gradlew :neoforge:runGameTestServer` covers the starter
+line, the jaw's true size, the crushing circuit making fines, and the flotation bank paying 3 copper ingots. The Fabric
+client game test is still later.
 
 ## Testing
 `./gradlew build`, `./gradlew :common:test`, and `./gradlew :neoforge:runGameTestServer`.

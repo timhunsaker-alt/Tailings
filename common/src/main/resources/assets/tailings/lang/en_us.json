@@ -196,5 +196,21 @@
   "item.tailings.rutile_concentrate": "Rutile Concentrate",
   "item.tailings.monazite_concentrate": "Monazite Concentrate",
   "item.tailings.chromite_concentrate": "Chromite Concentrate",
-  "item.tailings.scheelite_concentrate": "Scheelite Concentrate"
+  "item.tailings.scheelite_concentrate": "Scheelite Concentrate",
+  "block.tailings.grizzly": "Grizzly",
+  "block.tailings.jaw_crusher": "Jaw Crusher",
+  "block.tailings.cone_crusher": "Cone Crusher",
+  "block.tailings.double_deck_screen": "Double-Deck Screen",
+  "block.tailings.belt_conveyor": "Belt Conveyor",
+  "block.tailings.ball_mill": "Ball Mill",
+  "block.tailings.cyclone_cluster": "Cyclone Cluster",
+  "block.tailings.conditioning_tank": "Conditioning Tank",
+  "block.tailings.flotation_cell": "Flotation Cell",
+  "block.tailings.air_blower": "Air Blower",
+  "block.tailings.concentrate_thickener": "Concentrate Thickener",
+  "block.tailings.pressure_filter": "Pressure Filter",
+  "item.tailings.lime": "Quicklime",
+  "item.tailings.xanthate": "Potassium Amyl Xanthate",
+  "item.tailings.mibc": "MIBC Frother",
+  "item.tailings.copper_sulfate": "Copper Sulfate"
 }

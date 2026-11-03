@@ -1,0 +1,292 @@
+{
+  "variants": {
+    "facing=north,piece=0": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=1": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=2": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=3": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=4": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=5": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=6": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=7": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=8": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=9": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=10": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=11": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=12": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=13": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=14": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=15": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=16": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=17": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=18": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=19": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=20": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=21": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=22": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=north,piece=23": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=0": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=1": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=2": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=3": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=4": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=5": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=6": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=7": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=8": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=9": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=10": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=11": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=12": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=13": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=14": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=15": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=16": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=17": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=18": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=19": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=20": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=21": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=22": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=south,piece=23": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=0": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=1": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=2": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=3": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=4": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=5": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=6": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=7": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=8": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=9": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=10": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=11": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=12": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=13": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=14": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=15": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=16": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=17": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=18": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=19": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=20": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=21": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=22": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=east,piece=23": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=0": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=1": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=2": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=3": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=4": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=5": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=6": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=7": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=8": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=9": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=10": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=11": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=12": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=13": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=14": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=15": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=16": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=17": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=18": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=19": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=20": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=21": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=22": {
+      "model": "tailings:block/grizzly"
+    },
+    "facing=west,piece=23": {
+      "model": "tailings:block/grizzly"
+    }
+  }
+}
