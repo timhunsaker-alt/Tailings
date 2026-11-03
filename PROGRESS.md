@@ -4,7 +4,7 @@
 Multi-loader skeleton, CC0, CI, and the plain-Java recovery ladder (25/50/75/95%). Merged.
 
 ## Phase 3
-The track-laying TBM is a moving contraption: it rides forward with the face, lines the ring it leaves behind (cobble or mined stone by default, crafted segments optional), and lays a smooth 1-in-2 ramp. Pumped water fills the quench tank; the surplus is voided. A full muck buffer pauses it. Haulage is the next change. There is still no Field Manual page.
+The track-laying TBM is a moving contraption: it rides forward with the face, lines with cobble or mined stone (crafted segments optional), and lays a smooth 1-in-2 ramp. Pumped water fills the quench tank. A full muck buffer pauses it until a train hauls the rock away. Haulage is a rectifier, locomotive, cars, dump, and block signals. There is still no Field Manual page.
 
 ## Phase 2
 True-size crushing circuit (grizzly, jaw, 6 m belt, screen, cone, ball mill, cyclones) and flotation bank (4 roughers,

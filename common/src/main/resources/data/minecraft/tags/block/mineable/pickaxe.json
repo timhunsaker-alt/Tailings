@@ -23,6 +23,9 @@
     "tailings:mine_floor",
     "tailings:mine_rail",
     "tailings:tunnel_drill",
-    "tailings:dewatering_pump"
+    "tailings:dewatering_pump",
+    "tailings:dump_station",
+    "tailings:block_signal",
+    "tailings:traction_rectifier"
   ]
 }
