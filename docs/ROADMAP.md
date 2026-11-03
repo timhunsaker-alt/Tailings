@@ -51,6 +51,14 @@ phase, PROGRESS.md is updated, and the Field Manual has a page for each new syst
 - Bottom-dump cars over a grizzly.
 - Open-pit mining with haul trucks.
 - Paste backfill of old stopes with tailings.
+- In-game PLCs, modeled on real ones (a Siemens S7 and others). The player programs them in the world, in the real forms:
+  ladder logic, function blocks, and I/O modules. Uses: the TBM's program, the dump sorter, train block signals, and plant
+  pumps. Wildcatter's controls are fixed hardware, not a program the player writes: the genset control panel (governor and
+  synchronizer), MCC starters with overload relays, and the substation's 50/51 and under-frequency relays (Wildcatter
+  `docs/multiblocks/genset.md`, `motor-control-center.md`, `substation.md`). Its "controller" is the block that owns a
+  multiblock, not a PLC. Those stay as they are. If both mods grow a programmable controller, the scan (ladder and function
+  blocks, no Minecraft imports) can be a plain-Java library in Wildcatter, the way its solver is, and Tailings would call it
+  for the mine and the plant.
 
 ## Open questions (for Tim)
 1. ~~1x baseline~~: **decided 2026-11-02:** plain mining counts as 25 % of the block's mineral; processing the drops fully
