@@ -1,10 +1,10 @@
 {
   "variants": {
     "lit=false": {
-      "model": "tailings:block/mine_light"
+      "model": "tailings:block/mine_light_off"
     },
     "lit=true": {
-      "model": "tailings:block/mine_light"
+      "model": "tailings:block/mine_light_on"
     }
   }
 }

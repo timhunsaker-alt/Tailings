@@ -11,6 +11,9 @@ import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
+import dev.wildcatter.tailings.client.MineCarModel;
+import dev.wildcatter.tailings.client.MineLocomotiveModel;
+import dev.wildcatter.tailings.client.RailSurface;
 import dev.wildcatter.tailings.block.RailGrade;
 import dev.wildcatter.tailings.block.SlopeBlock;
 import dev.wildcatter.tailings.block.SlopeHalf;
@@ -46,7 +49,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -59,6 +62,7 @@ public class TailingsGameTests {
 			helper.register(id("drill"), (Consumer<GameTestHelper>) TailingsGameTests::drill);
 			helper.register(id("drill_pause"), (Consumer<GameTestHelper>) TailingsGameTests::drillPause);
 			helper.register(id("haul"), (Consumer<GameTestHelper>) TailingsGameTests::haul);
+			helper.register(id("models"), (Consumer<GameTestHelper>) TailingsGameTests::models);
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
@@ -295,6 +299,21 @@ public class TailingsGameTests {
 		ItemStack waste = dump.getItem(0);
 		helper.assertTrue(waste.getItem() == Items.COBBLESTONE && waste.getCount() == 2, Component.literal("the sorter should put cobble in the waste bin, got " + waste));
 		helper.assertTrue(followed.load().total() == 0, Component.literal("the car should be empty after the tip"));
+		helper.succeed();
+	}
+
+	/** The entity layers bake, and the rail surface meets across a 1-in-2 pair. */
+	private static void models(GameTestHelper helper) {
+		var loco = MineLocomotiveModel.createBodyLayer().bakeRoot();
+		helper.assertFalse(loco.getChild(MineLocomotiveModel.HEADLIGHT).isEmpty(), Component.literal("the locomotive should have a headlight cube"));
+		helper.assertTrue(loco.hasChild("cab") && loco.hasChild("wheel_fl"), Component.literal("the locomotive layer should keep its body parts"));
+		var car = MineCarModel.createBodyLayer().bakeRoot();
+		helper.assertFalse(car.getChild(MineCarModel.LOAD).isEmpty(), Component.literal("the car should have a load cube"));
+		car.getChild(MineCarModel.LOAD).visible = false;
+		helper.assertFalse(car.getChild(MineCarModel.LOAD).visible, Component.literal("the load cube should be hideable"));
+		helper.assertTrue(Math.abs(RailSurface.blocksAboveBottom(RailGrade.LOWER, 1) - 0.5) < 1.0e-6, Component.literal("lower rail should end at half a block"));
+		helper.assertTrue(Math.abs(RailSurface.blocksAboveBottom(RailGrade.UPPER, 0) - 0.5) < 1.0e-6, Component.literal("upper rail should start at half a block"));
+		helper.assertTrue(Math.abs(RailSurface.alongDownhill(Direction.NORTH, 4, 8, 4.5, 8)) < 1.0e-6, Component.literal("north downhill starts at the north edge"));
 		helper.succeed();
 	}
 }
