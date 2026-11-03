@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # 21 for NeoForge's build tools, 25 (the last, the default) for the mod
+          java-version: |
+            21
+            25
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew
+      - run: ./gradlew build --stacktrace
+      # Phase 0 has no in-game scene, so this does not run :neoforge:runGameTestServer.
+      # That step comes back with the first machine, as in Wildcatter.
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: tailings-jars
+          path: |
+            fabric/build/libs/tailings-fabric-*.jar
+            neoforge/build/libs/tailings-neoforge-*.jar
+            !**/*-sources.jar

@@ -1,0 +1,28 @@
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+		exclusiveContent {
+			forRepository {
+				maven {
+					name = 'Fabric'
+					url = uri('https://maven.fabricmc.net')
+				}
+			}
+			filter {
+				includeGroupAndSubgroups('net.fabricmc')
+			}
+		}
+	}
+}
+
+plugins {
+	id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+// One codebase, two jars: common holds the recovery math; fabric and neoforge hold each loader's entry points.
+rootProject.name = 'tailings'
+includeBuild('build-logic')
+include('common')
+include('fabric')
+include('neoforge')

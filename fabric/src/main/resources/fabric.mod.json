@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "${mod_id}",
+	"version": "${version}",
+	"name": "${mod_name}",
+	"description": "${description}",
+	"authors": [
+		"timhunsaker-alt"
+	],
+	"license": "${license}",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.wildcatter.tailings.fabric.TailingsFabric"
+		],
+		"client": [
+			"dev.wildcatter.tailings.fabric.client.TailingsFabricClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=${java_version}",
+		"fabric-api": "*",
+		"wildcatter": ">=${wildcatter_version}"
+	}
+}
