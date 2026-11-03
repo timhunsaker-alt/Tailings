@@ -212,5 +212,13 @@
   "item.tailings.lime": "Quicklime",
   "item.tailings.xanthate": "Potassium Amyl Xanthate",
   "item.tailings.mibc": "MIBC Frother",
-  "item.tailings.copper_sulfate": "Copper Sulfate"
+  "item.tailings.copper_sulfate": "Copper Sulfate",
+  "block.tailings.lining": "Lining Segment",
+  "block.tailings.slope": "Slope",
+  "block.tailings.mine_stair": "Mine Stair",
+  "block.tailings.mine_landing": "Mine Landing",
+  "block.tailings.mine_floor": "Mine Floor",
+  "block.tailings.mine_rail": "Mine Rail",
+  "block.tailings.tunnel_drill": "Tunnel Drill",
+  "block.tailings.dewatering_pump": "Dewatering Pump"
 }

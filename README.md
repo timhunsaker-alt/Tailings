@@ -10,7 +10,8 @@ machine's spec is in `docs/multiblocks/`.
 
 ## What's in it
 Phase 1 is four hand-cranked blocks. Phase 2 adds the true-size crushing circuit and flotation bank, which draw power from
-the Wildcatter grid. Leaching and the mine are not built. Textures are vanilla stand-ins.
+the Wildcatter grid. The tunnel drill bores, lines and lays its floor; the locomotive, mine cars and dump sorter are not
+built yet. Textures are vanilla stand-ins.
 - **Rock crushing by rock type:** cobblestone, stone, granite, diorite, andesite, deepslate, tuff, sandstone, vanilla iron,
   copper and gold, and Wildcatter's 27 ores each have crushed rock, gravel, sand and fines. Fines are items only; the ball mill
   is later.

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "look=stone": {
+      "model": "tailings:block/mine_landing_stone"
+    },
+    "look=cobble": {
+      "model": "tailings:block/mine_landing_cobble"
+    },
+    "look=deepslate": {
+      "model": "tailings:block/mine_landing_deepslate"
+    },
+    "look=granite": {
+      "model": "tailings:block/mine_landing_granite"
+    },
+    "look=diorite": {
+      "model": "tailings:block/mine_landing_diorite"
+    },
+    "look=andesite": {
+      "model": "tailings:block/mine_landing_andesite"
+    },
+    "look=tuff": {
+      "model": "tailings:block/mine_landing_tuff"
+    },
+    "look=sandstone": {
+      "model": "tailings:block/mine_landing_sandstone"
+    }
+  }
+}

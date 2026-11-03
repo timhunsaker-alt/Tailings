@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "facing=north,look=stone": {
+      "model": "tailings:block/mine_stair_stone"
+    },
+    "facing=east,look=stone": {
+      "model": "tailings:block/mine_stair_stone",
+      "y": 90
+    },
+    "facing=south,look=stone": {
+      "model": "tailings:block/mine_stair_stone",
+      "y": 180
+    },
+    "facing=west,look=stone": {
+      "model": "tailings:block/mine_stair_stone",
+      "y": 270
+    },
+    "facing=north,look=cobble": {
+      "model": "tailings:block/mine_stair_cobble"
+    },
+    "facing=east,look=cobble": {
+      "model": "tailings:block/mine_stair_cobble",
+      "y": 90
+    },
+    "facing=south,look=cobble": {
+      "model": "tailings:block/mine_stair_cobble",
+      "y": 180
+    },
+    "facing=west,look=cobble": {
+      "model": "tailings:block/mine_stair_cobble",
+      "y": 270
+    },
+    "facing=north,look=deepslate": {
+      "model": "tailings:block/mine_stair_deepslate"
+    },
+    "facing=east,look=deepslate": {
+      "model": "tailings:block/mine_stair_deepslate",
+      "y": 90
+    },
+    "facing=south,look=deepslate": {
+      "model": "tailings:block/mine_stair_deepslate",
+      "y": 180
+    },
+    "facing=west,look=deepslate": {
+      "model": "tailings:block/mine_stair_deepslate",
+      "y": 270
+    },
+    "facing=north,look=granite": {
+      "model": "tailings:block/mine_stair_granite"
+    },
+    "facing=east,look=granite": {
+      "model": "tailings:block/mine_stair_granite",
+      "y": 90
+    },
+    "facing=south,look=granite": {
+      "model": "tailings:block/mine_stair_granite",
+      "y": 180
+    },
+    "facing=west,look=granite": {
+      "model": "tailings:block/mine_stair_granite",
+      "y": 270
+    },
+    "facing=north,look=diorite": {
+      "model": "tailings:block/mine_stair_diorite"
+    },
+    "facing=east,look=diorite": {
+      "model": "tailings:block/mine_stair_diorite",
+      "y": 90
+    },
+    "facing=south,look=diorite": {
+      "model": "tailings:block/mine_stair_diorite",
+      "y": 180
+    },
+    "facing=west,look=diorite": {
+      "model": "tailings:block/mine_stair_diorite",
+      "y": 270
+    },
+    "facing=north,look=andesite": {
+      "model": "tailings:block/mine_stair_andesite"
+    },
+    "facing=east,look=andesite": {
+      "model": "tailings:block/mine_stair_andesite",
+      "y": 90
+    },
+    "facing=south,look=andesite": {
+      "model": "tailings:block/mine_stair_andesite",
+      "y": 180
+    },
+    "facing=west,look=andesite": {
+      "model": "tailings:block/mine_stair_andesite",
+      "y": 270
+    },
+    "facing=north,look=tuff": {
+      "model": "tailings:block/mine_stair_tuff"
+    },
+    "facing=east,look=tuff": {
+      "model": "tailings:block/mine_stair_tuff",
+      "y": 90
+    },
+    "facing=south,look=tuff": {
+      "model": "tailings:block/mine_stair_tuff",
+      "y": 180
+    },
+    "facing=west,look=tuff": {
+      "model": "tailings:block/mine_stair_tuff",
+      "y": 270
+    },
+    "facing=north,look=sandstone": {
+      "model": "tailings:block/mine_stair_sandstone"
+    },
+    "facing=east,look=sandstone": {
+      "model": "tailings:block/mine_stair_sandstone",
+      "y": 90
+    },
+    "facing=south,look=sandstone": {
+      "model": "tailings:block/mine_stair_sandstone",
+      "y": 180
+    },
+    "facing=west,look=sandstone": {
+      "model": "tailings:block/mine_stair_sandstone",
+      "y": 270
+    }
+  }
+}

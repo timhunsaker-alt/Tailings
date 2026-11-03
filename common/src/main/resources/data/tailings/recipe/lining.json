@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:gray_concrete",
+    "minecraft:gray_concrete",
+    "minecraft:gray_concrete",
+    "minecraft:gray_concrete",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "id": "tailings:lining",
+    "count": 4
+  }
+}

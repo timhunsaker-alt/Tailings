@@ -2,9 +2,18 @@ package dev.wildcatter.tailings.neoforge.gametest;
 
 import dev.wildcatter.tailings.Tailings;
 import dev.wildcatter.tailings.TailingsBlocks;
+import dev.wildcatter.tailings.block.DewateringPumpBlock;
+import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
+import dev.wildcatter.tailings.block.MineRailBlock;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
+import dev.wildcatter.tailings.block.RailGrade;
+import dev.wildcatter.tailings.block.SlopeBlock;
+import dev.wildcatter.tailings.block.SlopeHalf;
+import dev.wildcatter.tailings.block.TunnelDrillBlock;
+import dev.wildcatter.tailings.mine.Advance;
+import dev.wildcatter.tailings.mine.DriveCourse;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.plant.PlantPlan;
 import dev.wildcatter.tailings.plant.Reagent;
@@ -23,6 +32,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
@@ -33,7 +43,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -43,6 +53,7 @@ public class TailingsGameTests {
 			helper.register(id("jaw_size"), (Consumer<GameTestHelper>) TailingsGameTests::jawSize);
 			helper.register(id("crushing"), (Consumer<GameTestHelper>) TailingsGameTests::crushing);
 			helper.register(id("flotation"), (Consumer<GameTestHelper>) TailingsGameTests::flotation);
+			helper.register(id("drill"), (Consumer<GameTestHelper>) TailingsGameTests::drill);
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
@@ -62,6 +73,9 @@ public class TailingsGameTests {
 		helper.assertTrue(BuiltInRegistries.ITEM.containsKey(Tailings.id("crushed_granite")), Component.literal("crushed granite missing"));
 		helper.assertTrue(BuiltInRegistries.ITEM.containsKey(Tailings.id("sand_iron")), Component.literal("iron sand missing"));
 		helper.assertTrue(BuiltInRegistries.CREATIVE_MODE_TAB.containsKey(Tailings.id("tailings")), Component.literal("creative tab missing"));
+		helper.assertTrue(BuiltInRegistries.BLOCK.containsKey(Tailings.id("tunnel_drill")), Component.literal("tunnel drill missing"));
+		helper.assertTrue(BuiltInRegistries.BLOCK.containsKey(Tailings.id("mine_rail")), Component.literal("mine rail missing"));
+		helper.assertTrue(BuiltInRegistries.MENU.containsKey(Tailings.id("tunnel_drill")), Component.literal("drill menu missing"));
 		helper.succeed();
 	}
 
@@ -152,5 +166,58 @@ public class TailingsGameTests {
 			helper.assertTrue(tank.formed() && out.is(Items.COPPER_INGOT) && out.getCount() == 3,
 					Component.literal("flotation should pay 3 copper ingots, got " + out + " formed=" + tank.formed()));
 		});
+	}
+
+	/** One advance of the TBM: 28 lining segments and the upper half of the 1-in-2 floor. */
+	private static void drill(GameTestHelper helper) {
+		BlockPos cab = new BlockPos(10, 40, 12);
+		helper.setBlock(cab, TailingsBlocks.TUNNEL_DRILL.defaultBlockState().setValue(TunnelDrillBlock.FACING, Direction.NORTH));
+		helper.setBlock(cab.south(), TailingsBlocks.DEWATERING_PUMP.defaultBlockState().setValue(DewateringPumpBlock.FACING, Direction.NORTH)
+				.setValue(DewateringPumpBlock.PIECE, 0));
+		DrillBlockEntity drill = helper.getBlockEntity(cab, DrillBlockEntity.class);
+		drill.forceRunning();
+		drill.program().setTargetY(30);
+		drill.program().setFlatLength(0);
+		drill.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
+		drill.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
+		drill.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
+		drill.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+		BlockPos at = helper.absolutePos(cab);
+		drill.drill().placeOriginFrom(at.getX(), at.getY(), at.getZ());
+		ServerLevel level = helper.getLevel();
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				level.setBlock(drill.cell(across, up, 0), Blocks.STONE.defaultBlockState(), 3);
+			}
+		}
+		for (int across = 1; across <= DriveCourse.CLEAR; across++) {
+			level.setBlock(drill.cell(across, 0, 0).below(), Blocks.STONE.defaultBlockState(), 3);
+		}
+		Advance drove = drill.stepNow();
+		helper.assertTrue(drove.placed(), Component.literal("the drill should advance (" + drove.stop() + " " + drove.detail() + ")"));
+		int lining = 0;
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				if (level.getBlockState(drill.cell(across, up, -1)).getBlock() == TailingsBlocks.LINING) {
+					lining++;
+				}
+			}
+		}
+		helper.assertTrue(lining == DriveCourse.SEGMENTS_PER_RING, Component.literal("expected 28 lining segments, got " + lining));
+		BlockState slope = level.getBlockState(drill.cell(1, 1, -1));
+		BlockState rail = level.getBlockState(drill.cell(2, 1, -1));
+		helper.assertTrue(slope.getBlock() == TailingsBlocks.SLOPE && slope.getValue(SlopeBlock.HALF) == SlopeHalf.UPPER,
+				Component.literal("column 1 should be an upper slope, got " + slope));
+		helper.assertTrue(rail.getBlock() == TailingsBlocks.MINE_RAIL && rail.getValue(MineRailBlock.GRADE) == RailGrade.UPPER && rail.getValue(MineRailBlock.RACK),
+				Component.literal("column 2 should be rack rail on the upper half, got " + rail));
+		helper.assertTrue(level.getBlockState(drill.cell(3, 1, -1)).getBlock() == TailingsBlocks.MINE_STAIR, Component.literal("column 3 should be a stair"));
+		helper.assertTrue(level.getBlockState(drill.cell(4, 1, -1)).getBlock() == TailingsBlocks.MINE_STAIR, Component.literal("column 4 should be a stair"));
+		helper.assertTrue(level.getBlockState(drill.cell(5, 1, -1)).getBlock() == TailingsBlocks.MINE_RAIL, Component.literal("column 5 should be rail"));
+		helper.assertTrue(level.getBlockState(drill.cell(6, 1, -1)).getBlock() == TailingsBlocks.SLOPE, Component.literal("column 6 should be a slope"));
+		ItemStack muck = drill.getItem(DrillBlockEntity.INPUTS);
+		helper.assertTrue(muck.is(Items.COBBLESTONE) && muck.getCount() == 58, Component.literal("stone should come out as 58 cobble, got " + muck));
+		helper.assertTrue(drill.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 36, Component.literal("a ring spends 28 segments"));
+		helper.assertTrue(drill.getItem(DrillBlockEntity.SLOT_RAIL).getCount() == 62, Component.literal("an advance spends 2 rails"));
+		helper.succeed();
 	}
 }
