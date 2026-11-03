@@ -1,0 +1,75 @@
+package dev.wildcatter.tailings.plant;
+
+import dev.wildcatter.tailings.rock.Rock;
+import java.math.BigDecimal;
+import java.util.EnumMap;
+import java.util.Map;
+
+/** Kilograms of reagent sitting in the conditioning tank. One item dropped in adds one kilogram. */
+public final class ReagentStock {
+	private final Map<Reagent, BigDecimal> kilograms = new EnumMap<>(Reagent.class);
+
+	public BigDecimal kilograms(Reagent reagent) {
+		return kilograms.getOrDefault(reagent, BigDecimal.ZERO);
+	}
+
+	public void addKilogram(Reagent reagent) {
+		kilograms.put(reagent, kilograms(reagent).add(BigDecimal.ONE));
+	}
+
+	public boolean covers(Rock rock) {
+		for (Map.Entry<Reagent, BigDecimal> need : Reagent.dose(rock).entrySet()) {
+			if (kilograms(need.getKey()).compareTo(need.getValue()) < 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Subtracts one block's dose. The caller has already checked {@link #covers}. */
+	public void consume(Rock rock) {
+		for (Map.Entry<Reagent, BigDecimal> need : Reagent.dose(rock).entrySet()) {
+			BigDecimal left = kilograms(need.getKey()).subtract(need.getValue());
+			if (left.signum() <= 0) {
+				kilograms.remove(need.getKey());
+			} else {
+				kilograms.put(need.getKey(), left);
+			}
+		}
+	}
+
+	public String missing(Rock rock) {
+		StringBuilder out = new StringBuilder();
+		for (Map.Entry<Reagent, BigDecimal> need : Reagent.dose(rock).entrySet()) {
+			if (kilograms(need.getKey()).compareTo(need.getValue()) < 0) {
+				if (out.length() > 0) {
+					out.append(", ");
+				}
+				out.append(need.getKey().displayName());
+			}
+		}
+		return out.toString();
+	}
+
+	public String save() {
+		StringBuilder out = new StringBuilder();
+		for (Map.Entry<Reagent, BigDecimal> entry : kilograms.entrySet()) {
+			if (out.length() > 0) {
+				out.append(',');
+			}
+			out.append(entry.getKey().name()).append('=').append(entry.getValue().toPlainString());
+		}
+		return out.toString();
+	}
+
+	public void load(String text) {
+		kilograms.clear();
+		if (text == null || text.isBlank()) {
+			return;
+		}
+		for (String part : text.split(",")) {
+			int cut = part.indexOf('=');
+			kilograms.put(Reagent.valueOf(part.substring(0, cut)), new BigDecimal(part.substring(cut + 1)));
+		}
+	}
+}

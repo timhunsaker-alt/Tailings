@@ -11,7 +11,7 @@ Manual page) is only partly met: there is a NeoForge game test from Phase 1, and
 - A plain-Java `recovery` package: the mineral mass in a block, each stage's recovery, and tests that no route returns more
   than the block holds.
 
-## Phase 1 — Rock and the ladder of sizes — CURRENT
+## Phase 1 — Rock and the ladder of sizes
 - 1a: crushed products for each rock type: crushed rock → gravel → sand → fines, each with its mineral list (granite, diorite,
   andesite, deepslate, tuff, sandstone, cobblestone, and the 27 Wildcatter ores).
 - 1b: a hand-fed starter jaw crusher and a screen; the 1x baseline (a plain drop is 25 % of the block's mineral) in the
@@ -21,7 +21,7 @@ Manual page) is only partly met: there is a NeoForge game test from Phase 1, and
 - 1d: vanilla ores: iron, copper and gold (ore blocks and raw ore items) on the same 1x/2x/3x/4x ladder; one plain smelt is
   1 ingot, the full line 4 ingots. Others that fit (for example redstone, lapis) are judged ore by ore.
 
-## Phase 2 — The concentrator
+## Phase 2 — The concentrator — CURRENT
 - 2a: the crushing circuit at true size (`multiblocks/crushing-circuit.md`).
 - 2b: the ball mill and cyclones, grinding to liberation.
 - 2c: the flotation cell bank (`multiblocks/flotation-bank.md`) with reagents from Wildcatter's chemicals (3x).

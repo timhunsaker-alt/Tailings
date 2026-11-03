@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": "minecraft:calcite",
+  "result": {
+    "id": "tailings:lime"
+  },
+  "cookingtime": 200,
+  "experience": 0.1
+}

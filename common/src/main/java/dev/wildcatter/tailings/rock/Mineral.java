@@ -76,6 +76,14 @@ public enum Mineral {
 		return separator;
 	}
 
+	/** Sulfides, vanilla copper and vanilla gold: the flotation bank's 75% route. */
+	public boolean floats() {
+		return switch (this) {
+			case GALENA, SPHALERITE, PENTLANDITE, MOLYBDENITE, COBALTITE, ACANTHITE, PLATINUM, COPPER, GOLD -> true;
+			default -> false;
+		};
+	}
+
 	public String nuggetId() {
 		return nuggetId;
 	}

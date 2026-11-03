@@ -1,5 +1,6 @@
 package dev.wildcatter.tailings;
 
+import dev.wildcatter.tailings.plant.Reagent;
 import dev.wildcatter.tailings.rock.Mineral;
 import dev.wildcatter.tailings.rock.Rock;
 import dev.wildcatter.tailings.rock.SizeClass;
@@ -20,6 +21,7 @@ public final class TailingsItems {
 	public static final List<Item> NUGGETS = new ArrayList<>();
 	public static final List<Item> MINERALS = new ArrayList<>();
 	public static final List<Item> CONCENTRATES = new ArrayList<>();
+	public static final List<Item> REAGENTS = new ArrayList<>();
 
 	private TailingsItems() {
 	}
@@ -29,6 +31,9 @@ public final class TailingsItems {
 			for (SizeClass size : SizeClass.values()) {
 				SIZED.add(item(size.path() + "_" + rock.id()));
 			}
+		}
+		for (Reagent reagent : Reagent.values()) {
+			REAGENTS.add(item(reagent.id()));
 		}
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {

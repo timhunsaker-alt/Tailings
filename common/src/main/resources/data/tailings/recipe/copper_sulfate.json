@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:copper_ingot",
+    "wildcatter:sulfur"
+  ],
+  "result": {
+    "id": "tailings:copper_sulfate",
+    "count": 4
+  }
+}
