@@ -19,8 +19,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - run: chmod +x gradlew
       - run: ./gradlew build --stacktrace
-      # Phase 0 has no in-game scene, so this does not run :neoforge:runGameTestServer.
-      # That step comes back with the first machine, as in Wildcatter.
+      - run: ./gradlew :neoforge:runGameTestServer --stacktrace
       - uses: actions/upload-artifact@v4
         if: success()
         with:

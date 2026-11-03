@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget",
+    "tailings:pyrolusite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:pyrolusite",
+    "count": 1
+  }
+}

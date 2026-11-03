@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget",
+    "tailings:monazite_nugget"
+  ],
+  "result": {
+    "id": "tailings:monazite",
+    "count": 1
+  }
+}

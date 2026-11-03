@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget",
+    "tailings:cassiterite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:cassiterite",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget",
+    "tailings:cobaltite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:cobaltite",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget",
+    "tailings:sylvite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:sylvite",
+    "count": 1
+  }
+}

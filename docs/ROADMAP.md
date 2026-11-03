@@ -3,13 +3,15 @@
 Exactly one phase is marked **CURRENT**. Each phase is done when `./gradlew runClientGameTest` passes with new coverage for the
 phase, PROGRESS.md is updated, and the Field Manual has a page for each new system.
 
-## Phase 0 — Set up — CURRENT
+## Phase 0 — Set up
+The multi-loader skeleton and the recovery ladder are in. Phase 0's "done" line (a client game test, PROGRESS.md, a Field
+Manual page) is only partly met: there is a NeoForge game test from Phase 1, and no Field Manual yet.
 - README, VISION.md, ROADMAP.md and the first specs (this draft). Tim settles the open questions below.
 - A multi-loader project like Wildcatter's (common, fabric, neoforge): its own jars, each with a hard dependency on Wildcatter 0.2.0+.
 - A plain-Java `recovery` package: the mineral mass in a block, each stage's recovery, and tests that no route returns more
   than the block holds.
 
-## Phase 1 — Rock and the ladder of sizes
+## Phase 1 — Rock and the ladder of sizes — CURRENT
 - 1a: crushed products for each rock type: crushed rock → gravel → sand → fines, each with its mineral list (granite, diorite,
   andesite, deepslate, tuff, sandstone, cobblestone, and the 27 Wildcatter ores).
 - 1b: a hand-fed starter jaw crusher and a screen; the 1x baseline (a plain drop is 25 % of the block's mineral) in the

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget",
+    "tailings:magnesite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:magnesite",
+    "count": 1
+  }
+}

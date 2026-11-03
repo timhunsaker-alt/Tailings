@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget",
+    "tailings:molybdenite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:molybdenite",
+    "count": 1
+  }
+}

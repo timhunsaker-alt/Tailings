@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget",
+    "tailings:pentlandite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:pentlandite",
+    "count": 1
+  }
+}

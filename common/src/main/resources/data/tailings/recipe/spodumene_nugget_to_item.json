@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget",
+    "tailings:spodumene_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:spodumene",
+    "count": 1
+  }
+}

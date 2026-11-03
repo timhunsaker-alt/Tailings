@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget",
+    "tailings:graphite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:graphite",
+    "count": 1
+  }
+}

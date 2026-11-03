@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget",
+    "tailings:acanthite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:acanthite",
+    "count": 1
+  }
+}

@@ -3,11 +3,18 @@ plugins {
 	id 'net.neoforged.moddev'
 }
 
+sourceSets {
+	gametest {
+		compileClasspath += main.compileClasspath + main.output
+		runtimeClasspath += main.runtimeClasspath + main.output
+	}
+}
+
 neoForge {
 	version = neoforge_version
 	runs {
 		configureEach {
-			systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+			systemProperty('neoforge.enabledGameTestNamespaces', 'tailings_gametest')
 		}
 		client {
 			client()
@@ -18,10 +25,18 @@ neoForge {
 			gameDirectory = project.file('runs/server')
 			programArgument('--nogui')
 		}
+		gameTestServer {
+			type = 'gameTestServer'
+			gameDirectory = project.file('runs/gametest')
+			sourceSet = sourceSets.gametest
+		}
 	}
 	mods {
 		"${mod_id}" {
 			sourceSet sourceSets.main
+		}
+		"tailings_gametest" {
+			sourceSet sourceSets.gametest
 		}
 	}
 }
@@ -29,6 +44,11 @@ neoForge {
 dependencies {
 	// The NeoForge release jar (Mojmap). Not bundled: neoforge.mods.toml requires Wildcatter at runtime.
 	compileOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
+	runtimeOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
+}
+
+tasks.named('check') {
+	dependsOn(tasks.named('compileGametestJava'))
 }
 
 // Implement mcgradleconventions loader attribute
