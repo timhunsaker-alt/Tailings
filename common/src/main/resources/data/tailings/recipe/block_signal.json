@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "R",
+    "I"
+  ],
+  "key": {
+    "R": "minecraft:redstone_torch",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "tailings:block_signal",
+    "count": 1
+  }
+}
