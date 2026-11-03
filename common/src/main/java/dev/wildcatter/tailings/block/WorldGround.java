@@ -122,8 +122,22 @@ public final class WorldGround implements GroundGrid {
 	}
 
 	@Override
-	public void placeLining(int x, int y, int z) {
-		level.setBlock(new BlockPos(x, y, z), TailingsBlocks.LINING.defaultBlockState(), 3);
+	public void placeLining(int x, int y, int z, Ground material) {
+		BlockState state = material == null ? TailingsBlocks.LINING.defaultBlockState() : stone(material);
+		level.setBlock(new BlockPos(x, y, z), state, 3);
+	}
+
+	private static BlockState stone(Ground material) {
+		return switch (material) {
+			case STONE -> Blocks.STONE.defaultBlockState();
+			case DEEPSLATE -> Blocks.DEEPSLATE.defaultBlockState();
+			case GRANITE -> Blocks.GRANITE.defaultBlockState();
+			case DIORITE -> Blocks.DIORITE.defaultBlockState();
+			case ANDESITE -> Blocks.ANDESITE.defaultBlockState();
+			case TUFF -> Blocks.TUFF.defaultBlockState();
+			case SANDSTONE -> Blocks.SANDSTONE.defaultBlockState();
+			default -> Blocks.COBBLESTONE.defaultBlockState();
+		};
 	}
 
 	@Override

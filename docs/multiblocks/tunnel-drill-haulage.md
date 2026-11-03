@@ -62,10 +62,10 @@ Side view of a track column on the default 1-in-2 decline (each block of run dro
 - **The pieces:** `tailings:slope` comes in a lower half (a wedge rising 0 to 0.5) and an upper half (0.5 to 1). Two in a
   row make one block of rise over two of run: a smooth 26.6° ramp. A `steep` variant (0 to 1 in one block) stays for
   1-in-1 declines if Tim wants a steep option in the GUI.
-- **How it renders:** the mine rail has its own model for each slope piece, its rails and ties inclined at 26.6° and lying
-  flat on the wedge's top face, so two pieces read as one straight run of track with no step. (Vanilla rails only bend at
-  45°; this is the reason the mod draws its own.) The lining crown steps down half a block each block, so headroom over the
-  floor is always 5 blocks.
+- **How it renders:** the slope and the rail bed are a real 1-in-2 wedge: eight thin slices, low at the downhill end and high
+  at the uphill end, and the collision matches those slices so a player walks the ramp. (Vanilla models are cuboids, so the
+  wedge is a framed slope of eight boxes, the same trick framed-slope mods use. Two halves in a row meet in the middle.)
+  The lining crown still steps a full block every two advances; headroom over the floor stays 5 blocks.
 - **The walkway (decided with Tim, 2026-11-02):** columns 3 and 4 are **real stair blocks with a landing every other block**:
   a stair (one block of rise), then a full-block landing, then a stair. That is one block of rise over two of run, the
   same 1 in 2 as the track, so the walkway meets the track's height at every landing. The player climbs the stairs
@@ -90,15 +90,13 @@ bore, before the lining closes. The lining then keeps the drive dry. Flowing liq
 
 | Liquid | What the drill does | Cost |
 |---|---|---|
-| **Water** (source or flowing) | Pumps it into the drill's **water tank**, drawn with **drain pipes** running back along the drive as visuals. Each source block is 1 m3. **In code the water is voided**: it disappears once pumped (decided with Tim, 2026-11-02; a deliberate simplification, see below) | Real lift work: E = ρ g V H / η. 1 m3 lifted 100 m at 70 % efficiency is 1.4 MJ (0.39 kWh). The pump draws its power from the trailing cable |
+| **Water** (source or flowing) | Pumps it into the drill's **water tank** (256 m3). That tank is what quenches lava. **Water past a full tank is voided** (revised with Tim, 2026-11-03; the tank is real, the surplus is not piped to surface) | Real lift work: E = ρ g V H / η. 1 m3 lifted 100 m at 70 % efficiency is 1.4 MJ (0.39 kWh). The pump draws its power from the trailing cable |
 | **Lava** (source or flowing) | It cannot be pumped. The drill **quenches** it: water sprayed from its own tank turns a lava source to obsidian and flowing lava to cobble, which it then cuts as rock and sends to the cars (obsidian goes out as muck). A cutterhead cannot cut molten rock, so it waits while it quenches | 1 m3 of water per lava block *(proposed)* from the water slot or the discharge line, plus 20 s of the pump's time. If there is no water the drill stops and says why |
 | **Other mods' liquids** | Pumped like water if the loader says the fluid is not hot (temperature under 100 C); otherwise treated like lava; if it cannot tell, it stops and asks | As water or lava |
 | **Caves and air gaps** | The track layer fills open space under the floor with cobble, and the lining closes the walls and roof as usual, so a cave is sealed off from the drive | Cobble from the inventory |
 
-- **Where the water goes (a deliberate simplification):** a real mine pumps its water to the surface through a column of
-  pipe and sumps. Tailings draws the tank and drain pipes so the machine looks right, but does not simulate the water's
-  path or store it: each pumped block is deleted. The power cost is still charged as if it were lifted to the surface.
-  The quench water for lava comes from the water slot, not from the voided water.
+- **Where the water goes:** pumped source blocks fill the quench tank first. Anything the tank cannot hold is deleted.
+  Quench water is that tank (buckets can still top it up). The power cost is still charged as if the water were lifted.
 - **Probing:** each advance the drill checks 3 blocks ahead of the face for liquid (as real probe holes do) and pumps or
   quenches before cutting.
 - **Pump size:** a 75 kW submersible-class dewatering pump at 480 V, about 30 L/s at 100 m head *(unverified)*, so a source block
@@ -128,7 +126,7 @@ Right-click the operator cab to open its screen.
   sandstone), one rock block a piece. The player never crafts them. It never uses ore, gravel, sand or dirt; those go to the
   cars. The pieces take the look of the rock they are cut from. If the mined rock runs short (in a cave or ore body) it draws
   on the cobble slot, and stops when that is empty too.
-  - **Lining segments**: 28 a ring, one ring a block of advance *(proposed: crafted from Wildcatter concrete and steel)*.
+  - **Lining**: 28 blocks a ring. The default ring is cobble or any stone the drill has just mined or is holding (stone, cobble, deepslate, granite, diorite, andesite, tuff, sandstone). **Crafted lining segments** (4 gray concrete + 1 iron = 4) are an optional cleaner ring, used when a full ring of them is in the slot.
   - **Water** (a tank slot): quench water for lava, filled from a pipe. It is separate from the pump's tank.
 - The screen shows the floor-piece stock (mined rock held back for pieces), each slot's count and how many blocks of drive it lasts. When a slot runs out the drill stops and says why.
 - **Readout:** depth, Y, blocks driven, power draw, cable left, water pumped.
@@ -163,16 +161,12 @@ There is **no overhead wire and no shock hazard on the track.**
 | `mine_locomotive` | 1 x 2 x 3 | 8 t mine locomotive, two 37 kW traction motors and a rack pinion, with a collector shoe under it on the conductor rail *(unverified)* |
 | `mine_car` | 1 x 2 x 2 | Granby-type side-dump car, **1.5 m3, 3 t of rock** (approved by Tim, 2026-11-02). It carries any mix of rock and ore types, each counted in kg |
 
-- **Capacity:** a car holds about 3,000 kg, about one block of ore (a uranium ore block is 2,300 kg; a rock-salt block 2,117 kg).
-  It carries **any mix** of rock and ore types (decided with Tim, 2026-11-02), as real run-of-mine rock does; right-click shows
-  its total load and the kg of each type.
+- **Capacity:** a real Granby car is about 3 t, about one block of ore. The game car holds **9 stacks (576 items)** of any mix, so the drill's 64-block advance fits in one car and a 10-car train keeps the buffer from staying full (revised with Tim, 2026-11-03). The 3 t figure stays the real counterpart; the stacks are the gameplay size.
 - **Powered pickup:** the locomotive's shoe draws real current from the conductor rail under it: about 75 kW pulling a loaded
   train up the decline, less on the flat, a little at idle for its lights and compressor. The rectifier's breaker trips on
   overload, as any Wildcatter feeder does, and its readout shows the track's load. On unpowered track, or past the last powered
   section, the locomotive brakes to a stop and holds on the rack.
-- **Safe track:** a section is switched live only under a locomotive; the conductor is shrouded and flush. A player, mob or item
-  on the track never gets a shock. This is the one Wildcatter conductor that does not shock, and it is safe because its real
-  counterpart is built to be.
+- **Safe track:** a fed section is live along its whole length, so tunnel lamps and signal lamps can draw from it (revised with Tim, 2026-11-03). The conductor is still shrouded and flush. A player, mob or item on the track never gets a shock. The locomotive carries a headlight. A thrown mine switch sends a train down the clockwise branch, with the block signals still keeping two trains out of the same section.
 - **Coupling and trains:** sneak-right-click with an empty hand couples a car to the one in front, up to **10 cars a
   locomotive** (approved by Tim, 2026-11-02): about 30 t of rock, 40 t with the cars, plus the 8 t locomotive. A train moves as one: it starts slowly (real tractive effort against the train's mass and the
   grade), keeps its spacing on curves, and stops as one. A car with no locomotive does not move by itself, except that it rolls
@@ -207,8 +201,7 @@ colour sorters, which reject waste rock from ore at mine sites).
 
 ## Breaking and safety
 - Breaking a track piece leaves the rest; a car at a gap derails and drops its load.
-- The track never shocks (above). A player standing on the track in front of a moving train is struck by it, so players use the walkway
-  between the tracks.
+- The track never shocks (above). A train is an entity. It hurts a player or mob it hits, 8 damage by default. `config/tailings-train.properties` with `damage=false` turns that off, and `amount=` changes it. Players still use the walkway between the tracks.
 
 ## Open questions
 - Keep the 1-in-1 steep option in the GUI (which brings back the rack exception), or 1 in 2 only?
@@ -216,5 +209,5 @@ colour sorters, which reject waste rock from ore at mine sites).
 - Sorter throughput: does the train wait to be sorted, or does the pocket buffer a whole train?
 - Gravel under the track on the decline too, or only on the flat?
 - Should the powered track also feed lights or pumps in the drive?
-- Chunk loading while the drill runs far from the player.
+- ~~Chunk loading while the drill runs far from the player.~~ **Decided 2026-11-03:** the moving drill files a chunk ticket (NeoForge `TicketController`, Fabric the level force-load ticket) on its contraption entity for the cab chunk, the face, and the 3-block probe. The ticket drops when the drill stops. Trains get the same kind of ticket along their route.
 - (Closed: caves, water and lava are handled by the lining and the pump; the remaining part is huge inflows, such as tunneling under an ocean.)

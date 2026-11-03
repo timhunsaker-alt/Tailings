@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IFI",
+    "IRI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:furnace",
+    "R": "tailings:mine_rail"
+  },
+  "result": {
+    "id": "tailings:mine_locomotive",
+    "count": 1
+  }
+}

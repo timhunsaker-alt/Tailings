@@ -12,7 +12,12 @@ public interface GroundGrid {
 	}
 
 	default void placeLining(int x, int y, int z) {
-		set(x, y, z, Ground.LINING);
+		placeLining(x, y, z, null);
+	}
+
+	/** {@code material} null is a crafted segment. Otherwise the ring cell is that stone block. */
+	default void placeLining(int x, int y, int z, Ground material) {
+		set(x, y, z, material == null ? Ground.LINING : material);
 	}
 
 	default void placeFloor(int x, int y, int z, FloorPiece piece, Ground rock) {

@@ -2,6 +2,7 @@ package dev.wildcatter.tailings.mine;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -122,11 +123,11 @@ class TunnelDrillTest {
 
 		TunnelDrill bare = ready(10, 4, Grade.ONE_IN_TWO);
 		bare.stock().setSegments(0);
-		TableGround solid = stoneBox();
-		Advance empty = bare.step(solid);
+		bare.stock().setCobble(0);
+		TableGround air = new TableGround();
+		Advance empty = bare.step(air);
 		assertEquals(Advance.Stop.EMPTY, empty.stop());
-		assertEquals("out of lining segments", empty.detail());
-		assertEquals(Ground.STONE, solid.get(1, 10, 0));
+		assertEquals(0, bare.advanceCount());
 	}
 
 	@Test
@@ -142,6 +143,59 @@ class TunnelDrillTest {
 		assertEquals(6, ground.count(Ground.COBBLE));
 		assertEquals(Ground.COBBLE, drove.floorRock()[0]);
 		assertEquals(8, drill.stock().cobble());
+	}
+
+	@Test
+	void withoutSegmentsTheRingIsCutFromStone() {
+		TableGround ground = stoneBox();
+		TunnelDrill drill = ready(10, 6, Grade.ONE_IN_TWO);
+		drill.stock().setSegments(0);
+		Advance drove = drill.step(ground);
+		assertEquals(Advance.Stop.NONE, drove.stop());
+		assertEquals(0, ground.count(Ground.LINING));
+		assertEquals(Ground.STONE, ground.get(0, 9, 0));
+		assertEquals(0, drill.stock().segments());
+		assertEquals(100, drill.stock().cobble());
+	}
+
+	@Test
+	void pumpedWaterFillsTheTankAndTheRestIsVoided() {
+		TableGround ground = stoneBox();
+		ground.set(0, 10, 0, Ground.WATER);
+		ground.set(1, 11, 0, Ground.WATER);
+		TunnelDrill drill = ready(10, 4, Grade.ONE_IN_TWO);
+		drill.stock().setWater(DrillStock.TANK_MAX - 1);
+		drill.step(ground);
+		assertEquals(DrillStock.TANK_MAX, drill.stock().water());
+
+		TableGround lava = stoneBox();
+		lava.set(2, 11, 0, Ground.LAVA);
+		lava.set(3, 11, 0, Ground.WATER);
+		TunnelDrill dry = ready(10, 4, Grade.ONE_IN_TWO);
+		dry.stock().setWater(0);
+		Advance quenched = dry.step(lava);
+		assertEquals(Advance.Stop.NONE, quenched.stop());
+		assertEquals(1, quenched.muck().get(Ground.OBSIDIAN));
+		assertEquals(0, dry.stock().water());
+	}
+
+	@Test
+	void theRampRisesTowardTheUphillEndAndTheMachineStepsForward() {
+		int[][] lower = SlopeRamp.boxes(false, false, Heading.NORTH);
+		int[][] upper = SlopeRamp.boxes(true, false, Heading.NORTH);
+		assertEquals(8, lower.length);
+		assertEquals(1, lower[0][4]);
+		assertEquals(8, lower[7][4]);
+		assertEquals(9, upper[0][4]);
+		assertEquals(16, upper[7][4]);
+		int[][] east = SlopeRamp.boxes(false, false, Heading.EAST);
+		assertEquals(8, east[7][4]);
+		assertTrue(east[7][0] < lower[7][2]);
+		int[] moved = DrillContraption.translate(10, 40, 12, Heading.NORTH, true);
+		assertArrayEquals(new int[] {10, 41, 11}, moved);
+		assertTrue(DrillContraption.ridingInBore(41, 40));
+		int[] again = DrillContraption.translate(moved[0], moved[1], moved[2], Heading.NORTH, false);
+		assertArrayEquals(new int[] {10, 41, 10}, again);
 	}
 
 	@Test

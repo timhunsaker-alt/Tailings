@@ -22,6 +22,8 @@ public final class TailingsItems {
 	public static final List<Item> MINERALS = new ArrayList<>();
 	public static final List<Item> CONCENTRATES = new ArrayList<>();
 	public static final List<Item> REAGENTS = new ArrayList<>();
+	public static Item LOCOMOTIVE;
+	public static Item CAR;
 
 	private TailingsItems() {
 	}
@@ -35,6 +37,8 @@ public final class TailingsItems {
 		for (Reagent reagent : Reagent.values()) {
 			REAGENTS.add(item(reagent.id()));
 		}
+		LOCOMOTIVE = item("mine_locomotive");
+		CAR = item("mine_car");
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

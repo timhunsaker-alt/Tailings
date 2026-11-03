@@ -7,7 +7,10 @@ import dev.wildcatter.circuit.Motor;
 import dev.wildcatter.energy.Inspectable;
 import dev.wildcatter.energy.Voltage;
 import dev.wildcatter.tailings.TailingsBlocks;
+import dev.wildcatter.tailings.entity.TunnelDrillEntity;
 import dev.wildcatter.tailings.mine.Advance;
+import dev.wildcatter.tailings.mine.DrillContraption;
+import dev.wildcatter.tailings.platform.Platform;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.mine.DrillProgram;
 import dev.wildcatter.tailings.mine.DrillStock;
@@ -20,10 +23,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -36,9 +41,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
@@ -66,6 +74,8 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final TunnelDrill drill = new TunnelDrill(program, stock, 0, 0, 0);
 	private final List<String> pending = new ArrayList<>();
 	private final Set<Long> forced = new HashSet<>();
+	private UUID runner = UUID.randomUUID();
+	private boolean moving;
 	private boolean demand;
 	private boolean forcedPower;
 	private boolean running;
@@ -195,7 +205,9 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			status = DrillCodes.DRIVING;
 			lack = DrillCodes.LACK_NONE;
 			wait = drill.ticksFor(ground);
-			lockChunks();
+			setChanged();
+			relocate();
+			return drove;
 		}
 		setChanged();
 		return drove;
@@ -210,6 +222,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return;
 		}
 		acceptBuckets();
+		loadCars();
 		PumpBlockEntity pump = pump();
 		if (pump != null) {
 			pump.setDemand(running);
@@ -247,6 +260,8 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				wait = drill.ticksFor(new WorldGround(level, program.heading()));
 			}
 		}
+		ensureContraption();
+		lockChunks();
 	}
 
 	private void turn() {
@@ -277,6 +292,32 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
 		BlockEntity behind = level.getBlockEntity(worldPosition.relative(facing.getOpposite()));
 		return behind instanceof PumpBlockEntity pump ? pump : null;
+	}
+
+	private void loadCars() {
+		if (level == null || !getBlockState().hasProperty(TunnelDrillBlock.FACING)) {
+			return;
+		}
+		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
+		if (!(level.getBlockEntity(worldPosition.relative(facing.getOpposite())) instanceof RailBlockEntity rail)
+				|| rail.kind() != RailBlockEntity.Kind.CAR || rail.load().room() <= 0) {
+			return;
+		}
+		int moved = 0;
+		for (int slot = INPUTS; slot < SLOTS && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER; slot++) {
+			ItemStack stack = slots.get(slot);
+			while (!stack.isEmpty() && rail.load().room() > 0 && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER) {
+				String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+				if (rail.load().add(id, 1) != 0) {
+					return;
+				}
+				stack.shrink(1);
+				moved++;
+			}
+		}
+		if (moved > 0) {
+			setChanged();
+		}
 	}
 
 	private void acceptBuckets() {
@@ -384,12 +425,13 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	private void lockChunks() {
-		if (!(level instanceof ServerLevel server) || drill.advanceCount() < 0) {
+		if (!(level instanceof ServerLevel server)) {
 			return;
 		}
 		if (drill.advanceCount() == 0) {
 			drill.placeOriginFrom(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
 		}
+		ensureContraption();
 		Set<Long> want = new HashSet<>();
 		want.add(ChunkPos.pack(worldPosition));
 		want.add(ChunkPos.pack(cell(0, 0, 0)));
@@ -398,25 +440,96 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			if (want.contains(old)) {
 				return false;
 			}
-			server.setChunkForced(ChunkPos.getX(old), ChunkPos.getZ(old), false);
+			Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(old), ChunkPos.getZ(old), false);
 			return true;
 		});
 		for (long packed : want) {
 			if (forced.add(packed)) {
-				server.setChunkForced(ChunkPos.getX(packed), ChunkPos.getZ(packed), true);
+				Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(packed), ChunkPos.getZ(packed), true);
 			}
 		}
 	}
 
 	private void releaseChunks() {
-		if (!(level instanceof ServerLevel server)) {
-			forced.clear();
-			return;
-		}
-		for (long packed : forced) {
-			server.setChunkForced(ChunkPos.getX(packed), ChunkPos.getZ(packed), false);
+		if (level instanceof ServerLevel server) {
+			for (long packed : forced) {
+				Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(packed), ChunkPos.getZ(packed), false);
+			}
 		}
 		forced.clear();
+	}
+
+	/**
+	 * Slides the cab and the pump one block along the heading, lifting into the bore on the first advance. The
+	 * controller entity moves with them and keeps the chunk ticket.
+	 */
+	private void relocate() {
+		if (!(level instanceof ServerLevel server) || !getBlockState().hasProperty(TunnelDrillBlock.FACING)) {
+			lockChunks();
+			return;
+		}
+		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
+		boolean lift = !DrillContraption.ridingInBore(worldPosition.getY(), drill.startFloorY());
+		int[] to = DrillContraption.translate(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), program.heading(), lift);
+		BlockPos newCab = new BlockPos(to[0], to[1], to[2]);
+		BlockPos delta = newCab.subtract(worldPosition);
+		List<BlockPos> cells = new ArrayList<>();
+		cells.add(worldPosition);
+		PumpBlockEntity pump = pump();
+		if (pump != null && level.getBlockState(pump.getBlockPos()).getBlock() instanceof DewateringPumpBlock pumpBlock) {
+			for (BlockPos cell : pumpBlock.cells(pump.getBlockPos(), facing)) {
+				if (level.getBlockState(cell).getBlock() == TailingsBlocks.DEWATERING_PUMP && !cells.contains(cell)) {
+					cells.add(cell);
+				}
+			}
+		}
+		List<BlockState> states = new ArrayList<>();
+		List<CompoundTag> tags = new ArrayList<>();
+		for (BlockPos cell : cells) {
+			states.add(level.getBlockState(cell));
+			BlockEntity entity = level.getBlockEntity(cell);
+			if (entity == null) {
+				tags.add(null);
+			} else {
+				TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
+				entity.saveWithoutMetadata(output);
+				tags.add(output.buildResult());
+			}
+		}
+		releaseChunks();
+		moving = true;
+		for (BlockPos cell : cells) {
+			level.removeBlock(cell, false);
+		}
+		for (int i = 0; i < cells.size(); i++) {
+			BlockPos dest = cells.get(i).offset(delta);
+			server.setBlock(dest, states.get(i), 3);
+			if (tags.get(i) != null && server.getBlockEntity(dest) != null) {
+				server.getBlockEntity(dest).loadCustomOnly(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tags.get(i)));
+			}
+		}
+		moving = false;
+		if (server.getBlockEntity(newCab) instanceof DrillBlockEntity moved) {
+			moved.ensureContraption();
+			moved.lockChunks();
+			if (server.getEntity(moved.runner) instanceof TunnelDrillEntity contraption) {
+				contraption.setPos(newCab.getX() + 0.5, newCab.getY(), newCab.getZ() + 0.5);
+			}
+		}
+	}
+
+	private void ensureContraption() {
+		if (!(level instanceof ServerLevel server)) {
+			return;
+		}
+		if (server.getEntity(runner) instanceof TunnelDrillEntity) {
+			return;
+		}
+		TunnelDrillEntity contraption = new TunnelDrillEntity(level);
+		contraption.setPos(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5);
+		if (server.addFreshEntity(contraption)) {
+			runner = contraption.getUUID();
+		}
 	}
 
 	public void dropContents() {
@@ -433,7 +546,9 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public void setRemoved() {
-		releaseChunks();
+		if (!moving) {
+			releaseChunks();
+		}
 		super.setRemoved();
 	}
 
@@ -486,6 +601,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putInt("status", status);
 		output.putInt("lack", lack);
 		output.putString("pending", String.join("|", pending));
+		output.putString("runner", runner.toString());
 	}
 
 	@Override
@@ -521,6 +637,11 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 					pending.add(line);
 				}
 			}
+		}
+		try {
+			runner = UUID.fromString(input.getStringOr("runner", runner.toString()));
+		} catch (IllegalArgumentException ex) {
+			runner = UUID.randomUUID();
 		}
 	}
 

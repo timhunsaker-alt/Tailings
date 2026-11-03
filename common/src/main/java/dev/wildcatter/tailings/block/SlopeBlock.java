@@ -1,5 +1,7 @@
 package dev.wildcatter.tailings.block;
 
+import dev.wildcatter.tailings.mine.Heading;
+import dev.wildcatter.tailings.mine.SlopeRamp;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -29,19 +31,23 @@ public class SlopeBlock extends Block {
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return shape(state.getValue(HALF));
+		return shape(state.getValue(HALF), state.getValue(FACING));
 	}
 
 	@Override
 	protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return shape(state.getValue(HALF));
+		return shape(state.getValue(HALF), state.getValue(FACING));
 	}
 
-	private static VoxelShape shape(SlopeHalf half) {
-		return switch (half) {
-			case UPPER -> box(0, 8, 0, 16, 16, 16);
-			case STEEP -> Shapes.block();
-			case LOWER -> box(0, 0, 0, 16, 8, 16);
-		};
+	/** Eight slices along the run, so a player walks a 1-in-2 ramp instead of a slab step. */
+	public static VoxelShape shape(SlopeHalf half, Direction facing) {
+		boolean steep = half == SlopeHalf.STEEP;
+		boolean upper = half == SlopeHalf.UPPER;
+		Heading downhill = Heading.valueOf(facing.name());
+		VoxelShape shape = Shapes.empty();
+		for (int[] box : SlopeRamp.boxes(upper, steep, downhill)) {
+			shape = Shapes.or(shape, box(box[0], box[1], box[2], box[3], box[4], box[5]));
+		}
+		return shape;
 	}
 }

@@ -79,6 +79,16 @@ public class DewateringPumpBlock extends BaseEntityBlock {
 		return true;
 	}
 
+	public java.util.List<BlockPos> cells(BlockPos main, Direction facing) {
+		int turns = turns(facing);
+		java.util.ArrayList<BlockPos> cells = new java.util.ArrayList<>();
+		for (int piece = 0; piece < footprint.pieces(); piece++) {
+			int[] at = footprint.offset(piece, turns);
+			cells.add(main.offset(at[0], at[1], at[2]));
+		}
+		return cells;
+	}
+
 	public BlockPos mainOf(BlockPos pos, BlockState state) {
 		int[] at = footprint.offset(state.getValue(PIECE), turns(state.getValue(FACING)));
 		return pos.offset(-at[0], -at[1], -at[2]);

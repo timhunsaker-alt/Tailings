@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I I",
+    "ICI",
+    "IRI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:chest",
+    "R": "tailings:mine_rail"
+  },
+  "result": {
+    "id": "tailings:mine_car",
+    "count": 1
+  }
+}
