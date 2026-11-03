@@ -1,0 +1,47 @@
+{
+  "textures": {
+    "particle": "tailings:block/block_signal",
+    "body": "tailings:block/block_signal",
+    "lamp": "tailings:block/signal_lamp_on"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#body",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#body",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#lamp",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#body",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#body",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#body",
+          "cullface": "east"
+        }
+      }
+    }
+  ]
+}

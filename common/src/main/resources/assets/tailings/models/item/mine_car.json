@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:item/chest_minecart"
+    "layer0": "tailings:item/mine_car"
   }
 }

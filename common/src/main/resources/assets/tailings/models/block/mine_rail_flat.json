@@ -1,7 +1,64 @@
 {
-  "parent": "minecraft:block/cube_column",
   "textures": {
+    "particle": "minecraft:block/gravel",
     "side": "minecraft:block/gravel",
-    "end": "minecraft:block/iron_block"
-  }
+    "rail": "tailings:block/mine_rail"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#side",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#side",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#side",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        16,
+        0
+      ],
+      "to": [
+        16,
+        16.25,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#rail"
+        }
+      }
+    }
+  ]
 }
