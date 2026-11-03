@@ -1,74 +1,106 @@
 # Tailings — Roadmap
 
-Exactly one phase is marked **CURRENT**. Each phase is done when `./gradlew runClientGameTest` passes with new coverage for the
-phase, PROGRESS.md is updated, and the Field Manual has a page for each new system.
+Phases 0 through 3 are **done** and on `main`. **Phase 4 is next.** One phase is the current target. "Done" here means the behavior is in the code, `./gradlew build` passes, and `:neoforge:runGameTestServer` passes. There is no Field Manual yet, and there is no Fabric client game-test task.
 
-## Phase 0 — Set up
-The multi-loader skeleton and the recovery ladder are in. Phase 0's "done" line (a client game test, PROGRESS.md, a Field
-Manual page) is only partly met: there is a NeoForge game test from Phase 1, and no Field Manual yet.
-- README, VISION.md, ROADMAP.md and the first specs (this draft). Tim settles the open questions below.
-- A multi-loader project like Wildcatter's (common, fabric, neoforge): its own jars, each with a hard dependency on Wildcatter 0.2.0+.
-- A plain-Java `recovery` package: the mineral mass in a block, each stage's recovery, and tests that no route returns more
-  than the block holds.
+## Phase 0 — Set up — done
 
-## Phase 1 — Rock and the ladder of sizes
-- 1a: crushed products for each rock type: crushed rock → gravel → sand → fines, each with its mineral list (granite, diorite,
-  andesite, deepslate, tuff, sandstone, cobblestone, and the 27 Wildcatter ores).
-- 1b: a hand-fed starter jaw crusher and a screen; the 1x baseline (a plain drop is 25 % of the block's mineral) in the
-  recovery package; ore nuggets from ordinary rock and how they combine.
-- 1c: gravity concentration (spiral, jig, shaking table) for cassiterite, heavy mineral sand, scheelite, chromite, silver,
-  and vanilla gold; magnetic separation for vanilla iron (magnetite) (2x).
-- 1d: vanilla ores: iron, copper and gold (ore blocks and raw ore items) on the same 1x/2x/3x/4x ladder; one plain smelt is
-  1 ingot, the full line 4 ingots. Others that fit (for example redstone, lapis) are judged ore by ore.
+Pull request [#1](https://github.com/timhunsaker-alt/Tailings/pull/1).
 
-## Phase 2 — The concentrator
-- 2a: the crushing circuit at true size (`multiblocks/crushing-circuit.md`).
-- 2b: the ball mill and cyclones, grinding to liberation.
-- 2c: the flotation cell bank (`multiblocks/flotation-bank.md`) with reagents from Wildcatter's chemicals (3x).
-- 2d: thickeners and filters; concentrate in bags or drums.
+- Multi-loader project (`common`, `fabric`, `neoforge`), its own jars, hard dependency on Wildcatter 0.2.0+.
+- Plain-Java `recovery` package: 25%, 50%, 75%, 95%, and tests that no route pays more than the block holds.
+- CC0, and CI that runs `./gradlew build` and `:neoforge:runGameTestServer`.
 
-## Phase 3 — The mine — CURRENT
-- 3a: the track-laying TBM (`multiblocks/tunnel-drill-haulage.md`): an 8 x 8 cut, a 6 x 6 drive. The machine is a moving contraption that advances with the face. The default lining is cobble or mined stone; crafted segments are optional. The floor is a smooth 1-in-2 ramp (slope | slope + track | stair | stair | slope + track | slope). The pump fills a quench tank from the water it meets and voids the rest. A full muck buffer pauses the drill until a train empties it.
-- 3b: twin-track haulage on Tailings' own mine rail: 1 block gauge; custom Granby side-dump mine cars (about 3 t, mixed loads), a mine locomotive
-  drawing from the powered mine rail (a shrouded, segmented conductor rail, safe to walk on; no overhead wire) fed from a
-  480 V AC to 250 V DC traction rectifier on the Wildcatter grid, a rack for the 1-in-2 decline, trains of up to 10 cars, a dump station that sorts each type into its ore bin, coupled trains, loading and dump stations,
-  block signals. Custom cars, not vanilla minecarts (decided with Tim, 2026-11-02).
-- 3c: ventilation *(proposed)*.
+## Phase 1 — Rock and the starter mill — done
 
-## Phase 4 — Full recovery
-- 4a: scavenger and cleaner flotation, regrind.
-- 4b: leaching of flotation tails (tank leach with Wildcatter's sulfuric acid; heap leach on a lined pad).
-- 4c: by-products: cadmium and indium from sphalerite; silver from galena; rhenium from molybdenite roasting; cobalt from
-  pentlandite; monazite rare earths from heavy mineral sand (4x).
-- 4d: the lined tailings cell, shared with Wildcatter's uranium mill (Wildcatter ROADMAP idea).
+Pull request [#2](https://github.com/timhunsaker-alt/Tailings/pull/2).
 
-## Ideas (not scheduled)
-- Magnetic separation for ilmenite, and electrostatic separation (rutile, zircon). (Magnetite for vanilla iron is in 1c.)
-- Dense-medium separation, ore sorting by X-ray.
-- A shaft and hoist (headframe, skip) as the late alternative to the decline.
+- Size items for every feed: crushed, gravel, sand, and fines. Feeds are cobblestone, stone, granite, diorite, andesite, deepslate, tuff, sandstone, vanilla iron, copper, and gold, and the 27 Wildcatter ores.
+- Hand stamp mill and hand screen change size and pay nothing. The shaking table (gravity) and the magnetic separator (iron) pay the 50% route.
+- Nuggets from processing. Nine nuggets craft into one mineral item. Iron and gold use `minecraft:iron_nugget` and `minecraft:gold_nugget`. Copper has a Tailings nugget.
+- Separate spiral and jig blocks were not built. The shaking table is the gravity machine.
+
+## Phase 2 — The concentrator — done
+
+Pull request [#4](https://github.com/timhunsaker-alt/Tailings/pull/4).
+
+- True-size crushing circuit: grizzly, jaw crusher, 6 m belt, double-deck screen, cone crusher, ball mill (4.16 kV), cyclone cluster. Spec: [multiblocks/crushing-circuit.md](multiblocks/crushing-circuit.md).
+- The ball mill turns sand into fines. Fines are items. The bank treats them as 90% liberated and still pays the even 75% ladder.
+- Flotation bank: conditioning tank, four roughers, two scavengers, two cleaners, air blower, concentrate thickener, pressure filter. Spec: [multiblocks/flotation-bank.md](multiblocks/flotation-bank.md).
+- The bank pays 75% for galena, sphalerite, pentlandite, molybdenite, cobaltite, acanthite, platinum, and vanilla copper and gold.
+- Reagents are Tailings items. Lime is calcite smelted to quicklime, because Wildcatter has no lime. Xanthate, MIBC, and copper sulfate are crafted. Copper sulfate is dosed only when the feed holds sphalerite.
+- The powered-machine crafting recipes are placeholders (eight iron ingots around one copper ingot). They are not true-size recipes.
+
+## Phase 3 — The mine — done
+
+Spec: [multiblocks/tunnel-drill-haulage.md](multiblocks/tunnel-drill-haulage.md). Pull requests [#5](https://github.com/timhunsaker-alt/Tailings/pull/5) (first drill), [#6](https://github.com/timhunsaker-alt/Tailings/pull/6) (haulage), [#7](https://github.com/timhunsaker-alt/Tailings/pull/7) (Tim's revisions), [#8](https://github.com/timhunsaker-alt/Tailings/pull/8) (block and item textures), [#9](https://github.com/timhunsaker-alt/Tailings/pull/9) (entity models and the remaining sprites).
+
+What the revisions in pull request 7 delivered, and what the later art pull requests added:
+
+- **Moving drill and chunk loaders.** The drill is an entity-owned moving assembly, not a static multiblock. Ticket force-loading keeps the drill and the trains running when players are away. NeoForge uses a `TicketController` (`tailings:runner`). Fabric uses `ServerLevel.setChunkForced`. Tickets drop when the machine stops or is removed.
+- **The drill stops when the buffer is full**, so a train can keep the heading loaded. The pause does not latch the drill off. The next tick tries again. One face of muck is up to 64 items, which is also how many items move into a waiting car in one tick.
+- **Smooth ramps.** Slope and rail beds are eight cuboid slices (2 pixels of run each), and the collision matches. A 1-in-2 pair is a lower half then an upper half. Walkway stairs and a landing every other block stay as they were.
+- **Floor and bed.** Mined rock becomes the floor pieces. Gravel ballast is only on the flat. Cobble fills caves under the floor. The flat-rail model now uses the ballast texture under the rail overlay. The switch bed is still the gravel texture (see gaps).
+- **Lining.** The default ring is cobble or any stone the drill has just mined or is holding (stone, cobble, deepslate, granite, diorite, andesite, tuff, sandstone). Crafted segments (4 gray concrete + 1 iron ingot = 4) are optional. They are used only when a full ring of 28 is in the segment slot.
+- **Quench water.** The tank holds 256 m³. Pumped water fills it first. Excess is voided. A water bucket can still top the tank up. Lava is quenched from that tank, then cut as rock.
+- **Trains.** Up to 10 cars. Each car holds 9 stacks (576 items), so one 64-item drill face fits in a car. The real Granby figure in the spec stays about 3 t. That number is not the inventory size. The dump pocket holds one 10-car train. The apron clears one stack (64 items) each second.
+- **Power on the rail.** A fed conductor section is live along its whole length and is still safe to walk: no shock. Mine lights and signal lamps draw from a neighboring fed rail. The locomotive has a headlight. A thrown `mine_switch` sends a train clockwise, and the same signal check still applies.
+- **Trains hurt players and mobs.** Default damage is 8. It is `config/tailings-train.properties` (`damage=true` or `damage=false`, and `amount=`), not a gamerule. Only the locomotive is an entity. Its hitbox covers the consist. Cars are data on the rail blocks, drawn by the locomotive's renderer.
+
+Pull request 3, between the phases, is docs only: an unscheduled PLC idea. See Ideas below.
+
+Ventilation (old 3c) was only a proposal. It is not in the game.
+
+## Phase 4 — Full recovery — next
+
+Not started.
+
+- **4a.** Scavenger and cleaner flotation beyond the fixed bank, and a regrind.
+- **4b.** Leaching the flotation tails: tank leach with Wildcatter's sulfuric acid, and heap leach on a lined pad.
+- **4c.** By-products, the 95% route: cadmium and indium from sphalerite, silver from galena, rhenium from molybdenite, cobalt from pentlandite, monazite rare earths from heavy mineral sand. The played multiple is 4x. The mass paid is 95% of what the block holds, not 100%. 95/25 is 3.8. The even 4x is the written exception in [VISION.md](VISION.md).
+- **4d.** The lined tailings cell, shared with the Wildcatter uranium-mill idea. What the mill rejects has to go somewhere.
+
+## Later, not scheduled
+
+- Ventilation of the drive.
+- Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
+- Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
+- A shaft and hoist (headframe, skip) instead of the decline.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track.
 - Bottom-dump cars over a grizzly.
 - Open-pit mining with haul trucks.
 - Paste backfill of old stopes with tailings.
-- In-game PLCs, modeled on real ones (a Siemens S7 and others). The player programs them in the world, in the real forms:
-  ladder logic, function blocks, and I/O modules. Uses: the TBM's program, the dump sorter, train block signals, and plant
-  pumps. Wildcatter's controls are fixed hardware, not a program the player writes: the genset control panel (governor and
-  synchronizer), MCC starters with overload relays, and the substation's 50/51 and under-frequency relays (Wildcatter
-  `docs/multiblocks/genset.md`, `motor-control-center.md`, `substation.md`). Its "controller" is the block that owns a
-  multiblock, not a PLC. Those stay as they are. If both mods grow a programmable controller, the scan (ladder and function
-  blocks, no Minecraft imports) can be a plain-Java library in Wildcatter, the way its solver is, and Tailings would call it
-  for the mine and the plant.
+- In-game PLCs, modeled on a Siemens S7 and others: ladder logic, function blocks, and I/O modules, for the drill program, the dump sorter, train signals, and plant pumps. Wildcatter's controls stay fixed hardware (genset panel, MCC starters, substation relays). If both mods grow a programmable controller, the scan can live in Wildcatter as plain Java, the way its solver does, and Tailings would call it.
 
-## Open questions (for Tim)
-1. ~~1x baseline~~: **decided 2026-11-02:** plain mining counts as 25 % of the block's mineral; processing the drops fully
-   reaches 4x (VISION.md). **Tailings changes nothing in Wildcatter** (confirmed 2026-11-02): its drop stays the same and
-   Tailings reads one drop as 25 %.
-2. **Do Fortune and Silk Touch stay?** Fortune is a kind of multiplication. Keep it, cap it, or replace it with the plant.
-3. ~~Even or real steps~~: **decided 2026-11-02:** even 2x/3x/4x; 4x is a written exception (VISION.md).
-4. **Which rock types** get mineral lists, and from what source (crustal abundance × 10)?
-5. ~~Vanilla ores~~: **decided 2026-11-02:** yes. One vanilla ore smelted plainly is 1 ingot (1x); the full line gives 4
-   ingots (4x), on the same ladder (VISION.md).
-6. ~~Drill program~~: **decided 2026-11-02:** a GUI, with an inventory of mine rail, gravel and cobble.
-7. ~~Carts~~: **decided 2026-11-02:** Tailings' own mine cars on mine rail, not vanilla minecarts (`multiblocks/tunnel-drill-haulage.md`).
-8. ~~**Chunk loading** for a drill that runs far from the player.~~ **Decided 2026-11-03:** ticket-based force-loading on the drill's contraption and on each train, dropped when they stop. See `multiblocks/tunnel-drill-haulage.md`.
-9. ~~Packaging~~: **decided 2026-11-02:** its own jar that requires Wildcatter (VISION.md).
+## Known gaps and stand-ins
+
+These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
+
+- **No drill entity model.** `tunnel_drill` the entity is a `NoopRenderer`. The machine you see is the moved blocks, which use `tunnel_drill.png`.
+- **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
+- **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
+- **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
+- **Phase 1 and phase 2 machines still use vanilla block textures.** Stamp mill, screen, table, separator, and the crushing and flotation blocks were not in the phase 3 texture pack.
+- **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
+- **No turnout game test.** The haul scene is a straight powered rail, a coupled car, one step, and a dump. Nothing drives a train through a thrown `mine_switch`.
+- **Entity and block models were not checked in a live client.** Unit tests check the 20-pixel spacing. A game test bakes the entity layers and checks that the headlight and load parts exist. There is no headed-client pass.
+
+Other stand-ins worth knowing:
+
+- Powered-machine recipes are eight iron and one copper, for every plant block.
+- `mine_switch` and `mine_light` have no crafting recipe.
+- Slope, stair, landing, and mine floor are not crafted. The drill cuts them from mined stone.
+- Cars are not entities. The locomotive renderer draws them.
+- The eight-slice ramp is a cuboid stand-in for a smooth mesh. Vanilla JSON models cannot be an arbitrary wedge.
+- The dump's "sensor sorter" is a slot map, not an X-ray sorter.
+
+## Decisions already made
+
+1. Plain mining is 25% of the block. Tailings does not change Wildcatter's drop. Decided 2026-11-02.
+2. The played steps are even 2x / 3x / 4x. 4x pays 95%, a written exception. Decided 2026-11-02.
+3. Vanilla iron, copper, and gold are on the same ladder. One plain smelt is 1 ingot. Decided 2026-11-02.
+4. The drill program is a GUI, with rail, gravel, cobble, segments, and a water bucket slot. Decided 2026-11-02.
+5. Haulage is Tailings mine rail and mine cars, not vanilla minecarts. Decided 2026-11-02.
+6. Chunk loading is ticket force-loading on the drill and on each train. Decided 2026-11-03.
+7. Packaging is its own jar that requires Wildcatter. Decided 2026-11-02.
+
+Still open, from the specs: whether Fortune and Silk Touch stay; which extra vanilla ores (redstone, lapis) join the ladder; whether the 1-in-1 steep grade stays in the GUI; whether broken lining leaks; whether gravel ballast belongs on the decline as well as the flat.

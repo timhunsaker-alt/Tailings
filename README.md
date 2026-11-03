@@ -1,56 +1,58 @@
 # Tailings
 
-A Minecraft Java 26.3 add-on (Java 25) for **Wildcatter**, on **Fabric and NeoForge**: real mines and real mills. You drive a
-tunnel with a track-laying drill, haul run-of-mine rock out on twin-track haulage in custom mine cars, and put it through a concentrator:
-crushing, grinding, screening, gravity, magnetic and flotation separation, leaching and by-product recovery. A block of
-Wildcatter ore gives up to **four times** what plain mining and smelting give, because each stage recovers mineral that the
-simpler route throws away, as in a real mill. Every machine is a true-size multiblock of real parts, powered from the Wildcatter
-grid at real voltages. What it is and why it is allowed is in `docs/VISION.md`. What comes next is in `docs/ROADMAP.md`. Each
-machine's spec is in `docs/multiblocks/`.
+Tailings is a Minecraft **26.3** add-on (Java **25**) for [Wildcatter](https://github.com/timhunsaker-alt/Wildcatter). It is **its own jar** on **Fabric and NeoForge**, and it **requires Wildcatter 0.2.0 or newer** on the same loader. It will not load without it. Tailings has no grid, ores, or pipes of its own. Machines draw power from Wildcatter, and Wildcatter's ore blocks are the feed.
 
-## What's in it
-Phase 1 is four hand-cranked blocks. Phase 2 adds the true-size crushing circuit and flotation bank, which draw power from
-the Wildcatter grid. The tunnel drill bores, lines and lays its floor. A traction rectifier feeds the mine rail, and a locomotive
-hauls up to ten 3 t cars to a dump that sorts them. Textures are vanilla stand-ins.
-- **Rock crushing by rock type:** cobblestone, stone, granite, diorite, andesite, deepslate, tuff, sandstone, vanilla iron,
-  copper and gold, and Wildcatter's 27 ores each have crushed rock, gravel, sand and fines. Fines are items only; the ball mill
-  is later.
-- **The crushing circuit:** a jaw crusher, a cone crusher, vibrating screens and a ball mill with cyclones
-  (`docs/multiblocks/crushing-circuit.md`).
-- **Concentration:** a flotation cell bank for the sulfides (galena, sphalerite, pentlandite, molybdenite, cobaltite,
-  acanthite, platinum reef) (`docs/multiblocks/flotation-bank.md`); gravity (spirals, jigs, shaking tables) and magnetic
-  separation later.
-- **Leaching and by-products:** heap and tank leach of flotation tailings; cadmium and indium from sphalerite; silver from
-  galena; rhenium from molybdenite; cobalt from pentlandite (ROADMAP).
-- **The mine:** a programmable track-laying tunnel drill that bores a decline to a set Y level and then drives flat, and
-  a lined 6 x 6 bore kept dry by its pump, 1-in-2 slopes under two tracks and a walkway between them, and trains of up to
-  10 custom mine cars on powered track that is safe to walk on, carrying mixed loads that a dump station sorts into ore bins
-  (`docs/multiblocks/tunnel-drill-haulage.md`).
-- **Tailings:** what the mill rejects goes to a lined tailings cell, as in the Wildcatter ROADMAP idea.
+The mod is about getting rock out of the ground and the mineral out of the rock. A plain mine-and-smelt is **1x (25%)** of the mineral a block holds. Gravity or magnetic concentration is **2x (50%)**. Flotation is **3x (75%)**. The full line, not built yet, is **4x**, which pays **95%** of what the block holds (a written exception: 95/25 is 3.8). Nothing is created that was not already in the rock. Why that is allowed is in [docs/VISION.md](docs/VISION.md). How the current systems work is in [docs/DESIGN.md](docs/DESIGN.md).
 
-## Needs
-- Tailings is **its own jar** and **requires Wildcatter** 0.2.0 or newer on the same loader and Minecraft version; it will not
-  load without it. It has no grid, ores or pipe of its own; it uses Wildcatter's.
+Version **0.1.0**. License [CC0](LICENSE).
 
-## The code
-One codebase, two loaders, laid out as Wildcatter is: `common/` (recovery math, rock lists, the machines), `fabric/` and
-`neoforge/` (entry points). Recovery, the rock lists and the plant math are plain Java with no Minecraft imports.
-`./gradlew :common:test` checks the ladder, the size steps, and that the 50% and 75% routes stay inside the block.
+## Install
 
-## Building
-Run Gradle on Java 25. Fabric Loom 1.19 refuses a Java 21 Gradle JVM. NeoForge's build tools also want a Java 21
-installation on the machine. `./gradlew build` compiles both loader jars and runs the recovery tests.
+You need Minecraft 26.3, Java 25, and Wildcatter 0.2.0 or newer built for the same loader.
 
-Wildcatter **0.2.0** is a compile-only dependency, downloaded from its GitHub release (not published to Maven, and not
-bundled into the Tailings jar):
+**Fabric:** Fabric Loader 0.20.1 or newer, Fabric API `0.165.0+26.3`, the Wildcatter Fabric jar, and `tailings-fabric-0.1.0.jar`.
+
+**NeoForge:** NeoForge 26.3.0.101 or newer, the Wildcatter NeoForge jar, and `tailings-neoforge-0.1.0.jar`.
+
+Put the Tailings jar and the Wildcatter jar in the instance `mods` folder. `fabric.mod.json` and `neoforge.mods.toml` both require `wildcatter` at `[0.2.0,)`.
+
+Wildcatter 0.2.0 is not on Maven. The release jars are:
 
 - https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-fabric-0.2.0.jar
 - https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-neoforge-0.2.0.jar
 
-`fabric.mod.json` and `neoforge.mods.toml` require Wildcatter 0.2.0 or newer, so the game will not load Tailings without it.
-The NeoForge run also puts that jar on the runtime classpath. `./gradlew :neoforge:runGameTestServer` covers the starter
-line, the jaw's true size, the crushing circuit making fines, and the flotation bank paying 3 copper ingots. The Fabric
-client game test is still later.
+## What you can do now
 
-## Testing
-`./gradlew build`, `./gradlew :common:test`, and `./gradlew :neoforge:runGameTestServer`.
+Phases 1 through 3 are in the game. Phase 4 (full 95% recovery, by-products, the lined tailings cell) is next. Status and the known gaps are in [docs/ROADMAP.md](docs/ROADMAP.md). History is in [CHANGELOG.md](CHANGELOG.md).
+
+- **Hand mill (2x).** A stamp mill and a hand screen break rock down the size ladder (crushed, gravel, sand). A shaking table and a magnetic separator pay the 50% route. Nine nuggets craft into one mineral item. Iron and gold use the vanilla nuggets.
+- **Concentrator (3x).** A true-size crushing circuit (grizzly, jaw, belt, screen, cone, ball mill, cyclones) grinds sand to fines. A flotation bank (conditioner, four roughers, two scavengers, two cleaners, blower, thickener, filter) pays 75% for the sulfides and for vanilla copper and gold. The motors are Wildcatter's, at 480 V or 4.16 kV.
+- **The mine.** A moving tunnel drill cuts an 8×8 face and leaves a 6×6 lined drive, with smooth 1-in-2 ramps, a stair walkway, and twin mine rail. It pauses when the muck buffer is full. A traction rectifier feeds the rail. A locomotive hauls up to ten cars (nine stacks each) to a dump that sorts the load. Fed rails power lights and signals. Trains hurt players and mobs unless `config/tailings-train.properties` says otherwise.
+
+## Docs
+
+| Doc | What it is |
+|---|---|
+| [docs/VISION.md](docs/VISION.md) | Why the recovery ladder is not ore multiplication |
+| [docs/DESIGN.md](docs/DESIGN.md) | How the systems, blocks, items, entities, and recipes actually work |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Phase status, what each merged PR delivered, and what is still a stand-in |
+| [docs/ART.md](docs/ART.md) | Where the textures and entity models live, and how they were made |
+| [docs/multiblocks/](docs/multiblocks/) | Machine specs: crushing circuit, flotation bank, tunnel drill and haulage |
+| [CHANGELOG.md](CHANGELOG.md) | Merged pull requests |
+| [PROGRESS.md](PROGRESS.md) | Short status notes |
+
+## Building
+
+The Gradle JVM must be Java 25. Fabric Loom 1.19 refuses a Java 21 Gradle JVM. NeoForge's build tools also want a Java 21 installation on the machine (CI installs both).
+
+```bash
+./gradlew build
+./gradlew :common:test
+./gradlew :neoforge:runGameTestServer
+```
+
+`build` compiles both loader jars and runs the plain-Java tests. The game-test server is a separate task. Jars land in `fabric/build/libs/` and `neoforge/build/libs/`.
+
+Wildcatter is `compileOnly` (and NeoForge `runtimeOnly` for the game tests). It is downloaded from the GitHub release above and is not bundled into the Tailings jar.
+
+Layout, same shape as Wildcatter: `common/` (the mod), `fabric/` and `neoforge/` (entry points). Recovery, rock lists, milling math, the plant, and haulage rules are plain Java with no Minecraft imports. `verifyPlainJava` enforces that for `recovery`, `rock`, `mine`, and `haul`.
