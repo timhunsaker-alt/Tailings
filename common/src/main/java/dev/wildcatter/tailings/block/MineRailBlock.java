@@ -1,5 +1,7 @@
 package dev.wildcatter.tailings.block;
 
+import dev.wildcatter.tailings.mine.Heading;
+import dev.wildcatter.tailings.mine.SlopeRamp;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -35,19 +37,24 @@ public class MineRailBlock extends Block {
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return shape(state.getValue(GRADE));
+		return shape(state.getValue(GRADE), state.getValue(FACING));
 	}
 
 	@Override
 	protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return shape(state.getValue(GRADE));
+		return shape(state.getValue(GRADE), state.getValue(FACING));
 	}
 
-	private static VoxelShape shape(RailGrade grade) {
-		return switch (grade) {
-			case LOWER -> box(0, 0, 0, 16, 8, 16);
-			case UPPER -> box(0, 8, 0, 16, 16, 16);
-			case FLAT, STEEP -> Shapes.block();
-		};
+	private static VoxelShape shape(RailGrade grade, Direction facing) {
+		if (grade == RailGrade.FLAT) {
+			return Shapes.block();
+		}
+		boolean steep = grade == RailGrade.STEEP;
+		boolean upper = grade == RailGrade.UPPER;
+		VoxelShape shape = Shapes.empty();
+		for (int[] box : SlopeRamp.boxes(upper, steep, Heading.valueOf(facing.name()))) {
+			shape = Shapes.or(shape, box(box[0], box[1], box[2], box[3], box[4], box[5]));
+		}
+		return shape;
 	}
 }

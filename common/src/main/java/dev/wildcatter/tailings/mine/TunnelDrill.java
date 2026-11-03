@@ -144,6 +144,8 @@ public final class TunnelDrill {
 		boolean decline = declining();
 		FloorPiece[] floor = DriveCourse.floor(advance, program.grade(), decline);
 		int rockNeed = DriveCourse.rockPieces(floor);
+		int liningStone = stock.segments() >= DriveCourse.SEGMENTS_PER_RING ? 0 : DriveCourse.SEGMENTS_PER_RING;
+		int holdCap = rockNeed + liningStone;
 		List<int[]> liquids = new ArrayList<>();
 		boolean sawOre = false;
 		boolean blocked = false;
@@ -177,7 +179,7 @@ public final class TunnelDrill {
 							waterSources++;
 						}
 					}
-					if (ahead == 0 && predicted(cell).isFloorRock() && incoming < rockNeed) {
+					if (ahead == 0 && predicted(cell).isFloorRock() && incoming < holdCap) {
 						incoming++;
 					}
 				}
@@ -200,10 +202,11 @@ public final class TunnelDrill {
 		if (unknown && program.stopOnLiquid()) {
 			return halt(Advance.Stop.LIQUID, "unknown liquid");
 		}
-		if (lava > 0 && stock.water() < lava) {
+		int keptWater = Math.min(waterSources, Math.max(0, DrillStock.TANK_MAX - stock.water()));
+		if (lava > 0 && stock.water() + keptWater < lava) {
 			return halt(Advance.Stop.LIQUID, "lava ahead and no quench water");
 		}
-		String missing = stock.missing(floor, cave, lava, incoming);
+		String missing = stock.missing(floor, cave, lava, incoming, keptWater);
 		if (missing != null && program.stopOnEmpty()) {
 			return halt(Advance.Stop.EMPTY, "out of " + missing);
 		}
@@ -227,7 +230,7 @@ public final class TunnelDrill {
 					continue;
 				}
 				String drop = ground.dropId(x, y, z);
-				if (kind.isFloorRock() && held.size() < rockNeed) {
+				if (kind.isFloorRock() && held.size() < holdCap) {
 					held.add(kind);
 				} else {
 					drove.addMuck(kind, drop, 1);
@@ -235,11 +238,16 @@ public final class TunnelDrill {
 				ground.set(x, y, z, Ground.AIR);
 			}
 		}
-		Ground[] used = stock.consume(floor, cave, lava, held);
+		stock.acceptWater(waterSources);
+		Spent spent = stock.consume(floor, cave, lava, held);
+		Ground[] used = spent.floor();
+		Ground[] ring = spent.lining();
+		int lined = 0;
 		for (int up = 0; up < DriveCourse.FACE; up++) {
 			for (int across = 0; across < DriveCourse.FACE; across++) {
 				if (DriveCourse.isLining(across, up)) {
-					ground.placeLining(worldX(across, 0), worldY(up, 0), worldZ(across, 0));
+					Ground material = ring == null ? null : ring[lined++];
+					ground.placeLining(worldX(across, 0), worldY(up, 0), worldZ(across, 0), material);
 				}
 			}
 		}
@@ -256,6 +264,7 @@ public final class TunnelDrill {
 			}
 		}
 		drove.recordFloor(floor, used);
+		drove.recordLining(ring);
 		drove.markPlaced();
 		pumped += waterSources;
 		if (!decline) {

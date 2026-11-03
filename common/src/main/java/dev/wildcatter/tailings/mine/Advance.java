@@ -25,6 +25,7 @@ public final class Advance {
 	private boolean placed;
 	private FloorPiece[] floor = new FloorPiece[0];
 	private Ground[] floorRock = new Ground[0];
+	private Ground[] lining;
 
 	private Advance(Stop stop, String detail, int pumpedWater, int quenchedLava) {
 		this.stop = stop;
@@ -75,6 +76,19 @@ public final class Advance {
 	public void recordFloor(FloorPiece[] floor, Ground[] rock) {
 		this.floor = floor.clone();
 		this.floorRock = rock.clone();
+	}
+
+	/** Null when the ring was crafted segments. */
+	public void recordLining(Ground[] lining) {
+		this.lining = lining == null ? null : lining.clone();
+	}
+
+	public Ground[] lining() {
+		return lining;
+	}
+
+	public boolean segmentRing() {
+		return lining == null;
 	}
 
 	public int pumpedWater() {

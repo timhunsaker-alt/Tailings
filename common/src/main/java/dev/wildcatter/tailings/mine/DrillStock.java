@@ -6,6 +6,7 @@ import java.util.List;
 
 /** The cab's slots, plus rock held back from the cut to make floor pieces. */
 public final class DrillStock {
+	public static final int TANK_MAX = 256;
 	private int rail;
 	private int gravel;
 	private int cobble;
@@ -77,6 +78,14 @@ public final class DrillStock {
 		water += n;
 	}
 
+	/** Pumped source blocks fill the quench tank. Returns how many were voided because the tank was full. */
+	public int acceptWater(int sources) {
+		int space = Math.max(0, TANK_MAX - water);
+		int kept = Math.min(Math.max(0, sources), space);
+		water += kept;
+		return Math.max(0, sources) - kept;
+	}
+
 	public void addFloorRock(Ground ground) {
 		if (ground != null && ground.isFloorRock()) {
 			floorRock.add(ground);
@@ -109,13 +118,11 @@ public final class DrillStock {
 	}
 
 	/**
-	 * What is missing for one advance. {@code incomingFloorRock} is suitable rock in the face about to be cut, already
-	 * capped at the number of rock pieces. Cobble covers both the shortfall and the cave fill; it is not counted twice.
+	 * What is missing for one advance. Crafted segments are optional: without a full ring the lining is cut from mined
+	 * rock and cobble. {@code incomingFloorRock} is suitable rock in the face, already capped. {@code incomingWater}
+	 * is pumped water that will fit in the tank before the quench is paid.
 	 */
-	public String missing(FloorPiece[] floor, int caveCobble, int lavaBlocks, int incomingFloorRock) {
-		if (segments < DriveCourse.SEGMENTS_PER_RING) {
-			return "lining segments";
-		}
+	public String missing(FloorPiece[] floor, int caveCobble, int lavaBlocks, int incomingFloorRock, int incomingWater) {
 		if (rail < DriveCourse.rails(floor)) {
 			return "mine rail";
 		}
@@ -131,22 +138,29 @@ public final class DrillStock {
 		if (gravel < gravelNeed) {
 			return "gravel";
 		}
-		int shortfall = Math.max(0, rockNeed - floorRock.size() - Math.max(0, incomingFloorRock));
+		int liningStone = segments >= DriveCourse.SEGMENTS_PER_RING ? 0 : DriveCourse.SEGMENTS_PER_RING;
+		int shortfall = Math.max(0, rockNeed + liningStone - floorRock.size() - Math.max(0, incomingFloorRock));
 		if (cobble < shortfall) {
-			return "floor rock";
+			return liningStone > 0 && floorRock.size() + incomingFloorRock < rockNeed ? "floor rock" : "lining stone";
 		}
 		if (cobble < shortfall + Math.max(0, caveCobble)) {
 			return "cobble";
 		}
-		if (water < lavaBlocks) {
+		if (water + Math.max(0, incomingWater) < lavaBlocks) {
 			return "quench water";
 		}
 		return null;
 	}
 
-	/** Spends one advance and returns the rock each floor column was cut from. Gravel ballast reports {@link Ground#GRAVEL}. */
-	public Ground[] consume(FloorPiece[] floor, int caveCobble, int lavaBlocks, List<Ground> mined) {
-		segments -= DriveCourse.SEGMENTS_PER_RING;
+	/**
+	 * Spends one advance. The lining array is null when crafted segments were used; otherwise each entry is the stone
+	 * block for that cell. Floor gravel ballast reports {@link Ground#GRAVEL}.
+	 */
+	public Spent consume(FloorPiece[] floor, int caveCobble, int lavaBlocks, List<Ground> mined) {
+		boolean segments = this.segments >= DriveCourse.SEGMENTS_PER_RING;
+		if (segments) {
+			this.segments -= DriveCourse.SEGMENTS_PER_RING;
+		}
 		rail -= DriveCourse.rails(floor);
 		int gravelNeed = 0;
 		for (FloorPiece piece : floor) {
@@ -172,8 +186,20 @@ public final class DrillStock {
 				fromCobble++;
 			}
 		}
+		Ground[] lining = null;
+		if (!segments) {
+			lining = new Ground[DriveCourse.SEGMENTS_PER_RING];
+			for (int i = 0; i < lining.length; i++) {
+				if (!floorRock.isEmpty()) {
+					lining[i] = floorRock.removeFirst();
+				} else {
+					lining[i] = Ground.COBBLE;
+					fromCobble++;
+				}
+			}
+		}
 		cobble -= fromCobble + caveCobble;
 		water -= lavaBlocks;
-		return used;
+		return new Spent(used, lining);
 	}
 }

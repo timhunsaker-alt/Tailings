@@ -28,10 +28,7 @@ Manual page) is only partly met: there is a NeoForge game test from Phase 1, and
 - 2d: thickeners and filters; concentrate in bags or drums.
 
 ## Phase 3 — The mine — CURRENT
-- 3a: the track-laying TBM (`multiblocks/tunnel-drill-haulage.md`): an 8 x 8 cut, a 6 x 6 drive inside segment lining that keeps liquids
-  out; the floor pattern slope | slope + track | stair walkway | stair walkway | slope + track | slope (stairs with a landing every other block); 1-in-2 half slopes by default; the
-  dewatering pump that clears water into its tank (voided in code) and quenches lava; the GUI program (target Y, then flat) and its inventory of mine rail,
-  gravel, cobble, lining segments and water.
+- 3a: the track-laying TBM (`multiblocks/tunnel-drill-haulage.md`): an 8 x 8 cut, a 6 x 6 drive. The machine is a moving contraption that advances with the face. The default lining is cobble or mined stone; crafted segments are optional. The floor is a smooth 1-in-2 ramp (slope | slope + track | stair | stair | slope + track | slope). The pump fills a quench tank from the water it meets and voids the rest. A full muck buffer pauses the drill until a train empties it.
 - 3b: twin-track haulage on Tailings' own mine rail: 1 block gauge; custom Granby side-dump mine cars (about 3 t, mixed loads), a mine locomotive
   drawing from the powered mine rail (a shrouded, segmented conductor rail, safe to walk on; no overhead wire) fed from a
   480 V AC to 250 V DC traction rectifier on the Wildcatter grid, a rack for the 1-in-2 decline, trains of up to 10 cars, a dump station that sorts each type into its ore bin, coupled trains, loading and dump stations,
@@ -73,5 +70,5 @@ Manual page) is only partly met: there is a NeoForge game test from Phase 1, and
    ingots (4x), on the same ladder (VISION.md).
 6. ~~Drill program~~: **decided 2026-11-02:** a GUI, with an inventory of mine rail, gravel and cobble.
 7. ~~Carts~~: **decided 2026-11-02:** Tailings' own mine cars on mine rail, not vanilla minecarts (`multiblocks/tunnel-drill-haulage.md`).
-8. **Chunk loading** for a drill that runs far from the player.
+8. ~~**Chunk loading** for a drill that runs far from the player.~~ **Decided 2026-11-03:** ticket-based force-loading on the drill's contraption and on each train, dropped when they stop. See `multiblocks/tunnel-drill-haulage.md`.
 9. ~~Packaging~~: **decided 2026-11-02:** its own jar that requires Wildcatter (VISION.md).

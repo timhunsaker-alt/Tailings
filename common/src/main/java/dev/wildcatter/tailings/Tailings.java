@@ -25,6 +25,7 @@ public final class Tailings {
 	public static void register(String requiredMod) {
 		TailingsBlocks.register();
 		TailingsItems.register();
+		TailingsEntities.register();
 		LOGGER.info("Tailings loaded; requires {}", requiredMod);
 	}
 

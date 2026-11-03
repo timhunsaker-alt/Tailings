@@ -14,6 +14,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 /** The NeoForge entry point. Wildcatter is a hard dependency and a compile dependency. */
@@ -22,6 +23,7 @@ public final class TailingsNeoForge {
 	private static boolean registered;
 
 	public TailingsNeoForge(IEventBus modBus) {
+		modBus.addListener(RegisterTicketControllersEvent.class, event -> event.register(NeoForgePlatform.CHUNKS));
 		modBus.addListener(RegisterEvent.class, event -> {
 			if (!registered) {
 				registered = true;

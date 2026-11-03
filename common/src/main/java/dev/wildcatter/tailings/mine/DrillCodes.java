@@ -82,7 +82,7 @@ public final class DrillCodes {
 			case STOP_CABLE -> "stopped: trailing cable ended";
 			case STOP_LIQUID -> "stopped: liquid it cannot clear";
 			case STOP_EMPTY -> "stopped: out of stock";
-			case STOP_BUFFER -> "stopped: muck buffer full";
+			case STOP_BUFFER -> "paused: muck buffer full";
 			case STOP_BLOCKED -> "stopped: bedrock";
 			default -> "idle";
 		};
