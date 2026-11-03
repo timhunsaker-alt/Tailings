@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tailings:block/block_signal"
+    },
+    "facing=east": {
+      "model": "tailings:block/block_signal",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tailings:block/block_signal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tailings:block/block_signal",
+      "y": 270
+    }
+  }
+}

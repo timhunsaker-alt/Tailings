@@ -4,8 +4,11 @@ import dev.wildcatter.tailings.Tailings;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
-import dev.wildcatter.tailings.block.HandMillBlockEntity;
+import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.MineRailBlock;
+import dev.wildcatter.tailings.block.RailBlockEntity;
+import dev.wildcatter.tailings.block.RectifierBlockEntity;
+import dev.wildcatter.tailings.block.HandMillBlockEntity;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
 import dev.wildcatter.tailings.block.RailGrade;
@@ -43,7 +46,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "haul"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -54,6 +57,7 @@ public class TailingsGameTests {
 			helper.register(id("crushing"), (Consumer<GameTestHelper>) TailingsGameTests::crushing);
 			helper.register(id("flotation"), (Consumer<GameTestHelper>) TailingsGameTests::flotation);
 			helper.register(id("drill"), (Consumer<GameTestHelper>) TailingsGameTests::drill);
+			helper.register(id("haul"), (Consumer<GameTestHelper>) TailingsGameTests::haul);
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
@@ -218,6 +222,38 @@ public class TailingsGameTests {
 		helper.assertTrue(muck.is(Items.COBBLESTONE) && muck.getCount() == 58, Component.literal("stone should come out as 58 cobble, got " + muck));
 		helper.assertTrue(drill.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 36, Component.literal("a ring spends 28 segments"));
 		helper.assertTrue(drill.getItem(DrillBlockEntity.SLOT_RAIL).getCount() == 62, Component.literal("an advance spends 2 rails"));
+		helper.succeed();
+	}
+
+	/** The rectifier feeds the rail, the train moves one block, and the dump splits the car into cobble. */
+	private static void haul(GameTestHelper helper) {
+		BlockPos rectifier = new BlockPos(4, 60, 2);
+		helper.setBlock(rectifier, TailingsBlocks.TRACTION_RECTIFIER.defaultBlockState());
+		RectifierBlockEntity box = helper.getBlockEntity(rectifier, RectifierBlockEntity.class);
+		box.forceRunning();
+		BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 0; z <= 3; z++) {
+			helper.setBlock(new BlockPos(3, 60, z), rail);
+		}
+		box.spread();
+		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
+		RailBlockEntity car = helper.getBlockEntity(new BlockPos(3, 60, 3), RailBlockEntity.class);
+		helper.assertTrue(loco.powered() && car.powered(), Component.literal("the rectifier should feed the rails it touches"));
+		helper.assertTrue(loco.placeLoco(), Component.literal("the rail should take a locomotive"));
+		helper.assertTrue(car.placeCar(), Component.literal("the car should couple to the locomotive ahead"));
+		helper.assertTrue(loco.conductorLive(), Component.literal("the conductor is live under the locomotive"));
+		car.load().add("minecraft:cobblestone", 2_000);
+		helper.assertTrue(loco.stepOnce(), Component.literal("the train should take the next powered rail"));
+		RailBlockEntity moved = helper.getBlockEntity(new BlockPos(3, 60, 1), RailBlockEntity.class);
+		RailBlockEntity followed = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
+		helper.assertTrue(moved.kind() == RailBlockEntity.Kind.LOCO && moved.conductorLive(), Component.literal("the locomotive should have moved and stayed live"));
+		helper.assertTrue(followed.kind() == RailBlockEntity.Kind.CAR && followed.load().total() == 2_000, Component.literal("the car should follow with its load"));
+		helper.setBlock(new BlockPos(3, 60, 0), TailingsBlocks.DUMP_STATION.defaultBlockState());
+		helper.assertTrue(moved.stepOnce(), Component.literal("the train should tip into the dump"));
+		DumpBlockEntity dump = helper.getBlockEntity(new BlockPos(3, 60, 0), DumpBlockEntity.class);
+		ItemStack waste = dump.getItem(0);
+		helper.assertTrue(waste.getItem() == Items.COBBLESTONE && waste.getCount() == 2, Component.literal("the sorter should put cobble in the waste bin, got " + waste));
+		helper.assertTrue(followed.load().total() == 0, Component.literal("the car should be empty after the tip"));
 		helper.succeed();
 	}
 }
