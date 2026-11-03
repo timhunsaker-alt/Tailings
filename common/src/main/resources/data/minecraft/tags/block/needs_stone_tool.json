@@ -15,6 +15,14 @@
     "tailings:flotation_cell",
     "tailings:air_blower",
     "tailings:concentrate_thickener",
-    "tailings:pressure_filter"
+    "tailings:pressure_filter",
+    "tailings:lining",
+    "tailings:slope",
+    "tailings:mine_stair",
+    "tailings:mine_landing",
+    "tailings:mine_floor",
+    "tailings:mine_rail",
+    "tailings:tunnel_drill",
+    "tailings:dewatering_pump"
   ]
 }

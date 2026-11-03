@@ -1,0 +1,364 @@
+{
+  "variants": {
+    "facing=north,half=lower,look=stone": {
+      "model": "tailings:block/slope_lower_stone"
+    },
+    "facing=north,half=upper,look=stone": {
+      "model": "tailings:block/slope_upper_stone"
+    },
+    "facing=north,half=steep,look=stone": {
+      "model": "tailings:block/slope_steep_stone"
+    },
+    "facing=east,half=lower,look=stone": {
+      "model": "tailings:block/slope_lower_stone",
+      "y": 90
+    },
+    "facing=east,half=upper,look=stone": {
+      "model": "tailings:block/slope_upper_stone",
+      "y": 90
+    },
+    "facing=east,half=steep,look=stone": {
+      "model": "tailings:block/slope_steep_stone",
+      "y": 90
+    },
+    "facing=south,half=lower,look=stone": {
+      "model": "tailings:block/slope_lower_stone",
+      "y": 180
+    },
+    "facing=south,half=upper,look=stone": {
+      "model": "tailings:block/slope_upper_stone",
+      "y": 180
+    },
+    "facing=south,half=steep,look=stone": {
+      "model": "tailings:block/slope_steep_stone",
+      "y": 180
+    },
+    "facing=west,half=lower,look=stone": {
+      "model": "tailings:block/slope_lower_stone",
+      "y": 270
+    },
+    "facing=west,half=upper,look=stone": {
+      "model": "tailings:block/slope_upper_stone",
+      "y": 270
+    },
+    "facing=west,half=steep,look=stone": {
+      "model": "tailings:block/slope_steep_stone",
+      "y": 270
+    },
+    "facing=north,half=lower,look=cobble": {
+      "model": "tailings:block/slope_lower_cobble"
+    },
+    "facing=north,half=upper,look=cobble": {
+      "model": "tailings:block/slope_upper_cobble"
+    },
+    "facing=north,half=steep,look=cobble": {
+      "model": "tailings:block/slope_steep_cobble"
+    },
+    "facing=east,half=lower,look=cobble": {
+      "model": "tailings:block/slope_lower_cobble",
+      "y": 90
+    },
+    "facing=east,half=upper,look=cobble": {
+      "model": "tailings:block/slope_upper_cobble",
+      "y": 90
+    },
+    "facing=east,half=steep,look=cobble": {
+      "model": "tailings:block/slope_steep_cobble",
+      "y": 90
+    },
+    "facing=south,half=lower,look=cobble": {
+      "model": "tailings:block/slope_lower_cobble",
+      "y": 180
+    },
+    "facing=south,half=upper,look=cobble": {
+      "model": "tailings:block/slope_upper_cobble",
+      "y": 180
+    },
+    "facing=south,half=steep,look=cobble": {
+      "model": "tailings:block/slope_steep_cobble",
+      "y": 180
+    },
+    "facing=west,half=lower,look=cobble": {
+      "model": "tailings:block/slope_lower_cobble",
+      "y": 270
+    },
+    "facing=west,half=upper,look=cobble": {
+      "model": "tailings:block/slope_upper_cobble",
+      "y": 270
+    },
+    "facing=west,half=steep,look=cobble": {
+      "model": "tailings:block/slope_steep_cobble",
+      "y": 270
+    },
+    "facing=north,half=lower,look=deepslate": {
+      "model": "tailings:block/slope_lower_deepslate"
+    },
+    "facing=north,half=upper,look=deepslate": {
+      "model": "tailings:block/slope_upper_deepslate"
+    },
+    "facing=north,half=steep,look=deepslate": {
+      "model": "tailings:block/slope_steep_deepslate"
+    },
+    "facing=east,half=lower,look=deepslate": {
+      "model": "tailings:block/slope_lower_deepslate",
+      "y": 90
+    },
+    "facing=east,half=upper,look=deepslate": {
+      "model": "tailings:block/slope_upper_deepslate",
+      "y": 90
+    },
+    "facing=east,half=steep,look=deepslate": {
+      "model": "tailings:block/slope_steep_deepslate",
+      "y": 90
+    },
+    "facing=south,half=lower,look=deepslate": {
+      "model": "tailings:block/slope_lower_deepslate",
+      "y": 180
+    },
+    "facing=south,half=upper,look=deepslate": {
+      "model": "tailings:block/slope_upper_deepslate",
+      "y": 180
+    },
+    "facing=south,half=steep,look=deepslate": {
+      "model": "tailings:block/slope_steep_deepslate",
+      "y": 180
+    },
+    "facing=west,half=lower,look=deepslate": {
+      "model": "tailings:block/slope_lower_deepslate",
+      "y": 270
+    },
+    "facing=west,half=upper,look=deepslate": {
+      "model": "tailings:block/slope_upper_deepslate",
+      "y": 270
+    },
+    "facing=west,half=steep,look=deepslate": {
+      "model": "tailings:block/slope_steep_deepslate",
+      "y": 270
+    },
+    "facing=north,half=lower,look=granite": {
+      "model": "tailings:block/slope_lower_granite"
+    },
+    "facing=north,half=upper,look=granite": {
+      "model": "tailings:block/slope_upper_granite"
+    },
+    "facing=north,half=steep,look=granite": {
+      "model": "tailings:block/slope_steep_granite"
+    },
+    "facing=east,half=lower,look=granite": {
+      "model": "tailings:block/slope_lower_granite",
+      "y": 90
+    },
+    "facing=east,half=upper,look=granite": {
+      "model": "tailings:block/slope_upper_granite",
+      "y": 90
+    },
+    "facing=east,half=steep,look=granite": {
+      "model": "tailings:block/slope_steep_granite",
+      "y": 90
+    },
+    "facing=south,half=lower,look=granite": {
+      "model": "tailings:block/slope_lower_granite",
+      "y": 180
+    },
+    "facing=south,half=upper,look=granite": {
+      "model": "tailings:block/slope_upper_granite",
+      "y": 180
+    },
+    "facing=south,half=steep,look=granite": {
+      "model": "tailings:block/slope_steep_granite",
+      "y": 180
+    },
+    "facing=west,half=lower,look=granite": {
+      "model": "tailings:block/slope_lower_granite",
+      "y": 270
+    },
+    "facing=west,half=upper,look=granite": {
+      "model": "tailings:block/slope_upper_granite",
+      "y": 270
+    },
+    "facing=west,half=steep,look=granite": {
+      "model": "tailings:block/slope_steep_granite",
+      "y": 270
+    },
+    "facing=north,half=lower,look=diorite": {
+      "model": "tailings:block/slope_lower_diorite"
+    },
+    "facing=north,half=upper,look=diorite": {
+      "model": "tailings:block/slope_upper_diorite"
+    },
+    "facing=north,half=steep,look=diorite": {
+      "model": "tailings:block/slope_steep_diorite"
+    },
+    "facing=east,half=lower,look=diorite": {
+      "model": "tailings:block/slope_lower_diorite",
+      "y": 90
+    },
+    "facing=east,half=upper,look=diorite": {
+      "model": "tailings:block/slope_upper_diorite",
+      "y": 90
+    },
+    "facing=east,half=steep,look=diorite": {
+      "model": "tailings:block/slope_steep_diorite",
+      "y": 90
+    },
+    "facing=south,half=lower,look=diorite": {
+      "model": "tailings:block/slope_lower_diorite",
+      "y": 180
+    },
+    "facing=south,half=upper,look=diorite": {
+      "model": "tailings:block/slope_upper_diorite",
+      "y": 180
+    },
+    "facing=south,half=steep,look=diorite": {
+      "model": "tailings:block/slope_steep_diorite",
+      "y": 180
+    },
+    "facing=west,half=lower,look=diorite": {
+      "model": "tailings:block/slope_lower_diorite",
+      "y": 270
+    },
+    "facing=west,half=upper,look=diorite": {
+      "model": "tailings:block/slope_upper_diorite",
+      "y": 270
+    },
+    "facing=west,half=steep,look=diorite": {
+      "model": "tailings:block/slope_steep_diorite",
+      "y": 270
+    },
+    "facing=north,half=lower,look=andesite": {
+      "model": "tailings:block/slope_lower_andesite"
+    },
+    "facing=north,half=upper,look=andesite": {
+      "model": "tailings:block/slope_upper_andesite"
+    },
+    "facing=north,half=steep,look=andesite": {
+      "model": "tailings:block/slope_steep_andesite"
+    },
+    "facing=east,half=lower,look=andesite": {
+      "model": "tailings:block/slope_lower_andesite",
+      "y": 90
+    },
+    "facing=east,half=upper,look=andesite": {
+      "model": "tailings:block/slope_upper_andesite",
+      "y": 90
+    },
+    "facing=east,half=steep,look=andesite": {
+      "model": "tailings:block/slope_steep_andesite",
+      "y": 90
+    },
+    "facing=south,half=lower,look=andesite": {
+      "model": "tailings:block/slope_lower_andesite",
+      "y": 180
+    },
+    "facing=south,half=upper,look=andesite": {
+      "model": "tailings:block/slope_upper_andesite",
+      "y": 180
+    },
+    "facing=south,half=steep,look=andesite": {
+      "model": "tailings:block/slope_steep_andesite",
+      "y": 180
+    },
+    "facing=west,half=lower,look=andesite": {
+      "model": "tailings:block/slope_lower_andesite",
+      "y": 270
+    },
+    "facing=west,half=upper,look=andesite": {
+      "model": "tailings:block/slope_upper_andesite",
+      "y": 270
+    },
+    "facing=west,half=steep,look=andesite": {
+      "model": "tailings:block/slope_steep_andesite",
+      "y": 270
+    },
+    "facing=north,half=lower,look=tuff": {
+      "model": "tailings:block/slope_lower_tuff"
+    },
+    "facing=north,half=upper,look=tuff": {
+      "model": "tailings:block/slope_upper_tuff"
+    },
+    "facing=north,half=steep,look=tuff": {
+      "model": "tailings:block/slope_steep_tuff"
+    },
+    "facing=east,half=lower,look=tuff": {
+      "model": "tailings:block/slope_lower_tuff",
+      "y": 90
+    },
+    "facing=east,half=upper,look=tuff": {
+      "model": "tailings:block/slope_upper_tuff",
+      "y": 90
+    },
+    "facing=east,half=steep,look=tuff": {
+      "model": "tailings:block/slope_steep_tuff",
+      "y": 90
+    },
+    "facing=south,half=lower,look=tuff": {
+      "model": "tailings:block/slope_lower_tuff",
+      "y": 180
+    },
+    "facing=south,half=upper,look=tuff": {
+      "model": "tailings:block/slope_upper_tuff",
+      "y": 180
+    },
+    "facing=south,half=steep,look=tuff": {
+      "model": "tailings:block/slope_steep_tuff",
+      "y": 180
+    },
+    "facing=west,half=lower,look=tuff": {
+      "model": "tailings:block/slope_lower_tuff",
+      "y": 270
+    },
+    "facing=west,half=upper,look=tuff": {
+      "model": "tailings:block/slope_upper_tuff",
+      "y": 270
+    },
+    "facing=west,half=steep,look=tuff": {
+      "model": "tailings:block/slope_steep_tuff",
+      "y": 270
+    },
+    "facing=north,half=lower,look=sandstone": {
+      "model": "tailings:block/slope_lower_sandstone"
+    },
+    "facing=north,half=upper,look=sandstone": {
+      "model": "tailings:block/slope_upper_sandstone"
+    },
+    "facing=north,half=steep,look=sandstone": {
+      "model": "tailings:block/slope_steep_sandstone"
+    },
+    "facing=east,half=lower,look=sandstone": {
+      "model": "tailings:block/slope_lower_sandstone",
+      "y": 90
+    },
+    "facing=east,half=upper,look=sandstone": {
+      "model": "tailings:block/slope_upper_sandstone",
+      "y": 90
+    },
+    "facing=east,half=steep,look=sandstone": {
+      "model": "tailings:block/slope_steep_sandstone",
+      "y": 90
+    },
+    "facing=south,half=lower,look=sandstone": {
+      "model": "tailings:block/slope_lower_sandstone",
+      "y": 180
+    },
+    "facing=south,half=upper,look=sandstone": {
+      "model": "tailings:block/slope_upper_sandstone",
+      "y": 180
+    },
+    "facing=south,half=steep,look=sandstone": {
+      "model": "tailings:block/slope_steep_sandstone",
+      "y": 180
+    },
+    "facing=west,half=lower,look=sandstone": {
+      "model": "tailings:block/slope_lower_sandstone",
+      "y": 270
+    },
+    "facing=west,half=upper,look=sandstone": {
+      "model": "tailings:block/slope_upper_sandstone",
+      "y": 270
+    },
+    "facing=west,half=steep,look=sandstone": {
+      "model": "tailings:block/slope_steep_sandstone",
+      "y": 270
+    }
+  }
+}

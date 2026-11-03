@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tailings:block/tunnel_drill"
+    },
+    "facing=east": {
+      "model": "tailings:block/tunnel_drill",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tailings:block/tunnel_drill",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tailings:block/tunnel_drill",
+      "y": 270
+    }
+  }
+}

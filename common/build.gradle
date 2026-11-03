@@ -71,12 +71,12 @@ artifacts {
 
 // Recovery and rock stay plain Java (no Minecraft or loader imports). See README.
 tasks.register('verifyPlainJava') {
-	def sources = fileTree('src/main/java/dev/wildcatter/tailings') { include 'recovery/**/*.java', 'rock/**/*.java' }
+	def sources = fileTree('src/main/java/dev/wildcatter/tailings') { include 'recovery/**/*.java', 'rock/**/*.java', 'mine/**/*.java' }
 	inputs.files(sources)
 	doLast {
 		sources.each { f ->
 			if (f.text =~ /(?m)^\s*import\s+(net\.minecraft|net\.fabricmc|net\.neoforged|com\.mojang)\./) {
-				throw new GradleException("${f.name} imports Minecraft or a loader; recovery and rock must be plain Java")
+				throw new GradleException("${f.name} imports Minecraft or a loader; recovery, rock and mine must be plain Java")
 			}
 		}
 	}

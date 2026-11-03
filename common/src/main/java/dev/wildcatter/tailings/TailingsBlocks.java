@@ -1,10 +1,19 @@
 package dev.wildcatter.tailings;
 
+import dev.wildcatter.tailings.block.DewateringPumpBlock;
+import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlock;
 import dev.wildcatter.tailings.block.HandMillBlock.Role;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
+import dev.wildcatter.tailings.block.LiningBlock;
+import dev.wildcatter.tailings.block.MineFullBlock;
+import dev.wildcatter.tailings.block.MineRailBlock;
+import dev.wildcatter.tailings.block.MineStairBlock;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
+import dev.wildcatter.tailings.block.PumpBlockEntity;
+import dev.wildcatter.tailings.block.SlopeBlock;
+import dev.wildcatter.tailings.block.TunnelDrillBlock;
 import dev.wildcatter.tailings.plant.Machine;
 import java.util.Set;
 import java.util.function.Function;
@@ -42,6 +51,21 @@ public final class TailingsBlocks {
 	public static final Block FILTER = plant(Machine.FILTER, MapColor.TERRACOTTA_WHITE);
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(GRIZZLY, JAW, CONE, SCREEN, BELT, BALL_MILL, CYCLONE, CONDITIONER, CELL, BLOWER, THICKENER, FILTER));
+	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
+	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
+			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
+	public static final Block MINE_STAIR = course("mine_stair", props -> new MineStairBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
+			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
+	public static final Block MINE_LANDING = course("mine_landing", props -> new MineFullBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)));
+	public static final Block MINE_FLOOR = course("mine_floor", props -> new MineFullBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)));
+	public static final Block MINE_RAIL = course("mine_rail", props -> new MineRailBlock(props.mapColor(MapColor.METAL).strength(2.0F, 6.0F).sound(SoundType.METAL)
+			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
+	public static final Block TUNNEL_DRILL = block("tunnel_drill", props -> new TunnelDrillBlock(props.mapColor(MapColor.COLOR_ORANGE).strength(3.5F, 8.0F)
+			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+	public static final Block DEWATERING_PUMP = block("dewatering_pump", props -> new DewateringPumpBlock(props.mapColor(MapColor.COLOR_LIGHT_BLUE)
+			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
+	public static final BlockEntityType<DrillBlockEntity> DRILL = new BlockEntityType<>(DrillBlockEntity::new, Set.of(TUNNEL_DRILL));
+	public static final BlockEntityType<PumpBlockEntity> PUMP = new BlockEntityType<>(PumpBlockEntity::new, Set.of(DEWATERING_PUMP));
 
 	private TailingsBlocks() {
 	}
@@ -54,8 +78,18 @@ public final class TailingsBlocks {
 		for (Machine machine : Machine.values()) {
 			add(machine.id(), plantBlock(machine));
 		}
+		add("lining", LINING);
+		add("slope", SLOPE);
+		add("mine_stair", MINE_STAIR);
+		add("mine_landing", MINE_LANDING);
+		add("mine_floor", MINE_FLOOR);
+		add("mine_rail", MINE_RAIL);
+		add("tunnel_drill", TUNNEL_DRILL);
+		add("dewatering_pump", DEWATERING_PUMP);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("hand_mill"), MILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("plant"), PLANT);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tunnel_drill"), DRILL);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("dewatering_pump"), PUMP);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -83,6 +117,10 @@ public final class TailingsBlocks {
 	private static Block plant(Machine machine, MapColor color) {
 		return block(machine.id(), props -> new PlantMachineBlock(props.mapColor(color).strength(3.5F, 8.0F).sound(SoundType.METAL)
 				.requiresCorrectToolForDrops(), machine));
+	}
+
+	private static Block course(String name, Function<BlockBehaviour.Properties, Block> factory) {
+		return block(name, props -> factory.apply(props.requiresCorrectToolForDrops()));
 	}
 
 	private static Block block(String name, Function<BlockBehaviour.Properties, Block> factory) {

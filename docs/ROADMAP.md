@@ -21,13 +21,13 @@ Manual page) is only partly met: there is a NeoForge game test from Phase 1, and
 - 1d: vanilla ores: iron, copper and gold (ore blocks and raw ore items) on the same 1x/2x/3x/4x ladder; one plain smelt is
   1 ingot, the full line 4 ingots. Others that fit (for example redstone, lapis) are judged ore by ore.
 
-## Phase 2 — The concentrator — CURRENT
+## Phase 2 — The concentrator
 - 2a: the crushing circuit at true size (`multiblocks/crushing-circuit.md`).
 - 2b: the ball mill and cyclones, grinding to liberation.
 - 2c: the flotation cell bank (`multiblocks/flotation-bank.md`) with reagents from Wildcatter's chemicals (3x).
 - 2d: thickeners and filters; concentrate in bags or drums.
 
-## Phase 3 — The mine
+## Phase 3 — The mine — CURRENT
 - 3a: the track-laying TBM (`multiblocks/tunnel-drill-haulage.md`): an 8 x 8 cut, a 6 x 6 drive inside segment lining that keeps liquids
   out; the floor pattern slope | slope + track | stair walkway | stair walkway | slope + track | slope (stairs with a landing every other block); 1-in-2 half slopes by default; the
   dewatering pump that clears water into its tank (voided in code) and quenches lava; the GUI program (target Y, then flat) and its inventory of mine rail,
