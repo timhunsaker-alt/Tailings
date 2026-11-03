@@ -6,6 +6,8 @@ import dev.wildcatter.tailings.haul.TrainHarm;
 import dev.wildcatter.tailings.platform.Platform;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,7 +27,8 @@ import net.minecraft.world.phys.AABB;
  * lights the block above it, and hurts living things it touches unless the config turns that off.
  */
 public class MineTrainEntity extends Entity {
-	private boolean locomotive = true;
+	private static final EntityDataAccessor<Boolean> DATA_LOCOMOTIVE = SynchedEntityData.defineId(MineTrainEntity.class, EntityDataSerializers.BOOLEAN);
+
 	private BlockPos rail = BlockPos.ZERO;
 	private BlockPos lamp;
 	private int wait;
@@ -37,33 +40,42 @@ public class MineTrainEntity extends Entity {
 
 	public MineTrainEntity(Level level, boolean locomotive) {
 		this(TailingsEntities.TRAIN, level);
-		this.locomotive = locomotive;
+		setLocomotive(locomotive);
 	}
 
 	public void attach(BlockPos rail) {
 		this.rail = rail;
 	}
 
+	public boolean locomotive() {
+		return entityData.get(DATA_LOCOMOTIVE);
+	}
+
+	public void setLocomotive(boolean locomotive) {
+		entityData.set(DATA_LOCOMOTIVE, locomotive);
+	}
+
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		builder.define(DATA_LOCOMOTIVE, true);
 	}
 
 	@Override
 	protected void readAdditionalSaveData(ValueInput input) {
-		locomotive = input.getBooleanOr("loco", true);
+		setLocomotive(input.getBooleanOr("loco", true));
 		rail = BlockPos.of(input.getLongOr("rail", 0));
 	}
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
-		output.putBoolean("loco", locomotive);
+		output.putBoolean("loco", locomotive());
 		output.putLong("rail", rail.asLong());
 	}
 
 	@Override
 	public void tick() {
 		super.tick();
-		if (!(level() instanceof ServerLevel server) || !locomotive) {
+		if (!(level() instanceof ServerLevel server) || !locomotive()) {
 			return;
 		}
 		if (!(server.getBlockEntity(rail) instanceof RailBlockEntity track) || track.kind() != RailBlockEntity.Kind.LOCO) {

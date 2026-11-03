@@ -4,14 +4,14 @@
       "model": "tailings:block/mine_switch"
     },
     "facing=north,thrown=true": {
-      "model": "tailings:block/mine_switch"
+      "model": "tailings:block/mine_switch_thrown"
     },
     "facing=east,thrown=false": {
       "model": "tailings:block/mine_switch",
       "y": 90
     },
     "facing=east,thrown=true": {
-      "model": "tailings:block/mine_switch",
+      "model": "tailings:block/mine_switch_thrown",
       "y": 90
     },
     "facing=south,thrown=false": {
@@ -19,7 +19,7 @@
       "y": 180
     },
     "facing=south,thrown=true": {
-      "model": "tailings:block/mine_switch",
+      "model": "tailings:block/mine_switch_thrown",
       "y": 180
     },
     "facing=west,thrown=false": {
@@ -27,7 +27,7 @@
       "y": 270
     },
     "facing=west,thrown=true": {
-      "model": "tailings:block/mine_switch",
+      "model": "tailings:block/mine_switch_thrown",
       "y": 270
     }
   }

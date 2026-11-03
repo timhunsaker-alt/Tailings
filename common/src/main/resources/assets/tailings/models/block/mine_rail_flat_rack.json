@@ -1,7 +1,7 @@
 {
   "textures": {
-    "particle": "minecraft:block/gravel",
-    "side": "minecraft:block/gravel",
+    "particle": "tailings:block/ballast",
+    "side": "tailings:block/ballast",
     "rail": "tailings:block/rack_rail"
   },
   "elements": [
