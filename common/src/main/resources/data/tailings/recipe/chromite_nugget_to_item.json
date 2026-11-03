@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget",
+    "tailings:chromite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:chromite",
+    "count": 1
+  }
+}

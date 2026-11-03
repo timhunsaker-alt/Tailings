@@ -50,19 +50,19 @@ artifacts {
 	commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }
 
-// The recovery package must stay plain Java (no Minecraft or loader imports). See README.
-tasks.register('verifyRecoveryPurity') {
-	def sources = fileTree('src/main/java/dev/wildcatter/tailings/recovery') { include '**/*.java' }
+// Recovery and rock stay plain Java (no Minecraft or loader imports). See README.
+tasks.register('verifyPlainJava') {
+	def sources = fileTree('src/main/java/dev/wildcatter/tailings') { include 'recovery/**/*.java', 'rock/**/*.java' }
 	inputs.files(sources)
 	doLast {
 		sources.each { f ->
-			if (f.text =~ /(?m)^\s*import\s+(net\.minecraft|net\.fabricmc|net\.neoforged|com\.mojang|dev\.wildcatter\.(?!tailings\.recovery))/) {
-				throw new GradleException("${f.name} imports Minecraft, a loader, or code outside the recovery package; recovery must be plain Java")
+			if (f.text =~ /(?m)^\s*import\s+(net\.minecraft|net\.fabricmc|net\.neoforged|com\.mojang)\./) {
+				throw new GradleException("${f.name} imports Minecraft or a loader; recovery and rock must be plain Java")
 			}
 		}
 	}
 }
-compileJava.dependsOn verifyRecoveryPurity
+compileJava.dependsOn verifyPlainJava
 
 // Implement mcgradleconventions loader attribute
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)

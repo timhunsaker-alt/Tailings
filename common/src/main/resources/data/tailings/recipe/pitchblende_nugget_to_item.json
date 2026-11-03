@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget",
+    "tailings:pitchblende_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:pitchblende",
+    "count": 1
+  }
+}

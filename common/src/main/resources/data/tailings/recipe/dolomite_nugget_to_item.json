@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget",
+    "tailings:dolomite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:dolomite",
+    "count": 1
+  }
+}

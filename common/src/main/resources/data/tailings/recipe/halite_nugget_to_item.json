@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget",
+    "tailings:halite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:halite",
+    "count": 1
+  }
+}

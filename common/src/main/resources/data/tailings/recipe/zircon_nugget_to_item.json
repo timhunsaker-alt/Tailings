@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget",
+    "tailings:zircon_nugget"
+  ],
+  "result": {
+    "id": "tailings:zircon",
+    "count": 1
+  }
+}

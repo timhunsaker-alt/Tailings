@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget",
+    "tailings:rutile_nugget"
+  ],
+  "result": {
+    "id": "tailings:rutile",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget",
+    "tailings:phosphate_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:phosphate",
+    "count": 1
+  }
+}

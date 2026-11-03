@@ -8,10 +8,12 @@ simpler route throws away, as in a real mill. Every machine is a true-size multi
 grid at real voltages. What it is and why it is allowed is in `docs/VISION.md`. What comes next is in `docs/ROADMAP.md`. Each
 machine's spec is in `docs/multiblocks/`.
 
-## What's in it (Phase 0 skeleton; the machines are not built yet)
-- **Rock crushing by rock type:** cobblestone, granite, diorite, andesite, deepslate, tuff, sandstone and Wildcatter's ore
-  blocks each crush to their own product (crushed rock → gravel → sand → fines), and each product carries the minerals its host
-  rock really holds.
+## What's in it
+Phase 1 is playable as four hand-cranked blocks (no grid yet). The true-size circuit, flotation, leaching and the mine are not
+built. Textures are vanilla stand-ins.
+- **Rock crushing by rock type:** cobblestone, stone, granite, diorite, andesite, deepslate, tuff, sandstone, vanilla iron,
+  copper and gold, and Wildcatter's 27 ores each have crushed rock, gravel, sand and fines. Fines are items only; the ball mill
+  is later.
 - **The crushing circuit:** a jaw crusher, a cone crusher, vibrating screens and a ball mill with cyclones
   (`docs/multiblocks/crushing-circuit.md`).
 - **Concentration:** a flotation cell bank for the sulfides (galena, sphalerite, pentlandite, molybdenite, cobaltite,
@@ -30,9 +32,9 @@ machine's spec is in `docs/multiblocks/`.
   load without it. It has no grid, ores or pipe of its own; it uses Wildcatter's.
 
 ## The code
-One codebase, two loaders, laid out as Wildcatter is: `common/` (the recovery math; plants, blocks, items and the drill's
-program come later), `fabric/` and `neoforge/` (entry points). The recovery math is plain Java with no Minecraft imports.
-`./gradlew :common:test` checks the 25/50/75/95% ladder and that no route returns more mineral than the block holds.
+One codebase, two loaders, laid out as Wildcatter is: `common/` (recovery math, rock lists, the starter machines), `fabric/`
+and `neoforge/` (entry points). Recovery and the rock lists are plain Java with no Minecraft imports. `./gradlew :common:test`
+checks the 25/50/75/95% ladder, the size steps, nuggets, and that no 50% route returns more than the block holds.
 
 ## Building
 Run Gradle on Java 25. Fabric Loom 1.19 refuses a Java 21 Gradle JVM. NeoForge's build tools also want a Java 21
@@ -45,7 +47,8 @@ bundled into the Tailings jar):
 - https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-neoforge-0.2.0.jar
 
 `fabric.mod.json` and `neoforge.mods.toml` require Wildcatter 0.2.0 or newer, so the game will not load Tailings without it.
-There is no in-game scene yet. `./gradlew :fabric:runClientGameTest` arrives with the first machine.
+The NeoForge run also puts that jar on the runtime classpath. `./gradlew :neoforge:runGameTestServer` crushes cobble and pays
+two iron ingots from iron sand. The Fabric client game test is still later.
 
 ## Testing
-`./gradlew build` and `./gradlew :common:test`. In-game scenes, one per machine, come later, as in Wildcatter.
+`./gradlew build`, `./gradlew :common:test`, and `./gradlew :neoforge:runGameTestServer`.

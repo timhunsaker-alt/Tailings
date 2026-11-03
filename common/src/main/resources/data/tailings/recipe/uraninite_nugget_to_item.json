@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget",
+    "tailings:uraninite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:uraninite",
+    "count": 1
+  }
+}

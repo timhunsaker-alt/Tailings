@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget",
+    "tailings:sphalerite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:sphalerite",
+    "count": 1
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget",
+    "tailings:bauxite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:bauxite",
+    "count": 1
+  }
+}

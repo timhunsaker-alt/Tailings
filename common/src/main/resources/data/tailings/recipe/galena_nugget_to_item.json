@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget",
+    "tailings:galena_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:galena",
+    "count": 1
+  }
+}

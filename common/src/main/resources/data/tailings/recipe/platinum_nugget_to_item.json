@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget",
+    "tailings:platinum_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:platinum",
+    "count": 1
+  }
+}

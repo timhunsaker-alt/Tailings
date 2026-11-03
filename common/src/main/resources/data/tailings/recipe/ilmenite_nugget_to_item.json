@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget",
+    "tailings:ilmenite_nugget"
+  ],
+  "result": {
+    "id": "tailings:ilmenite",
+    "count": 1
+  }
+}

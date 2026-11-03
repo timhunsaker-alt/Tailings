@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget",
+    "tailings:scheelite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:scheelite",
+    "count": 1
+  }
+}

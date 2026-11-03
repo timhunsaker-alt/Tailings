@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget",
+    "tailings:fluorite_nugget"
+  ],
+  "result": {
+    "id": "wildcatter:fluorite",
+    "count": 1
+  }
+}

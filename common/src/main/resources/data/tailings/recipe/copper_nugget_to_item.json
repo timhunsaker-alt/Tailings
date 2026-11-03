@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget",
+    "tailings:copper_nugget"
+  ],
+  "result": {
+    "id": "minecraft:copper_ingot",
+    "count": 1
+  }
+}
