@@ -10,15 +10,15 @@ import org.junit.jupiter.api.Test;
 
 class HaulTest {
 	@Test
-	void aCarHoldsThreeTonnesOfAnyMix() {
+	void aCarHoldsNineStacksOfAnyMix() {
 		CarLoad car = new CarLoad();
-		assertEquals(0, car.add("minecraft:cobblestone", 1_000));
-		assertEquals(0, car.add("minecraft:iron_ore", 2_000));
-		assertEquals(500, car.add("minecraft:gravel", 500));
-		assertEquals(3_000, car.total());
-		assertEquals(1_000, car.contents().get("minecraft:cobblestone"));
+		assertEquals(0, car.add("minecraft:cobblestone", 64));
+		assertEquals(0, car.add("minecraft:iron_ore", Haul.CAR_ITEMS - 64));
+		assertEquals(10, car.add("minecraft:gravel", 10));
+		assertEquals(Haul.CAR_ITEMS, car.total());
+		assertEquals(64, car.contents().get("minecraft:cobblestone"));
 		car.load(car.save());
-		assertEquals(3_000, car.total());
+		assertEquals(Haul.CAR_ITEMS, car.total());
 	}
 
 	@Test
@@ -32,10 +32,16 @@ class HaulTest {
 	}
 
 	@Test
-	void theConductorIsLiveOnlyUnderALocomotive() {
-		assertTrue(Conductor.live(true, true));
-		assertFalse(Conductor.live(true, false));
-		assertFalse(Conductor.live(false, true));
+	void aFedSectionIsLiveAlongItsLength() {
+		assertTrue(Conductor.live(true));
+		assertFalse(Conductor.live(false));
+	}
+
+	@Test
+	void trainDamageCanBeTurnedOff() {
+		assertTrue(dev.wildcatter.tailings.haul.TrainHarm.enabled(java.util.List.of()));
+		assertFalse(dev.wildcatter.tailings.haul.TrainHarm.enabled(java.util.List.of("damage=false")));
+		assertEquals(8.0F, dev.wildcatter.tailings.haul.TrainHarm.amount(java.util.List.of("amount=8")));
 	}
 
 	@Test
@@ -64,12 +70,12 @@ class HaulTest {
 	@Test
 	void thePocketBuffersOneTrainAndSortsTheRestToWaste() {
 		Sorter sorter = new Sorter(Set.of("minecraft:iron_ore"));
-		assertTrue(sorter.tip(Map.of("minecraft:iron_ore", 2_000, "minecraft:cobblestone", 1_000)));
-		assertEquals(2_000, sorter.bin("minecraft:iron_ore"));
-		assertEquals(1_000, sorter.waste());
-		assertEquals(3_000, sorter.pocket());
-		assertTrue(sorter.tip(Map.of("minecraft:cobblestone", Haul.POCKET_KG - 3_000)));
-		assertFalse(sorter.tip(Map.of("minecraft:cobblestone", 1_000)));
+		assertTrue(sorter.tip(Map.of("minecraft:iron_ore", 64, "minecraft:cobblestone", 64)));
+		assertEquals(64, sorter.bin("minecraft:iron_ore"));
+		assertEquals(64, sorter.waste());
+		assertEquals(128, sorter.pocket());
+		assertTrue(sorter.tip(Map.of("minecraft:cobblestone", Haul.POCKET_ITEMS - 128)));
+		assertFalse(sorter.tip(Map.of("minecraft:cobblestone", 1)));
 		sorter.clearPocket();
 		assertTrue(sorter.tip(Map.of("minecraft:cobblestone", 1_000)));
 	}

@@ -36,13 +36,7 @@ public class RailBlockEntity extends BlockEntity {
 	}
 
 	public static void tick(Level level, BlockPos pos, BlockState state, RailBlockEntity rail) {
-		if (rail.kind == Kind.LOCO && rail.wait > 0) {
-			rail.wait--;
-			return;
-		}
-		if (rail.kind == Kind.LOCO && level.getGameTime() % Motion.ticks(rail.decline()) == 0) {
-			rail.stepOnce();
-		}
+		// The locomotive entity drives the train, so a loaded chunk without the entity does not double-step it.
 	}
 
 	public Kind kind() {
@@ -67,7 +61,7 @@ public class RailBlockEntity extends BlockEntity {
 	}
 
 	public boolean conductorLive() {
-		return Conductor.live(powered, kind == Kind.LOCO);
+		return Conductor.live(powered);
 	}
 
 	public void setSignal(BlockPos signal) {
@@ -84,6 +78,12 @@ public class RailBlockEntity extends BlockEntity {
 		index = 0;
 		wait = 0;
 		setChanged();
+		if (level instanceof net.minecraft.server.level.ServerLevel server) {
+			dev.wildcatter.tailings.entity.MineTrainEntity train = new dev.wildcatter.tailings.entity.MineTrainEntity(level, true);
+			train.setPos(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5);
+			train.attach(worldPosition);
+			server.addFreshEntity(train);
+		}
 		return true;
 	}
 
@@ -133,7 +133,7 @@ public class RailBlockEntity extends BlockEntity {
 		if (level == null || kind != Kind.LOCO) {
 			return false;
 		}
-		Direction facing = facing();
+		Direction facing = travel();
 		BlockPos next = worldPosition.relative(facing);
 		boolean decline = decline();
 		BlockEntity ahead = level.getBlockEntity(next);
@@ -263,15 +263,27 @@ public class RailBlockEntity extends BlockEntity {
 	}
 
 	private Direction facing() {
+		if (getBlockState().hasProperty(MineSwitchBlock.FACING)) {
+			return getBlockState().getValue(MineSwitchBlock.FACING);
+		}
 		return getBlockState().getValue(MineRailBlock.FACING);
 	}
 
+	/** Straight along the rail, or out the turnout when the switch is thrown. */
+	private Direction travel() {
+		Direction facing = facing();
+		if (getBlockState().hasProperty(MineSwitchBlock.THROWN) && Boolean.TRUE.equals(getBlockState().getValue(MineSwitchBlock.THROWN))) {
+			return facing.getClockWise();
+		}
+		return facing;
+	}
+
 	private boolean decline() {
-		return getBlockState().getValue(MineRailBlock.GRADE) != RailGrade.FLAT;
+		return getBlockState().hasProperty(MineRailBlock.GRADE) && getBlockState().getValue(MineRailBlock.GRADE) != RailGrade.FLAT;
 	}
 
 	private boolean rack() {
-		return getBlockState().getValue(MineRailBlock.RACK);
+		return !getBlockState().hasProperty(MineRailBlock.RACK) || getBlockState().getValue(MineRailBlock.RACK);
 	}
 
 	@Override

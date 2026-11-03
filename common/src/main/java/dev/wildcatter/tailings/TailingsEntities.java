@@ -1,5 +1,6 @@
 package dev.wildcatter.tailings;
 
+import dev.wildcatter.tailings.entity.MineTrainEntity;
 import dev.wildcatter.tailings.entity.TunnelDrillEntity;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,11 +15,16 @@ public final class TailingsEntities {
 			.sized(0.98F, 1.98F)
 			.clientTrackingRange(10)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("tunnel_drill")));
+	public static final EntityType<MineTrainEntity> TRAIN = EntityType.Builder.<MineTrainEntity>of(MineTrainEntity::new, MobCategory.MISC)
+			.sized(0.9F, 1.4F)
+			.clientTrackingRange(10)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("mine_train")));
 
 	private TailingsEntities() {
 	}
 
 	public static void register() {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("tunnel_drill"), DRILL);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_train"), TRAIN);
 	}
 }

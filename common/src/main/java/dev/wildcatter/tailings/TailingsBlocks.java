@@ -10,7 +10,9 @@ import dev.wildcatter.tailings.block.HandMillBlock.Role;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
 import dev.wildcatter.tailings.block.LiningBlock;
 import dev.wildcatter.tailings.block.MineFullBlock;
+import dev.wildcatter.tailings.block.MineLightBlock;
 import dev.wildcatter.tailings.block.MineRailBlock;
+import dev.wildcatter.tailings.block.MineSwitchBlock;
 import dev.wildcatter.tailings.block.MineStairBlock;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
@@ -73,11 +75,15 @@ public final class TailingsBlocks {
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final BlockEntityType<DrillBlockEntity> DRILL = new BlockEntityType<>(DrillBlockEntity::new, Set.of(TUNNEL_DRILL));
 	public static final BlockEntityType<PumpBlockEntity> PUMP = new BlockEntityType<>(PumpBlockEntity::new, Set.of(DEWATERING_PUMP));
-	public static final BlockEntityType<RailBlockEntity> RAIL = new BlockEntityType<>(RailBlockEntity::new, Set.of(MINE_RAIL));
+	public static final Block MINE_SWITCH = course("mine_switch", props -> new MineSwitchBlock(props.mapColor(MapColor.METAL).strength(2.0F, 6.0F).sound(SoundType.METAL)
+			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
+	public static final Block MINE_LIGHT = block("mine_light", props -> new MineLightBlock(props.mapColor(MapColor.COLOR_YELLOW).strength(1.5F, 3.0F)
+			.sound(SoundType.GLASS).lightLevel(state -> state.getValue(MineLightBlock.LIT) ? 15 : 0)));
+	public static final BlockEntityType<RailBlockEntity> RAIL = new BlockEntityType<>(RailBlockEntity::new, Set.of(MINE_RAIL, MINE_SWITCH));
 	public static final Block DUMP_STATION = block("dump_station", props -> new DumpStationBlock(props.mapColor(MapColor.COLOR_ORANGE).strength(3.5F, 8.0F)
 			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final Block BLOCK_SIGNAL = block("block_signal", props -> new BlockSignalBlock(props.mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F)
-			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+			.sound(SoundType.METAL).requiresCorrectToolForDrops().lightLevel(state -> state.getValue(BlockSignalBlock.LIT) ? 12 : 0)));
 	public static final Block TRACTION_RECTIFIER = block("traction_rectifier", props -> new TractionRectifierBlock(props.mapColor(MapColor.COLOR_YELLOW)
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_STATION));
@@ -101,6 +107,8 @@ public final class TailingsBlocks {
 		add("mine_landing", MINE_LANDING);
 		add("mine_floor", MINE_FLOOR);
 		add("mine_rail", MINE_RAIL);
+		add("mine_switch", MINE_SWITCH);
+		add("mine_light", MINE_LIGHT);
 		add("tunnel_drill", TUNNEL_DRILL);
 		add("dewatering_pump", DEWATERING_PUMP);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("hand_mill"), MILL);

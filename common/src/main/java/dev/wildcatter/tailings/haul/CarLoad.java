@@ -17,7 +17,7 @@ public final class CarLoad {
 	}
 
 	public int room() {
-		return Haul.CAR_KG - total();
+		return Haul.CAR_ITEMS - total();
 	}
 
 	/** Adds what fits and returns the kilograms that would not fit. */

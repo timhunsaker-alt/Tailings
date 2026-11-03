@@ -17,7 +17,10 @@ public final class TailingsNeoForgeClient {
 
 	public static void init(IEventBus modBus) {
 		modBus.addListener(RegisterMenuScreensEvent.class, event -> event.register(DrillMenus.DRILL, DrillScreen::new));
-		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> event.registerEntityRenderer(TailingsEntities.DRILL, NoopRenderer::new));
+		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
+			event.registerEntityRenderer(TailingsEntities.DRILL, NoopRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.TRAIN, NoopRenderer::new);
+		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));
 	}
 }

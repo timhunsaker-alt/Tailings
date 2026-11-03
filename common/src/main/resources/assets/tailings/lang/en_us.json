@@ -225,5 +225,7 @@
   "block.tailings.block_signal": "Block Signal",
   "block.tailings.traction_rectifier": "Traction Rectifier",
   "item.tailings.mine_locomotive": "Mine Locomotive",
-  "item.tailings.mine_car": "Mine Car"
+  "item.tailings.mine_car": "Mine Car",
+  "block.tailings.mine_switch": "Mine Switch",
+  "block.tailings.mine_light": "Mine Light"
 }

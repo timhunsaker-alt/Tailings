@@ -83,9 +83,22 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 			if (level.getBlockEntity(pos) instanceof RailBlockEntity rail) {
 				rail.setPowered(true);
 				fed.add(pos);
+				lightNeighbors(pos);
 			}
 		}
 		setChanged();
+	}
+
+	private void lightNeighbors(BlockPos rail) {
+		for (Direction direction : Direction.values()) {
+			BlockPos beside = rail.relative(direction);
+			BlockState state = level.getBlockState(beside);
+			if (state.getBlock() instanceof MineLightBlock) {
+				MineLightBlock.refresh(level, beside, state);
+			} else if (state.getBlock() instanceof BlockSignalBlock && !state.getValue(BlockSignalBlock.LIT)) {
+				level.setBlock(beside, state.setValue(BlockSignalBlock.LIT, true), 3);
+			}
+		}
 	}
 
 	private void consider(BlockPos pos, ArrayDeque<BlockPos> queue, Set<BlockPos> found) {

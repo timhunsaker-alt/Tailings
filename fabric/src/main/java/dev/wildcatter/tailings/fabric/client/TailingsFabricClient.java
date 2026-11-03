@@ -15,6 +15,7 @@ public final class TailingsFabricClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		MenuScreens.register(DrillMenus.DRILL, DrillScreen::new);
 		EntityRendererRegistry.register(TailingsEntities.DRILL, NoopRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.TRAIN, NoopRenderer::new);
 		Tailings.LOGGER.info("Tailings client ready");
 	}
 }

@@ -55,7 +55,7 @@ public final class Sorter {
 				sum += kg;
 			}
 		}
-		if (pocket + sum > Haul.POCKET_KG) {
+		if (pocket + sum > Haul.POCKET_ITEMS) {
 			return false;
 		}
 		Map<String, Integer> nextBins = new LinkedHashMap<>(bins);
@@ -66,13 +66,13 @@ public final class Sorter {
 			}
 			if (products.contains(entry.getKey())) {
 				int filled = nextBins.getOrDefault(entry.getKey(), 0) + entry.getValue();
-				if (filled > Haul.BIN_KG) {
+				if (filled > Haul.BIN_ITEMS) {
 					return false;
 				}
 				nextBins.put(entry.getKey(), filled);
 			} else {
 				nextWaste += entry.getValue();
-				if (nextWaste > Haul.BIN_KG) {
+				if (nextWaste > Haul.BIN_ITEMS) {
 					return false;
 				}
 			}

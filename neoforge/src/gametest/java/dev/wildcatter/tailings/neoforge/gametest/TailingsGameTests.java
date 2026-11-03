@@ -283,12 +283,12 @@ public class TailingsGameTests {
 		helper.assertTrue(loco.placeLoco(), Component.literal("the rail should take a locomotive"));
 		helper.assertTrue(car.placeCar(), Component.literal("the car should couple to the locomotive ahead"));
 		helper.assertTrue(loco.conductorLive(), Component.literal("the conductor is live under the locomotive"));
-		car.load().add("minecraft:cobblestone", 2_000);
+		car.load().add("minecraft:cobblestone", 2);
 		helper.assertTrue(loco.stepOnce(), Component.literal("the train should take the next powered rail"));
 		RailBlockEntity moved = helper.getBlockEntity(new BlockPos(3, 60, 1), RailBlockEntity.class);
 		RailBlockEntity followed = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
 		helper.assertTrue(moved.kind() == RailBlockEntity.Kind.LOCO && moved.conductorLive(), Component.literal("the locomotive should have moved and stayed live"));
-		helper.assertTrue(followed.kind() == RailBlockEntity.Kind.CAR && followed.load().total() == 2_000, Component.literal("the car should follow with its load"));
+		helper.assertTrue(followed.kind() == RailBlockEntity.Kind.CAR && followed.load().total() == 2, Component.literal("the car should follow with its load"));
 		helper.setBlock(new BlockPos(3, 60, 0), TailingsBlocks.DUMP_STATION.defaultBlockState());
 		helper.assertTrue(moved.stepOnce(), Component.literal("the train should tip into the dump"));
 		DumpBlockEntity dump = helper.getBlockEntity(new BlockPos(3, 60, 0), DumpBlockEntity.class);

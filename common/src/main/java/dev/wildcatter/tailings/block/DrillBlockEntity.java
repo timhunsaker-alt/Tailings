@@ -300,20 +300,23 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
 		if (!(level.getBlockEntity(worldPosition.relative(facing.getOpposite())) instanceof RailBlockEntity rail)
-				|| rail.kind() != RailBlockEntity.Kind.CAR || rail.load().room() < dev.wildcatter.tailings.haul.Haul.ITEM_KG) {
+				|| rail.kind() != RailBlockEntity.Kind.CAR || rail.load().room() <= 0) {
 			return;
 		}
-		for (int slot = INPUTS; slot < SLOTS; slot++) {
+		int moved = 0;
+		for (int slot = INPUTS; slot < SLOTS && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER; slot++) {
 			ItemStack stack = slots.get(slot);
-			if (stack.isEmpty()) {
-				continue;
-			}
-			String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-			if (rail.load().add(id, dev.wildcatter.tailings.haul.Haul.ITEM_KG) == 0) {
+			while (!stack.isEmpty() && rail.load().room() > 0 && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER) {
+				String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+				if (rail.load().add(id, 1) != 0) {
+					return;
+				}
 				stack.shrink(1);
-				setChanged();
-				return;
+				moved++;
 			}
+		}
+		if (moved > 0) {
+			setChanged();
 		}
 	}
 

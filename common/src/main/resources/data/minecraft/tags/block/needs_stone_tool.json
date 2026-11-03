@@ -26,6 +26,8 @@
     "tailings:dewatering_pump",
     "tailings:dump_station",
     "tailings:block_signal",
-    "tailings:traction_rectifier"
+    "tailings:traction_rectifier",
+    "tailings:mine_switch",
+    "tailings:mine_light"
   ]
 }

@@ -1,14 +1,14 @@
 package dev.wildcatter.tailings.haul;
 
 /**
- * The conductor rail is live only while a locomotive covers it and the rectifier is feeding that rail.
- * A car, a player, or a dead rectifier leaves it cold.
+ * A fed section of conductor is live along its whole length, so lights and signals can draw from it.
+ * It stays walk-safe: nothing on the rail is shocked. A dead rectifier leaves the section cold.
  */
 public final class Conductor {
 	private Conductor() {
 	}
 
-	public static boolean live(boolean fedByRectifier, boolean locomotiveHere) {
-		return fedByRectifier && locomotiveHere;
+	public static boolean live(boolean fedByRectifier) {
+		return fedByRectifier;
 	}
 }

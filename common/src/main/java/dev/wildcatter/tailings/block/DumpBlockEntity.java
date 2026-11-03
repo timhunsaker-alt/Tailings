@@ -44,9 +44,9 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 			return;
 		}
 		dump.apron++;
-		if (dump.apron >= 100) {
+		if (dump.apron >= 20) {
 			dump.apron = 0;
-			dump.pocket = Math.max(0, dump.pocket - Haul.ITEM_KG);
+			dump.pocket = Math.max(0, dump.pocket - Haul.STACK);
 			dump.setChanged();
 		}
 	}
@@ -65,7 +65,7 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 			return false;
 		}
 		for (Map.Entry<String, Integer> entry : load.entrySet()) {
-			int items = entry.getValue() / Haul.ITEM_KG;
+			int items = entry.getValue();
 			if (items <= 0) {
 				continue;
 			}
@@ -86,7 +86,7 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 				continue;
 			}
 			String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-			int kg = stack.getCount() * Haul.ITEM_KG;
+			int kg = stack.getCount();
 			if (slot == 0) {
 				waste += kg;
 			} else {

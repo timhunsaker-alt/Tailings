@@ -161,16 +161,12 @@ There is **no overhead wire and no shock hazard on the track.**
 | `mine_locomotive` | 1 x 2 x 3 | 8 t mine locomotive, two 37 kW traction motors and a rack pinion, with a collector shoe under it on the conductor rail *(unverified)* |
 | `mine_car` | 1 x 2 x 2 | Granby-type side-dump car, **1.5 m3, 3 t of rock** (approved by Tim, 2026-11-02). It carries any mix of rock and ore types, each counted in kg |
 
-- **Capacity:** a car holds about 3,000 kg, about one block of ore (a uranium ore block is 2,300 kg; a rock-salt block 2,117 kg).
-  It carries **any mix** of rock and ore types (decided with Tim, 2026-11-02), as real run-of-mine rock does; right-click shows
-  its total load and the kg of each type.
+- **Capacity:** a real Granby car is about 3 t, about one block of ore. The game car holds **9 stacks (576 items)** of any mix, so the drill's 64-block advance fits in one car and a 10-car train keeps the buffer from staying full (revised with Tim, 2026-11-03). The 3 t figure stays the real counterpart; the stacks are the gameplay size.
 - **Powered pickup:** the locomotive's shoe draws real current from the conductor rail under it: about 75 kW pulling a loaded
   train up the decline, less on the flat, a little at idle for its lights and compressor. The rectifier's breaker trips on
   overload, as any Wildcatter feeder does, and its readout shows the track's load. On unpowered track, or past the last powered
   section, the locomotive brakes to a stop and holds on the rack.
-- **Safe track:** a section is switched live only under a locomotive; the conductor is shrouded and flush. A player, mob or item
-  on the track never gets a shock. This is the one Wildcatter conductor that does not shock, and it is safe because its real
-  counterpart is built to be.
+- **Safe track:** a fed section is live along its whole length, so tunnel lamps and signal lamps can draw from it (revised with Tim, 2026-11-03). The conductor is still shrouded and flush. A player, mob or item on the track never gets a shock. The locomotive carries a headlight. A thrown mine switch sends a train down the clockwise branch, with the block signals still keeping two trains out of the same section.
 - **Coupling and trains:** sneak-right-click with an empty hand couples a car to the one in front, up to **10 cars a
   locomotive** (approved by Tim, 2026-11-02): about 30 t of rock, 40 t with the cars, plus the 8 t locomotive. A train moves as one: it starts slowly (real tractive effort against the train's mass and the
   grade), keeps its spacing on curves, and stops as one. A car with no locomotive does not move by itself, except that it rolls
@@ -205,8 +201,7 @@ colour sorters, which reject waste rock from ore at mine sites).
 
 ## Breaking and safety
 - Breaking a track piece leaves the rest; a car at a gap derails and drops its load.
-- The track never shocks (above). A player standing on the track in front of a moving train is struck by it, so players use the walkway
-  between the tracks.
+- The track never shocks (above). A train is an entity. It hurts a player or mob it hits, 8 damage by default. `config/tailings-train.properties` with `damage=false` turns that off, and `amount=` changes it. Players still use the walkway between the tracks.
 
 ## Open questions
 - Keep the 1-in-1 steep option in the GUI (which brings back the rack exception), or 1 in 2 only?
