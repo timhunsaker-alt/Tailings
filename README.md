@@ -8,7 +8,7 @@ simpler route throws away, as in a real mill. Every machine is a true-size multi
 grid at real voltages. What it is and why it is allowed is in `docs/VISION.md`. What comes next is in `docs/ROADMAP.md`. Each
 machine's spec is in `docs/multiblocks/`.
 
-## What's in it (planned; nothing is built yet)
+## What's in it (Phase 0 skeleton; the machines are not built yet)
 - **Rock crushing by rock type:** cobblestone, granite, diorite, andesite, deepslate, tuff, sandstone and Wildcatter's ore
   blocks each crush to their own product (crushed rock → gravel → sand → fines), and each product carries the minerals its host
   rock really holds.
@@ -29,10 +29,23 @@ machine's spec is in `docs/multiblocks/`.
 - Tailings is **its own jar** and **requires Wildcatter** 0.2.0 or newer on the same loader and Minecraft version; it will not
   load without it. It has no grid, ores or pipe of its own; it uses Wildcatter's.
 
-## The code (planned)
-One codebase, two loaders, laid out as Wildcatter is: `common/` (the recovery math, plants, blocks, items, the drill's
-program), `fabric/` and `neoforge/` (entry points). The recovery math is plain Java with no Minecraft imports and its own unit
-tests.
+## The code
+One codebase, two loaders, laid out as Wildcatter is: `common/` (the recovery math; plants, blocks, items and the drill's
+program come later), `fabric/` and `neoforge/` (entry points). The recovery math is plain Java with no Minecraft imports.
+`./gradlew :common:test` checks the 25/50/75/95% ladder and that no route returns more mineral than the block holds.
 
-## Testing (planned)
-`./gradlew build`, `./gradlew :common:test`, and `./gradlew :fabric:runClientGameTest` with one scene per machine, as in Wildcatter.
+## Building
+Run Gradle on Java 25. Fabric Loom 1.19 refuses a Java 21 Gradle JVM. NeoForge's build tools also want a Java 21
+installation on the machine. `./gradlew build` compiles both loader jars and runs the recovery tests.
+
+Wildcatter **0.2.0** is a compile-only dependency, downloaded from its GitHub release (not published to Maven, and not
+bundled into the Tailings jar):
+
+- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-fabric-0.2.0.jar
+- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-neoforge-0.2.0.jar
+
+`fabric.mod.json` and `neoforge.mods.toml` require Wildcatter 0.2.0 or newer, so the game will not load Tailings without it.
+There is no in-game scene yet. `./gradlew :fabric:runClientGameTest` arrives with the first machine.
+
+## Testing
+`./gradlew build` and `./gradlew :common:test`. In-game scenes, one per machine, come later, as in Wildcatter.
