@@ -47,7 +47,6 @@ The overlay is a thin element just above the bed (about 0.25 pixels). The bed st
 ## What is still a vanilla texture
 
 - Stamp mill, hand screen, shaking table, magnetic separator.
-- Every crushing and flotation block (grizzly, jaw, cone, screen, belt, ball mill, cyclones, tank, cell, blower, thickener, filter).
 - The switch cube under the overlay (`minecraft:block/gravel`).
 - Slope, stair, landing, and mine floor, on purpose: they use the mined stone (`minecraft:block/stone`, cobblestone, deepslate, granite, diorite, andesite, tuff, sandstone).
 - The mine light **item** (`textures/block/mine_light.png`). The placed block uses `mine_light_on` and `mine_light_off`.
@@ -57,8 +56,23 @@ The overlay is a thin element just above the bed (about 0.25 pixels). The bed st
 
 There is no script in the repo that calls Ludo or Blockbench. To replace a texture, export a PNG at the same size, quantize overlay alpha as above, and overwrite the file at the same path. Block models that already reference `tailings:block/<name>` pick the new sprite up. If you add a texture, point a model or blockstate at it. Unused PNGs are not loaded.
 
-Do **not** re-run `tools/phase3_assets.py` to refresh art. That script is an early generator. It still writes slab and cube parents with vanilla placeholder textures, and it would overwrite the eight-slice slope and rail models. The committed JSON is the source of truth for block models.
+Do **not** re-run `tools/phase2_assets.py` (it would write the old cube machines back) or `tools/phase3_assets.py` to refresh art. That script is an early generator. It still writes slab and cube parents with vanilla placeholder textures, and it would overwrite the eight-slice slope and rail models. The committed JSON is the source of truth for block models.
 
 To change the train's shape, edit `createBodyLayer()` in the model class (or re-export from Blockbench into that method). Keep part names the renderer looks up: `headlight` on the locomotive, `load` on the car. Register nothing new unless you add a layer. Both loaders already register `tailings:mine_locomotive` and `tailings:mine_car`, layer `main`.
 
 After a model change, `./gradlew :common:test` runs the spacing tests, and `:neoforge:runGameTestServer` includes the `models` scene, which bakes both layers and checks that the headlight and load parts exist. That does not open a world view. Look at the train in a client before calling the art finished.
+
+## Machine models (R3)
+
+Every true-size part is a real model, not a textured cube:
+- the crushing circuit, the flotation bank, the dump station's parts, the traction rectifier and the belt.
+
+How they are made:
+- **The tool:** they come from Python scripts in `tools/models/` (`crushing.py`, `flotation.py`, `dump.py`, `rectifier.py`, `belt.py`), built with **Wildcatter's** model tool (`mlib`, `plantlib`), as Wildcatter's own parts are.
+- **The dimensions:** each part is drawn in metres from its spec's real dimensions, facing north from its main cell, with its motor box on the west face.
+- **Running it:** `python3 tools/models/build.py [module ...]` from the repo root, with Wildcatter checked out beside Tailings (`../wildcatter`). It writes per-piece block models, blockstates, item models and collision shapes into Tailings' assets, and three-view previews into `build/model-previews/`.
+- **Textures:** the models use Wildcatter's material textures (`wildcatter:block/mat/...`), which ship in the Wildcatter jar. The driver renames each texture Tailings does not have itself into that namespace. Only materials in the Wildcatter 0.2.0 jar are used.
+- **Checks:** `ModelLintTest` (`:common:test`) re-checks the boxes, finds every texture (Tailings' on disk, Wildcatter's in its jar), and checks every part's shape file.
+
+The committed JSON is what the game loads. CI does not run the tool.
+

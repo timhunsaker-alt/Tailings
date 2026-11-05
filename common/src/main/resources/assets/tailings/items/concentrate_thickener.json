@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/concentrate_thickener"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/concentrate_thickener/item"
+ }
 }

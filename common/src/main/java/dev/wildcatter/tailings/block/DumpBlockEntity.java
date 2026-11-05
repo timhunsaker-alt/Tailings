@@ -1,5 +1,6 @@
 package dev.wildcatter.tailings.block;
 
+import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.haul.Haul;
 import dev.wildcatter.tailings.haul.Sorter;
@@ -26,14 +27,15 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The dump pocket and sorter. Slot 0 is waste. Slots 1 to 8 are product bins: a bin keeps the item it already holds.
+ * The dump pocket (docs/multiblocks/dump-station.md), which until R4 also sorts, as the one-block dump station did. Slot 0 is waste. Slots 1 to 8 are product bins: a bin keeps the item it already holds.
  * The pocket buffers one 30 t train, then the next train waits.
  */
-public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
+public class DumpBlockEntity extends BlockEntity implements WorldlyContainer, BigPartEntity {
 	public static final int SLOTS = 9;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
 	private int pocket;
 	private int apron;
+	private boolean grown;
 
 	public DumpBlockEntity(BlockPos pos, BlockState state) {
 		super(TailingsBlocks.DUMP, pos, state);
@@ -49,6 +51,17 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 			dump.pocket = Math.max(0, dump.pocket - Haul.STACK);
 			dump.setChanged();
 		}
+	}
+
+	@Override
+	public boolean grown() {
+		return grown;
+	}
+
+	@Override
+	public void markGrown() {
+		grown = true;
+		setChanged();
 	}
 
 	public int pocket() {
@@ -138,6 +151,7 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
+		output.putBoolean("grown", grown);
 		ContainerHelper.saveAllItems(output, slots);
 		output.putInt("pocket", pocket);
 	}
@@ -145,6 +159,7 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer {
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
+		grown = input.getBooleanOr("grown", false);
 		slots.clear();
 		ContainerHelper.loadAllItems(input, slots);
 		pocket = input.getIntOr("pocket", 0);

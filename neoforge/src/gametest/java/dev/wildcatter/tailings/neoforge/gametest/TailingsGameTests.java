@@ -1,6 +1,9 @@
 package dev.wildcatter.tailings.neoforge.gametest;
 
+import dev.wildcatter.block.BigPartBlock;
+import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.Tailings;
+import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
@@ -24,7 +27,6 @@ import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DriveCourse;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.plant.Machine;
-import dev.wildcatter.tailings.plant.PlantPlan;
 import dev.wildcatter.tailings.plant.Reagent;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
@@ -46,6 +48,7 @@ import net.minecraft.server.level.Ticket;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.TicketStorage;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
@@ -56,7 +59,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -74,6 +77,9 @@ public class TailingsGameTests {
 			helper.register(id("train_tickets"), (Consumer<GameTestHelper>) TailingsGameTests::trainTickets);
 			helper.register(id("drill_blocked"), (Consumer<GameTestHelper>) TailingsGameTests::drillBlocked);
 			helper.register(id("plant_drops"), (Consumer<GameTestHelper>) TailingsGameTests::plantDrops);
+			helper.register(id("part_break"), (Consumer<GameTestHelper>) TailingsGameTests::partBreak);
+			helper.register(id("not_built"), (Consumer<GameTestHelper>) TailingsGameTests::notBuilt);
+			helper.register(id("terminal"), (Consumer<GameTestHelper>) TailingsGameTests::terminal);
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
@@ -120,33 +126,25 @@ public class TailingsGameTests {
 		});
 	}
 
-	private static void erect(GameTestHelper helper, java.util.List<PlantPlan.Station> plan, int y) {
-		for (PlantPlan.Station station : plan) {
-			PlantMachineBlock block = (PlantMachineBlock) TailingsBlocks.plantBlock(station.machine());
-			BlockPos pos = new BlockPos(station.x(), y, 0);
-			BlockState state = block.defaultBlockState().setValue(PlantMachineBlock.FACING, Direction.NORTH).setValue(PlantMachineBlock.PIECE, 0);
-			helper.setBlock(pos, state);
-		}
+	/** Places a whole part as a player would: its main cell, then the rest grown into place. */
+	private static <T extends net.minecraft.world.level.block.entity.BlockEntity> T part(GameTestHelper helper, Block block, BlockPos pos, Class<T> entity) {
+		BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, Direction.NORTH);
+		helper.setBlock(pos, state);
+		BigParts.grow(helper.getLevel(), helper.absolutePos(pos), helper.getLevel().getBlockState(helper.absolutePos(pos)));
+		return entity == null ? null : helper.getBlockEntity(pos, entity);
 	}
 
-	private static PlantBlockEntity plant(GameTestHelper helper, java.util.List<PlantPlan.Station> plan, Machine machine, int y) {
-		for (PlantPlan.Station station : plan) {
-			if (station.machine() == machine) {
-				return helper.getBlockEntity(new BlockPos(station.x(), y, 0), PlantBlockEntity.class);
-			}
-		}
-		throw new IllegalStateException(machine.toString());
+	private static PlantBlockEntity plant(GameTestHelper helper, Machine machine, BlockPos pos) {
+		return part(helper, TailingsBlocks.plantBlock(machine), pos, PlantBlockEntity.class);
 	}
 
 	/** The jaw is one item and 3 x 4 x 4 cells. */
 	private static void jawSize(GameTestHelper helper) {
 		PlantMachineBlock jaw = (PlantMachineBlock) TailingsBlocks.JAW;
 		BlockPos pos = new BlockPos(0, 2, 0);
-		BlockState state = jaw.defaultBlockState().setValue(PlantMachineBlock.FACING, Direction.NORTH).setValue(PlantMachineBlock.PIECE, 0);
-		helper.setBlock(pos, state);
-		jaw.fill(helper.getLevel(), helper.absolutePos(pos), state);
+		plant(helper, Machine.JAW, pos);
 		int cells = 0;
-		for (BlockPos cell : jaw.cells(helper.absolutePos(pos), Direction.NORTH)) {
+		for (BlockPos cell : BigParts.cells(helper.absolutePos(pos), helper.getLevel().getBlockState(helper.absolutePos(pos)))) {
 			if (helper.getLevel().getBlockState(cell).getBlock() == jaw) {
 				cells++;
 			}
@@ -155,16 +153,35 @@ public class TailingsGameTests {
 		helper.succeed();
 	}
 
+	/**
+	 * A crushing line joined as R3 joins it: the grizzly on top of the jaw, the screen and cone touching, then a driven belt run
+	 * from the cone to the ball mill, and the cyclones touching the mill.
+	 */
+	private static PlantBlockEntity crushingLine(GameTestHelper helper, int y) {
+		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, y, 0));
+		plant(helper, Machine.GRIZZLY, new BlockPos(0, y + 4, 0));
+		plant(helper, Machine.SCREEN, new BlockPos(3, y, 0));
+		plant(helper, Machine.CONE, new BlockPos(6, y, 0));
+		BlockState belt = TailingsBlocks.BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, Direction.Axis.X);
+		helper.setBlock(new BlockPos(9, y, 1), belt);
+		helper.setBlock(new BlockPos(10, y, 1), belt);
+		plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(9, y + 1, 0));
+		plant(helper, Machine.BALL_MILL, new BlockPos(11, y, 0));
+		plant(helper, Machine.CYCLONE, new BlockPos(15, y, 0));
+		return jaw;
+	}
+
 	private static void crushing(GameTestHelper helper) {
 		int y = 6;
-		erect(helper, PlantPlan.CRUSHING, y);
-		PlantBlockEntity jaw = plant(helper, PlantPlan.CRUSHING, Machine.JAW, y);
+		PlantBlockEntity jaw = crushingLine(helper, y);
 		jaw.refresh();
 		jaw.forceRunning();
-		helper.assertTrue(plant(helper, PlantPlan.CRUSHING, Machine.GRIZZLY, y).offer(new ItemStack(Blocks.COBBLESTONE)),
-				Component.literal("the grizzly should take cobble"));
+		PlantBlockEntity grizzly = helper.getBlockEntity(new BlockPos(0, y + 4, 0), PlantBlockEntity.class);
+		PlantBlockEntity cyclone = helper.getBlockEntity(new BlockPos(15, y, 0), PlantBlockEntity.class);
+		helper.assertTrue(jaw.formed(), Component.literal("the line should form: " + jaw.status()));
+		helper.assertTrue(grizzly.offer(new ItemStack(Blocks.COBBLESTONE)), Component.literal("the grizzly should take cobble"));
 		helper.succeedWhen(() -> {
-			ItemStack out = plant(helper, PlantPlan.CRUSHING, Machine.CYCLONE, y).product();
+			ItemStack out = cyclone.product();
 			helper.assertTrue(jaw.formed() && out.is(BuiltInRegistries.ITEM.getValue(Tailings.id("fines_cobblestone"))),
 					Component.literal("the circuit should make fines, got " + out + " (" + jaw.status() + ")"));
 		});
@@ -172,8 +189,11 @@ public class TailingsGameTests {
 
 	private static void flotation(GameTestHelper helper) {
 		int y = 16;
-		erect(helper, PlantPlan.FLOTATION, y);
-		PlantBlockEntity tank = plant(helper, PlantPlan.FLOTATION, Machine.CONDITIONER, y);
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 0));
+		plant(helper, Machine.FLOTATION_BANK, new BlockPos(3, y, 0));
+		plant(helper, Machine.BLOWER, new BlockPos(10, y, 0));
+		plant(helper, Machine.THICKENER, new BlockPos(12, y, 0));
+		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(20, y, 0));
 		tank.forceRunning();
 		ItemStack fines = new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("fines_copper")));
 		helper.assertTrue(tank.offer(fines), Component.literal("the tank should take copper fines"));
@@ -182,10 +202,62 @@ public class TailingsGameTests {
 					Component.literal("the tank should take " + reagent.displayName()));
 		}
 		helper.succeedWhen(() -> {
-			ItemStack out = plant(helper, PlantPlan.FLOTATION, Machine.FILTER, 16).product();
+			ItemStack out = filter.product();
 			helper.assertTrue(tank.formed() && out.is(Items.COPPER_INGOT) && out.getCount() == 3,
-					Component.literal("flotation should pay 3 copper ingots, got " + out + " formed=" + tank.formed()));
+					Component.literal("flotation should pay 3 copper ingots, got " + out + " (" + tank.status() + ")"));
 		});
+	}
+
+	/** Breaking any piece of the ball mill takes all 96 cells and drops the one item. */
+	private static void partBreak(GameTestHelper helper) {
+		BlockPos main = new BlockPos(2, 30, 2);
+		plant(helper, Machine.BALL_MILL, main);
+		BlockPos piece = main.offset(2, 3, 4);
+		helper.assertTrue(helper.getBlockState(piece).getBlock() == TailingsBlocks.BALL_MILL, Component.literal("the mill should fill its far corner"));
+		helper.startSequence()
+				.thenExecute(() -> helper.getLevel().destroyBlock(helper.absolutePos(piece), true))
+				.thenExecuteAfter(5, () -> {
+					for (int x = 0; x < 4; x++) {
+						for (int yy = 0; yy < 4; yy++) {
+							for (int z = 0; z < 6; z++) {
+								helper.assertTrue(helper.getBlockState(main.offset(x, yy, z)).getBlock() != TailingsBlocks.BALL_MILL,
+										Component.literal("every cell should go, " + main.offset(x, yy, z) + " stayed"));
+							}
+						}
+					}
+					helper.assertItemEntityCountIs(TailingsBlocks.BALL_MILL.asItem(), main, 8.0, 1);
+				})
+				.thenSucceed();
+	}
+
+	/** A jaw with its grizzly but no screen reads what it needs. */
+	private static void notBuilt(GameTestHelper helper) {
+		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, 40, 0));
+		plant(helper, Machine.GRIZZLY, new BlockPos(0, 44, 0));
+		helper.assertFalse(jaw.refresh(), Component.literal("a lone jaw should not form"));
+		helper.assertTrue(jaw.status().startsWith("NOT BUILT") && jaw.status().contains("Double-Deck Screen"),
+				Component.literal("it should name the screen, got " + jaw.status()));
+		helper.succeed();
+	}
+
+	/** The jaw's motor box is the west face of its main cell, turned with the part, and nowhere else. */
+	private static void terminal(GameTestHelper helper) {
+		BlockPos at = new BlockPos(4, 50, 4);
+		BlockState state = TailingsBlocks.JAW.defaultBlockState().setValue(BigPartBlock.FACING, Direction.EAST);
+		helper.setBlock(at, state);
+		BigParts.grow(helper.getLevel(), helper.absolutePos(at), helper.getLevel().getBlockState(helper.absolutePos(at)));
+		PlantBlockEntity jaw = helper.getBlockEntity(at, PlantBlockEntity.class);
+		BlockPos main = helper.absolutePos(at);
+		// facing east, the drawing's west face is north
+		helper.assertTrue(jaw.hasPortAt(main, Direction.NORTH, dev.wildcatter.circuit.Conductor.A, dev.wildcatter.energy.Voltage.INDUSTRIAL),
+				Component.literal("the motor box should be on the main cell's turned west face"));
+		helper.assertFalse(jaw.hasPortAt(main, Direction.WEST, dev.wildcatter.circuit.Conductor.A, dev.wildcatter.energy.Voltage.INDUSTRIAL),
+				Component.literal("no box on another face"));
+		helper.assertFalse(jaw.hasPortAt(main.above(), Direction.NORTH, dev.wildcatter.circuit.Conductor.A, dev.wildcatter.energy.Voltage.INDUSTRIAL),
+				Component.literal("no box on another cell"));
+		helper.assertFalse(jaw.hasPortAt(main, Direction.NORTH, dev.wildcatter.circuit.Conductor.A, dev.wildcatter.energy.Voltage.MEDIUM),
+				Component.literal("the jaw is a 480 V motor"));
+		helper.succeed();
 	}
 
 	/** One advance of the TBM: 28 lining segments and the upper half of the 1-in-2 floor. */
@@ -283,9 +355,8 @@ public class TailingsGameTests {
 
 	/** The rectifier feeds the rail, the train moves one block, and the dump splits the car into cobble. */
 	private static void haul(GameTestHelper helper) {
-		BlockPos rectifier = new BlockPos(4, 60, 2);
-		helper.setBlock(rectifier, TailingsBlocks.TRACTION_RECTIFIER.defaultBlockState());
-		RectifierBlockEntity box = helper.getBlockEntity(rectifier, RectifierBlockEntity.class);
+		BlockPos rectifier = new BlockPos(1, 60, 2);
+		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, rectifier, RectifierBlockEntity.class);
 		box.forceRunning();
 		BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
 		for (int z = 0; z <= 3; z++) {
@@ -304,9 +375,10 @@ public class TailingsGameTests {
 		RailBlockEntity followed = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
 		helper.assertTrue(moved.kind() == RailBlockEntity.Kind.LOCO && moved.conductorLive(), Component.literal("the locomotive should have moved and stayed live"));
 		helper.assertTrue(followed.kind() == RailBlockEntity.Kind.CAR && followed.load().total() == 2, Component.literal("the car should follow with its load"));
-		helper.setBlock(new BlockPos(3, 60, 0), TailingsBlocks.DUMP_STATION.defaultBlockState());
-		helper.assertTrue(moved.stepOnce(), Component.literal("the train should tip into the dump"));
-		DumpBlockEntity dump = helper.getBlockEntity(new BlockPos(3, 60, 0), DumpBlockEntity.class);
+		// a dump pocket under the track and a dump ramp beside it: the car tips as it passes over
+		DumpBlockEntity dump = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, 57, 0), DumpBlockEntity.class);
+		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, 60, 0), PlantBlockEntity.class);
+		helper.assertTrue(moved.stepOnce(), Component.literal("the train should go on over the pocket"));
 		ItemStack waste = dump.getItem(0);
 		helper.assertTrue(waste.getItem() == Items.COBBLESTONE && waste.getCount() == 2, Component.literal("the sorter should put cobble in the waste bin, got " + waste));
 		helper.assertTrue(followed.load().total() == 0, Component.literal("the car should be empty after the tip"));
@@ -332,8 +404,7 @@ public class TailingsGameTests {
 	private static void haulTurnout(GameTestHelper helper) {
 		int y = 60;
 		BlockPos rectifier = new BlockPos(2, y, 3);
-		helper.setBlock(rectifier, TailingsBlocks.TRACTION_RECTIFIER.defaultBlockState());
-		RectifierBlockEntity box = helper.getBlockEntity(rectifier, RectifierBlockEntity.class);
+		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, rectifier, RectifierBlockEntity.class);
 		box.forceRunning();
 		BlockState north = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
 		BlockState east = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST);
@@ -443,16 +514,19 @@ public class TailingsGameTests {
 	/** A plant machine removed by anything but a player (here a plain removal, as an explosion does) still drops what it holds. */
 	private static void plantDrops(GameTestHelper helper) {
 		int y = 30;
-		PlantMachineBlock block = (PlantMachineBlock) TailingsBlocks.plantBlock(Machine.CONDITIONER);
 		BlockPos pos = new BlockPos(1, y, 1);
-		helper.setBlock(pos, block.defaultBlockState().setValue(PlantMachineBlock.FACING, Direction.NORTH).setValue(PlantMachineBlock.PIECE, 0));
-		PlantBlockEntity tank = helper.getBlockEntity(pos, PlantBlockEntity.class);
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, pos);
 		var lime = BuiltInRegistries.ITEM.getValue(Tailings.id(Reagent.LIME.id()));
 		for (int i = 0; i < 3; i++) {
 			helper.assertTrue(tank.offer(new ItemStack(lime)), Component.literal("the tank should take lime"));
 		}
 		helper.getLevel().removeBlock(helper.absolutePos(pos), false);
-		helper.assertItemEntityCountIs(lime, pos, 3.0, 3);
+		int dropped = 0;
+		for (var item : helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+				new net.minecraft.world.phys.AABB(helper.absolutePos(pos)).inflate(6), e -> e.getItem().is(lime))) {
+			dropped += item.getItem().getCount();
+		}
+		helper.assertTrue(dropped == 3, Component.literal("the tank's 3 lime should drop, got " + dropped));
 		helper.succeed();
 	}
 }

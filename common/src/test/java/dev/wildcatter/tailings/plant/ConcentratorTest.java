@@ -18,23 +18,6 @@ import org.junit.jupiter.api.Test;
 
 class ConcentratorTest {
 	@Test
-	void circuitsAreTrueSizeAndDoNotOverlap() {
-		assertFalse(PlantPlan.overlaps(PlantPlan.CRUSHING));
-		assertFalse(PlantPlan.overlaps(PlantPlan.FLOTATION));
-		assertEquals(4, PlantPlan.count(PlantPlan.FLOTATION, 'R'));
-		assertEquals(2, PlantPlan.count(PlantPlan.FLOTATION, 'V'));
-		assertEquals(2, PlantPlan.count(PlantPlan.FLOTATION, 'L'));
-		assertEquals(110_000, Machine.JAW.watts());
-		assertEquals(600_000, Machine.BALL_MILL.watts());
-		assertEquals(Machine.Supply.MEDIUM, Machine.BALL_MILL.supply());
-		assertEquals(0, Machine.GRIZZLY.watts());
-		assertEquals(96, Machine.BALL_MILL.cells());
-		assertEquals(192, Machine.THICKENER.cells());
-		assertTrue(PlantPlan.row(PlantPlan.CRUSHING).indexOf('J') > 0);
-		assertTrue(PlantPlan.row(PlantPlan.FLOTATION).startsWith("K"));
-	}
-
-	@Test
 	void crushingLiberatesAndPaysNothing() {
 		assertEquals(SizeClass.CRUSHED, Concentrator.crush(Machine.JAW, null));
 		assertEquals(SizeClass.GRAVEL, Concentrator.crush(Machine.CONE, SizeClass.CRUSHED));

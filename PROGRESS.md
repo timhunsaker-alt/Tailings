@@ -43,3 +43,28 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R3: big parts and real models (2026-11-05)
+
+Every static machine in the R2 specs is now a Wildcatter big part with a real model:
+- crushing: grizzly, jaw, screen, cone, conveyor drive and belt runs, ball mill, cyclones;
+- flotation: conditioning tank, flotation bank, blower, thickener, filter;
+- dump station: ramp, pocket, apron feeder, ore sorter, ore bins;
+- the traction rectifier.
+
+Each part has:
+- one item that fills its real size, with the ghost outline;
+- pieces that break together;
+- real collision;
+- its motor box on the west face of its main cell.
+
+The models come from `tools/models/`, using Wildcatter's tool and materials.
+
+The plant keeps running on the old shortcut until R4 (Tim's choice). A line forms from parts joined by touching or driven belt runs.
+
+**Tests:**
+- `ModelLintTest` and `MachineTest`;
+- game tests `part_break`, `not_built` and `terminal`;
+- the crushing, flotation and haul scenes rebuilt on whole parts.
+
+`./gradlew build` and 18 NeoForge scenes pass.
+

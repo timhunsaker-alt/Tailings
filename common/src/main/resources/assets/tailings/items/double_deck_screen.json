@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/double_deck_screen"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/double_deck_screen/item"
+ }
 }

@@ -5,9 +5,9 @@ import dev.wildcatter.circuit.CircuitPart;
 import dev.wildcatter.circuit.Conductor;
 import dev.wildcatter.circuit.Motor;
 import dev.wildcatter.energy.Inspectable;
+import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.energy.Voltage;
-import dev.wildcatter.multiblock.Multiblock;
-import dev.wildcatter.multiblock.MultiblockLayout;
+import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.plant.Concentrator;
 import dev.wildcatter.tailings.plant.Machine;
@@ -17,9 +17,11 @@ import dev.wildcatter.tailings.plant.ReagentStock;
 import dev.wildcatter.tailings.rock.Milling;
 import dev.wildcatter.tailings.rock.NuggetBank;
 import dev.wildcatter.tailings.rock.SizeClass;
-import java.util.HashMap;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -39,16 +41,24 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A powered part of the crushing circuit or the flotation bank. The jaw and the conditioning tank are the controllers:
- * they check the layout and, when every motor is running, move one block of feed through the line.
+ * The main cell of a plant or dump-station part (docs/multiblocks/crushing-circuit.md, flotation-bank.md). The jaw and the
+ * conditioning tank lead a line: every 20 ticks each finds the parts joined to it, by touching or through a belt run with a
+ * drive, and when its line is whole and every motor in it runs it moves one block of feed through. Until R4 that move is the
+ * old shortcut, grizzly to fines at the cyclones and fines to the 75 % ladder at the filter.
  */
-public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer {
-	private static final MultiblockLayout CRUSHING = new MultiblockLayout(PlantPlan.CRUSHING_CONTROLLER, new String[] {PlantPlan.row(PlantPlan.CRUSHING)});
-	private static final MultiblockLayout FLOTATION = new MultiblockLayout(PlantPlan.FLOTATION_CONTROLLER, new String[] {PlantPlan.row(PlantPlan.FLOTATION)});
+public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity {
+	/** What the jaw needs joined to it, besides itself. */
+	static final List<Machine> CRUSHING = List.of(Machine.GRIZZLY, Machine.SCREEN, Machine.CONE, Machine.BALL_MILL, Machine.CYCLONE);
+	/** What the conditioning tank needs joined to it. Touching stands in for R4's pipes. */
+	static final List<Machine> FLOTATION = List.of(Machine.FLOTATION_BANK, Machine.BLOWER, Machine.THICKENER, Machine.FILTER);
+	/** A line is never searched past this many cells. */
+	private static final int SEARCH_CELLS = 8192;
 
+	private boolean grown;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(6, ItemStack.EMPTY);
 	private final NuggetBank bank = new NuggetBank();
 	private final ReagentStock reagents = new ReagentStock();
+	private List<PlantBlockEntity> line = List.of();
 	private Motor motor;
 	private boolean demand;
 	private boolean forced;
@@ -63,10 +73,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
 			motor = new Motor(true, voltage, machine.watts());
 		}
+		if (machine.waitsForR4()) {
+			status = "joins the process in R4";
+		}
 	}
 
 	public Machine machine() {
 		return ((PlantMachineBlock) getBlockState().getBlock()).machine();
+	}
+
+	private boolean leads() {
+		return machine() == Machine.JAW || machine() == Machine.CONDITIONER;
 	}
 
 	public static void tick(Level level, BlockPos pos, BlockState state, PlantBlockEntity plant) {
@@ -74,70 +91,146 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	private void serverTick() {
-		Machine machine = machine();
-		if (machine == Machine.JAW || machine == Machine.CONDITIONER) {
-			if (level.getGameTime() % 20 == 0) {
-				formed = matches();
+		if (!leads()) {
+			return;
+		}
+		if (level.getGameTime() % 20 == 0) {
+			formed = matches();
+		}
+		boolean work = formed && hasFeed();
+		for (PlantBlockEntity part : parts()) {
+			part.demand = work;
+		}
+		if (formed && level.getGameTime() % PlantPlan.CYCLE_TICKS == 0 && allRunning()) {
+			if (machine() == Machine.JAW) {
+				crush();
+			} else {
+				floatOre();
 			}
-			boolean work = formed && hasFeed();
-			for (PlantBlockEntity part : parts()) {
-				part.demand = work;
-			}
-			if (formed && level.getGameTime() % PlantPlan.CYCLE_TICKS == 0 && allRunning()) {
-				if (machine == Machine.JAW) {
-					crush();
-				} else {
-					floatOre();
+		}
+	}
+
+	/** Finds the line joined to this part and checks it is whole; the status names what is missing. */
+	private boolean matches() {
+		List<Machine> needs = machine() == Machine.JAW ? CRUSHING : FLOTATION;
+		List<PlantBlockEntity> joined = joined();
+		List<PlantBlockEntity> mine = new ArrayList<>();
+		mine.add(this);
+		StringBuilder missing = new StringBuilder();
+		for (Machine need : needs) {
+			PlantBlockEntity found = null;
+			for (PlantBlockEntity part : joined) {
+				if (part.machine() == need) {
+					found = part;
+					break;
 				}
 			}
-		} else if (!formed && level.getGameTime() % PlantPlan.CYCLE_TICKS == 0 && running()) {
-			local();
-		}
-	}
-
-	private boolean matches() {
-		List<PlantPlan.Station> plan = machine() == Machine.JAW ? PlantPlan.CRUSHING : PlantPlan.FLOTATION;
-		char controller = machine() == Machine.JAW ? PlantPlan.CRUSHING_CONTROLLER : PlantPlan.FLOTATION_CONTROLLER;
-		MultiblockLayout layout = machine() == Machine.JAW ? CRUSHING : FLOTATION;
-		Map<Character, java.util.function.Predicate<BlockState>> legend = new HashMap<>();
-		Map<Character, String> names = new HashMap<>();
-		for (PlantPlan.Station station : plan) {
-			legend.putIfAbsent(station.mark(), state -> state.getBlock() instanceof PlantMachineBlock block
-					&& block.machine() == station.machine()
-					&& state.getValue(PlantMachineBlock.PIECE) == 0
-					&& state.getValue(PlantMachineBlock.FACING) == getBlockState().getValue(PlantMachineBlock.FACING));
-			names.putIfAbsent(station.mark(), station.machine().displayName());
-		}
-		String missing = Multiblock.missing(level, worldPosition, getBlockState().getValue(PlantMachineBlock.FACING), layout, legend, names);
-		status = missing == null ? "formed" : "missing " + missing;
-		return missing == null && legend.containsKey(controller);
-	}
-
-	private List<PlantBlockEntity> parts() {
-		List<PlantPlan.Station> plan = machine() == Machine.JAW ? PlantPlan.CRUSHING : PlantPlan.FLOTATION;
-		int origin = 0;
-		char controller = machine() == Machine.JAW ? PlantPlan.CRUSHING_CONTROLLER : PlantPlan.FLOTATION_CONTROLLER;
-		for (PlantPlan.Station station : plan) {
-			if (station.mark() == controller) {
-				origin = station.x();
+			if (found == null) {
+				missing.append(missing.length() > 0 ? ", " : "").append(need.displayName());
+			} else {
+				mine.add(found);
 			}
 		}
-		Direction facing = getBlockState().getValue(PlantMachineBlock.FACING);
-		int turns = PlantMachineBlock.turns(facing);
-		java.util.ArrayList<PlantBlockEntity> found = new java.util.ArrayList<>();
-		for (PlantPlan.Station station : plan) {
-			int dx = station.x() - origin;
-			int dz = 0;
-			for (int i = 0; i < turns; i++) {
-				int t = dx;
-				dx = -dz;
-				dz = t;
+		for (PlantBlockEntity part : joined) {
+			if (part.machine() == Machine.CONVEYOR_DRIVE) {
+				mine.add(part);
 			}
-			if (level.getBlockEntity(worldPosition.offset(dx, 0, dz)) instanceof PlantBlockEntity part) {
-				found.add(part);
+		}
+		if (missing.isEmpty() && machine() == Machine.JAW && !onTop(find(mine, Machine.GRIZZLY), this)) {
+			missing.append("Grizzly on top of the jaw");
+		}
+		if (missing.isEmpty() && machine() == Machine.CONDITIONER && !touching(find(mine, Machine.BLOWER), find(mine, Machine.FLOTATION_BANK))) {
+			missing.append("Air Blower touching the bank");
+		}
+		line = List.copyOf(mine);
+		status = missing.isEmpty() ? "formed" : "NOT BUILT: needs " + missing;
+		return missing.isEmpty();
+	}
+
+	private static @Nullable PlantBlockEntity find(List<PlantBlockEntity> parts, Machine machine) {
+		for (PlantBlockEntity part : parts) {
+			if (part.machine() == machine) {
+				return part;
+			}
+		}
+		return null;
+	}
+
+	private List<BlockPos> cells() {
+		return BigParts.cells(worldPosition, getBlockState());
+	}
+
+	/** Some cell of {@code upper} sits directly on a cell of {@code lower}. */
+	private static boolean onTop(@Nullable PlantBlockEntity upper, PlantBlockEntity lower) {
+		if (upper == null) {
+			return false;
+		}
+		List<BlockPos> below = lower.cells();
+		for (BlockPos cell : upper.cells()) {
+			if (below.contains(cell.below())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean touching(@Nullable PlantBlockEntity a, @Nullable PlantBlockEntity b) {
+		if (a == null || b == null) {
+			return false;
+		}
+		List<BlockPos> other = b.cells();
+		for (BlockPos cell : a.cells()) {
+			for (Direction side : Direction.values()) {
+				if (other.contains(cell.relative(side))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Every plant part joined to this one: parts that touch, and parts at either end of a belt run that a conveyor drive touches.
+	 * A belt run is all the belt blocks joined to each other; one with no drive carries nothing and joins nothing.
+	 */
+	private List<PlantBlockEntity> joined() {
+		Set<BlockPos> seen = new HashSet<>(cells());
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>(cells());
+		List<PlantBlockEntity> found = new ArrayList<>();
+		Set<BlockPos> mains = new HashSet<>();
+		mains.add(worldPosition);
+		while (!queue.isEmpty() && seen.size() < SEARCH_CELLS) {
+			BlockPos cell = queue.removeFirst();
+			for (Direction side : Direction.values()) {
+				BlockPos next = cell.relative(side);
+				if (seen.contains(next)) {
+					continue;
+				}
+				BlockState state = level.getBlockState(next);
+				if (state.getBlock() instanceof PlantMachineBlock) {
+					BlockPos main = BigParts.main(next, state);
+					if (mains.add(main) && level.getBlockEntity(main) instanceof PlantBlockEntity part) {
+						found.add(part);
+						for (BlockPos its : part.cells()) {
+							if (seen.add(its)) {
+								queue.add(its);
+							}
+						}
+					}
+				} else if (state.getBlock() instanceof BeltConveyorBlock) {
+					List<BlockPos> run = BeltConveyorBlock.run(level, next);
+					seen.addAll(run);
+					if (BeltConveyorBlock.driven(level, run)) {
+						queue.addAll(run);
+					}
+				}
 			}
 		}
 		return found;
+	}
+
+	private List<PlantBlockEntity> parts() {
+		return line;
 	}
 
 	private boolean allRunning() {
@@ -155,18 +248,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			PlantBlockEntity grizzly = part(Machine.GRIZZLY);
 			return grizzly != null && Feeds.parse(grizzly.slots.get(0)) instanceof Feeds.Charge charge && charge.size() == null;
 		}
-		PlantBlockEntity tank = this;
-		Feeds.Charge charge = Feeds.parse(tank.slots.get(0));
+		Feeds.Charge charge = Feeds.parse(slots.get(0));
 		return charge != null && charge.size() == SizeClass.FINES;
 	}
 
 	private @Nullable PlantBlockEntity part(Machine machine) {
-		for (PlantBlockEntity part : parts()) {
-			if (part.machine() == machine) {
-				return part;
-			}
-		}
-		return null;
+		return find(parts(), machine);
 	}
 
 	private void crush() {
@@ -223,31 +310,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		setChanged();
 	}
 
-	private void local() {
-		Feeds.Charge charge = Feeds.parse(slots.get(0));
-		SizeClass next = charge == null ? null : Concentrator.crush(machine(), charge.size());
-		if (machine() == Machine.BELT && charge != null) {
-			ItemStack moved = slots.get(0).copy();
-			if (!roomFor(moved)) {
-				return;
-			}
-			slots.set(0, ItemStack.EMPTY);
-			add(moved);
-			setChanged();
-			return;
-		}
-		if (next == null || charge == null) {
-			return;
-		}
-		ItemStack out = Feeds.stack(next.itemId(charge.rock()), 1);
-		if (out.isEmpty() || !roomFor(out)) {
-			return;
-		}
-		slots.get(0).shrink(1);
-		add(out);
-		setChanged();
-	}
-
 	public boolean running() {
 		return forced || (motor != null && motor.output() > 0);
 	}
@@ -255,6 +317,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** The game test turns the motors on without building a grid. */
 	public void forceRunning() {
 		forced = true;
+		if (leads() && level != null) {
+			formed = matches();
+		}
 		for (PlantBlockEntity part : parts()) {
 			part.forced = true;
 		}
@@ -324,7 +389,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case GRIZZLY, JAW -> charge.size() == null;
 			case CONE -> charge.size() == SizeClass.CRUSHED;
 			case SCREEN -> charge.size() == SizeClass.CRUSHED || charge.size() == SizeClass.GRAVEL;
-			case BELT -> true;
 			case CONDITIONER -> charge.size() == SizeClass.FINES;
 			default -> false;
 		};
@@ -398,13 +462,20 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean hasPort(Direction face, Conductor role, Voltage voltage) {
-		return motor != null && voltage == motor.voltage() && role != Conductor.N && role != Conductor.G;
+		return false;
+	}
+
+	/** The motor box is on the west face of the main cell, turned with the part. */
+	@Override
+	public boolean hasPortAt(BlockPos cell, Direction face, Conductor role, Voltage voltage) {
+		return motor != null && cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == motor.voltage()
+				&& role != Conductor.N;
 	}
 
 	@Override
 	public void build(Circuit circuit) {
 		if (motor != null) {
-			motor.build(circuit, worldPosition);
+			motor.build(circuit, worldPosition, List.of(TailingsPartBlock.boxFace(getBlockState())));
 		}
 	}
 
@@ -423,8 +494,20 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	@Override
+	public boolean grown() {
+		return grown;
+	}
+
+	@Override
+	public void markGrown() {
+		grown = true;
+		setChanged();
+	}
+
+	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
+		output.putBoolean("grown", grown);
 		ContainerHelper.saveAllItems(output, slots);
 		output.putString("bank", bank.save());
 		output.putString("reagents", reagents.save());
@@ -434,6 +517,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
+		grown = input.getBooleanOr("grown", false);
 		slots.clear();
 		loading = true;
 		ContainerHelper.loadAllItems(input, slots);

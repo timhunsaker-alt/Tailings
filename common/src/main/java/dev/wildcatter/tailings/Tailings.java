@@ -51,7 +51,7 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.LINING));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));
 		output.accept(new ItemStack(TailingsBlocks.TRACTION_RECTIFIER));
-		output.accept(new ItemStack(TailingsBlocks.DUMP_STATION));
+		output.accept(new ItemStack(TailingsBlocks.BELT_CONVEYOR));
 		output.accept(new ItemStack(TailingsBlocks.BLOCK_SIGNAL));
 		output.accept(new ItemStack(TailingsItems.LOCOMOTIVE));
 		output.accept(new ItemStack(TailingsItems.CAR));

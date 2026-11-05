@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/belt_conveyor"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/belt_conveyor/item"
+ }
 }

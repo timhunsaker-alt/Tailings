@@ -136,22 +136,8 @@ public class RailBlockEntity extends BlockEntity {
 		Direction facing = travel();
 		BlockPos next = worldPosition.relative(facing);
 		boolean decline = decline();
+		tipOverPockets();
 		BlockEntity ahead = level.getBlockEntity(next);
-		if (ahead instanceof DumpBlockEntity dump) {
-			if (!powered || Motion.halt(true, decline, rack(), true, true) != Motion.Halt.NONE) {
-				return false;
-			}
-			if (!dump.offer(consistLoad())) {
-				return false;
-			}
-			for (RailBlockEntity car : consist()) {
-				if (car.kind == Kind.CAR) {
-					car.load.clear();
-					car.setChanged();
-				}
-			}
-			return true;
-		}
 		RailBlockEntity dest = ahead instanceof RailBlockEntity rail ? rail : null;
 		boolean blocked = dest == null || (!dest.trainId.isEmpty() && !dest.trainId.equals(trainId));
 		boolean sectionClear = !blocked;
@@ -164,6 +150,35 @@ public class RailBlockEntity extends BlockEntity {
 		}
 		shift(dest, facing);
 		return true;
+	}
+
+	/**
+	 * Every loaded car standing over a dump pocket, with a dump ramp beside its rail, tips its load into the pocket as it passes
+	 * (docs/multiblocks/dump-station.md): a Granby car tips on the move, so the train does not stop.
+	 */
+	private void tipOverPockets() {
+		for (RailBlockEntity car : consist()) {
+			if (car.kind != Kind.CAR || car.load.total() == 0 || !car.besideRamp()) {
+				continue;
+			}
+			BlockPos under = car.worldPosition.below();
+			BlockState below = level.getBlockState(under);
+			if (below.getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_POCKET
+					&& level.getBlockEntity(PlantMachineBlock.mainOf(under, below)) instanceof DumpBlockEntity pocket && pocket.offer(car.load.contents())) {
+				car.load.clear();
+				car.setChanged();
+			}
+		}
+	}
+
+	private boolean besideRamp() {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			if (level.getBlockState(worldPosition.relative(side)).getBlock() instanceof PlantMachineBlock block
+					&& block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_RAMP) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void shift(RailBlockEntity dest, Direction facing) {
@@ -252,16 +267,6 @@ public class RailBlockEntity extends BlockEntity {
 			}
 		}
 		return null;
-	}
-
-	private java.util.Map<String, Integer> consistLoad() {
-		java.util.Map<String, Integer> sum = new java.util.LinkedHashMap<>();
-		for (RailBlockEntity rail : consist()) {
-			for (var entry : rail.load.contents().entrySet()) {
-				sum.merge(entry.getKey(), entry.getValue(), Integer::sum);
-			}
-		}
-		return sum;
 	}
 
 	private void clearVehicle() {

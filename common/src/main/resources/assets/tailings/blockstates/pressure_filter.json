@@ -1,544 +1,679 @@
 {
-  "variants": {
-    "facing=north,piece=0": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=1": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=2": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=3": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=4": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=5": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=6": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=7": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=8": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=9": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=10": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=11": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=12": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=13": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=14": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=15": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=16": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=17": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=18": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=19": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=20": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=21": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=22": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=23": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=24": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=25": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=26": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=27": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=28": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=29": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=30": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=31": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=32": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=33": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=34": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=35": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=36": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=37": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=38": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=39": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=40": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=41": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=42": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=43": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=north,piece=44": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=0": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=1": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=2": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=3": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=4": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=5": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=6": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=7": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=8": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=9": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=10": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=11": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=12": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=13": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=14": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=15": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=16": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=17": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=18": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=19": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=20": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=21": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=22": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=23": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=24": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=25": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=26": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=27": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=28": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=29": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=30": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=31": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=32": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=33": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=34": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=35": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=36": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=37": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=38": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=39": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=40": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=41": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=42": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=43": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=south,piece=44": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=0": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=1": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=2": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=3": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=4": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=5": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=6": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=7": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=8": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=9": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=10": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=11": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=12": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=13": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=14": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=15": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=16": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=17": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=18": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=19": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=20": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=21": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=22": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=23": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=24": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=25": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=26": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=27": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=28": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=29": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=30": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=31": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=32": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=33": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=34": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=35": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=36": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=37": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=38": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=39": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=40": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=41": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=42": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=43": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=east,piece=44": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=0": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=1": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=2": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=3": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=4": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=5": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=6": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=7": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=8": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=9": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=10": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=11": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=12": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=13": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=14": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=15": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=16": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=17": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=18": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=19": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=20": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=21": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=22": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=23": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=24": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=25": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=26": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=27": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=28": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=29": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=30": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=31": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=32": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=33": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=34": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=35": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=36": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=37": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=38": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=39": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=40": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=41": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=42": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=43": {
-      "model": "tailings:block/pressure_filter"
-    },
-    "facing=west,piece=44": {
-      "model": "tailings:block/pressure_filter"
-    }
+ "variants": {
+  "facing=north,piece=0": {
+   "model": "tailings:block/pressure_filter/p0"
+  },
+  "facing=north,piece=1": {
+   "model": "tailings:block/pressure_filter/p1"
+  },
+  "facing=north,piece=2": {
+   "model": "tailings:block/pressure_filter/p2"
+  },
+  "facing=north,piece=3": {
+   "model": "tailings:block/pressure_filter/p3"
+  },
+  "facing=north,piece=4": {
+   "model": "tailings:block/pressure_filter/p4"
+  },
+  "facing=north,piece=5": {
+   "model": "tailings:block/pressure_filter/p5"
+  },
+  "facing=north,piece=6": {
+   "model": "tailings:block/pressure_filter/p6"
+  },
+  "facing=north,piece=7": {
+   "model": "tailings:block/pressure_filter/p7"
+  },
+  "facing=north,piece=8": {
+   "model": "tailings:block/pressure_filter/p8"
+  },
+  "facing=north,piece=9": {
+   "model": "tailings:block/pressure_filter/p9"
+  },
+  "facing=north,piece=10": {
+   "model": "tailings:block/pressure_filter/p10"
+  },
+  "facing=north,piece=11": {
+   "model": "tailings:block/pressure_filter/p11"
+  },
+  "facing=north,piece=12": {
+   "model": "tailings:block/pressure_filter/p12"
+  },
+  "facing=north,piece=13": {
+   "model": "tailings:block/pressure_filter/p13"
+  },
+  "facing=north,piece=14": {
+   "model": "tailings:block/pressure_filter/p14"
+  },
+  "facing=north,piece=15": {
+   "model": "tailings:block/pressure_filter/p15"
+  },
+  "facing=north,piece=16": {
+   "model": "tailings:block/pressure_filter/p16"
+  },
+  "facing=north,piece=17": {
+   "model": "tailings:block/pressure_filter/p17"
+  },
+  "facing=north,piece=18": {
+   "model": "tailings:block/pressure_filter/p18"
+  },
+  "facing=north,piece=19": {
+   "model": "tailings:block/pressure_filter/p19"
+  },
+  "facing=north,piece=20": {
+   "model": "tailings:block/pressure_filter/p20"
+  },
+  "facing=north,piece=21": {
+   "model": "tailings:block/pressure_filter/p21"
+  },
+  "facing=north,piece=22": {
+   "model": "tailings:block/pressure_filter/p22"
+  },
+  "facing=north,piece=23": {
+   "model": "tailings:block/pressure_filter/p23"
+  },
+  "facing=north,piece=24": {
+   "model": "tailings:block/pressure_filter/p24"
+  },
+  "facing=north,piece=25": {
+   "model": "tailings:block/pressure_filter/p25"
+  },
+  "facing=north,piece=26": {
+   "model": "tailings:block/pressure_filter/p26"
+  },
+  "facing=north,piece=27": {
+   "model": "tailings:block/pressure_filter/p27"
+  },
+  "facing=north,piece=28": {
+   "model": "tailings:block/pressure_filter/p28"
+  },
+  "facing=north,piece=29": {
+   "model": "tailings:block/pressure_filter/p29"
+  },
+  "facing=north,piece=30": {
+   "model": "tailings:block/pressure_filter/p30"
+  },
+  "facing=north,piece=31": {
+   "model": "tailings:block/pressure_filter/p31"
+  },
+  "facing=north,piece=32": {
+   "model": "tailings:block/pressure_filter/p32"
+  },
+  "facing=north,piece=33": {
+   "model": "tailings:block/pressure_filter/p33"
+  },
+  "facing=north,piece=34": {
+   "model": "tailings:block/pressure_filter/p34"
+  },
+  "facing=north,piece=35": {
+   "model": "tailings:block/pressure_filter/p35"
+  },
+  "facing=north,piece=36": {
+   "model": "tailings:block/pressure_filter/p36"
+  },
+  "facing=north,piece=37": {
+   "model": "tailings:block/pressure_filter/p37"
+  },
+  "facing=north,piece=38": {
+   "model": "tailings:block/pressure_filter/p38"
+  },
+  "facing=north,piece=39": {
+   "model": "tailings:block/pressure_filter/p39"
+  },
+  "facing=north,piece=40": {
+   "model": "tailings:block/pressure_filter/p40"
+  },
+  "facing=north,piece=41": {
+   "model": "tailings:block/pressure_filter/p41"
+  },
+  "facing=north,piece=42": {
+   "model": "tailings:block/pressure_filter/p42"
+  },
+  "facing=north,piece=43": {
+   "model": "tailings:block/pressure_filter/p43"
+  },
+  "facing=north,piece=44": {
+   "model": "tailings:block/pressure_filter/p44"
+  },
+  "facing=east,piece=0": {
+   "model": "tailings:block/pressure_filter/p0",
+   "y": 90
+  },
+  "facing=east,piece=1": {
+   "model": "tailings:block/pressure_filter/p1",
+   "y": 90
+  },
+  "facing=east,piece=2": {
+   "model": "tailings:block/pressure_filter/p2",
+   "y": 90
+  },
+  "facing=east,piece=3": {
+   "model": "tailings:block/pressure_filter/p3",
+   "y": 90
+  },
+  "facing=east,piece=4": {
+   "model": "tailings:block/pressure_filter/p4",
+   "y": 90
+  },
+  "facing=east,piece=5": {
+   "model": "tailings:block/pressure_filter/p5",
+   "y": 90
+  },
+  "facing=east,piece=6": {
+   "model": "tailings:block/pressure_filter/p6",
+   "y": 90
+  },
+  "facing=east,piece=7": {
+   "model": "tailings:block/pressure_filter/p7",
+   "y": 90
+  },
+  "facing=east,piece=8": {
+   "model": "tailings:block/pressure_filter/p8",
+   "y": 90
+  },
+  "facing=east,piece=9": {
+   "model": "tailings:block/pressure_filter/p9",
+   "y": 90
+  },
+  "facing=east,piece=10": {
+   "model": "tailings:block/pressure_filter/p10",
+   "y": 90
+  },
+  "facing=east,piece=11": {
+   "model": "tailings:block/pressure_filter/p11",
+   "y": 90
+  },
+  "facing=east,piece=12": {
+   "model": "tailings:block/pressure_filter/p12",
+   "y": 90
+  },
+  "facing=east,piece=13": {
+   "model": "tailings:block/pressure_filter/p13",
+   "y": 90
+  },
+  "facing=east,piece=14": {
+   "model": "tailings:block/pressure_filter/p14",
+   "y": 90
+  },
+  "facing=east,piece=15": {
+   "model": "tailings:block/pressure_filter/p15",
+   "y": 90
+  },
+  "facing=east,piece=16": {
+   "model": "tailings:block/pressure_filter/p16",
+   "y": 90
+  },
+  "facing=east,piece=17": {
+   "model": "tailings:block/pressure_filter/p17",
+   "y": 90
+  },
+  "facing=east,piece=18": {
+   "model": "tailings:block/pressure_filter/p18",
+   "y": 90
+  },
+  "facing=east,piece=19": {
+   "model": "tailings:block/pressure_filter/p19",
+   "y": 90
+  },
+  "facing=east,piece=20": {
+   "model": "tailings:block/pressure_filter/p20",
+   "y": 90
+  },
+  "facing=east,piece=21": {
+   "model": "tailings:block/pressure_filter/p21",
+   "y": 90
+  },
+  "facing=east,piece=22": {
+   "model": "tailings:block/pressure_filter/p22",
+   "y": 90
+  },
+  "facing=east,piece=23": {
+   "model": "tailings:block/pressure_filter/p23",
+   "y": 90
+  },
+  "facing=east,piece=24": {
+   "model": "tailings:block/pressure_filter/p24",
+   "y": 90
+  },
+  "facing=east,piece=25": {
+   "model": "tailings:block/pressure_filter/p25",
+   "y": 90
+  },
+  "facing=east,piece=26": {
+   "model": "tailings:block/pressure_filter/p26",
+   "y": 90
+  },
+  "facing=east,piece=27": {
+   "model": "tailings:block/pressure_filter/p27",
+   "y": 90
+  },
+  "facing=east,piece=28": {
+   "model": "tailings:block/pressure_filter/p28",
+   "y": 90
+  },
+  "facing=east,piece=29": {
+   "model": "tailings:block/pressure_filter/p29",
+   "y": 90
+  },
+  "facing=east,piece=30": {
+   "model": "tailings:block/pressure_filter/p30",
+   "y": 90
+  },
+  "facing=east,piece=31": {
+   "model": "tailings:block/pressure_filter/p31",
+   "y": 90
+  },
+  "facing=east,piece=32": {
+   "model": "tailings:block/pressure_filter/p32",
+   "y": 90
+  },
+  "facing=east,piece=33": {
+   "model": "tailings:block/pressure_filter/p33",
+   "y": 90
+  },
+  "facing=east,piece=34": {
+   "model": "tailings:block/pressure_filter/p34",
+   "y": 90
+  },
+  "facing=east,piece=35": {
+   "model": "tailings:block/pressure_filter/p35",
+   "y": 90
+  },
+  "facing=east,piece=36": {
+   "model": "tailings:block/pressure_filter/p36",
+   "y": 90
+  },
+  "facing=east,piece=37": {
+   "model": "tailings:block/pressure_filter/p37",
+   "y": 90
+  },
+  "facing=east,piece=38": {
+   "model": "tailings:block/pressure_filter/p38",
+   "y": 90
+  },
+  "facing=east,piece=39": {
+   "model": "tailings:block/pressure_filter/p39",
+   "y": 90
+  },
+  "facing=east,piece=40": {
+   "model": "tailings:block/pressure_filter/p40",
+   "y": 90
+  },
+  "facing=east,piece=41": {
+   "model": "tailings:block/pressure_filter/p41",
+   "y": 90
+  },
+  "facing=east,piece=42": {
+   "model": "tailings:block/pressure_filter/p42",
+   "y": 90
+  },
+  "facing=east,piece=43": {
+   "model": "tailings:block/pressure_filter/p43",
+   "y": 90
+  },
+  "facing=east,piece=44": {
+   "model": "tailings:block/pressure_filter/p44",
+   "y": 90
+  },
+  "facing=south,piece=0": {
+   "model": "tailings:block/pressure_filter/p0",
+   "y": 180
+  },
+  "facing=south,piece=1": {
+   "model": "tailings:block/pressure_filter/p1",
+   "y": 180
+  },
+  "facing=south,piece=2": {
+   "model": "tailings:block/pressure_filter/p2",
+   "y": 180
+  },
+  "facing=south,piece=3": {
+   "model": "tailings:block/pressure_filter/p3",
+   "y": 180
+  },
+  "facing=south,piece=4": {
+   "model": "tailings:block/pressure_filter/p4",
+   "y": 180
+  },
+  "facing=south,piece=5": {
+   "model": "tailings:block/pressure_filter/p5",
+   "y": 180
+  },
+  "facing=south,piece=6": {
+   "model": "tailings:block/pressure_filter/p6",
+   "y": 180
+  },
+  "facing=south,piece=7": {
+   "model": "tailings:block/pressure_filter/p7",
+   "y": 180
+  },
+  "facing=south,piece=8": {
+   "model": "tailings:block/pressure_filter/p8",
+   "y": 180
+  },
+  "facing=south,piece=9": {
+   "model": "tailings:block/pressure_filter/p9",
+   "y": 180
+  },
+  "facing=south,piece=10": {
+   "model": "tailings:block/pressure_filter/p10",
+   "y": 180
+  },
+  "facing=south,piece=11": {
+   "model": "tailings:block/pressure_filter/p11",
+   "y": 180
+  },
+  "facing=south,piece=12": {
+   "model": "tailings:block/pressure_filter/p12",
+   "y": 180
+  },
+  "facing=south,piece=13": {
+   "model": "tailings:block/pressure_filter/p13",
+   "y": 180
+  },
+  "facing=south,piece=14": {
+   "model": "tailings:block/pressure_filter/p14",
+   "y": 180
+  },
+  "facing=south,piece=15": {
+   "model": "tailings:block/pressure_filter/p15",
+   "y": 180
+  },
+  "facing=south,piece=16": {
+   "model": "tailings:block/pressure_filter/p16",
+   "y": 180
+  },
+  "facing=south,piece=17": {
+   "model": "tailings:block/pressure_filter/p17",
+   "y": 180
+  },
+  "facing=south,piece=18": {
+   "model": "tailings:block/pressure_filter/p18",
+   "y": 180
+  },
+  "facing=south,piece=19": {
+   "model": "tailings:block/pressure_filter/p19",
+   "y": 180
+  },
+  "facing=south,piece=20": {
+   "model": "tailings:block/pressure_filter/p20",
+   "y": 180
+  },
+  "facing=south,piece=21": {
+   "model": "tailings:block/pressure_filter/p21",
+   "y": 180
+  },
+  "facing=south,piece=22": {
+   "model": "tailings:block/pressure_filter/p22",
+   "y": 180
+  },
+  "facing=south,piece=23": {
+   "model": "tailings:block/pressure_filter/p23",
+   "y": 180
+  },
+  "facing=south,piece=24": {
+   "model": "tailings:block/pressure_filter/p24",
+   "y": 180
+  },
+  "facing=south,piece=25": {
+   "model": "tailings:block/pressure_filter/p25",
+   "y": 180
+  },
+  "facing=south,piece=26": {
+   "model": "tailings:block/pressure_filter/p26",
+   "y": 180
+  },
+  "facing=south,piece=27": {
+   "model": "tailings:block/pressure_filter/p27",
+   "y": 180
+  },
+  "facing=south,piece=28": {
+   "model": "tailings:block/pressure_filter/p28",
+   "y": 180
+  },
+  "facing=south,piece=29": {
+   "model": "tailings:block/pressure_filter/p29",
+   "y": 180
+  },
+  "facing=south,piece=30": {
+   "model": "tailings:block/pressure_filter/p30",
+   "y": 180
+  },
+  "facing=south,piece=31": {
+   "model": "tailings:block/pressure_filter/p31",
+   "y": 180
+  },
+  "facing=south,piece=32": {
+   "model": "tailings:block/pressure_filter/p32",
+   "y": 180
+  },
+  "facing=south,piece=33": {
+   "model": "tailings:block/pressure_filter/p33",
+   "y": 180
+  },
+  "facing=south,piece=34": {
+   "model": "tailings:block/pressure_filter/p34",
+   "y": 180
+  },
+  "facing=south,piece=35": {
+   "model": "tailings:block/pressure_filter/p35",
+   "y": 180
+  },
+  "facing=south,piece=36": {
+   "model": "tailings:block/pressure_filter/p36",
+   "y": 180
+  },
+  "facing=south,piece=37": {
+   "model": "tailings:block/pressure_filter/p37",
+   "y": 180
+  },
+  "facing=south,piece=38": {
+   "model": "tailings:block/pressure_filter/p38",
+   "y": 180
+  },
+  "facing=south,piece=39": {
+   "model": "tailings:block/pressure_filter/p39",
+   "y": 180
+  },
+  "facing=south,piece=40": {
+   "model": "tailings:block/pressure_filter/p40",
+   "y": 180
+  },
+  "facing=south,piece=41": {
+   "model": "tailings:block/pressure_filter/p41",
+   "y": 180
+  },
+  "facing=south,piece=42": {
+   "model": "tailings:block/pressure_filter/p42",
+   "y": 180
+  },
+  "facing=south,piece=43": {
+   "model": "tailings:block/pressure_filter/p43",
+   "y": 180
+  },
+  "facing=south,piece=44": {
+   "model": "tailings:block/pressure_filter/p44",
+   "y": 180
+  },
+  "facing=west,piece=0": {
+   "model": "tailings:block/pressure_filter/p0",
+   "y": 270
+  },
+  "facing=west,piece=1": {
+   "model": "tailings:block/pressure_filter/p1",
+   "y": 270
+  },
+  "facing=west,piece=2": {
+   "model": "tailings:block/pressure_filter/p2",
+   "y": 270
+  },
+  "facing=west,piece=3": {
+   "model": "tailings:block/pressure_filter/p3",
+   "y": 270
+  },
+  "facing=west,piece=4": {
+   "model": "tailings:block/pressure_filter/p4",
+   "y": 270
+  },
+  "facing=west,piece=5": {
+   "model": "tailings:block/pressure_filter/p5",
+   "y": 270
+  },
+  "facing=west,piece=6": {
+   "model": "tailings:block/pressure_filter/p6",
+   "y": 270
+  },
+  "facing=west,piece=7": {
+   "model": "tailings:block/pressure_filter/p7",
+   "y": 270
+  },
+  "facing=west,piece=8": {
+   "model": "tailings:block/pressure_filter/p8",
+   "y": 270
+  },
+  "facing=west,piece=9": {
+   "model": "tailings:block/pressure_filter/p9",
+   "y": 270
+  },
+  "facing=west,piece=10": {
+   "model": "tailings:block/pressure_filter/p10",
+   "y": 270
+  },
+  "facing=west,piece=11": {
+   "model": "tailings:block/pressure_filter/p11",
+   "y": 270
+  },
+  "facing=west,piece=12": {
+   "model": "tailings:block/pressure_filter/p12",
+   "y": 270
+  },
+  "facing=west,piece=13": {
+   "model": "tailings:block/pressure_filter/p13",
+   "y": 270
+  },
+  "facing=west,piece=14": {
+   "model": "tailings:block/pressure_filter/p14",
+   "y": 270
+  },
+  "facing=west,piece=15": {
+   "model": "tailings:block/pressure_filter/p15",
+   "y": 270
+  },
+  "facing=west,piece=16": {
+   "model": "tailings:block/pressure_filter/p16",
+   "y": 270
+  },
+  "facing=west,piece=17": {
+   "model": "tailings:block/pressure_filter/p17",
+   "y": 270
+  },
+  "facing=west,piece=18": {
+   "model": "tailings:block/pressure_filter/p18",
+   "y": 270
+  },
+  "facing=west,piece=19": {
+   "model": "tailings:block/pressure_filter/p19",
+   "y": 270
+  },
+  "facing=west,piece=20": {
+   "model": "tailings:block/pressure_filter/p20",
+   "y": 270
+  },
+  "facing=west,piece=21": {
+   "model": "tailings:block/pressure_filter/p21",
+   "y": 270
+  },
+  "facing=west,piece=22": {
+   "model": "tailings:block/pressure_filter/p22",
+   "y": 270
+  },
+  "facing=west,piece=23": {
+   "model": "tailings:block/pressure_filter/p23",
+   "y": 270
+  },
+  "facing=west,piece=24": {
+   "model": "tailings:block/pressure_filter/p24",
+   "y": 270
+  },
+  "facing=west,piece=25": {
+   "model": "tailings:block/pressure_filter/p25",
+   "y": 270
+  },
+  "facing=west,piece=26": {
+   "model": "tailings:block/pressure_filter/p26",
+   "y": 270
+  },
+  "facing=west,piece=27": {
+   "model": "tailings:block/pressure_filter/p27",
+   "y": 270
+  },
+  "facing=west,piece=28": {
+   "model": "tailings:block/pressure_filter/p28",
+   "y": 270
+  },
+  "facing=west,piece=29": {
+   "model": "tailings:block/pressure_filter/p29",
+   "y": 270
+  },
+  "facing=west,piece=30": {
+   "model": "tailings:block/pressure_filter/p30",
+   "y": 270
+  },
+  "facing=west,piece=31": {
+   "model": "tailings:block/pressure_filter/p31",
+   "y": 270
+  },
+  "facing=west,piece=32": {
+   "model": "tailings:block/pressure_filter/p32",
+   "y": 270
+  },
+  "facing=west,piece=33": {
+   "model": "tailings:block/pressure_filter/p33",
+   "y": 270
+  },
+  "facing=west,piece=34": {
+   "model": "tailings:block/pressure_filter/p34",
+   "y": 270
+  },
+  "facing=west,piece=35": {
+   "model": "tailings:block/pressure_filter/p35",
+   "y": 270
+  },
+  "facing=west,piece=36": {
+   "model": "tailings:block/pressure_filter/p36",
+   "y": 270
+  },
+  "facing=west,piece=37": {
+   "model": "tailings:block/pressure_filter/p37",
+   "y": 270
+  },
+  "facing=west,piece=38": {
+   "model": "tailings:block/pressure_filter/p38",
+   "y": 270
+  },
+  "facing=west,piece=39": {
+   "model": "tailings:block/pressure_filter/p39",
+   "y": 270
+  },
+  "facing=west,piece=40": {
+   "model": "tailings:block/pressure_filter/p40",
+   "y": 270
+  },
+  "facing=west,piece=41": {
+   "model": "tailings:block/pressure_filter/p41",
+   "y": 270
+  },
+  "facing=west,piece=42": {
+   "model": "tailings:block/pressure_filter/p42",
+   "y": 270
+  },
+  "facing=west,piece=43": {
+   "model": "tailings:block/pressure_filter/p43",
+   "y": 270
+  },
+  "facing=west,piece=44": {
+   "model": "tailings:block/pressure_filter/p44",
+   "y": 270
   }
+ }
 }

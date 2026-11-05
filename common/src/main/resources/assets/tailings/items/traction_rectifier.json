@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/traction_rectifier"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/traction_rectifier/item"
+ }
 }

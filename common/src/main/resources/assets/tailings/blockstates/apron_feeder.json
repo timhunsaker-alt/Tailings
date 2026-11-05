@@ -1,0 +1,124 @@
+{
+ "variants": {
+  "facing=north,piece=0": {
+   "model": "tailings:block/apron_feeder/p0"
+  },
+  "facing=north,piece=1": {
+   "model": "tailings:block/apron_feeder/p1"
+  },
+  "facing=north,piece=2": {
+   "model": "tailings:block/apron_feeder/p2"
+  },
+  "facing=north,piece=3": {
+   "model": "tailings:block/apron_feeder/p3"
+  },
+  "facing=north,piece=4": {
+   "model": "tailings:block/apron_feeder/p4"
+  },
+  "facing=north,piece=5": {
+   "model": "tailings:block/apron_feeder/p5"
+  },
+  "facing=north,piece=6": {
+   "model": "tailings:block/apron_feeder/p6"
+  },
+  "facing=north,piece=7": {
+   "model": "tailings:block/apron_feeder/p7"
+  },
+  "facing=east,piece=0": {
+   "model": "tailings:block/apron_feeder/p0",
+   "y": 90
+  },
+  "facing=east,piece=1": {
+   "model": "tailings:block/apron_feeder/p1",
+   "y": 90
+  },
+  "facing=east,piece=2": {
+   "model": "tailings:block/apron_feeder/p2",
+   "y": 90
+  },
+  "facing=east,piece=3": {
+   "model": "tailings:block/apron_feeder/p3",
+   "y": 90
+  },
+  "facing=east,piece=4": {
+   "model": "tailings:block/apron_feeder/p4",
+   "y": 90
+  },
+  "facing=east,piece=5": {
+   "model": "tailings:block/apron_feeder/p5",
+   "y": 90
+  },
+  "facing=east,piece=6": {
+   "model": "tailings:block/apron_feeder/p6",
+   "y": 90
+  },
+  "facing=east,piece=7": {
+   "model": "tailings:block/apron_feeder/p7",
+   "y": 90
+  },
+  "facing=south,piece=0": {
+   "model": "tailings:block/apron_feeder/p0",
+   "y": 180
+  },
+  "facing=south,piece=1": {
+   "model": "tailings:block/apron_feeder/p1",
+   "y": 180
+  },
+  "facing=south,piece=2": {
+   "model": "tailings:block/apron_feeder/p2",
+   "y": 180
+  },
+  "facing=south,piece=3": {
+   "model": "tailings:block/apron_feeder/p3",
+   "y": 180
+  },
+  "facing=south,piece=4": {
+   "model": "tailings:block/apron_feeder/p4",
+   "y": 180
+  },
+  "facing=south,piece=5": {
+   "model": "tailings:block/apron_feeder/p5",
+   "y": 180
+  },
+  "facing=south,piece=6": {
+   "model": "tailings:block/apron_feeder/p6",
+   "y": 180
+  },
+  "facing=south,piece=7": {
+   "model": "tailings:block/apron_feeder/p7",
+   "y": 180
+  },
+  "facing=west,piece=0": {
+   "model": "tailings:block/apron_feeder/p0",
+   "y": 270
+  },
+  "facing=west,piece=1": {
+   "model": "tailings:block/apron_feeder/p1",
+   "y": 270
+  },
+  "facing=west,piece=2": {
+   "model": "tailings:block/apron_feeder/p2",
+   "y": 270
+  },
+  "facing=west,piece=3": {
+   "model": "tailings:block/apron_feeder/p3",
+   "y": 270
+  },
+  "facing=west,piece=4": {
+   "model": "tailings:block/apron_feeder/p4",
+   "y": 270
+  },
+  "facing=west,piece=5": {
+   "model": "tailings:block/apron_feeder/p5",
+   "y": 270
+  },
+  "facing=west,piece=6": {
+   "model": "tailings:block/apron_feeder/p6",
+   "y": 270
+  },
+  "facing=west,piece=7": {
+   "model": "tailings:block/apron_feeder/p7",
+   "y": 270
+  }
+ }
+}

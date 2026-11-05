@@ -5,6 +5,7 @@ import dev.wildcatter.circuit.CircuitPart;
 import dev.wildcatter.circuit.Conductor;
 import dev.wildcatter.circuit.Motor;
 import dev.wildcatter.energy.Inspectable;
+import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.energy.Voltage;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.haul.Haul;
@@ -16,12 +17,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * 480 V in, 250 V DC out to the mine rail. The DC side stays inside this block. A rail is fed only while this motor
+ * 480 V in, 250 V DC out to the mine rail (docs/multiblocks/haulage.md). Until R5 the DC side stays inside this part. A rail is fed only while this motor
  * is running and the rail is connected, including a one-block step down the decline.
  */
-public class RectifierBlockEntity extends BlockEntity implements CircuitPart, Inspectable {
+public class RectifierBlockEntity extends BlockEntity implements CircuitPart, Inspectable, BigPartEntity {
+	private boolean grown;
 	private final Motor motor = new Motor(true, Voltage.INDUSTRIAL, Haul.RECTIFIER_WATTS);
 	private final Set<BlockPos> fed = new HashSet<>();
 	private boolean demand = true;
@@ -56,8 +60,10 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 		Set<BlockPos> found = new HashSet<>();
 		if (powered()) {
 			ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-			for (Direction direction : Direction.values()) {
-				consider(worldPosition.relative(direction), queue, found);
+			for (BlockPos cell : dev.wildcatter.multiblock.BigParts.cells(worldPosition, getBlockState())) {
+				for (Direction direction : Direction.values()) {
+					consider(cell.relative(direction), queue, found);
+				}
 			}
 			while (!queue.isEmpty() && found.size() < 128) {
 				BlockPos pos = queue.removeFirst();
@@ -111,12 +117,18 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 
 	@Override
 	public boolean hasPort(Direction face, Conductor role, Voltage voltage) {
-		return voltage == Voltage.INDUSTRIAL && role != Conductor.N && role != Conductor.G;
+		return false;
+	}
+
+	/** Its AC terminal box is on the west face of its main cell, turned with it. */
+	@Override
+	public boolean hasPortAt(BlockPos cell, Direction face, Conductor role, Voltage voltage) {
+		return cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == motor.voltage() && role != Conductor.N;
 	}
 
 	@Override
 	public void build(Circuit circuit) {
-		motor.build(circuit, worldPosition);
+		motor.build(circuit, worldPosition, java.util.List.of(TailingsPartBlock.boxFace(getBlockState())));
 	}
 
 	@Override
@@ -127,5 +139,28 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 	@Override
 	public Component inspect() {
 		return Component.literal("Traction rectifier (300 kW, 250 V DC inside): " + fed.size() + " rails; " + motor.describe());
+	}
+
+	@Override
+	public boolean grown() {
+		return grown;
+	}
+
+	@Override
+	public void markGrown() {
+		grown = true;
+		setChanged();
+	}
+
+	@Override
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		output.putBoolean("grown", grown);
+	}
+
+	@Override
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		grown = input.getBooleanOr("grown", false);
 	}
 }

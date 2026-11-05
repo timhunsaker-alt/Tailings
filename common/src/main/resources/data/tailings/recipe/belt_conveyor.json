@@ -1,16 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "ICI",
-    "III"
+    "LLL",
+    "I I"
   ],
   "key": {
     "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "L": "minecraft:leather"
   },
   "result": {
     "id": "tailings:belt_conveyor",
-    "count": 1
+    "count": 6
   }
 }

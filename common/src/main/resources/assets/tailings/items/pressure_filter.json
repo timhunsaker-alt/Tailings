@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/pressure_filter"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/pressure_filter/item"
+ }
 }

@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/ball_mill"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/ball_mill/item"
+ }
 }

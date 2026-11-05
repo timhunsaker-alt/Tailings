@@ -52,11 +52,28 @@ Country rock does not emit a whole ingot from a trace. The kilograms go into `Nu
 
 `plant.Machine` is one true-size part. 1 block is 1 metre. Watts are the motor. `INDUSTRIAL` is Wildcatter 480 V. `MEDIUM` is 4.16 kV. The ball mill is the only medium-voltage motor. The grizzly is unpowered steel.
 
-`plant.PlantPlan` places main cells in a row, each footprint filling east and south of its main cell. Boxes touch and do not overlap. The jaw is the crushing controller. The conditioning tank is the flotation controller. One block of feed per second while the motors run (`CYCLE_TICKS` 20). Real tonnes per hour are slower. The clock is compressed.
+Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends Wildcatter's `BigPartBlock`):
+- **Placing and breaking:**
+  - one item fills its real size, with Wildcatter's ghost outline and "needs W x D x H m of clear space";
+  - breaking any piece breaks the whole part and drops the one item, and its contents (R1);
+  - a click on any piece is the main cell's.
+- **Collision:** read from `assets/tailings/shapes/<id>.json`, which the model tool writes.
+- **Motor box:** on the west face of the main cell, turned with the part (`TailingsPartBlock.boxFace`); no other face takes a cable.
 
-Crushing order: grizzly (3×2×4), jaw (3×4×4, 110 kW), belt (1×1×6, 7.5 kW), screen (3×3×6, 22 kW), cone (3×4×3, 132 kW), ball mill (4×4×6, 600 kW), cyclones (2×4×2, 45 kW).
+**How a line forms (R3, until R4's real process):**
+- **Finding the parts:** the jaw and the conditioning tank lead. Every 20 ticks each finds the parts joined to it (`PlantBlockEntity.joined`): parts that touch it or each other, and parts joined through a belt run (`block.BeltConveyorBlock`) that a `conveyor_drive` touches.
+- **What it needs:**
+  - the jaw needs a grizzly sitting on top of it, a screen, a cone, a ball mill and a cyclone cluster;
+  - the tank needs a flotation bank, a blower touching the bank, a thickener and a filter. Touching stands in for R4's pipes.
+- **Not built:** missing parts read NOT BUILT and are named.
+- **Running:** while every motor in the line runs, one block of feed moves per second (`CYCLE_TICKS` 20), by the old shortcut (grizzly to fines at the cyclones; fines to the 75% ladder at the filter).
+- **Alone:** nothing runs on its own.
 
-Flotation order: conditioner (3×4×3, 15 kW), four rougher cells, two scavenger cells, two cleaner cells (each cell 3×4×3, 45 kW), blower (2×2×3, 75 kW), thickener (8×3×8, 5.5 kW), filter (3×3×5, 15 kW). Adding cells past this bank does not raise recovery.
+**Parts (`plant.Machine`):**
+- **Crushing:** grizzly (3×2×4), jaw (3×4×4, 110 kW), screen (3×3×6, 22 kW), cone (3×4×3, 132 kW), conveyor drive (1×1×2, 7.5 kW), ball mill (4×4×6, 600 kW), cyclones (2×4×2, 45 kW).
+- **Flotation:** conditioner (3×4×3, 15 kW), flotation bank (7×4×13, eight 20 m³ cells, 360 kW), blower (2×2×3, 75 kW), thickener (8×3×8, 5.5 kW), filter (3×3×5, 15 kW).
+- **Dump station:** ramp (1×1×4), pocket (4×3×3), apron feeder (2×1×4, 11 kW), ore sorter (3×3×3, 40 kW), ore bin (3×6×3).
+- **Belts:** `belt_conveyor` is one block a metre, laid along the way the player faces.
 
 `plant.Reagent` doses are grams per tonne of a 2.7 t block, and one item is one kilogram. The tank keeps one item for each kilogram, or part of one, still to dose (`ReagentStock.items`) and takes the rest out as they are spent. Every reagent is required for every feed except copper sulfate, which is required only when the rock holds sphalerite.
 
@@ -67,7 +84,12 @@ Flotation order: conditioner (3×4×3, 15 kW), four rougher cells, two scavenger
 | `mibc` | 20 g/t | Shapeless: two sugar → 4 |
 | `copper_sulfate` | 300 g/t | Shapeless: copper ingot, `wildcatter:sulfur` → 4 |
 
-Every plant block's crafting recipe is the same placeholder: a shaped 3×3 of iron ingots with a copper ingot in the middle, one machine. That includes grizzly, jaw, cone, screen, belt, ball mill, cyclones, conditioner, cell, blower, thickener, and filter.
+**Recipes (placeholders):**
+- every powered part: a shaped 3×3 of iron ingots with a copper ingot in the middle;
+- the ramp, pocket and bin: iron around a hopper;
+- the belt: three leather over two iron, giving 6.
+
+**Old items:** `flotation_cell` and `dump_station` are kept for one release as plain items that craft back into 8 iron ingots.
 
 ## The tunnel drill
 
@@ -145,11 +167,15 @@ IRI
 
 ### Dump and signals
 
-`dump_station` is one block in the code (the spec's pocket, feeder, sorter, and bins are not separate blocks yet). Slot 0 is waste. Slots 1 to 8 are product bins. A bin keeps the item it already holds. Anything that is not an assigned product is waste. The pocket holds one 10-car train. A full pocket or a full bin refuses the tip, and the train waits. Every second the apron subtracts one stack (64) from the pocket. The recipe is eight iron ingots around a hopper.
+Since R3 the dump pocket holds what the one-block dump station did:
+- **Tipping:** a loaded car passing over a pocket, with a dump ramp beside its rail, tips its load into the pocket on the move.
+- **Not yet joined:** the apron feeder, ore sorter and bins are placed and powered, and join the process in R4.
+
+Slot 0 is waste. Slots 1 to 8 are product bins. A bin keeps the item it already holds. Anything that is not an assigned product is waste. The pocket holds one 10-car train. A full pocket or a full bin refuses the tip, and the train waits. Every second the apron subtracts one stack (64) from the pocket. The recipe is eight iron ingots around a hopper.
 
 `block_signal` claims the next 16 rails in the direction it faces as one section. A train enters only when the signal allows it. The recipe is a redstone torch over an iron ingot. The facing face uses `signal_lamp_off` or `signal_lamp_on`. The other faces use `block_signal.png`.
 
-`traction_rectifier` is a multiblock. It must be powered like the other Wildcatter machines (`forceRunning` in tests). `spread` marks joined rail and switches as fed and refreshes lights and signals. The recipe is iron, redstone, and a copper block in the middle.
+`traction_rectifier` is a 2×3×2 big part. It feeds rail and switches touching any of its cells, and its AC box is the west face of its main cell. It must be powered like the other Wildcatter machines (`forceRunning` in tests). `spread` marks joined rail and switches as fed and refreshes lights and signals. The recipe is iron, redstone, and a copper block in the middle.
 
 ```
 III

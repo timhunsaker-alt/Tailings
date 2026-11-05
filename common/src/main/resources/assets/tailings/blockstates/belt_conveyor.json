@@ -1,76 +1,11 @@
 {
-  "variants": {
-    "facing=north,piece=0": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=north,piece=1": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=north,piece=2": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=north,piece=3": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=north,piece=4": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=north,piece=5": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=0": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=1": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=2": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=3": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=4": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=south,piece=5": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=0": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=1": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=2": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=3": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=4": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=east,piece=5": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=0": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=1": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=2": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=3": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=4": {
-      "model": "tailings:block/belt_conveyor"
-    },
-    "facing=west,piece=5": {
-      "model": "tailings:block/belt_conveyor"
-    }
+ "variants": {
+  "axis=z": {
+   "model": "tailings:block/belt_conveyor/p0"
+  },
+  "axis=x": {
+   "model": "tailings:block/belt_conveyor/p0",
+   "y": 90
   }
+ }
 }

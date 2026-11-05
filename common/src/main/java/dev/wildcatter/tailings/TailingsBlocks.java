@@ -3,7 +3,7 @@ package dev.wildcatter.tailings;
 import dev.wildcatter.tailings.block.BlockSignalBlock;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
-import dev.wildcatter.tailings.block.DumpStationBlock;
+import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlock;
 import dev.wildcatter.tailings.block.HandMillBlock.Role;
@@ -26,6 +26,8 @@ import dev.wildcatter.tailings.block.TunnelDrillBlock;
 import dev.wildcatter.tailings.plant.Machine;
 import java.util.Set;
 import java.util.function.Function;
+import dev.wildcatter.item.BigPartItem;
+import dev.wildcatter.multiblock.BigPart;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -38,7 +40,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 
-/** The starter machines, and the true-size crushing circuit and flotation bank. */
+/** The starter machines; the true-size crushing circuit, flotation bank and dump station; the mine. */
 public final class TailingsBlocks {
 	public static final Block STAMP_MILL = mill("stamp_mill", Role.STAMP_MILL, MapColor.STONE);
 	public static final Block HAND_SCREEN = mill("hand_screen", Role.HAND_SCREEN, MapColor.WOOD);
@@ -50,16 +52,24 @@ public final class TailingsBlocks {
 	public static final Block JAW = plant(Machine.JAW, MapColor.COLOR_GRAY);
 	public static final Block CONE = plant(Machine.CONE, MapColor.COLOR_GRAY);
 	public static final Block SCREEN = plant(Machine.SCREEN, MapColor.METAL);
-	public static final Block BELT = plant(Machine.BELT, MapColor.COLOR_BLACK);
+	public static final Block CONVEYOR_DRIVE = plant(Machine.CONVEYOR_DRIVE, MapColor.COLOR_GRAY);
+	public static final Block BELT_CONVEYOR = block("belt_conveyor", props -> new BeltConveyorBlock(props.mapColor(MapColor.COLOR_BLACK).strength(2.0F, 6.0F)
+			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final Block BALL_MILL = plant(Machine.BALL_MILL, MapColor.COLOR_GRAY);
 	public static final Block CYCLONE = plant(Machine.CYCLONE, MapColor.COLOR_ORANGE);
 	public static final Block CONDITIONER = plant(Machine.CONDITIONER, MapColor.COLOR_LIGHT_GRAY);
-	public static final Block CELL = plant(Machine.CELL, MapColor.COLOR_LIGHT_BLUE);
+	public static final Block FLOTATION_BANK = plant(Machine.FLOTATION_BANK, MapColor.COLOR_LIGHT_BLUE);
 	public static final Block BLOWER = plant(Machine.BLOWER, MapColor.COLOR_BLUE);
 	public static final Block THICKENER = plant(Machine.THICKENER, MapColor.TERRACOTTA_BROWN);
 	public static final Block FILTER = plant(Machine.FILTER, MapColor.TERRACOTTA_WHITE);
+	public static final Block DUMP_RAMP = plant(Machine.DUMP_RAMP, MapColor.METAL);
+	public static final Block DUMP_POCKET = plant(Machine.DUMP_POCKET, MapColor.STONE);
+	public static final Block APRON_FEEDER = plant(Machine.APRON_FEEDER, MapColor.COLOR_GRAY);
+	public static final Block ORE_SORTER = plant(Machine.ORE_SORTER, MapColor.COLOR_GRAY);
+	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
-			Set.of(GRIZZLY, JAW, CONE, SCREEN, BELT, BALL_MILL, CYCLONE, CONDITIONER, CELL, BLOWER, THICKENER, FILTER));
+			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER,
+					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -80,13 +90,11 @@ public final class TailingsBlocks {
 	public static final Block MINE_LIGHT = block("mine_light", props -> new MineLightBlock(props.mapColor(MapColor.COLOR_YELLOW).strength(1.5F, 3.0F)
 			.sound(SoundType.GLASS).lightLevel(state -> state.getValue(MineLightBlock.LIT) ? 15 : 0)));
 	public static final BlockEntityType<RailBlockEntity> RAIL = new BlockEntityType<>(RailBlockEntity::new, Set.of(MINE_RAIL, MINE_SWITCH));
-	public static final Block DUMP_STATION = block("dump_station", props -> new DumpStationBlock(props.mapColor(MapColor.COLOR_ORANGE).strength(3.5F, 8.0F)
-			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final Block BLOCK_SIGNAL = block("block_signal", props -> new BlockSignalBlock(props.mapColor(MapColor.COLOR_RED).strength(2.0F, 6.0F)
 			.sound(SoundType.METAL).requiresCorrectToolForDrops().lightLevel(state -> state.getValue(BlockSignalBlock.LIT) ? 12 : 0)));
 	public static final Block TRACTION_RECTIFIER = block("traction_rectifier", props -> new TractionRectifierBlock(props.mapColor(MapColor.COLOR_YELLOW)
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
-	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_STATION));
+	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET));
 	public static final BlockEntityType<SignalBlockEntity> SIGNAL = new BlockEntityType<>(SignalBlockEntity::new, Set.of(BLOCK_SIGNAL));
 	public static final BlockEntityType<RectifierBlockEntity> RECTIFIER = new BlockEntityType<>(RectifierBlockEntity::new, Set.of(TRACTION_RECTIFIER));
 
@@ -115,7 +123,9 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("plant"), PLANT);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tunnel_drill"), DRILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("dewatering_pump"), PUMP);
-		add("dump_station", DUMP_STATION);
+		add("belt_conveyor", BELT_CONVEYOR);
+		legacy("flotation_cell");
+		legacy("dump_station");
 		add("block_signal", BLOCK_SIGNAL);
 		add("traction_rectifier", TRACTION_RECTIFIER);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("mine_rail"), RAIL);
@@ -130,14 +140,19 @@ public final class TailingsBlocks {
 			case JAW -> JAW;
 			case CONE -> CONE;
 			case SCREEN -> SCREEN;
-			case BELT -> BELT;
+			case CONVEYOR_DRIVE -> CONVEYOR_DRIVE;
 			case BALL_MILL -> BALL_MILL;
 			case CYCLONE -> CYCLONE;
 			case CONDITIONER -> CONDITIONER;
-			case CELL -> CELL;
+			case FLOTATION_BANK -> FLOTATION_BANK;
 			case BLOWER -> BLOWER;
 			case THICKENER -> THICKENER;
 			case FILTER -> FILTER;
+			case DUMP_RAMP -> DUMP_RAMP;
+			case DUMP_POCKET -> DUMP_POCKET;
+			case APRON_FEEDER -> APRON_FEEDER;
+			case ORE_SORTER -> ORE_SORTER;
+			case ORE_BIN -> ORE_BIN;
 		};
 	}
 
@@ -160,9 +175,20 @@ public final class TailingsBlocks {
 		return factory.apply(BlockBehaviour.Properties.of().setId(key));
 	}
 
+	/** A true-size part's item is Wildcatter's {@link BigPartItem}, which also gets the ghost outline. */
 	private static void add(String name, Block block) {
 		Registry.register(BuiltInRegistries.BLOCK, Tailings.id(name), block);
 		ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Tailings.id(name));
-		Registry.register(BuiltInRegistries.ITEM, itemKey, new BlockItem(block, new Item.Properties().setId(itemKey).useBlockDescriptionPrefix()));
+		Item.Properties properties = new Item.Properties().setId(itemKey).useBlockDescriptionPrefix();
+		Registry.register(BuiltInRegistries.ITEM, itemKey, block instanceof BigPart ? new BigPartItem(block, properties) : new BlockItem(block, properties));
+	}
+
+	/**
+	 * An item whose block went in R3 (the eight-cell bank and the one-block dump station replaced it), kept for one release so an
+	 * old inventory keeps it: it crafts back into the iron it was made of.
+	 */
+	private static void legacy(String name) {
+		ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Tailings.id(name));
+		Registry.register(BuiltInRegistries.ITEM, itemKey, new Item(new Item.Properties().setId(itemKey)));
 	}
 }

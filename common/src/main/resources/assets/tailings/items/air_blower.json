@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/air_blower"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/air_blower/item"
+ }
 }

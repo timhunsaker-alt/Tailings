@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "tailings:block/conditioning_tank"
-  }
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/conditioning_tank/item"
+ }
 }

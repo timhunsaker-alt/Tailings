@@ -90,7 +90,7 @@ R brings it in line, one wave at a time.
   - **Trains:** they glide, and every car is an entity.
   - **The dump station:** real parts (ramp, pocket, apron feeder, sorter, bins).
   - **Belts:** laid like pipe, with a drive head.
-- **R3. Big parts:** every part in the specs on Wildcatter's big parts:
+- **R3. Big parts — DONE (2026-11-05).** every part in the specs on Wildcatter's big parts:
   - `BigParts` and the piece property;
   - shapes and the ghost outline;
   - terminal faces;
@@ -148,7 +148,12 @@ These are in the current build on purpose, or because the art and tests have not
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
-- **Phase 1 and phase 2 machines still use vanilla block textures.** Stamp mill, screen, table, separator, and the crushing and flotation blocks were not in the phase 3 texture pack.
+- **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
+- **The plant process is the old shortcut until R4 (R3).** A line forms when its parts are joined by touching or by driven belt runs. Feed still jumps from the grizzly to fines, and touching stands in for the slurry pipes.
+- **The dump's feeder, sorter and bins wait for R4.** The pocket sorts by itself, as the one-block dump station did.
+- **A conveyor drive is rated for one 30 m run (R3).** R4 sizes it by its run.
+- **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron.
+- **R3 models were not seen in a live client.** They were checked as previews (`build/model-previews/`) and by ModelLint. Screenshots come with R7.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **No live turnout test.** `haul_turnout` steps a train through a thrown `mine_switch` by hand. Nothing lets a locomotive entity drive one for real yet (R7).
 - **The drill entity is not spawned (R1).** Until the contraption wave (R6), the drill is its blocks and its chunks are held by the `tailings:runner` ticket.
@@ -156,7 +161,7 @@ These are in the current build on purpose, or because the art and tests have not
 
 Other stand-ins worth knowing:
 
-- Powered-machine recipes are eight iron and one copper, for every plant block.
+- Powered-machine recipes are eight iron and one copper, for every plant part. The ramp, pocket and bin are iron around a hopper. The belt is leather over iron.
 - `mine_switch` and `mine_light` have no crafting recipe.
 - Slope, stair, landing, and mine floor are not crafted. The drill cuts them from mined stone.
 - Cars are not entities. The locomotive renderer draws them.
