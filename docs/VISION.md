@@ -36,8 +36,8 @@ Also allowed by Wildcatter's rules:
   real crustal abundances times the same tenfold game factor (`multiblocks/crushing-circuit.md`, Nuggets). Nothing comes from
   nowhere: a block of granite is 2,700 kg of rock with a written mineral list.
 - **Every machine is distinct real parts.** No "Tier 1–5 macerator". A bigger plant is a bigger crusher or more flotation cells
-  in a real bank. (A flotation bank of identical cells is a written exception, like Wildcatter's centrifuge cascade, because a
-  real bank is exactly that.)
+  in a real bank. (Since R2, 2026-11-05, the flotation bank is one true-size part holding its eight cells, as Wildcatter's coke
+  battery holds its ovens, so no written exception is needed.)
 
 ## Vanilla ores (decided with Tim, 2026-11-02)
 Tailings also processes vanilla ores: iron, copper and gold, and any others whose mineral fits a real recovery route (see

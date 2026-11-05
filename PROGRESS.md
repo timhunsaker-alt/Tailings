@@ -29,3 +29,17 @@ The first wave of realigning Tailings with Wildcatter, after a review found it f
 
 `./gradlew build` and `:neoforge:runGameTestServer` (15 scenes) pass.
 
+## R2: specs in Wildcatter's format (approved by Tim 2026-11-05)
+
+The three draft specs are rewritten in Wildcatter's format, and the drill-and-haulage spec is split in three, giving five specs:
+- `crushing-circuit.md`;
+- `flotation-bank.md`;
+- `tunnel-boring-machine.md`;
+- `haulage.md`;
+- `dump-station.md`.
+
+`docs/multiblocks/README.md` indexes them. The design choices made with Tim are in ROADMAP (R2).
+
+The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
+changed.
+

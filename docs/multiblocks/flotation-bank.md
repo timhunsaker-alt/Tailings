@@ -1,30 +1,57 @@
-# The flotation cell bank (DRAFT, not approved)
+# The flotation bank (APPROVED by Tim 2026-11-05, R2)
 
-A **rougher-scavenger-cleaner bank of mechanical flotation cells** for the sulfide ores, the 3x route. Ground fines come from
-the cyclone overflow; a sulfide concentrate and a tail come out.
+A **rougher-scavenger-cleaner flotation circuit of mechanical cells**, the 3x route for the sulfide ores and for vanilla copper
+and gold. The fines slurry comes from the crushing circuit's cyclone overflow on pipe. It leaves as:
+- a filtered concentrate, as items;
+- a final tail on pipe.
 
-Sources:
+**Decided with Tim:**
+- **2026-11-02:** the 3x step pays 75 % of the mineral (VISION.md).
+- **2026-11-05 (R2):**
+  - the slurry travels on Wildcatter's steel pipe with its assay;
+  - the real 50 t/h;
+  - the eight cells are **one `flotation_bank` part** holding them in its model, as Wildcatter's coke battery holds its 13 ovens.
+    This replaces the old written exception for a bank of identical cells.
+
+**Sources:**
 - Wills & Finch (2016), chapter 12 (froth flotation).
 - Outotec TankCell and Denver DR cell data sheets.
 - Fuerstenau, Jameson & Yoon, *Froth Flotation: A Century of Innovation* (2007).
 
+A figure marked *(proposed)* is a textbook value, a scaled value, or a proposal.
+
 ```
-fines slurry -> CONDITIONING TANK -> ROUGHER CELLS (x4) -> rougher conc -> CLEANER CELLS (x2) -> final conc -> THICKENER -> FILTER
-                 ^ xanthate, frother, lime      \ tail -> SCAVENGER CELLS (x2) -> scav conc back to rougher
-                                                                   \ final tail -> tailings (leach in Phase 4b)
+fines slurry -> CONDITIONING TANK -> conditioned slurry -> FLOTATION BANK ---------------------------> final tail (pipe)
+                 ^ xanthate, MIBC,                         | inside it: 4 roughers -> rougher conc -> 2 cleaners
+                   lime, copper sulfate                    |   rougher tail -> 2 scavengers; scavenger conc and cleaner
+                   (hopper)                                |   tail back to the rougher feed
+                                     AIR BLOWER (touching) ^
+                                                           v concentrate slurry (pipe)
+                                              CONCENTRATE THICKENER -> thickened concentrate (pipe) -> PRESSURE FILTER -> items
 ```
 
-## Size
-- Feed 14 kg/s of solids at 35 % solids, from the crushing circuit.
-- Residence about 12 min in the roughers *(the game holds a few seconds, rates real, as in Wildcatter)*.
+## Size: 50 t/h of solids
+- **Feed:** 13.9 kg/s of solids at 35 % solids, about 31 L/s (111 m³/h) of slurry, from the crushing circuit.
+- **Residence:** about 12 min in the roughers in a real plant. Here each part holds a few seconds of its rated flow and the rates
+  are real, as every process part in Wildcatter does.
+- **Concentrate mass:** set by each mineral's recovery and grade (below). For copper ore at the ores.md grade that is a few
+  percent of the feed.
 
-## Reagents (real doses)
-- Potassium amyl xanthate collector: 50 g/t *(unverified)*.
-- MIBC frother: 20 g/t.
-- Lime to pH 9-10 to depress pyrite: 500 g/t, from Wildcatter's calcining (open: lime is not yet in Wildcatter).
-- Copper sulfate to activate sphalerite: 300 g/t.
+## Reagents (real doses, by hopper on the conditioning tank)
+One item is 1 kg. The doses are per tonne of feed (2.7 t a block):
 
-## Recovery to concentrate (real; game uses these times the liberation from the crushing circuit)
+| Reagent | Dose | Per block | Notes |
+|---|---|---|---|
+| Potassium amyl xanthate (collector) | 50 g/t | 0.135 kg | every feed |
+| MIBC (frother) | 20 g/t | 0.054 kg | every feed |
+| Quicklime (pH 9-10, to depress pyrite) | 500 g/t | 1.35 kg | calcite burned in a furnace; Wildcatter has no lime |
+| Copper sulfate (activator) | 300 g/t | 0.81 kg | only for feed that holds sphalerite |
+
+The tank holds one item for each kg, or part of one, still to dose (R1).
+
+## Recovery to concentrate
+These are real figures; the game multiplies each by the crushing circuit's 90 % liberation at fines:
+
 | Mineral | Real recovery | Concentrate grade |
 |---|---|---|
 | Galena | 90 % | 70 % Pb |
@@ -36,18 +63,109 @@ fines slurry -> CONDITIONING TANK -> ROUGHER CELLS (x4) -> rougher conc -> CLEAN
 | Vanilla copper (chalcopyrite) | 88 % | 28 % Cu |
 | Vanilla gold (free gold reports to gravity first; the rest floats) | 85 % | — |
 
-At 90 % liberation and about 85 % flotation, about 77 % of the mineral in the rock reaches concentrate: the **3x** step on the
-25 % baseline (decided, VISION.md). For a vanilla copper or gold ore that is 3 ingots per ore instead of 1. Scavenger and cleaner banks (Phase 4a) plus tails leaching raise it toward 95 % (4x).
+- **The 3x step:** at 90 % liberation and about 85 % flotation, about 77 % of the mineral in the rock reaches concentrate. The
+  game pays the even **75 %**, the 3x step on the 25 % baseline (decided, VISION.md). A vanilla copper or gold ore gives 3 ingots
+  instead of 1.
+- **The bank's size is fixed:** recovery does not grow with a second bank. A second bank in parallel doubles capacity, not
+  recovery. Phase 4a's regrind and extra cleaning, plus tails leaching, raise it toward 95 % (4x).
 
 ## Parts
 | Part | Cells (W x H x L) | Real-world basis |
 |---|---|---|
-| `conditioning_tank` | 3 x 4 x 3 | 3 m agitated tank, 15 kW, 480 V. Reagents by hopper on top |
-| `flotation_cell` | 3 x 4 x 3 | 20 m3 forced-air cell, 45 kW, 480 V, with a blower header. **Written exception:** a bank is identical cells in series, as at every real plant; recovery grows with cell count |
-| `air_blower` | 2 x 2 x 3 | 75 kW, 480 V, feeds up to 8 cells |
-| `concentrate_thickener` | 8 x 3 x 8 | 8 m high-rate thickener, 5.5 kW rake |
-| `pressure_filter` | 3 x 3 x 5 | Plate filter to 8 % moisture; bags concentrate |
+| `conditioning_tank` | 3 x 4 x 3 | A 3 m agitated conditioning tank, about 4 min at 111 m³/h: **15 kW at 480 V**. Fines slurry in, reagents by hopper on top, conditioned slurry out |
+| `flotation_bank` | 7 x 4 x 13 *(proposed)* | **Eight 20 m³ forced-air tank cells**, each about 3.3 m across (TankCell e20 class), in two rows. The east row holds four roughers; the west row holds two scavengers and two cleaners. Their launders, pumps and level controls are in the one part.<br>• Agitators **8 x 45 kW = 360 kW at 480 V**, on one motor box.<br>• Conditioned slurry in; concentrate slurry and final tail out on pipe.<br>• Needs air from a blower it touches. |
+| `air_blower` | 2 x 2 x 3 | A multistage centrifugal blower, **75 kW at 480 V**, about 1 m³/s at 50 kPa *(proposed)*, for up to eight cells. It touches the bank |
+| `concentrate_thickener` | 8 x 3 x 8 | An 8 m high-rate thickener, **5.5 kW rake at 480 V**. Concentrate slurry in; thickened concentrate at 60 % solids out *(proposed)*. The overflow water is left out (below) |
+| `pressure_filter` | 3 x 3 x 5 | A plate-and-frame pressure filter to 8 % moisture: **15 kW at 480 V**. Thickened concentrate in on pipe; the cake goes out as items to a hopper under it, or to an empty hand |
 
-## Open questions
-- Cell count per recovery step: fixed bank sizes, or recovery by count like the centrifuge cascade?
-- Selective (Pb then Zn) circuits, or one bulk sulfide concentrate to start?
+**The items the filter pays** are the same ones the ladder pays today (DESIGN.md):
+- the ingot, where the concentrate is one that smelts (copper, gold, galena to lead, acanthite to silver);
+- otherwise the Wildcatter mineral item.
+
+Nuggets of trace sulfides from ordinary rock come out here too (crushing-circuit.md, Nuggets).
+
+**New pipe products (in the Wildcatter proposal), all in kg and each carrying its assay:**
+- `conditioned slurry`;
+- `concentrate slurry`;
+- `thickened concentrate`;
+- `tails slurry`.
+
+## Layout (a sketch, facing north; fixed with the models in R3)
+Plan, bottom layer (y 0):
+```
+ x ->  0         5         10        15
+ z 0   K K K ~ ~ ~ ~ . . . . . . . . . .     K conditioning_tank       ~ steel pipe
+   1   K K K . . . ~ . . . . . . . . . .     B flotation_bank (7 x 4 x 13: cells drawn inside its model)
+   2   K K K . . . ~ . . . . . . . . . .     A air_blower (touching the bank's west side)
+   3   . . . . B B B B B B B . . . . . .     T concentrate_thickener
+   4   . . A A B B B B B B B . . . . . .     F pressure_filter
+   5   . . A A B B B B B B B . . . . . .
+  ...          (the bank runs 13 cells south, to z 15)
+  15   . . . . B B B B B B B ~ ~ T T T T T T T T
+  16   . . . . . . . ~ . . . . . T T T T T T T T     concentrate slurry from the bank's south face to the thickener
+  17   . . . . . . . ~ tails   . T T T T T T T T
+  ...                            (the thickener is 8 x 8)
+  23   . . . . . . . . . . . . . . . ~ F F F . .     thickened concentrate to the filter
+```
+
+## Nozzles and faces (each part drawn facing north; main cell at the north-west bottom corner)
+- **Motor boxes:** on the west face of every part's main cell, all at **480 V**.
+- **Conditioning tank:**
+  - fines slurry in at the north face of its front cells;
+  - conditioned slurry out at the south face of its back cells;
+  - reagents by a hopper on any top cell.
+- **Flotation bank:**
+  - conditioned slurry in at the north face of its front cells;
+  - concentrate slurry out of the south face of its back cells at x 6;
+  - tails slurry out of the south face of its back cells at x 0.
+  - The blower must touch its west side.
+- **Thickener:** concentrate slurry in at the north face of its front cells; thickened concentrate out of the south face of its
+  back cells.
+- **Pressure filter:**
+  - thickened concentrate in at the north face of its front cells;
+  - cake out to a hopper under any bottom cell.
+
+## How it runs
+- **The conditioning tank** conditions while it has fines slurry, its outlet has room, and its reagents cover the feed's dose
+  (copper sulfate only when the assay holds sphalerite). Short of a reagent, it stops: NO REAGENT (names it).
+- **The flotation bank:**
+  - it floats while its agitators run, the blower it touches runs, and both its outlets have room;
+  - the concentrate slurry carries the recovered mineral (the 75 % ladder), and the tails slurry carries the rest of the feed.
+- **The thickener** passes concentrate slurry to the filter as thickened concentrate.
+- **The pressure filter** bags the cake into items each time an item's worth of mineral is in it, and holds two stacks at most.
+- **The final tail:**
+  - the tails slurry goes to whatever its pipe joins;
+  - until Phase 4d's lined tailings cell, it may run to a tailings pond made of any storage Wildcatter's pipe can fill
+    *(proposed; see Open DECISIONs)*;
+  - with nowhere to go, the bank stops: "its output has nowhere to go".
+- **What each part reads when it stops:**
+  - NO FEED;
+  - NO REAGENT;
+  - NO AIR;
+  - NOT BUILT;
+  - FULL: take the concentrate;
+  - "its output has nowhere to go".
+- **Removing a part** stops the flow through it. What it holds stays until it is broken, then drops.
+
+## Left out (ROADMAP)
+- Selective lead-then-zinc (or copper-then-moly) circuits. Today the bank makes one bulk sulfide concentrate: an open **DECISION**.
+- Regrind and extra cleaning (Phase 4a); leaching the tails (4b); by-products (4c); the lined tailings cell (4d).
+- Thickener overflow water recycled to the plant; froth chemistry beyond the four reagents; pyrite as a by-product.
+
+## Open DECISIONs (listed, not chosen)
+- Where the final tails go before Phase 4d.
+- Selective circuits (above).
+
+## Game test
+`flotationBank` (Fabric client game test):
+- **Power:** a unit substation at 480 V.
+- **Feed:**
+  - copper fines slurry by a hook into a test-filled stock tank on the tank's inlet;
+  - the four reagents by hopper.
+- **Checks:**
+  1. The bank floats once the blower runs.
+  2. With the blower's breaker open, it stops: NO AIR.
+  3. The filter drops copper ingots into its hopper, 3 for each block of copper ore's worth of fines (the 3x step).
+  4. The tails pipe carries the rest of the assay.
+  5. Without copper sulfate, a sphalerite feed stops: NO REAGENT (Copper Sulfate).
+- **Screenshot:** the bank.

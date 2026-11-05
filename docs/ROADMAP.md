@@ -76,15 +76,48 @@ R brings it in line, one wave at a time.
   - consists through turnouts, and the rectifier feeds switches;
   - the reagent jam;
   - contents drop however a machine is removed.
-- **R2.** Rewrite the three specs in Wildcatter's format: layer grids, legend, controller, rotation, formation and removal,
-  terminals, and a game-test section. Tim approves them before any code.
-- **R3.** Every machine on Wildcatter's big parts (`BigParts`, the piece property, shapes, the ghost outline, terminal faces, the
-  formed sound), with Python-generated piece models and ModelLint.
-- **R4.** The real process: a handoff from stage to stage between touching parts, the size ladder modelled, and nothing running
-  unformed.
-- **R5.** A real DC rectifier whose load follows the locomotive, and the ratings moved into a tuning class.
-- **R6.** The contraption drill.
-- **R7.** Fabric client game tests with screenshots, then the in-game art look and its fixes.
+- **R2. Specs in Wildcatter's format — DONE (approved by Tim 2026-11-05).** The specs are listed in
+  [multiblocks/README.md](multiblocks/README.md): crushing circuit, flotation bank, tunnel boring machine, haulage and dump station.
+  The old drill-and-haulage spec is split into the last three. Decided with Tim on 2026-11-05:
+  - **Plant flow:** belts between the dry stages; from the ball mill on, slurry on Wildcatter's steel pipe carrying its mineral
+    assay. That needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas ("Assayed slurry on the steel pipe").
+  - **Rate:** the plant runs at the real 50 t/h.
+  - **Flotation:** one `flotation_bank` part holds the eight cells, as Wildcatter's coke battery holds its ovens.
+  - **The TBM:**
+    - the full real machine as true-size big parts;
+    - on the decline it stays a contraption, drawn pitched;
+    - its back-up gear rides gantries on the twin track it lays.
+  - **Trains:** they glide, and every car is an entity.
+  - **The dump station:** real parts (ramp, pocket, apron feeder, sorter, bins).
+  - **Belts:** laid like pipe, with a drive head.
+- **R3. Big parts:** every part in the specs on Wildcatter's big parts:
+  - `BigParts` and the piece property;
+  - shapes and the ghost outline;
+  - terminal faces;
+  - Python-generated piece models and ModelLint.
+
+  It includes the new parts: belt and drive, flotation bank, dump ramp, pocket, feeder, sorter and bins.
+- **R4. The real process**, per crushing-circuit.md, flotation-bank.md and dump-station.md:
+  - each stage hands off to the next, at the real rate;
+  - nothing runs unbuilt.
+
+  **It needs the Wildcatter assayed-slurry release first.**
+- **R5. Haulage, per haulage.md:**
+  - trains as entities;
+  - the rectifier on Wildcatter's DC tier;
+  - the ratings moved into a tuning class.
+- **R6. The contraption TBM**, per tunnel-boring-machine.md.
+- **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
+  its fixes.
+
+**Open DECISIONs from the R2 specs (listed, not chosen):**
+- A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
+- Selective lead-then-zinc circuits (flotation-bank.md).
+- Where the final tails go before Phase 4d's lined cell (flotation-bank.md).
+- The traction rectifier's DC source: a voltage-regulated Wildcatter rectifier, or a Tailings source on Wildcatter's DC solver
+  (haulage.md).
+- Whether a train waits at the dump, or the pocket buffers it (dump-station.md).
+- Carried from the first draft: the 1-in-1 steep option, leaking broken lining, ballast on the decline (tunnel-boring-machine.md).
 
 ## Phase 4 — Full recovery — next after R
 
