@@ -2,10 +2,14 @@ package dev.wildcatter.tailings.plant;
 
 import dev.wildcatter.tailings.rock.Rock;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** Kilograms of reagent sitting in the conditioning tank. One item dropped in adds one kilogram. */
+/**
+ * Kilograms of reagent sitting in the conditioning tank. One item dropped in adds one kilogram, and the tank holds back an item
+ * while any part of its kilogram is left, so the items in the tank are always {@link #items} of each reagent.
+ */
 public final class ReagentStock {
 	private final Map<Reagent, BigDecimal> kilograms = new EnumMap<>(Reagent.class);
 
@@ -15,6 +19,11 @@ public final class ReagentStock {
 
 	public void addKilogram(Reagent reagent) {
 		kilograms.put(reagent, kilograms(reagent).add(BigDecimal.ONE));
+	}
+
+	/** The items of this reagent the tank should hold: one for each kilogram or part of one left. */
+	public int items(Reagent reagent) {
+		return kilograms(reagent).setScale(0, RoundingMode.CEILING).intValueExact();
 	}
 
 	public boolean covers(Rock rock) {

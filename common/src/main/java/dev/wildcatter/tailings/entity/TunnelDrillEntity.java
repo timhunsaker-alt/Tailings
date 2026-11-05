@@ -11,9 +11,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * The contraption entity that owns the moving TBM. The cab and pump blocks ride with it and are re-placed each
- * advance; this entity is what the chunk ticket is filed against, so the machine keeps cutting when no player is near.
- * It is invisible: the blocks are the machine the player sees.
+ * Reserved for the contraption drill (a later wave). Nothing spawns it now: the drill's chunks are held by a
+ * {@link dev.wildcatter.tailings.block.ChunkRunner} ticket. One left in a saved world by an older build discards itself.
  */
 public class TunnelDrillEntity extends Entity {
 	public TunnelDrillEntity(EntityType<?> type, Level level) {
@@ -36,6 +35,14 @@ public class TunnelDrillEntity extends Entity {
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (!level().isClientSide()) {
+			discard();
+		}
 	}
 
 	@Override

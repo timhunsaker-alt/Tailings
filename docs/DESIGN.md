@@ -58,7 +58,7 @@ Crushing order: grizzly (3×2×4), jaw (3×4×4, 110 kW), belt (1×1×6, 7.5 kW)
 
 Flotation order: conditioner (3×4×3, 15 kW), four rougher cells, two scavenger cells, two cleaner cells (each cell 3×4×3, 45 kW), blower (2×2×3, 75 kW), thickener (8×3×8, 5.5 kW), filter (3×3×5, 15 kW). Adding cells past this bank does not raise recovery.
 
-`plant.Reagent` doses are grams per tonne of a 2.7 t block, and one item is one kilogram. Every reagent is required for every feed except copper sulfate, which is required only when the rock holds sphalerite.
+`plant.Reagent` doses are grams per tonne of a 2.7 t block, and one item is one kilogram. The tank keeps one item for each kilogram, or part of one, still to dose (`ReagentStock.items`) and takes the rest out as they are spent. Every reagent is required for every feed except copper sulfate, which is required only when the rock holds sphalerite.
 
 | Reagent | Dose | Recipe |
 |---|---|---|
@@ -71,7 +71,7 @@ Every plant block's crafting recipe is the same placeholder: a shaped 3×3 of ir
 
 ## The tunnel drill
 
-The drill is not a static multiblock. `TunnelDrillBlock` is the cab. `DrillBlockEntity` owns a `TunnelDrill` (plain Java) and a `DrillContraption` that moves the cab with the face. `TunnelDrillEntity` is an invisible, no-gravity marker. It owns the chunk tickets. Its renderer is `NoopRenderer`. The visible machine is the blocks.
+The drill is not a static multiblock. `TunnelDrillBlock` is the cab. `DrillBlockEntity` owns a `TunnelDrill` (plain Java) and a `DrillContraption` that moves the cab with the face. `TunnelDrillEntity` is no longer spawned (R1); an old one in a saved world discards itself on its first tick. The contraption wave gives it its real job. Its renderer is `NoopRenderer`. The visible machine is the blocks.
 
 Geometry (`mine.DriveCourse`): an 8×8 face, a 6×6 clear bore, 28 lining segments per ring (the perimeter of the 8×8, with the middle six floor cells left open), two rails per advance, six floor pieces, three blocks of probe ahead. Stone advances in 400 ticks (20 seconds). Deepslate is 600 ticks.
 
@@ -87,7 +87,7 @@ Buffer: when the muck slots cannot take the face, the drill reports that it is p
 
 Inventory, in order: mine rail, gravel, cobble, lining segments, water bucket, then the muck slots. The screen is `client.DrillScreen`. Buttons send menu ids for target Y, heading, length, and go.
 
-Chunk tickets use the drill block entity's runner id. Each tick the drill force-loads three chunks: the cab, the face cell, and the cell `PROBE_BLOCKS` (3) ahead. Tickets that are no longer in that set are dropped. They are not dropped merely because the cab is relocating. NeoForge registers `TicketController` `tailings:runner` and force-loads with ticking. Fabric calls `setChunkForced` with no owner. While a locomotive ticks it force-loads the rail chunk and the chunk one block ahead. On remove it drops the rail chunk's ticket.
+Chunk tickets (`block.ChunkRunner`): while running, the drill refreshes a `tailings:runner` ticket every 20 ticks on three chunks: the cab, the face cell, and the cell `PROBE_BLOCKS` (3) ahead. The ticket type is persistent and times out 200 ticks after its last refresh, so nothing removes it by hand. While a locomotive ticks it refreshes the same ticket on the rail chunk and the chunk one block ahead. Before a move, `relocate()` checks every destination cell; if one is not air, replaceable, or the drill's own, the drill stops as blocked.
 
 The cab recipe is shaped: eight iron ingots around a copper block. The pump recipe is eight iron ingots around a water bucket. The pump block is a 2×2×2 multiblock piece (`dewatering_pump`). The drill places and moves it with the cab when the cells are actually pump blocks.
 
@@ -119,9 +119,9 @@ I I
 
 The entity flag is synced (`DATA_LOCOMOTIVE`). The renderer uses it. A locomotive draws itself, then each trailing car 20 pixels (1.25 blocks) back along the rail path, pitched with the slope (`ConsistSpacing`, `RailSurface`). The car's `load` cube is visible only when `CarLoad.total() > 0`. The headlight part is submitted again with `RenderTypes.eyes` at full brightness. The entity also places a vanilla light block (level 15) on the air block above the rail and removes it when the train moves on. That block is the tunnel light. The eyes pass is the glowing lamp on the model.
 
-The entity hurtbox is the consist's rails, inflated. `TrainHarm` reads `config/tailings-train.properties` beside the game directory. `damage=false` turns hits off. `amount=` sets the damage. A missing file means damage is on and the amount is 8. The hit is `hurtServer` generic damage. There is no gamerule.
+The entity hurtbox is the consist's rails, inflated. `TrainHarm` reads `config/tailings-train.properties` once, when the server starts. `damage=false` turns hits off. `amount=` sets the damage. A missing file means damage is on and the amount is 8. The hit is `hurtServer` generic damage. There is no gamerule.
 
-Chunk tickets use the train entity UUID for the rail chunk and the chunk one block ahead, and drop when the entity is removed.
+Chunk tickets: the locomotive refreshes `tailings:runner` on the rail chunk and the chunk ahead about once a second; they time out on their own once it stops (see the drill above). The light block moves only when the locomotive does. `TrainHarm` settings are read once at server start.
 
 Locomotive recipe:
 
@@ -149,7 +149,7 @@ IRI
 
 `block_signal` claims the next 16 rails in the direction it faces as one section. A train enters only when the signal allows it. The recipe is a redstone torch over an iron ingot. The facing face uses `signal_lamp_off` or `signal_lamp_on`. The other faces use `block_signal.png`.
 
-`traction_rectifier` is a multiblock. It must be powered like the other Wildcatter machines (`forceRunning` in tests). `spread` marks joined rail as fed and refreshes lights and signals. The recipe is iron, redstone, and a copper block in the middle.
+`traction_rectifier` is a multiblock. It must be powered like the other Wildcatter machines (`forceRunning` in tests). `spread` marks joined rail and switches as fed and refreshes lights and signals. The recipe is iron, redstone, and a copper block in the middle.
 
 ```
 III
@@ -264,7 +264,7 @@ Block items exist for every block above, including the ones with no crafting rec
 
 | Id | Class | Renderer | Role |
 |---|---|---|---|
-| `tunnel_drill` | `TunnelDrillEntity` | `NoopRenderer` on both loaders | Invisible ticket owner for the moving drill. Not pickable, no gravity |
+| `tunnel_drill` | `TunnelDrillEntity` | `NoopRenderer` on both loaders | Not spawned since R1; an old one discards itself. Kept registered for the contraption wave |
 | `mine_train` | `MineTrainEntity` | `MineTrainRenderer` | The locomotive. Flag `loco` is synced. Cars are rail data, drawn behind it |
 
 The train entity does not take damage (`hurtServer` returns false). It does deal damage, when the config allows it.

@@ -1,6 +1,6 @@
 # Tailings — Roadmap
 
-Phases 0 through 3 are **done** and on `main`. **Phase 4 is next.** One phase is the current target. "Done" here means the behavior is in the code, `./gradlew build` passes, and `:neoforge:runGameTestServer` passes. There is no Field Manual yet, and there is no Fabric client game-test task.
+Phases 0 through 3 are **done** and on `main`. **The realignment with Wildcatter (R) is CURRENT**, then Phase 4. One phase is the current target. "Done" here means the behavior is in the code, `./gradlew build` passes, and `:neoforge:runGameTestServer` passes. There is no Field Manual yet, and there is no Fabric client game-test task.
 
 ## Phase 0 — Set up — done
 
@@ -50,7 +50,43 @@ Pull request 3, between the phases, is docs only: an unscheduled PLC idea. See I
 
 Ventilation (old 3c) was only a proposal. It is not in the game.
 
-## Phase 4 — Full recovery — next
+## Realignment with Wildcatter (R) — CURRENT
+
+A review on 2026-11-05 found Tailings far from Wildcatter's patterns:
+- **Machines:** footprint code of its own, not Wildcatter's big parts, and each machine a box of identical vanilla cubes.
+- **The plant:** the process short-cuts the stages.
+- **Art:** 16 px textures with no kept sources.
+- **Safety:** bugs that leak chunk load or damage the world.
+
+R brings it in line, one wave at a time.
+
+**Decided with Tim on 2026-11-05:**
+- **The drill:** moves like a Create contraption, or a real boring machine. While running, its parts lift into one moving entity that
+  renders them, and they set back down as blocks when it stops.
+- **Art:** keep the current art. Look at it in game and fix only what's needed.
+- **Order:** safety fixes first, then the specs.
+- **Git:** straight to `main` from `timhunsaker-alt`, as with Wildcatter.
+
+**The waves:**
+- **R1. Safety fixes — DONE (2026-11-05).**
+  - chunk tickets that time out on their own;
+  - no leaked drill entity;
+  - the drill stops as "blocked" instead of overwriting;
+  - no per-tick disk reads or light-block churn;
+  - consists through turnouts, and the rectifier feeds switches;
+  - the reagent jam;
+  - contents drop however a machine is removed.
+- **R2.** Rewrite the three specs in Wildcatter's format: layer grids, legend, controller, rotation, formation and removal,
+  terminals, and a game-test section. Tim approves them before any code.
+- **R3.** Every machine on Wildcatter's big parts (`BigParts`, the piece property, shapes, the ghost outline, terminal faces, the
+  formed sound), with Python-generated piece models and ModelLint.
+- **R4.** The real process: a handoff from stage to stage between touching parts, the size ladder modelled, and nothing running
+  unformed.
+- **R5.** A real DC rectifier whose load follows the locomotive, and the ratings moved into a tuning class.
+- **R6.** The contraption drill.
+- **R7.** Fabric client game tests with screenshots, then the in-game art look and its fixes.
+
+## Phase 4 — Full recovery — next after R
 
 Not started.
 
@@ -75,13 +111,14 @@ Not started.
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 
-- **No drill entity model.** `tunnel_drill` the entity is a `NoopRenderer`. The machine you see is the moved blocks, which use `tunnel_drill.png`.
+- **No drill entity model.** `tunnel_drill` the entity is a `NoopRenderer`, and since R1 nothing spawns it. The machine you see is the moved blocks, which use `tunnel_drill.png`.
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
 - **Phase 1 and phase 2 machines still use vanilla block textures.** Stamp mill, screen, table, separator, and the crushing and flotation blocks were not in the phase 3 texture pack.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
-- **No turnout game test.** The haul scene is a straight powered rail, a coupled car, one step, and a dump. Nothing drives a train through a thrown `mine_switch`.
+- **No live turnout test.** `haul_turnout` steps a train through a thrown `mine_switch` by hand. Nothing lets a locomotive entity drive one for real yet (R7).
+- **The drill entity is not spawned (R1).** Until the contraption wave (R6), the drill is its blocks and its chunks are held by the `tailings:runner` ticket.
 - **Entity and block models were not checked in a live client.** Unit tests check the 20-pixel spacing. A game test bakes the entity layers and checks that the headlight and load parts exist. There is no headed-client pass.
 
 Other stand-ins worth knowing:
@@ -100,7 +137,7 @@ Other stand-ins worth knowing:
 3. Vanilla iron, copper, and gold are on the same ladder. One plain smelt is 1 ingot. Decided 2026-11-02.
 4. The drill program is a GUI, with rail, gravel, cobble, segments, and a water bucket slot. Decided 2026-11-02.
 5. Haulage is Tailings mine rail and mine cars, not vanilla minecarts. Decided 2026-11-02.
-6. Chunk loading is ticket force-loading on the drill and on each train. Decided 2026-11-03.
+6. Chunk loading is a ticket on the drill and on each train. Decided 2026-11-03; since R1 (2026-11-05) it is one `tailings:runner` ticket that times out on its own.
 7. Packaging is its own jar that requires Wildcatter. Decided 2026-11-02.
 
 Still open, from the specs: whether Fortune and Silk Touch stay; which extra vanilla ores (redstone, lapis) join the ladder; whether the 1-in-1 steep grade stays in the GUI; whether broken lining leaks; whether gravel ballast belongs on the decline as well as the flat.

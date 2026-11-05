@@ -23,11 +23,11 @@ Wildcatter 0.2.0 is not on Maven. The release jars are:
 
 ## What you can do now
 
-Phases 1 through 3 are in the game. Phase 4 (full 95% recovery, by-products, the lined tailings cell) is next. Status and the known gaps are in [docs/ROADMAP.md](docs/ROADMAP.md). History is in [CHANGELOG.md](CHANGELOG.md).
+Phases 1 through 3 are in the game. The current phase is a realignment with Wildcatter's art and multiblock patterns (R1, safety fixes, is done); Phase 4 (full 95% recovery, by-products, the lined tailings cell) comes after it. Status and the known gaps are in [docs/ROADMAP.md](docs/ROADMAP.md). History is in [CHANGELOG.md](CHANGELOG.md).
 
 - **Hand mill (2x).** A stamp mill and a hand screen break rock down the size ladder (crushed, gravel, sand). A shaking table and a magnetic separator pay the 50% route. Nine nuggets craft into one mineral item. Iron and gold use the vanilla nuggets.
 - **Concentrator (3x).** A true-size crushing circuit (grizzly, jaw, belt, screen, cone, ball mill, cyclones) grinds sand to fines. A flotation bank (conditioner, four roughers, two scavengers, two cleaners, blower, thickener, filter) pays 75% for the sulfides and for vanilla copper and gold. The motors are Wildcatter's, at 480 V or 4.16 kV.
-- **The mine.** A moving tunnel drill cuts an 8×8 face and leaves a 6×6 lined drive, with smooth 1-in-2 ramps, a stair walkway, and twin mine rail. It pauses when the muck buffer is full. A traction rectifier feeds the rail. A locomotive hauls up to ten cars (nine stacks each) to a dump that sorts the load. Fed rails power lights and signals. Trains hurt players and mobs unless `config/tailings-train.properties` says otherwise.
+- **The mine.** A moving tunnel drill cuts an 8×8 face and leaves a 6×6 lined drive, with smooth 1-in-2 ramps, a stair walkway, and twin mine rail. It pauses when the muck buffer is full. A traction rectifier feeds the rail. A locomotive hauls up to ten cars (nine stacks each) to a dump that sorts the load. Fed rails power lights and signals. Trains hurt players and mobs unless `config/tailings-train.properties` says otherwise. A running drill or train keeps its own chunks loaded with a ticket that lets go about 10 s after it stops.
 
 ## Docs
 

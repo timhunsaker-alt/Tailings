@@ -6,9 +6,7 @@ import dev.wildcatter.tailings.platform.Platform;
 import java.nio.file.Path;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.fabricmc.loader.api.FabricLoader;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -52,10 +50,5 @@ public final class FabricPlatform implements Platform {
 				return new DrillMenu(id, inventory, drill.getBlockPos());
 			}
 		});
-	}
-
-	@Override
-	public void forceChunk(ServerLevel level, UUID owner, int chunkX, int chunkZ, boolean add) {
-		level.setChunkForced(chunkX, chunkZ, add);
 	}
 }

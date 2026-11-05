@@ -1,6 +1,7 @@
 package dev.wildcatter.tailings.entity;
 
 import dev.wildcatter.tailings.TailingsEntities;
+import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.RailBlockEntity;
 import dev.wildcatter.tailings.haul.TrainHarm;
 import dev.wildcatter.tailings.platform.Platform;
@@ -23,7 +24,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 /**
- * A locomotive or car as an entity on the rail. The locomotive steps the consist, keeps a chunk ticket on the route,
+ * A locomotive or car as an entity on the rail. The locomotive steps the consist, refreshes a chunk ticket on its route,
  * lights the block above it, and hurts living things it touches unless the config turns that off.
  */
 public class MineTrainEntity extends Entity {
@@ -32,6 +33,7 @@ public class MineTrainEntity extends Entity {
 	private BlockPos rail = BlockPos.ZERO;
 	private BlockPos lamp;
 	private int wait;
+	private int refresh;
 
 	public MineTrainEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -83,9 +85,11 @@ public class MineTrainEntity extends Entity {
 			clearLamp(server);
 			return;
 		}
-		Platform.INSTANCE.forceChunk(server, getUUID(), rail.getX() >> 4, rail.getZ() >> 4, true);
-		BlockPos ahead = rail.relative(track.getBlockState().getValue(dev.wildcatter.tailings.block.MineRailBlock.FACING));
-		Platform.INSTANCE.forceChunk(server, getUUID(), ahead.getX() >> 4, ahead.getZ() >> 4, true);
+		if (refresh-- <= 0) {
+			refresh = ChunkRunner.REFRESH_TICKS;
+			ChunkRunner.refresh(server, rail);
+			ChunkRunner.refresh(server, rail.relative(track.getBlockState().getValue(dev.wildcatter.tailings.block.MineRailBlock.FACING)));
+		}
 		strike(server, track);
 		if (wait > 0) {
 			wait--;
@@ -110,11 +114,10 @@ public class MineTrainEntity extends Entity {
 	}
 
 	private void strike(ServerLevel server, RailBlockEntity track) {
-		List<String> config = TrainHarm.read(Platform.INSTANCE.configDir().resolve("tailings-train.properties"));
-		if (!TrainHarm.enabled(config)) {
+		float amount = TrainHarm.damageFor(server.getServer(), Platform.INSTANCE.configDir().resolve("tailings-train.properties"));
+		if (amount <= 0) {
 			return;
 		}
-		float amount = TrainHarm.amount(config);
 		AABB box = new AABB(rail);
 		for (RailBlockEntity part : track.consist()) {
 			box = box.minmax(new AABB(part.getBlockPos()));
@@ -125,9 +128,13 @@ public class MineTrainEntity extends Entity {
 		}
 	}
 
+	/** Moves the light block to the air above the locomotive, only when the locomotive has moved. */
 	private void headlight(ServerLevel server) {
-		clearLamp(server);
 		BlockPos above = rail.above();
+		if (above.equals(lamp) && server.getBlockState(lamp).getBlock() == Blocks.LIGHT) {
+			return;
+		}
+		clearLamp(server);
 		if (server.getBlockState(above).isAir()) {
 			server.setBlock(above, Blocks.LIGHT.defaultBlockState().setValue(LightBlock.LEVEL, 15), 3);
 			lamp = above;
@@ -150,7 +157,6 @@ public class MineTrainEntity extends Entity {
 	public void remove(RemovalReason reason) {
 		if (level() instanceof ServerLevel server) {
 			clearLamp(server);
-			Platform.INSTANCE.forceChunk(server, getUUID(), rail.getX() >> 4, rail.getZ() >> 4, false);
 		}
 		super.remove(reason);
 	}

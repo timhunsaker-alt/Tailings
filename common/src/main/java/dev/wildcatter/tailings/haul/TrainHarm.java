@@ -11,8 +11,22 @@ import java.util.List;
  */
 public final class TrainHarm {
 	public static final float DEFAULT_AMOUNT = 8.0F;
+	private static Object readFor;
+	private static boolean cachedEnabled = true;
+	private static float cachedAmount = DEFAULT_AMOUNT;
 
 	private TrainHarm() {
+	}
+
+	/** The settings, read from {@code file} once per server run: {@code server} is whatever identifies the run. */
+	public static synchronized float damageFor(Object server, Path file) {
+		if (readFor != server) {
+			List<String> lines = read(file);
+			cachedEnabled = enabled(lines);
+			cachedAmount = amount(lines);
+			readFor = server;
+		}
+		return cachedEnabled ? cachedAmount : 0;
 	}
 
 	public static boolean enabled(List<String> lines) {

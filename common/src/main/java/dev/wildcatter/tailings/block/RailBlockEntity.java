@@ -211,28 +211,47 @@ public class RailBlockEntity extends BlockEntity {
 		}
 	}
 
+	/**
+	 * The locomotive, then its cars in order. Each car is found by its index on a neighbouring rail cell (level, or one up or down on
+	 * a grade), so a consist that runs through a turnout or onto a grade is still whole.
+	 */
 	public List<RailBlockEntity> consist() {
 		List<RailBlockEntity> found = new ArrayList<>();
 		if (trainId.isEmpty() || level == null) {
 			return found;
 		}
 		RailBlockEntity loco = this;
-		BlockPos cursor = worldPosition;
-		Direction facing = facing();
-		while (level.getBlockEntity(cursor) instanceof RailBlockEntity rail && trainId.equals(rail.trainId)) {
-			if (rail.kind == Kind.LOCO) {
-				loco = rail;
+		for (int hops = 0; loco.kind != Kind.LOCO && hops <= Haul.MAX_CARS; hops++) {
+			RailBlockEntity ahead = loco.linked(loco.index - 1);
+			if (ahead == null) {
 				break;
 			}
-			cursor = cursor.relative(facing);
+			loco = ahead;
 		}
 		found.add(loco);
-		cursor = loco.worldPosition.relative(loco.facing().getOpposite());
-		while (found.size() <= Haul.MAX_CARS && level.getBlockEntity(cursor) instanceof RailBlockEntity rail && trainId.equals(rail.trainId)) {
-			found.add(rail);
-			cursor = cursor.relative(loco.facing().getOpposite());
+		RailBlockEntity car = loco;
+		while (found.size() <= Haul.MAX_CARS) {
+			car = car.linked(car.index + 1);
+			if (car == null) {
+				break;
+			}
+			found.add(car);
 		}
 		return found;
+	}
+
+	/** The rail cell next to this one carrying this train at {@code wanted}, or null. */
+	private RailBlockEntity linked(int wanted) {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			for (int dy = -1; dy <= 1; dy++) {
+				BlockPos next = worldPosition.relative(side).above(dy);
+				if (level.getBlockEntity(next) instanceof RailBlockEntity rail && rail.kind != Kind.NONE && trainId.equals(rail.trainId)
+						&& rail.index == wanted) {
+					return rail;
+				}
+			}
+		}
+		return null;
 	}
 
 	private java.util.Map<String, Integer> consistLoad() {

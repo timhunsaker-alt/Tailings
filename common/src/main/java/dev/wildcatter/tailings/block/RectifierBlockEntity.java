@@ -102,7 +102,9 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 	}
 
 	private void consider(BlockPos pos, ArrayDeque<BlockPos> queue, Set<BlockPos> found) {
-		if (level.getBlockState(pos).getBlock() == TailingsBlocks.MINE_RAIL && found.add(pos)) {
+		// a switch is track too: without it a fed train could never take a turnout
+		var block = level.getBlockState(pos).getBlock();
+		if ((block == TailingsBlocks.MINE_RAIL || block == TailingsBlocks.MINE_SWITCH) && found.add(pos)) {
 			queue.add(pos);
 		}
 	}

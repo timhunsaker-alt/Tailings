@@ -68,12 +68,4 @@ public class TunnelDrillBlock extends BaseEntityBlock {
 		}
 		return InteractionResult.PASS;
 	}
-
-	@Override
-	public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-		if (level.getBlockEntity(pos) instanceof DrillBlockEntity drill && !player.hasInfiniteMaterials()) {
-			drill.dropContents();
-		}
-		return super.playerWillDestroy(level, pos, state, player);
-	}
 }

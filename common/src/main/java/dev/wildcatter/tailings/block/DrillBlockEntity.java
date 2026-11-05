@@ -7,10 +7,8 @@ import dev.wildcatter.circuit.Motor;
 import dev.wildcatter.energy.Inspectable;
 import dev.wildcatter.energy.Voltage;
 import dev.wildcatter.tailings.TailingsBlocks;
-import dev.wildcatter.tailings.entity.TunnelDrillEntity;
 import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DrillContraption;
-import dev.wildcatter.tailings.platform.Platform;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.mine.DrillProgram;
 import dev.wildcatter.tailings.mine.DrillStock;
@@ -20,10 +18,7 @@ import dev.wildcatter.tailings.mine.Ground;
 import dev.wildcatter.tailings.mine.Heading;
 import dev.wildcatter.tailings.mine.TunnelDrill;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -34,12 +29,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.block.Block;
@@ -52,8 +47,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The operator cab. It stays where it was built and the bore grows ahead of it. The main beam is a 1 MW, 4.16 kV motor.
- * While it is driving it keeps its own chunk and the face's chunk loaded, and drops them when it stops.
+ * The operator cab. It moves one block on behind the face with each advance, and the pump with it. The main beam is a 1 MW,
+ * 4.16 kV motor. While it is driving it refreshes a {@link ChunkRunner} ticket on its own chunk and the face's.
  */
 public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer {
 	public static final int BEAM_WATTS = 1_000_000;
@@ -73,9 +68,10 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final DrillStock stock = new DrillStock();
 	private final TunnelDrill drill = new TunnelDrill(program, stock, 0, 0, 0);
 	private final List<String> pending = new ArrayList<>();
-	private final Set<Long> forced = new HashSet<>();
-	private UUID runner = UUID.randomUUID();
 	private boolean moving;
+	/** The face is cut but the cab could not follow: it moves first when the drill starts again. */
+	private boolean stuck;
+	private int refresh;
 	private boolean demand;
 	private boolean forcedPower;
 	private boolean running;
@@ -177,6 +173,12 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return Advance.stopped(Advance.Stop.NONE, "power");
 		}
 		acceptBuckets();
+		if (stuck) {
+			if (!relocate()) {
+				return blocked();
+			}
+			stuck = false;
+		}
 		pullStock();
 		flushPending();
 		if (!pending.isEmpty()) {
@@ -200,17 +202,27 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			running = false;
 			status = DrillCodes.fromStop(drill.stopped());
 			lack = DrillCodes.lack(drill.detail());
-			releaseChunks();
 		} else if (drove.placed()) {
 			status = DrillCodes.DRIVING;
 			lack = DrillCodes.LACK_NONE;
 			wait = drill.ticksFor(ground);
 			setChanged();
-			relocate();
+			if (!relocate()) {
+				stuck = true;
+				return blocked();
+			}
 			return drove;
 		}
 		setChanged();
 		return drove;
+	}
+
+	private Advance blocked() {
+		running = false;
+		status = DrillCodes.STOP_BLOCKED;
+		lack = DrillCodes.LACK_NONE;
+		setChanged();
+		return Advance.stopped(Advance.Stop.BLOCKED, "blocked");
 	}
 
 	public BlockPos cell(int across, int up, int ahead) {
@@ -232,7 +244,6 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			if (drill.stopped() == Advance.Stop.NONE) {
 				status = DrillCodes.IDLE;
 			}
-			releaseChunks();
 			return;
 		}
 		if (wait > 0) {
@@ -248,7 +259,6 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (running) {
 			running = false;
 			status = DrillCodes.IDLE;
-			releaseChunks();
 			return;
 		}
 		drill.resetStop();
@@ -260,7 +270,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				wait = drill.ticksFor(new WorldGround(level, program.heading()));
 			}
 		}
-		ensureContraption();
+		refresh = 0;
 		lockChunks();
 	}
 
@@ -424,6 +434,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return left <= 0;
 	}
 
+	/** Refreshes the ticket on the cab's chunk, the face's and the probe's while it drives; it times out by itself after. */
 	private void lockChunks() {
 		if (!(level instanceof ServerLevel server)) {
 			return;
@@ -431,42 +442,23 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (drill.advanceCount() == 0) {
 			drill.placeOriginFrom(worldPosition.getX(), worldPosition.getY(), worldPosition.getZ());
 		}
-		ensureContraption();
-		Set<Long> want = new HashSet<>();
-		want.add(ChunkPos.pack(worldPosition));
-		want.add(ChunkPos.pack(cell(0, 0, 0)));
-		want.add(ChunkPos.pack(cell(0, 0, DriveCourse.PROBE_BLOCKS)));
-		forced.removeIf(old -> {
-			if (want.contains(old)) {
-				return false;
-			}
-			Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(old), ChunkPos.getZ(old), false);
-			return true;
-		});
-		for (long packed : want) {
-			if (forced.add(packed)) {
-				Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(packed), ChunkPos.getZ(packed), true);
-			}
+		if (refresh-- > 0) {
+			return;
 		}
-	}
-
-	private void releaseChunks() {
-		if (level instanceof ServerLevel server) {
-			for (long packed : forced) {
-				Platform.INSTANCE.forceChunk(server, runner, ChunkPos.getX(packed), ChunkPos.getZ(packed), false);
-			}
-		}
-		forced.clear();
+		refresh = ChunkRunner.REFRESH_TICKS;
+		ChunkRunner.refresh(server, worldPosition);
+		ChunkRunner.refresh(server, cell(0, 0, 0));
+		ChunkRunner.refresh(server, cell(0, 0, DriveCourse.PROBE_BLOCKS));
 	}
 
 	/**
-	 * Slides the cab and the pump one block along the heading, lifting into the bore on the first advance. The
-	 * controller entity moves with them and keeps the chunk ticket.
+	 * Slides the cab and the pump one block along the heading, lifting into the bore on the first advance. Every cell they move into
+	 * must be air, replaceable, or one of their own; otherwise nothing moves and this returns false.
 	 */
-	private void relocate() {
+	private boolean relocate() {
 		if (!(level instanceof ServerLevel server) || !getBlockState().hasProperty(TunnelDrillBlock.FACING)) {
 			lockChunks();
-			return;
+			return true;
 		}
 		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
 		boolean lift = !DrillContraption.ridingInBore(worldPosition.getY(), drill.startFloorY());
@@ -483,6 +475,13 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			}
 		}
+		for (BlockPos cell : cells) {
+			BlockPos dest = cell.offset(delta);
+			BlockState there = level.getBlockState(dest);
+			if (!cells.contains(dest) && !there.isAir() && !there.canBeReplaced()) {
+				return false;
+			}
+		}
 		List<BlockState> states = new ArrayList<>();
 		List<CompoundTag> tags = new ArrayList<>();
 		for (BlockPos cell : cells) {
@@ -496,7 +495,6 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				tags.add(output.buildResult());
 			}
 		}
-		releaseChunks();
 		moving = true;
 		for (BlockPos cell : cells) {
 			level.removeBlock(cell, false);
@@ -510,46 +508,19 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		moving = false;
 		if (server.getBlockEntity(newCab) instanceof DrillBlockEntity moved) {
-			moved.ensureContraption();
+			moved.refresh = 0;
 			moved.lockChunks();
-			if (server.getEntity(moved.runner) instanceof TunnelDrillEntity contraption) {
-				contraption.setPos(newCab.getX() + 0.5, newCab.getY(), newCab.getZ() + 0.5);
-			}
 		}
+		return true;
 	}
 
-	private void ensureContraption() {
-		if (!(level instanceof ServerLevel server)) {
-			return;
-		}
-		if (server.getEntity(runner) instanceof TunnelDrillEntity) {
-			return;
-		}
-		TunnelDrillEntity contraption = new TunnelDrillEntity(level);
-		contraption.setPos(worldPosition.getX() + 0.5, worldPosition.getY(), worldPosition.getZ() + 0.5);
-		if (server.addFreshEntity(contraption)) {
-			runner = contraption.getUUID();
-		}
-	}
-
-	public void dropContents() {
-		if (level == null) {
-			return;
-		}
-		for (ItemStack stack : slots) {
-			if (!stack.isEmpty()) {
-				Block.popResource(level, worldPosition, stack);
-			}
-		}
-		slots.clear();
-	}
-
+	/** Breaking the cab, any way at all, drops what it holds; moving itself does not. */
 	@Override
-	public void setRemoved() {
-		if (!moving) {
-			releaseChunks();
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		if (level != null && !moving) {
+			Containers.dropContents(level, pos, this);
 		}
-		super.setRemoved();
 	}
 
 	@Override
@@ -601,7 +572,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putInt("status", status);
 		output.putInt("lack", lack);
 		output.putString("pending", String.join("|", pending));
-		output.putString("runner", runner.toString());
+		output.putBoolean("stuck", stuck);
 	}
 
 	@Override
@@ -638,11 +609,7 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			}
 		}
-		try {
-			runner = UUID.fromString(input.getStringOr("runner", runner.toString()));
-		} catch (IllegalArgumentException ex) {
-			runner = UUID.randomUUID();
-		}
+		stuck = input.getBooleanOr("stuck", false);
 	}
 
 	private static <T extends Enum<T>> T enumOr(Class<T> type, String name, T fallback) {

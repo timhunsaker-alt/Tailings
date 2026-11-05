@@ -209,5 +209,12 @@ colour sorters, which reject waste rock from ore at mine sites).
 - Sorter throughput: does the train wait to be sorted, or does the pocket buffer a whole train?
 - Gravel under the track on the decline too, or only on the flat?
 - Should the powered track also feed lights or pumps in the drive?
-- ~~Chunk loading while the drill runs far from the player.~~ **Decided 2026-11-03:** the moving drill files a chunk ticket (NeoForge `TicketController`, Fabric the level force-load ticket) on its contraption entity for the cab chunk, the face, and the 3-block probe. The ticket drops when the drill stops. Trains get the same kind of ticket along their route.
+- ~~Chunk loading while the drill runs far from the player.~~ **Decided 2026-11-03, revised 2026-11-05 (R1):** a running drill
+  and a locomotive refresh a Tailings chunk ticket, `tailings:runner`, about once a second: the drill on its cab chunk, the face
+  and the 3-block probe; a train on its rail chunk and the chunk ahead. The ticket is the same on both loaders. It is saved with
+  the world and expires about 10 s after its last refresh, so nothing is ever un-forced by hand: a stopped drill, a removed train,
+  or a world restarted with the machine gone leaves nothing loaded, and a world restarted with the machine running loads its
+  chunks again from the saved ticket. A player's own force-loaded chunks are never touched.
+- **Blocked (2026-11-05, R1):** before the cab and pump move one block on, every cell they move into must be air, replaceable, or
+  one of their own cells. Otherwise the drill stops, reads "blocked", and moves nothing.
 - (Closed: caves, water and lava are handled by the lining and the pump; the remaining part is huge inflows, such as tunneling under an ocean.)

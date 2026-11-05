@@ -26,6 +26,7 @@ public final class Tailings {
 		TailingsBlocks.register();
 		TailingsItems.register();
 		TailingsEntities.register();
+		dev.wildcatter.tailings.block.ChunkRunner.register();
 		LOGGER.info("Tailings loaded; requires {}", requiredMod);
 	}
 

@@ -25,7 +25,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Prediction;
+import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -211,6 +213,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		NuggetBank next = copyBank();
 		Concentrator.floatBank(charge.rock(), next);
 		reagents.consume(charge.rock());
+		trimReagents();
 		slots.get(0).shrink(1);
 		for (Milling.Yield yield : yields) {
 			filter.add(Feeds.stack(yield.itemId(), yield.count()));
@@ -327,6 +330,26 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		};
 	}
 
+	/** Takes out the reagent items whose kilogram has been dosed, so the slots never fill with spent reagent. */
+	private void trimReagents() {
+		for (Reagent reagent : Reagent.values()) {
+			int extra = -reagents.items(reagent);
+			for (int slot = 2; slot <= 5; slot++) {
+				if (reagent(slots.get(slot)) == reagent) {
+					extra += slots.get(slot).getCount();
+				}
+			}
+			for (int slot = 2; slot <= 5 && extra > 0; slot++) {
+				ItemStack there = slots.get(slot);
+				if (reagent(there) == reagent) {
+					int take = Math.min(extra, there.getCount());
+					there.shrink(take);
+					extra -= take;
+				}
+			}
+		}
+	}
+
 	private static @Nullable Reagent reagent(ItemStack stack) {
 		if (stack.isEmpty()) {
 			return null;
@@ -417,6 +440,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		loading = false;
 		bank.load(input.getStringOr("bank", ""));
 		reagents.load(input.getStringOr("reagents", ""));
+		// a tank saved by an older build may hold spent reagent items
+		trimReagents();
 		status = input.getStringOr("status", "idle");
 	}
 
@@ -463,7 +488,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean stillValid(Player player) {
-		return false;
+		return Container.stillValidBlockEntity(this, player);
+	}
+
+	/** Breaking the machine, any way at all, drops what it holds. */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		if (level != null) {
+			Containers.dropContents(level, pos, this);
+		}
 	}
 
 	@Override

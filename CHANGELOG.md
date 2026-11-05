@@ -4,7 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
-Nothing on `main` after pull request 9.
+## R1 — Safety fixes (2026-11-05)
+
+The first wave of realigning Tailings with Wildcatter. Committed straight to `main`.
+
+- **Chunk tickets.** A running drill and a locomotive refresh one Tailings ticket type, `tailings:runner`, on both loaders. It is saved with the world and times out 10 s after its last refresh. The Fabric global force-load and the NeoForge `TicketController` are gone, so a player's own force-loaded chunks are never touched, and a stopped or removed machine never leaves chunks loaded.
+- **The drill** no longer spawns its invisible `TunnelDrillEntity`. One left in an older world discards itself. Before the cab and pump move, every cell they move into must be air, replaceable, or their own; otherwise the drill stops as "blocked" and moves nothing. When it starts again, the cab catches up with the face first.
+- **Trains.** The harm config is read once per server run, not every tick. The headlight's light block moves only when the locomotive does. The consist is found by car index, so cars past a turnout or on a grade stay with the train. The rectifier now feeds `mine_switch` too: before, a fed train could not run through a turnout at all.
+- **Reagents.** The conditioning tank takes out a reagent item for each kilogram dosed, so it no longer jams after 256 of each. A tank saved by an older build is trimmed when it loads.
+- **Drops.** Plant machines and the drill cab drop their contents however they are removed, explosions included.
+- Tests: `ReagentStockTest`; game tests `haul_turnout`, `train_tickets`, `drill_blocked`, `plant_drops`.
 
 ## Pull request 9 — Render mine trains and the remaining haulage textures
 

@@ -5,7 +5,9 @@ import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
+import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.MineRailBlock;
+import dev.wildcatter.tailings.block.MineSwitchBlock;
 import dev.wildcatter.tailings.block.RailBlockEntity;
 import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
@@ -20,6 +22,7 @@ import dev.wildcatter.tailings.block.SlopeHalf;
 import dev.wildcatter.tailings.block.TunnelDrillBlock;
 import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DriveCourse;
+import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.plant.PlantPlan;
 import dev.wildcatter.tailings.plant.Reagent;
@@ -39,6 +42,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.Ticket;
+import net.minecraft.server.level.TicketType;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.TicketStorage;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
@@ -49,7 +56,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -63,6 +70,10 @@ public class TailingsGameTests {
 			helper.register(id("drill_pause"), (Consumer<GameTestHelper>) TailingsGameTests::drillPause);
 			helper.register(id("haul"), (Consumer<GameTestHelper>) TailingsGameTests::haul);
 			helper.register(id("models"), (Consumer<GameTestHelper>) TailingsGameTests::models);
+			helper.register(id("haul_turnout"), (Consumer<GameTestHelper>) TailingsGameTests::haulTurnout);
+			helper.register(id("train_tickets"), (Consumer<GameTestHelper>) TailingsGameTests::trainTickets);
+			helper.register(id("drill_blocked"), (Consumer<GameTestHelper>) TailingsGameTests::drillBlocked);
+			helper.register(id("plant_drops"), (Consumer<GameTestHelper>) TailingsGameTests::plantDrops);
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
@@ -314,6 +325,134 @@ public class TailingsGameTests {
 		helper.assertTrue(Math.abs(RailSurface.blocksAboveBottom(RailGrade.LOWER, 1) - 0.5) < 1.0e-6, Component.literal("lower rail should end at half a block"));
 		helper.assertTrue(Math.abs(RailSurface.blocksAboveBottom(RailGrade.UPPER, 0) - 0.5) < 1.0e-6, Component.literal("upper rail should start at half a block"));
 		helper.assertTrue(Math.abs(RailSurface.alongDownhill(Direction.NORTH, 4, 8, 4.5, 8)) < 1.0e-6, Component.literal("north downhill starts at the north edge"));
+		helper.succeed();
+	}
+
+	/** A locomotive and two cars run through a thrown switch onto a branch; the consist stays whole and the track behind clears. */
+	private static void haulTurnout(GameTestHelper helper) {
+		int y = 60;
+		BlockPos rectifier = new BlockPos(2, y, 3);
+		helper.setBlock(rectifier, TailingsBlocks.TRACTION_RECTIFIER.defaultBlockState());
+		RectifierBlockEntity box = helper.getBlockEntity(rectifier, RectifierBlockEntity.class);
+		box.forceRunning();
+		BlockState north = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		BlockState east = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST);
+		for (int z = 2; z <= 5; z++) {
+			helper.setBlock(new BlockPos(3, y, z), north);
+		}
+		helper.setBlock(new BlockPos(3, y, 1), TailingsBlocks.MINE_SWITCH.defaultBlockState().setValue(MineSwitchBlock.FACING, Direction.NORTH)
+				.setValue(MineSwitchBlock.THROWN, true));
+		for (int x = 4; x <= 6; x++) {
+			helper.setBlock(new BlockPos(x, y, 1), east);
+		}
+		box.spread();
+		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 3), RailBlockEntity.class);
+		helper.assertTrue(loco.placeLoco(), Component.literal("the rail should take a locomotive"));
+		helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, 4), RailBlockEntity.class).placeCar(), Component.literal("first car should couple"));
+		helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class).placeCar(), Component.literal("second car should couple"));
+		BlockPos at = new BlockPos(3, y, 3);
+		BlockPos[] path = {new BlockPos(3, y, 2), new BlockPos(3, y, 1), new BlockPos(4, y, 1), new BlockPos(5, y, 1)};
+		for (BlockPos next : path) {
+			RailBlockEntity head = helper.getBlockEntity(at, RailBlockEntity.class);
+			var dest = helper.getLevel().getBlockEntity(helper.absolutePos(next));
+			helper.assertTrue(head.stepOnce(), Component.literal("the train should step from " + at + " to " + dest + " (powered "
+					+ head.powered() + "/" + (dest instanceof RailBlockEntity r ? r.powered() + " " + r.kind() : "-") + ")"));
+			at = next;
+			RailBlockEntity now = helper.getBlockEntity(at, RailBlockEntity.class);
+			helper.assertTrue(now.kind() == RailBlockEntity.Kind.LOCO, Component.literal("the locomotive should be at " + at));
+			helper.assertTrue(now.consist().size() == 3, Component.literal("the consist should stay three long at " + at + ", got " + now.consist().size()));
+		}
+		helper.assertTrue(helper.getBlockEntity(new BlockPos(4, y, 1), RailBlockEntity.class).kind() == RailBlockEntity.Kind.CAR
+				&& helper.getBlockEntity(new BlockPos(3, y, 1), RailBlockEntity.class).kind() == RailBlockEntity.Kind.CAR,
+				Component.literal("both cars should follow the locomotive through the turnout"));
+		for (int z = 2; z <= 5; z++) {
+			helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, z), RailBlockEntity.class).kind() == RailBlockEntity.Kind.NONE,
+					Component.literal("the main line behind the switch should be clear at z " + z));
+		}
+		helper.succeed();
+	}
+
+	private static boolean hasTicket(ServerLevel level, BlockPos pos, TicketType type) {
+		TicketStorage tickets = level.getDataStorage().computeIfAbsent(TicketStorage.TYPE);
+		for (Ticket ticket : tickets.getTickets(ChunkPos.containing(pos).pack())) {
+			if (ticket.getType() == type) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** A running train holds a runner ticket on its chunk, and the ticket times out once the train is gone. */
+	private static void trainTickets(GameTestHelper helper) {
+		int y = 60;
+		BlockState north = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 0; z <= 2; z++) {
+			helper.setBlock(new BlockPos(3, y, z), north);
+		}
+		BlockPos rail = new BlockPos(3, y, 2);
+		BlockPos abs = helper.absolutePos(rail);
+		ServerLevel level = helper.getLevel();
+		helper.startSequence()
+				.thenExecute(() -> helper.assertTrue(helper.getBlockEntity(rail, RailBlockEntity.class).placeLoco(), Component.literal("the rail should take a locomotive")))
+				.thenExecuteAfter(5, () -> {
+					helper.assertTrue(hasTicket(level, abs, ChunkRunner.RUNNER), Component.literal("a running train should hold a runner ticket"));
+					// take the locomotive off: its entity goes on its next tick
+					helper.setBlock(rail, Blocks.AIR);
+				})
+				.thenExecuteAfter((int) ChunkRunner.TIMEOUT_TICKS + ChunkRunner.REFRESH_TICKS + 10,
+						() -> helper.assertFalse(hasTicket(level, abs, ChunkRunner.RUNNER), Component.literal("the runner ticket should time out once the train is gone")))
+				.thenSucceed();
+	}
+
+	/** Something solid where the cab would move stops the drill as blocked and overwrites nothing; clearing it lets the cab follow. */
+	private static void drillBlocked(GameTestHelper helper) {
+		BlockPos cab = new BlockPos(10, 100, 12);
+		helper.setBlock(cab, TailingsBlocks.TUNNEL_DRILL.defaultBlockState().setValue(TunnelDrillBlock.FACING, Direction.NORTH));
+		helper.setBlock(cab.south(), TailingsBlocks.DEWATERING_PUMP.defaultBlockState().setValue(DewateringPumpBlock.FACING, Direction.NORTH)
+				.setValue(DewateringPumpBlock.PIECE, 0));
+		DrillBlockEntity drill = helper.getBlockEntity(cab, DrillBlockEntity.class);
+		drill.forceRunning();
+		drill.program().setTargetY(90);
+		drill.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
+		drill.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
+		drill.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
+		drill.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+		ServerLevel level = helper.getLevel();
+		BlockPos at = helper.absolutePos(cab);
+		drill.drill().placeOriginFrom(at.getX(), at.getY(), at.getZ());
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				level.setBlock(drill.cell(across, up, 0), Blocks.STONE.defaultBlockState(), 3);
+			}
+		}
+		// the pump's upper cells move into the cell above the cab
+		BlockPos wall = cab.above();
+		helper.setBlock(wall, Blocks.OBSIDIAN);
+		Advance stopped = drill.stepNow();
+		helper.assertTrue(stopped.stop() == Advance.Stop.BLOCKED && drill.status() == DrillCodes.STOP_BLOCKED,
+				Component.literal("a solid block in the way should stop the drill as blocked, got " + stopped.stop()));
+		helper.assertTrue(helper.getBlockState(cab).getBlock() == TailingsBlocks.TUNNEL_DRILL, Component.literal("the cab should not move"));
+		helper.assertTrue(helper.getBlockState(wall).getBlock() == Blocks.OBSIDIAN, Component.literal("the obsidian should not be overwritten"));
+		helper.setBlock(wall, Blocks.AIR);
+		drill.stepNow();
+		helper.assertTrue(helper.getBlockState(cab.north().above()).getBlock() == TailingsBlocks.TUNNEL_DRILL,
+				Component.literal("with the way clear the cab should follow the face"));
+		helper.succeed();
+	}
+
+	/** A plant machine removed by anything but a player (here a plain removal, as an explosion does) still drops what it holds. */
+	private static void plantDrops(GameTestHelper helper) {
+		int y = 30;
+		PlantMachineBlock block = (PlantMachineBlock) TailingsBlocks.plantBlock(Machine.CONDITIONER);
+		BlockPos pos = new BlockPos(1, y, 1);
+		helper.setBlock(pos, block.defaultBlockState().setValue(PlantMachineBlock.FACING, Direction.NORTH).setValue(PlantMachineBlock.PIECE, 0));
+		PlantBlockEntity tank = helper.getBlockEntity(pos, PlantBlockEntity.class);
+		var lime = BuiltInRegistries.ITEM.getValue(Tailings.id(Reagent.LIME.id()));
+		for (int i = 0; i < 3; i++) {
+			helper.assertTrue(tank.offer(new ItemStack(lime)), Component.literal("the tank should take lime"));
+		}
+		helper.getLevel().removeBlock(helper.absolutePos(pos), false);
+		helper.assertItemEntityCountIs(lime, pos, 3.0, 3);
 		helper.succeed();
 	}
 }
