@@ -2,15 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "III",
-    "IBI",
+    "ICI",
     "III"
   ],
   "key": {
     "I": "minecraft:iron_ingot",
-    "B": "minecraft:copper_block"
+    "C": "minecraft:copper_ingot"
   },
   "result": {
-    "id": "tailings:tunnel_drill",
+    "id": "tailings:track_layer",
     "count": 1
   }
 }

@@ -20,10 +20,8 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 		int y = topPos + 76;
 		add(x, y, 22, "Y-", 0);
 		add(x + 24, y, 22, "Y+", 1);
-		add(x + 48, y, 22, "H", 2);
-		add(x + 72, y, 24, "L-", 3);
-		add(x + 98, y, 24, "L+", 4);
-		add(x + 124, y, 22, "G", 5);
+		add(x + 52, y, 24, "L-", 3);
+		add(x + 78, y, 24, "L+", 4);
 		add(x + 148, y, 20, "Go", 10);
 		int y2 = topPos + 58;
 		add(x, y2, 28, "ore", 6);

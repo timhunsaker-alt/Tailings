@@ -1,6 +1,6 @@
 package dev.wildcatter.tailings.mine;
 
-/** How fast the floor drops. One in two is the default; one in one is the steep option. */
+/** How fast the floor drops: one in two (decided with Tim, R6: the steep option is gone; an old program's one in one reads as one in two). */
 public enum Grade {
 	/** One block of drop over two of run, half a block each advance. */
 	ONE_IN_TWO,
@@ -8,6 +8,6 @@ public enum Grade {
 	ONE_IN_ONE;
 
 	public int dropBlocks(int advance) {
-		return this == ONE_IN_ONE ? advance : advance / 2;
+		return advance / 2;
 	}
 }

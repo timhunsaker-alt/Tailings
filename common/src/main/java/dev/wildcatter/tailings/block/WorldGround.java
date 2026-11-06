@@ -153,10 +153,10 @@ public final class WorldGround implements GroundGrid {
 			case SLOPE_LOWER -> slope(look, SlopeHalf.LOWER, facing);
 			case SLOPE_UPPER -> slope(look, SlopeHalf.UPPER, facing);
 			case SLOPE_STEEP -> slope(look, SlopeHalf.STEEP, facing);
-			case RAIL_LOWER -> rail(look, RailGrade.LOWER, true, facing);
-			case RAIL_UPPER -> rail(look, RailGrade.UPPER, true, facing);
-			case RAIL_STEEP -> rail(look, RailGrade.STEEP, true, facing);
-			case RAIL_FLAT -> rail(FloorLook.STONE, RailGrade.FLAT, false, facing);
+			case RAIL_LOWER -> rail(FloorLook.BALLAST, RailGrade.LOWER, true, facing);
+			case RAIL_UPPER -> rail(FloorLook.BALLAST, RailGrade.UPPER, true, facing);
+			case RAIL_STEEP -> rail(FloorLook.BALLAST, RailGrade.STEEP, true, facing);
+			case RAIL_FLAT -> rail(FloorLook.BALLAST, RailGrade.FLAT, false, facing);
 			case STAIR -> TailingsBlocks.MINE_STAIR.defaultBlockState().setValue(MineStairBlock.FACING, facing).setValue(MineStairBlock.LOOK, look);
 			case LANDING -> TailingsBlocks.MINE_LANDING.defaultBlockState().setValue(MineFullBlock.LOOK, look);
 			case FLAT_ROCK -> TailingsBlocks.MINE_FLOOR.defaultBlockState().setValue(MineFullBlock.LOOK, look);

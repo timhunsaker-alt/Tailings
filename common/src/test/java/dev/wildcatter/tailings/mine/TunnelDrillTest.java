@@ -17,31 +17,32 @@ class TunnelDrillTest {
 				FloorPiece.FLAT_ROCK, FloorPiece.RAIL_FLAT, FloorPiece.LANDING,
 				FloorPiece.LANDING, FloorPiece.RAIL_FLAT, FloorPiece.FLAT_ROCK
 		}, DriveCourse.floor(0, Grade.ONE_IN_TWO, false));
-		assertArrayEquals(new FloorPiece[] {
-				FloorPiece.SLOPE_STEEP, FloorPiece.RAIL_STEEP, FloorPiece.STAIR,
-				FloorPiece.STAIR, FloorPiece.RAIL_STEEP, FloorPiece.SLOPE_STEEP
-		}, DriveCourse.floor(3, Grade.ONE_IN_ONE, true));
 		assertEquals(0, Grade.ONE_IN_TWO.dropBlocks(1));
 		assertEquals(1, Grade.ONE_IN_TWO.dropBlocks(2));
-		assertEquals(4, Grade.ONE_IN_ONE.dropBlocks(4));
+		assertEquals(2, Grade.ONE_IN_ONE.dropBlocks(4), "an old 1-in-1 program reads as 1 in 2");
+		assertTrue(FloorPiece.RAIL_UPPER.usesGravel() && FloorPiece.RAIL_LOWER.usesGravel() && FloorPiece.RAIL_FLAT.usesGravel(), "ballast under all track");
 	}
 
 	@Test
-	void oneAdvanceLinesTheRingAndLaysTheUpperSlope() {
+	void oneAdvanceCutsThenLinesBehindTheMachine() {
 		TableGround ground = stoneBox();
 		TunnelDrill drill = ready(10, 6, Grade.ONE_IN_TWO);
 		Advance drove = drill.step(ground);
 		assertEquals(Advance.Stop.NONE, drove.stop());
+		assertEquals(0, ground.count(Ground.LINING), "the erector has not moved off the ring's place yet");
+		assertEquals(60, drove.muck().get(Ground.STONE), "64 cut, 4 kept for the floor; the rails are on gravel");
+		assertTrue(drill.linePending());
+		drill.line(ground);
+		assertEquals(false, drill.linePending());
 		assertEquals(28, ground.count(Ground.LINING));
-		assertEquals(58, drove.muck().get(Ground.STONE));
-		assertArrayEquals(slope(true), drove.floor());
-		assertEquals(FloorPiece.SLOPE_UPPER, ground.floorPiece(1, 10, 0));
-		assertEquals(FloorPiece.RAIL_UPPER, ground.floorPiece(2, 10, 0));
-		assertEquals(FloorPiece.STAIR, ground.floorPiece(3, 10, 0));
-		assertEquals(FloorPiece.STAIR, ground.floorPiece(4, 10, 0));
-		assertEquals(Ground.STONE, ground.floorRock(1, 10, 0));
+		assertEquals(Ground.LINING, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND), "the ring just behind the erector");
+		int floorZ = -1 + DriveCourse.FLOOR_BEHIND;
+		assertEquals(FloorPiece.FLAT_ROCK, ground.floorPiece(1, 10, floorZ), "where the machine was built is level");
+		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, floorZ));
+		assertEquals(FloorPiece.LANDING, ground.floorPiece(3, 10, floorZ));
 		assertEquals(72, drill.stock().segments());
 		assertEquals(98, drill.stock().rail());
+		assertEquals(98, drill.stock().gravel());
 		assertEquals(100, drill.stock().cobble());
 		assertEquals(0, drill.stock().floorRock());
 		assertEquals(1, drill.advanceCount());
@@ -49,16 +50,45 @@ class TunnelDrillTest {
 	}
 
 	@Test
-	void secondAdvanceIsTheLowerHalfAndALanding() {
+	void theDeclineFloorComesDownBehindTheTrackLayerOnBallast() {
+		TableGround ground = new TableGround();
+		TunnelDrill drill = ready(30, 0, Grade.ONE_IN_TWO);
+		drill.stock().setCobble(1000);
+		drill.stock().setRail(1000);
+		drill.stock().setGravel(1000);
+		drill.stock().setSegments(1000);
+		Advance last = null;
+		for (int cut = 0; cut <= 12; cut++) {
+			fillAt(ground, drill, 0);
+			last = drill.step(ground);
+			assertEquals(Advance.Stop.NONE, last.stop());
+			drill.line(ground);
+			if (cut == 11) {
+				assertArrayEquals(slope(true), last.floor(), "the first slice of the decline is an upper half");
+				assertEquals(FloorPiece.RAIL_UPPER, ground.floorPiece(2, 30, 0));
+			}
+		}
+		assertArrayEquals(slope(false), last.floor());
+		assertEquals(FloorPiece.LANDING, ground.floorPiece(3, 30, -1));
+		assertEquals(1000 - 2 * 13, drill.stock().gravel(), "two gravel a block, on the decline too");
+	}
+
+	@Test
+	void aWaitingRingAndFloorSurviveASave() {
 		TableGround ground = stoneBox();
-		fill(ground, 1);
 		TunnelDrill drill = ready(10, 6, Grade.ONE_IN_TWO);
+		drill.stock().setSegments(0);
 		drill.step(ground);
-		Advance second = drill.step(ground);
-		assertArrayEquals(slope(false), second.floor());
-		assertEquals(FloorPiece.LANDING, ground.floorPiece(drill.worldX(3, -1), drill.worldY(1, -1), drill.worldZ(3, -1)));
-		assertEquals(9, DriveCourse.floorY(10, 2, Grade.ONE_IN_TWO));
-		assertEquals(9, drill.floorY());
+		TunnelDrill back = ready(10, 6, Grade.ONE_IN_TWO);
+		back.placeOrigin(drill.originX(), drill.startFloorY(), drill.originZ());
+		back.restore(drill.advanceCount(), drill.flatDriven(), drill.pumped(), Advance.Stop.NONE, "");
+		back.loadPending(drill.savePending());
+		assertTrue(back.linePending());
+		back.line(ground);
+		assertEquals(Ground.STONE, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND), "the ring cut from stone");
+		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, -1 + DriveCourse.FLOOR_BEHIND));
+		back.loadPending("nonsense");
+		assertEquals(false, back.linePending());
 	}
 
 	@Test
@@ -90,7 +120,7 @@ class TunnelDrillTest {
 		wet.set(px, py, pz, Ground.FLOWING_WATER);
 		Advance drove = drill.step(wet);
 		assertEquals(1, drove.pumpedWater());
-		assertEquals(Ground.LINING, wet.get(0, 10, 0));
+		assertEquals(Ground.AIR, wet.get(0, 10, 0));
 		assertEquals(Ground.AIR, wet.get(px, py, pz));
 
 		TableGround lava = stoneBox();
@@ -142,7 +172,7 @@ class TunnelDrillTest {
 		assertEquals(Advance.Stop.NONE, drove.stop());
 		assertEquals(6, ground.count(Ground.COBBLE));
 		assertEquals(Ground.COBBLE, drove.floorRock()[0]);
-		assertEquals(8, drill.stock().cobble());
+		assertEquals(10, drill.stock().cobble(), "6 for the cave and 4 for the floor, the rails on gravel");
 	}
 
 	@Test
@@ -152,8 +182,9 @@ class TunnelDrillTest {
 		drill.stock().setSegments(0);
 		Advance drove = drill.step(ground);
 		assertEquals(Advance.Stop.NONE, drove.stop());
+		drill.line(ground);
 		assertEquals(0, ground.count(Ground.LINING));
-		assertEquals(Ground.STONE, ground.get(0, 9, 0));
+		assertEquals(Ground.STONE, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND));
 		assertEquals(0, drill.stock().segments());
 		assertEquals(100, drill.stock().cobble());
 	}

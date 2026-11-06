@@ -959,6 +959,126 @@
     "facing=west,grade=flat,look=sandstone,rack=true": {
       "model": "tailings:block/mine_rail_flat_rack",
       "y": 270
+    },
+    "facing=north,grade=lower,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_lower_ballast"
+    },
+    "facing=north,grade=lower,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_lower_ballast_rack"
+    },
+    "facing=north,grade=upper,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_upper_ballast"
+    },
+    "facing=north,grade=upper,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_upper_ballast_rack"
+    },
+    "facing=north,grade=steep,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_steep_ballast"
+    },
+    "facing=north,grade=steep,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_steep_ballast_rack"
+    },
+    "facing=north,grade=flat,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_flat"
+    },
+    "facing=north,grade=flat,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_flat_rack"
+    },
+    "facing=east,grade=lower,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_lower_ballast",
+      "y": 90
+    },
+    "facing=east,grade=lower,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_lower_ballast_rack",
+      "y": 90
+    },
+    "facing=east,grade=upper,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_upper_ballast",
+      "y": 90
+    },
+    "facing=east,grade=upper,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_upper_ballast_rack",
+      "y": 90
+    },
+    "facing=east,grade=steep,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_steep_ballast",
+      "y": 90
+    },
+    "facing=east,grade=steep,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_steep_ballast_rack",
+      "y": 90
+    },
+    "facing=east,grade=flat,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_flat",
+      "y": 90
+    },
+    "facing=east,grade=flat,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_flat_rack",
+      "y": 90
+    },
+    "facing=south,grade=lower,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_lower_ballast",
+      "y": 180
+    },
+    "facing=south,grade=lower,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_lower_ballast_rack",
+      "y": 180
+    },
+    "facing=south,grade=upper,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_upper_ballast",
+      "y": 180
+    },
+    "facing=south,grade=upper,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_upper_ballast_rack",
+      "y": 180
+    },
+    "facing=south,grade=steep,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_steep_ballast",
+      "y": 180
+    },
+    "facing=south,grade=steep,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_steep_ballast_rack",
+      "y": 180
+    },
+    "facing=south,grade=flat,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_flat",
+      "y": 180
+    },
+    "facing=south,grade=flat,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_flat_rack",
+      "y": 180
+    },
+    "facing=west,grade=lower,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_lower_ballast",
+      "y": 270
+    },
+    "facing=west,grade=lower,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_lower_ballast_rack",
+      "y": 270
+    },
+    "facing=west,grade=upper,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_upper_ballast",
+      "y": 270
+    },
+    "facing=west,grade=upper,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_upper_ballast_rack",
+      "y": 270
+    },
+    "facing=west,grade=steep,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_steep_ballast",
+      "y": 270
+    },
+    "facing=west,grade=steep,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_steep_ballast_rack",
+      "y": 270
+    },
+    "facing=west,grade=flat,look=ballast,rack=false": {
+      "model": "tailings:block/mine_rail_flat",
+      "y": 270
+    },
+    "facing=west,grade=flat,look=ballast,rack=true": {
+      "model": "tailings:block/mine_rail_flat_rack",
+      "y": 270
     }
   }
 }

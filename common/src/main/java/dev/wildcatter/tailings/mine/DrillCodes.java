@@ -13,6 +13,7 @@ public final class DrillCodes {
 	public static final int STOP_EMPTY = 8;
 	public static final int STOP_BUFFER = 9;
 	public static final int STOP_BLOCKED = 10;
+	public static final int NOT_BUILT = 11;
 
 	public static final int LACK_NONE = 0;
 	public static final int LACK_SEGMENTS = 1;
@@ -74,7 +75,8 @@ public final class DrillCodes {
 			default -> "";
 		};
 		String base = switch (status) {
-			case NEED_PUMP -> "needs the dewatering pump behind the cab";
+			case NEED_PUMP -> "needs the dewatering pump behind the main beam";
+			case NOT_BUILT -> "NOT BUILT";
 			case NEED_POWER -> "waiting for power";
 			case DRIVING -> "driving";
 			case STOP_TARGET -> "target reached";
@@ -83,7 +85,7 @@ public final class DrillCodes {
 			case STOP_LIQUID -> "stopped: liquid it cannot clear";
 			case STOP_EMPTY -> "stopped: out of stock";
 			case STOP_BUFFER -> "paused: muck buffer full";
-			case STOP_BLOCKED -> "stopped: bedrock";
+			case STOP_BLOCKED -> "stopped: blocked";
 			default -> "idle";
 		};
 		return lackText.isEmpty() ? base : base + " (" + lackText + ")";

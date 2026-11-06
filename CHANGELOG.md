@@ -4,6 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R6a — The TBM's real parts (2026-11-06)
+
+- **The real machine:** cutterhead, segment erector, main beam with its cab, and track layer, each one item at true size with a real model, replace the one-block cab. Build them in order; the cab names anything missing.
+- **Cable junction:** wire 4.16 kV to it within 16 blocks of the cab.
+- **Lining and floor** go down behind the machine, as on a real TBM. Gravel ballast goes under all track, decline too.
+- **1 in 2 only:** the steep option is gone.
+- **Until the contraption wave** the machine drives flat only.
+- **Old worlds:** an old cab drops its stock and a main beam item.
+- **Tests:** `tbm_built`, `drill_retired`; the drill scenes rewritten.
+
 ## R5b — Traction power on Wildcatter's DC solver (2026-11-05)
 
 - **The traction rectifier** is a real 250 V DC source on Wildcatter's circuit, with a DC breaker (trips at 1.25x for 1 s; click to reset). Its 480 V draw follows the trains.

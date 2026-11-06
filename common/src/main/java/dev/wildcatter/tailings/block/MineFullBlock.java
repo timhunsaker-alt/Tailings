@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 /** A full floor block or a landing, cut from mined rock. */
 public class MineFullBlock extends Block {
-	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class);
+	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class, look -> look != FloorLook.BALLAST);
 
 	public MineFullBlock(Properties properties) {
 		super(properties);

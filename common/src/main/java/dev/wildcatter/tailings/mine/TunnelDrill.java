@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One advance of the TBM: probe three blocks ahead, void water, quench lava, cut the 8 x 8, and place the ring and floor.
- * The water it pumps is counted and then forgotten. Quench water comes from the water slot.
+ * One advance of the TBM: probe three blocks ahead, void water, quench lava and cut the 8 x 8 ({@link #step}); then, once the
+ * machine has moved on into the cut, place the ring behind the segment erector and the floor and track behind the track layer
+ * ({@link #line}). The water it pumps is counted and then forgotten. Quench water comes from the water slot.
  */
 public final class TunnelDrill {
 	private final DrillProgram program;
@@ -18,6 +19,11 @@ public final class TunnelDrill {
 	private int pumped;
 	private Advance.Stop stopped = Advance.Stop.NONE;
 	private String detail = "";
+	/** The ring and floor of the last cut, placed once the machine has moved on ({@link #line}). */
+	private Ground[] pendingRing;
+	private boolean ringPending;
+	private FloorPiece[] pendingFloor;
+	private Ground[] pendingFloorRock;
 
 	public TunnelDrill(DrillProgram program, DrillStock stock, int originX, int startFloorY, int originZ) {
 		this.program = program;
@@ -142,7 +148,11 @@ public final class TunnelDrill {
 			return halt(Advance.Stop.CABLE, "trailing cable ended");
 		}
 		boolean decline = declining();
-		FloorPiece[] floor = DriveCourse.floor(advance, program.grade(), decline);
+		// the floor this cut pays for goes down behind the track layer, FLOOR_BEHIND slices back once the machine has moved
+		int floorSlice = advance + 1 - DriveCourse.FLOOR_BEHIND;
+		// the slices behind the first face are where the machine was built, on the level
+		boolean floorDecline = floorSlice >= 0 && DriveCourse.declining(DriveCourse.floorY(startFloorY, floorSlice, program.grade()), program.targetY());
+		FloorPiece[] floor = DriveCourse.floor(floorSlice, program.grade(), floorDecline);
 		int rockNeed = DriveCourse.rockPieces(floor);
 		int liningStone = stock.segments() >= DriveCourse.SEGMENTS_PER_RING ? 0 : DriveCourse.SEGMENTS_PER_RING;
 		int holdCap = rockNeed + liningStone;
@@ -242,19 +252,10 @@ public final class TunnelDrill {
 		Spent spent = stock.consume(floor, cave, lava, held);
 		Ground[] used = spent.floor();
 		Ground[] ring = spent.lining();
-		int lined = 0;
-		for (int up = 0; up < DriveCourse.FACE; up++) {
-			for (int across = 0; across < DriveCourse.FACE; across++) {
-				if (DriveCourse.isLining(across, up)) {
-					Ground material = ring == null ? null : ring[lined++];
-					ground.placeLining(worldX(across, 0), worldY(up, 0), worldZ(across, 0), material);
-				}
-			}
-		}
-		for (int i = 0; i < floor.length; i++) {
-			int across = i + 1;
-			ground.placeFloor(worldX(across, 0), worldY(1, 0), worldZ(across, 0), floor[i], used[i]);
-		}
+		pendingRing = ring;
+		ringPending = true;
+		pendingFloor = floor;
+		pendingFloorRock = used;
 		for (int across = 1; across <= DriveCourse.CLEAR; across++) {
 			int x = worldX(across, 0);
 			int y = worldY(0, 0) - 1;
@@ -274,6 +275,86 @@ public final class TunnelDrill {
 		originX += program.heading().forwardX();
 		originZ += program.heading().forwardZ();
 		return drove;
+	}
+
+	/**
+	 * Places the last cut's ring just behind the segment erector and its floor and track just behind the track layer, once the
+	 * machine has moved on. Does nothing if there is none waiting.
+	 */
+	public void line(GroundGrid ground) {
+		if (!ringPending) {
+			return;
+		}
+		int ringAhead = -DriveCourse.RING_BEHIND;
+		int lined = 0;
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				if (DriveCourse.isLining(across, up)) {
+					Ground material = pendingRing == null ? null : pendingRing[lined++];
+					ground.placeLining(worldX(across, ringAhead), worldY(up, ringAhead), worldZ(across, ringAhead), material);
+				}
+			}
+		}
+		int floorAhead = -DriveCourse.FLOOR_BEHIND;
+		for (int i = 0; i < pendingFloor.length; i++) {
+			int across = i + 1;
+			ground.placeFloor(worldX(across, floorAhead), worldY(1, floorAhead), worldZ(across, floorAhead), pendingFloor[i], pendingFloorRock[i]);
+		}
+		ringPending = false;
+		pendingRing = null;
+		pendingFloor = null;
+		pendingFloorRock = null;
+	}
+
+	public boolean linePending() {
+		return ringPending;
+	}
+
+	/** The waiting ring and floor, saved: {@code ring;floor;rock} with entries split by commas, "-" for a crafted ring. */
+	public String savePending() {
+		if (!ringPending) {
+			return "";
+		}
+		StringBuilder out = new StringBuilder();
+		out.append(pendingRing == null ? "-" : join(pendingRing)).append(';').append(join(pendingFloor)).append(';').append(join(pendingFloorRock));
+		return out.toString();
+	}
+
+	public void loadPending(String saved) {
+		ringPending = false;
+		if (saved == null || saved.isBlank()) {
+			return;
+		}
+		try {
+			String[] part = saved.split(";", -1);
+			pendingRing = "-".equals(part[0]) ? null : grounds(part[0]);
+			String[] pieces = part[1].split(",");
+			pendingFloor = new FloorPiece[pieces.length];
+			for (int i = 0; i < pieces.length; i++) {
+				pendingFloor[i] = FloorPiece.valueOf(pieces[i]);
+			}
+			pendingFloorRock = grounds(part[2]);
+			ringPending = true;
+		} catch (RuntimeException ex) {
+			ringPending = false;
+		}
+	}
+
+	private static String join(Enum<?>[] values) {
+		StringBuilder out = new StringBuilder();
+		for (Enum<?> v : values) {
+			out.append(out.length() == 0 ? "" : ",").append(v == null ? "NONE" : v.name());
+		}
+		return out.toString();
+	}
+
+	private static Ground[] grounds(String text) {
+		String[] names = text.split(",");
+		Ground[] out = new Ground[names.length];
+		for (int i = 0; i < names.length; i++) {
+			out[i] = "NONE".equals(names[i]) ? null : Ground.valueOf(names[i]);
+		}
+		return out;
 	}
 
 	private Advance halt(Advance.Stop stop, String why) {

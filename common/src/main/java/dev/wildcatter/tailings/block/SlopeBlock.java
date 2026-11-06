@@ -17,7 +17,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class SlopeBlock extends Block {
 	public static final EnumProperty<Direction> FACING = net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
 	public static final EnumProperty<SlopeHalf> HALF = EnumProperty.create("half", SlopeHalf.class);
-	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class);
+	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class, look -> look != FloorLook.BALLAST);
 
 	public SlopeBlock(Properties properties) {
 		super(properties);

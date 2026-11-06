@@ -2,7 +2,6 @@ package dev.wildcatter.tailings.block;
 
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.mine.DrillCodes;
-import dev.wildcatter.tailings.mine.Grade;
 import dev.wildcatter.tailings.mine.Heading;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
@@ -17,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 
-/** The cab screen: five stock slots, the muck buffer, and the program buttons. */
+/** The cab screen: six stock slots (rail, gravel, cobble, lining, water, cable), the muck buffer, and the program buttons. */
 public class DrillMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final ContainerData data;
@@ -36,6 +35,7 @@ public class DrillMenu extends AbstractContainerMenu {
 		for (int i = 0; i < DrillBlockEntity.INPUTS; i++) {
 			addSlot(new StockSlot(container, i, 8 + i * 18, 96));
 		}
+		// the Ride button's seat comes with the contraption (R6b)
 		for (int i = 0; i < DrillBlockEntity.MUCK_SLOTS; i++) {
 			addSlot(new Slot(container, DrillBlockEntity.INPUTS + i, 8 + (i % 9) * 18, 116 + (i / 9) * 18) {
 				@Override
@@ -57,10 +57,8 @@ public class DrillMenu extends AbstractContainerMenu {
 
 	public String readout() {
 		Heading heading = Heading.values()[Math.floorMod(data.get(1), Heading.values().length)];
-		Grade grade = data.get(3) == 0 ? Grade.ONE_IN_TWO : Grade.ONE_IN_ONE;
 		int flags = data.get(4);
-		return "Y " + data.get(0) + "  " + heading.name().toLowerCase(java.util.Locale.ROOT) + "  flat " + data.get(2)
-				+ "  " + (grade == Grade.ONE_IN_TWO ? "1 in 2" : "1 in 1")
+		return "Y " + data.get(0) + "  " + heading.name().toLowerCase(java.util.Locale.ROOT) + "  flat " + data.get(2) + "  1 in 2"
 				+ "\n" + DrillCodes.phrase(data.get(8), data.get(11))
 				+ "\n" + data.get(5) + " blocks, floor Y " + data.get(6) + ", cable " + data.get(7)
 				+ ", pumped " + data.get(9) + " m3, quench " + data.get(10)
@@ -122,6 +120,9 @@ public class DrillMenu extends AbstractContainerMenu {
 		if (stack.getItem() == Items.WATER_BUCKET) {
 			return DrillBlockEntity.SLOT_WATER;
 		}
+		if (TbmCore.CABLE_ID.equals(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString())) {
+			return DrillBlockEntity.SLOT_CABLE;
+		}
 		return -1;
 	}
 
@@ -155,11 +156,11 @@ public class DrillMenu extends AbstractContainerMenu {
 				case 0 -> drill.program().targetY();
 				case 1 -> drill.program().heading().ordinal();
 				case 2 -> drill.program().flatLength();
-				case 3 -> drill.program().grade() == Grade.ONE_IN_ONE ? 1 : 0;
+				case 3 -> 0;
 				case 4 -> flags();
 				case 5 -> drill.drill().advanceCount();
 				case 6 -> drill.drill().floorY();
-				case 7 -> Math.max(0, drill.program().cableBlocks() - drill.drill().advanceCount());
+				case 7 -> drill.core().cableLeft();
 				case 8 -> drill.status();
 				case 9 -> drill.drill().pumped();
 				case 10 -> drill.tank();

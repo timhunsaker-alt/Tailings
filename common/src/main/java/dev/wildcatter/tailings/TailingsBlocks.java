@@ -6,6 +6,11 @@ import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.BeltBlockEntity;
 import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.mine.TbmPart;
+import dev.wildcatter.tailings.block.CableJunctionBlockEntity;
+import dev.wildcatter.tailings.block.CableJunctionBlock;
+import dev.wildcatter.tailings.block.TbmPartBlockEntity;
+import dev.wildcatter.tailings.block.TbmPartBlock;
 import dev.wildcatter.tailings.block.HandMillBlock;
 import dev.wildcatter.tailings.block.HandMillBlock.Role;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
@@ -86,7 +91,16 @@ public final class TailingsBlocks {
 			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final Block DEWATERING_PUMP = block("dewatering_pump", props -> new DewateringPumpBlock(props.mapColor(MapColor.COLOR_LIGHT_BLUE)
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
-	public static final BlockEntityType<DrillBlockEntity> DRILL = new BlockEntityType<>(DrillBlockEntity::new, Set.of(TUNNEL_DRILL));
+	public static final Block CUTTERHEAD = tbm(TbmPart.CUTTERHEAD, MapColor.COLOR_YELLOW);
+	public static final Block SEGMENT_ERECTOR = tbm(TbmPart.SEGMENT_ERECTOR, MapColor.COLOR_YELLOW);
+	public static final Block MAIN_BEAM = tbm(TbmPart.MAIN_BEAM, MapColor.COLOR_YELLOW);
+	public static final Block TRACK_LAYER = tbm(TbmPart.TRACK_LAYER, MapColor.COLOR_GRAY);
+	public static final Block CABLE_JUNCTION = block("cable_junction", props -> new CableJunctionBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 6.0F)
+			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+	/** The cab: at the main beam's tail; the one-block cab of a world saved before R6 too, which retires itself. */
+	public static final BlockEntityType<DrillBlockEntity> DRILL = new BlockEntityType<>(DrillBlockEntity::new, Set.of(TUNNEL_DRILL, MAIN_BEAM));
+	public static final BlockEntityType<TbmPartBlockEntity> TBM_PART = new BlockEntityType<>(TbmPartBlockEntity::new, Set.of(CUTTERHEAD, SEGMENT_ERECTOR, TRACK_LAYER));
+	public static final BlockEntityType<CableJunctionBlockEntity> CABLE_JUNCTION_ENTITY = new BlockEntityType<>(CableJunctionBlockEntity::new, Set.of(CABLE_JUNCTION));
 	public static final BlockEntityType<PumpBlockEntity> PUMP = new BlockEntityType<>(PumpBlockEntity::new, Set.of(DEWATERING_PUMP));
 	public static final Block MINE_SWITCH = course("mine_switch", props -> new MineSwitchBlock(props.mapColor(MapColor.METAL).strength(2.0F, 6.0F).sound(SoundType.METAL)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -122,6 +136,12 @@ public final class TailingsBlocks {
 		add("mine_light", MINE_LIGHT);
 		add("tunnel_drill", TUNNEL_DRILL);
 		add("dewatering_pump", DEWATERING_PUMP);
+		for (TbmPart part : TbmPart.values()) {
+			add(part.id(), tbmBlock(part));
+		}
+		add("cable_junction", CABLE_JUNCTION);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tbm_part"), TBM_PART);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("cable_junction"), CABLE_JUNCTION_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("hand_mill"), MILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("plant"), PLANT);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tunnel_drill"), DRILL);
@@ -173,6 +193,20 @@ public final class TailingsBlocks {
 
 	private static Block course(String name, Function<BlockBehaviour.Properties, Block> factory) {
 		return block(name, props -> factory.apply(props.requiresCorrectToolForDrops()));
+	}
+
+	private static Block tbm(TbmPart part, MapColor color) {
+		return block(part.id(), props -> new TbmPartBlock(props.mapColor(color).strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+				.noOcclusion(), part));
+	}
+
+	public static Block tbmBlock(TbmPart part) {
+		return switch (part) {
+			case CUTTERHEAD -> CUTTERHEAD;
+			case SEGMENT_ERECTOR -> SEGMENT_ERECTOR;
+			case MAIN_BEAM -> MAIN_BEAM;
+			case TRACK_LAYER -> TRACK_LAYER;
+		};
 	}
 
 	private static Block block(String name, Function<BlockBehaviour.Properties, Block> factory) {

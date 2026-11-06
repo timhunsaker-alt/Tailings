@@ -46,7 +46,11 @@ public final class Tailings {
 		for (dev.wildcatter.tailings.plant.Machine machine : dev.wildcatter.tailings.plant.Machine.values()) {
 			output.accept(new ItemStack(TailingsBlocks.plantBlock(machine)));
 		}
-		output.accept(new ItemStack(TailingsBlocks.TUNNEL_DRILL));
+		output.accept(new ItemStack(TailingsBlocks.CUTTERHEAD));
+		output.accept(new ItemStack(TailingsBlocks.SEGMENT_ERECTOR));
+		output.accept(new ItemStack(TailingsBlocks.MAIN_BEAM));
+		output.accept(new ItemStack(TailingsBlocks.TRACK_LAYER));
+		output.accept(new ItemStack(TailingsBlocks.CABLE_JUNCTION));
 		output.accept(new ItemStack(TailingsBlocks.DEWATERING_PUMP));
 		output.accept(new ItemStack(TailingsBlocks.LINING));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));

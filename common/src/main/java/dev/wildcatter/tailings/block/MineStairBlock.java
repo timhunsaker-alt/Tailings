@@ -14,7 +14,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /** A walkway stair. The high side is uphill, opposite the bore's heading. Not waterloggable. */
 public class MineStairBlock extends Block {
 	public static final EnumProperty<Direction> FACING = net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
-	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class);
+	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class, look -> look != FloorLook.BALLAST);
 	private static final VoxelShape LOWER = box(0, 0, 0, 16, 8, 16);
 
 	public MineStairBlock(Properties properties) {

@@ -117,15 +117,20 @@ R brings it in line, one wave at a time.
   - **R5b. The rectifier on Wildcatter's DC solver — DONE (2026-11-05).** A 250 V source behind 2 %, with its DC breaker (1.25 x
     for 1 s) and an AC draw that follows the trains; the rails as the conductor rail; locomotives as DC loads whose speed follows
     the track's volts.
-- **R6. The contraption TBM**, per tunnel-boring-machine.md.
+- **R6. The TBM**, per tunnel-boring-machine.md. Decided with Tim on 2026-11-05: 1 in 2 only; broken lining does not leak; ballast on
+  the decline too; three waves; riding is a seat in the cab.
+  - **R6a. The real parts, as blocks — DONE (2026-11-06).** Cutterhead, segment erector, main beam with its cab, track layer and
+    cable junction as true-size parts with models; the ring behind the erector, the floor and twin track on ballast behind the track
+    layer; the cab's logic in `TbmCore`.
+  - **R6b. The contraption.** The parts lift into one gliding entity, pitched on the decline; they set down on the flat, or park on
+    the decline; dismantling; the seat.
+  - **R6c. The gantries.** Pump, reel and conveyor on the twin track.
 - **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
   its fixes.
 
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
-- Carried from the first draft: the 1-in-1 steep option, leaking broken lining (tunnel-boring-machine.md). Ballast on the decline:
-  decided with Tim (2026-11-05), yes if it can be done, in R6.
 
 ## Phase 4 — Full recovery — next after R
 
@@ -152,7 +157,10 @@ Not started.
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 
-- **No drill entity model.** `tunnel_drill` the entity is a `NoopRenderer`, and since R1 nothing spawns it. The machine you see is the moved blocks, which use `tunnel_drill.png`.
+- **The machine drives flat only until R6b (R6a).** A rigid machine of blocks cannot sit on a 1-in-2 grade; a decline program stops and says so.
+- **The old pump stands behind the beam until R6c (R6a),** and the cab counts the cable; the reel comes with its gantry.
+- **TBM recipes are placeholders (R6a).** Eight iron around a copper ingot, as the plant's.
+- **Standing on the moving machine waits (decided with Tim, R6).** Riding is a seat in the cab.
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
@@ -175,7 +183,6 @@ These are in the current build on purpose, or because the art and tests have not
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).
 - **Trains were not seen in a live client (R5a).** The game tests run the server; how the gliding looks waits for R7's screenshots.
-- **The drill entity is not spawned (R1).** Until the contraption wave (R6), the drill is its blocks and its chunks are held by the `tailings:runner` ticket.
 - **Entity and block models were not checked in a live client.** Unit tests check the 20-pixel spacing. A game test bakes the entity layers and checks that the headlight and load parts exist. There is no headed-client pass.
 
 Other stand-ins worth knowing:

@@ -105,13 +105,19 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
 
 **Old items:** `flotation_cell` and `dump_station` are kept for one release as plain items that craft back into 8 iron ingots.
 
-## The tunnel drill
+## The tunnel boring machine
 
-The drill is not a static multiblock. `TunnelDrillBlock` is the cab. `DrillBlockEntity` owns a `TunnelDrill` (plain Java) and a `DrillContraption` that moves the cab with the face. `TunnelDrillEntity` is no longer spawned (R1); an old one in a saved world discards itself on its first tick. The contraption wave gives it its real job. Its renderer is `NoopRenderer`. The visible machine is the blocks.
+The machine is true-size big parts since R6a (`mine.TbmPart`, `block.TbmPartBlock`; docs/multiblocks/tunnel-boring-machine.md), laid out in the bore from the face back: `cutterhead` (8×8×1), `segment_erector` (8×8×2), `main_beam` (2×2×8, down the middle of the bore, the cab at its tail), and `track_layer` (6×1×3, under the beam's rear). The old 2×2×2 `dewatering_pump` stands against the beam's tail until the pump gantry (R6c). A one-block `cable_junction` takes 4.16 kV cable on any face.
+
+`block.TbmCore` is the cab: its slots, program, stock, muck buffer, progress and advance cycle, apart from where the machine stands. `DrillBlockEntity`, at the main beam's main cell, carries it and is the machine's body as blocks: it checks every part stands where it should (NOT BUILT names what is missing), finds the junction within 16 blocks when it starts, and draws its 1 MW through it. The cable is the reel's 300 m plus a metre for each `cable_mv` item in the cable slot.
+
+An advance has two phases (`TunnelDrill`): `step` probes and cuts the face; then, once the machine has moved one block on with its block entities (without neighbour updates or drops, so no part breaks), `line` places the ring just behind the segment erector (`RING_BEHIND`) and the floor and twin track just behind the track layer (`FLOOR_BEHIND`). If something solid is in the way nothing moves and it stops as blocked; started again, it catches up first. Until the contraption (R6b) it drives flat only: a rigid machine of blocks cannot sit on a 1-in-2 grade.
+
+The bore starts at the cutterhead: slice 0 is the rock ahead of it, and its floor is a block above the cutterhead's bottom. An old one-block `tunnel_drill` cab drops its stock and a main beam item, and goes. Broken lining does not leak.
 
 Geometry (`mine.DriveCourse`): an 8×8 face, a 6×6 clear bore, 28 lining segments per ring (the perimeter of the 8×8, with the middle six floor cells left open), two rails per advance, six floor pieces, three blocks of probe ahead. Stone advances in 400 ticks (20 seconds). Deepslate is 600 ticks.
 
-Heading is horizontal. The drill drives a 1-in-2 decline (even advances are the upper half, odd advances are the lower half, and a pair drops one block) or a 1-in-1 steep grade, then flat once it reaches the target Y. Floor columns, across the heading: slope, rail, stair or landing, stair or landing, rail, slope. On the flat the rails sit on ballast and the walkway is landings. Gravel is consumed only on the flat (`GRAVEL_ON_FLAT` is 2). Caves under the floor are filled with cobble.
+Heading is the way the machine was built. It drives a 1-in-2 decline (even slices are the upper half, odd slices are the lower half, and a pair drops one block), then flat once it reaches the target Y. The 1-in-1 option is gone (decided with Tim, R6); steep rails already laid still run, and an old program reads as 1 in 2. Floor columns, across the heading: slope, rail, stair or landing, stair or landing, rail, slope. On the flat the walkway is landings. Every track block, decline and flat, sits on gravel ballast (one gravel a block; the rail's `ballast` look). Caves under the floor are filled with cobble.
 
 `SlopeRamp` builds eight boxes, 2 pixels of run each, low at the downhill end. Lower half rises 0 to 8 pixels, upper half 8 to 16, steep rises 2 pixels a slice up to 16. Collision uses the same boxes. The JSON models repeat that shape. They are cuboids, not a smooth mesh.
 
@@ -119,13 +125,13 @@ Lining: if the segment slot holds 28 crafted `lining` items, the ring uses those
 
 Water: `DrillStock.TANK_MAX` is 256. `acceptWater` fills the tank and returns how much was voided. Lava is checked against the water already in the tank plus the water just pumped, then quench spends water. A water bucket in the bucket slot still adds one to the tank and leaves an empty bucket.
 
-Buffer: when the muck slots cannot take the face, the drill reports that it is paused because the buffer is full. It does not set the stopped latch and it does not clear `running`. The next tick tries again. While paused, a car on the rail directly behind the cab can take up to 64 items in one tick (`Haul.TRANSFER`).
+Buffer: when the muck slots cannot take the face, the drill reports that it is paused because the buffer is full. It does not set the stopped latch and it does not clear `running`. The next tick tries again. A car on the track just behind the track layer, columns 2 and 5, takes up to 64 items a tick (`Haul.TRANSFER`), and a train waits there while the machine has muck for it, until the conveyor gantry (R6c) takes over.
 
-Inventory, in order: mine rail, gravel, cobble, lining segments, water bucket, then the muck slots. The screen is `client.DrillScreen`. Buttons send menu ids for target Y, heading, length, and go.
+Inventory, in order: mine rail, gravel, cobble, lining segments, water bucket, cable, then the muck slots. The screen is `client.DrillScreen`, opened by a click on the main beam. Buttons send menu ids for target Y, flat length, stop conditions and go.
 
-Chunk tickets (`block.ChunkRunner`): while running, the drill refreshes a `tailings:runner` ticket every 20 ticks on three chunks: the cab, the face cell, and the cell `PROBE_BLOCKS` (3) ahead. The ticket type is persistent and times out 200 ticks after its last refresh, so nothing removes it by hand. While a locomotive ticks it refreshes the same ticket on the rail chunk and the chunk one block ahead. Before a move, `relocate()` checks every destination cell; if one is not air, replaceable, or the drill's own, the drill stops as blocked.
+Chunk tickets (`block.ChunkRunner`): while running, the drill refreshes a `tailings:runner` ticket every 20 ticks on three chunks: the cab, the face cell, and the cell `PROBE_BLOCKS` (3) ahead. The ticket type is persistent and times out 200 ticks after its last refresh, so nothing removes it by hand. While a locomotive ticks it refreshes the same ticket on the rail chunk and the chunk one block ahead. 
 
-The cab recipe is shaped: eight iron ingots around a copper block. The pump recipe is eight iron ingots around a water bucket. The pump block is a 2×2×2 multiblock piece (`dewatering_pump`). The drill places and moves it with the cab when the cells are actually pump blocks.
+The parts' recipes are placeholders: eight iron ingots around a copper ingot; the junction is seven. The pump recipe is eight iron ingots around a water bucket.
 
 ## Haulage
 
@@ -240,7 +246,9 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `concentrate_thickener` | Iron and copper placeholder | 5.5 kW |
 | `pressure_filter` | Iron and copper placeholder | 15 kW |
 | `lining` | 4 gray concrete and 1 iron ingot → 4 | Optional ring. Used only when 28 are stocked |
-| `tunnel_drill` | 8 iron around a copper block | The cab |
+| `cutterhead`, `segment_erector`, `main_beam`, `track_layer` | 8 iron around a copper ingot (placeholder) | The TBM's parts |
+| `cable_junction` | 7 iron around a copper ingot (placeholder) | Its power point |
+| `tunnel_drill` | None since R6 | The old one-block cab; it retires itself |
 | `dewatering_pump` | 8 iron around a water bucket | The pump multiblock |
 | `mine_rail` | Iron and copper, 2 rails | Track, conductor, and rack |
 | `traction_rectifier` | Iron, redstone, copper block | 300 kW, feeds joined rail |

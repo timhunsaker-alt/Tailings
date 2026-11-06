@@ -15,13 +15,20 @@ public final class DriveCourse {
 	/** One block per 20 seconds in stone. Deepslate is slower. */
 	public static final int STONE_TICKS = 400;
 	public static final int DEEPSLATE_TICKS = 600;
+	/**
+	 * Where the machine places its ring and its floor, in slices behind the face once it has moved on (tunnel-boring-machine.md):
+	 * the ring just behind the segment erector's tail, the floor and track just behind the track layer.
+	 */
+	public static final int RING_BEHIND = 4;
+	public static final int FLOOR_BEHIND = 12;
 
 	private DriveCourse() {
 	}
 
 	/** Floor voxel Y after {@code advance} steps. Even and odd steps of a 1-in-2 pair share a voxel; the shape changes. */
 	public static int floorY(int startFloorY, int advance, Grade grade) {
-		return startFloorY - grade.dropBlocks(advance);
+		// the slices behind the first face are where the machine was built, on the level
+		return startFloorY - grade.dropBlocks(Math.max(0, advance));
 	}
 
 	/** True while the drill is still dropping toward {@code targetY}. */
@@ -31,7 +38,7 @@ public final class DriveCourse {
 
 	/**
 	 * Columns 1 to 6. On a 1-in-2 decline, even advances are the upper half and a stair; odd advances are the lower
-	 * half and a landing, so both have dropped one block over the pair. A 1-in-1 advance is a steep slope and a stair.
+	 * half and a landing, so both have dropped one block over the pair. (Decided with Tim, R6: 1 in 2 only.)
 	 */
 	public static FloorPiece[] floor(int advance, Grade grade, boolean decline) {
 		FloorPiece[] columns = new FloorPiece[CLEAR];
@@ -44,16 +51,7 @@ public final class DriveCourse {
 			columns[5] = FloorPiece.FLAT_ROCK;
 			return columns;
 		}
-		if (grade == Grade.ONE_IN_ONE) {
-			columns[0] = FloorPiece.SLOPE_STEEP;
-			columns[1] = FloorPiece.RAIL_STEEP;
-			columns[2] = FloorPiece.STAIR;
-			columns[3] = FloorPiece.STAIR;
-			columns[4] = FloorPiece.RAIL_STEEP;
-			columns[5] = FloorPiece.SLOPE_STEEP;
-			return columns;
-		}
-		boolean upper = advance % 2 == 0;
+		boolean upper = Math.floorMod(advance, 2) == 0;
 		FloorPiece slope = upper ? FloorPiece.SLOPE_UPPER : FloorPiece.SLOPE_LOWER;
 		FloorPiece rail = upper ? FloorPiece.RAIL_UPPER : FloorPiece.RAIL_LOWER;
 		FloorPiece walk = upper ? FloorPiece.STAIR : FloorPiece.LANDING;

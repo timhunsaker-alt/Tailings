@@ -18,8 +18,8 @@ public enum FloorPiece {
 		return this == RAIL_LOWER || this == RAIL_UPPER || this == RAIL_STEEP || this == RAIL_FLAT;
 	}
 
-	/** Flat track is mine rail on gravel ballast. The decline cuts its rail bed from rock, not gravel. */
+	/** Track is mine rail on gravel ballast, flat and decline alike (decided with Tim, R6). */
 	public boolean usesGravel() {
-		return this == GRAVEL || this == RAIL_FLAT;
+		return this == GRAVEL || isRail();
 	}
 }

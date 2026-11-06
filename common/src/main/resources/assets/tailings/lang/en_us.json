@@ -238,5 +238,10 @@
   "block.tailings.ore_sorter": "Ore Sorter",
   "block.tailings.ore_bin": "Ore Bin",
   "item.tailings.flotation_cell": "Flotation Cell (old: craft back into iron)",
-  "item.tailings.dump_station": "Dump Station (old: craft back into iron)"
+  "item.tailings.dump_station": "Dump Station (old: craft back into iron)",
+  "block.tailings.cutterhead": "Cutterhead",
+  "block.tailings.segment_erector": "Segment Erector",
+  "block.tailings.main_beam": "Main Beam (TBM)",
+  "block.tailings.track_layer": "Track Layer",
+  "block.tailings.cable_junction": "Cable Junction"
 }

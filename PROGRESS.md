@@ -43,6 +43,19 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R6a: the TBM's real parts, as blocks (2026-11-06)
+
+The one-block cab is gone; the machine is what tunnel-boring-machine.md draws:
+- cutterhead, segment erector, main beam with the cab at its tail, track layer and cable junction, true-size parts with real models;
+- the cab checks they stand in order and names what is missing, and draws 1 MW at 4.16 kV through the junction;
+- each advance cuts the face, moves every part one block on, then places the ring behind the erector and the floor and twin track
+  behind the track layer, with gravel ballast under all track;
+- 1 in 2 only, and broken lining does not leak (Tim's answers);
+- until R6b it drives flat only.
+
+**Tests:** `TunnelDrillTest` rewritten (the two-phase advance, the decline coming down behind the machine, a waiting ring across a
+save); game tests `drill`, `drill_pause`, `drill_blocked` rewritten for the whole machine; new `tbm_built`, `drill_retired`.
+
 ## R5b: the traction rectifier on Wildcatter's DC solver (2026-11-05); R5 done
 
 The track carries real DC power, as haulage.md says (Tim's choice: a Tailings source on Wildcatter's solver):

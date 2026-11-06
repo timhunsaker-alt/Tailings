@@ -83,8 +83,8 @@ Side view of a track column on the default 1-in-2 decline (each block of run dro
 
 ### The slope: 1 in 2 by default (decided 2026-11-02, replacing 1 in 1)
 - **The pieces:** `tailings:slope` comes in a lower half (a wedge rising 0 to 0.5) and an upper half (0.5 to 1). Two in a
-  row make one block of rise over two of run: a smooth 26.6° ramp. A `steep` variant (0 to 1 in one block) stays for
-  1-in-1 declines if Tim wants a steep option in the GUI.
+  row make one block of rise over two of run: a smooth 26.6° ramp. A `steep` variant (0 to 1 in one block) stays only
+  for rails an old world already laid (decided with Tim, R6: 1 in 2 only).
 - **How it renders:** the slope and the rail bed are a real 1-in-2 wedge: eight thin slices, low at the downhill end and high
   at the uphill end, and the collision matches those slices so a player walks the ramp. (Vanilla models are cuboids, so the
   wedge is a framed slope of eight boxes, the same trick framed-slope mods use. Two halves in a row meet in the middle.)
@@ -104,7 +104,7 @@ Side view of the walkway beside the track (`S` stair, `_` landing, `#` track on 
 - **The rack stays, and it is now realistic.** 1 in 2 is a 50 % grade. Plain rail adhesion tops out near 5-7 % and most
   mine haulage keeps under 2 %, so no adhesion locomotive holds 50 %. The steepest rack railway, the Pilatusbahn, climbs 48 %
   with its Locher rack. So the 1-in-2 decline needs a rack, and with one it is close to a real record railway instead of a
-  written impossibility. The old "45° on a rack" game exception is dropped; a 1-in-1 option would bring it back.
+  written impossibility. The old "45° on a rack" game exception is dropped.
 - **Length:** a 1-in-2 decline needs 2 blocks of run per block of depth, so reaching y -40 from y 64 takes about 208 blocks.
 
 ## The pump and keeping the drive dry (decided with Tim, 2026-11-02)
@@ -156,10 +156,10 @@ Each gantry is placed on the two tracks behind the machine, as a car is placed o
 ## The cab's screen and inventory (decided with Tim, 2026-11-02)
 Right-click the operator cab (on the main beam, as blocks or as the moving contraption) to open its screen.
 - **Program:** target Y; heading; flat-drive length; stop conditions (ore seen, cable end, liquid it cannot clear, inventory
-  empty). The drill drives the decline down at 1 in 2 (1 in 1 as an option) to the target Y, then runs flat.
+  empty). The drill drives the decline down at 1 in 2 to the target Y, then runs flat.
 - **Inventory slots**, which the drill uses as it advances:
   - **Mine rail**: two a block of advance.
-  - **Gravel**: ballast under the track on the flat drive, one per track block *(proposed)*.
+  - **Gravel**: ballast under the track, one per track block *(proposed)*, on the decline and the flat (decided R6).
   - **Cobble**: fill for caves and gaps under the floor, and a fallback stock for the floor pieces.
 - **The drill makes its own floor pieces** (decided with Tim, 2026-11-02): slope pieces, stairs and landings are cut by the
   track layer from cobble or any suitable rock it has just mined (stone, cobble, deepslate, granite, diorite, andesite, tuff,
@@ -239,10 +239,22 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 - Ventilation of the drive (Later, not scheduled).
 - Huge inflows (tunnelling under an ocean): the machine stops if water gains on it.
 
-## Open questions (carried from the first draft; listed, not chosen)
-- Keep the 1-in-1 steep option in the screen (it brings back the rack exception), or 1 in 2 only?
-- Whether broken lining leaks.
-- Gravel ballast on the decline too, or only on the flat? **Decided with Tim (2026-11-05): on the decline too, if it can be done (R6).**
+## Questions from the first draft (all decided with Tim, 2026-11-05, R6)
+- **1 in 2 only:** the 1-in-1 steep option leaves the screen; it would have brought back the rack exception. Steep rails already
+  laid in an old world still run.
+- **Broken lining does not leak:** a broken segment just opens the wall.
+- **Gravel ballast on the decline too:** one gravel under every track block, decline and flat.
+
+## Decided with Tim for R6 (2026-11-05)
+- **Three waves:** R6a the parts as blocks, R6b the contraption, R6c the gantries.
+- **Riding is a seat in the cab:** a Ride button on the cab's screen seats the player, who rides as in a minecart until they sneak.
+  Standing on the moving machine (Create-style collision) is left for later (ROADMAP Known gaps).
+
+## Added while planning R6
+- **Until the reel gantry (R6c):** the `cable_junction` is the machine's power point, and the cab counts the cable paid out against
+  300 m plus cable items.
+- **The loading point** is the track (columns 2 and 5) just behind the track layer until the conveyor gantry (R6c) takes it over.
+- **Until the contraption (R6b):** the machine built as blocks moves its parts one block on after each advance.
 
 ## Game test
 `tbm` (Fabric client game test):

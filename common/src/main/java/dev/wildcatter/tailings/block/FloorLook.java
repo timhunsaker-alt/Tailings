@@ -12,7 +12,9 @@ public enum FloorLook implements StringRepresentable {
 	DIORITE("diorite"),
 	ANDESITE("andesite"),
 	TUFF("tuff"),
-	SANDSTONE("sandstone");
+	SANDSTONE("sandstone"),
+	/** Gravel ballast: the bed under a mine rail (track only; decided with Tim, R6, flat and decline). */
+	BALLAST("ballast");
 
 	private final String name;
 
