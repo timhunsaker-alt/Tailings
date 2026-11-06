@@ -97,11 +97,15 @@ R brings it in line, one wave at a time.
   - Python-generated piece models and ModelLint.
 
   It includes the new parts: belt and drive, flotation bank, dump ramp, pocket, feeder, sorter and bins.
-- **R4. The real process**, per crushing-circuit.md, flotation-bank.md and dump-station.md:
-  - each stage hands off to the next, at the real rate;
-  - nothing runs unbuilt.
-
-  **It needs the Wildcatter assayed-slurry release first.**
+- **R4. The real process**, per crushing-circuit.md, flotation-bank.md and dump-station.md: each stage hands off to the next, at
+  the real rate; nothing runs unbuilt. Built on Wildcatter v0.3.0's assayed slurry. Decided with Tim on 2026-11-05: plant first,
+  in three waves; a `tailings_pond_placeholder` takes the tails until 4d; a full pocket makes the train wait; belts draw their
+  lumps.
+  - **R4a. The crushing circuit — DONE (2026-11-05).** Belts with head drives, the grizzly, jaw, screen, cone, ball mill and
+    cyclones each on their own motor at 50 t/h; mill discharge and fines slurry on steel pipe with their assay; the ore bin feeds
+    its belt.
+  - **R4b. Flotation to items.** The conditioning tank, bank, blower, thickener and filter on pipe; the tailings pond.
+  - **R4c. The dump station.** Pocket, apron feeder, sorter and bins; the train waits at a full pocket.
 - **R5. Haulage, per haulage.md:**
   - trains as entities;
   - the rectifier on Wildcatter's DC tier;
@@ -149,9 +153,13 @@ These are in the current build on purpose, or because the art and tests have not
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
 - **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
-- **The plant process is the old shortcut until R4 (R3).** A line forms when its parts are joined by touching or by driven belt runs. Feed still jumps from the grizzly to fines, and touching stands in for the slurry pipes.
-- **The dump's feeder, sorter and bins wait for R4.** The pocket sorts by itself, as the one-block dump station did.
-- **A conveyor drive is rated for one 30 m run (R3).** R4 sizes it by its run.
+- **Flotation keeps R3's shortcut until R4b.** The tank takes fines items by hand. The crushing circuit now makes fines slurry, not fines items, so until R4b fines items come only from the creative tab.
+- **The dump's feeder, sorter and pocket sorting wait for R4c.** The pocket sorts by itself, as the one-block dump station did. The ore bin already feeds its belt (R4a).
+- **Belts deliver at once (R4a).** A run's load reaches its head end without a transit time; the lumps are drawn moving.
+- **Feed faces are not checked (R4a).** A belt's head end feeds whatever part it touches, and a part takes rock through any face, not only the spec's feed face. Parts touching an output face take the product straight in, as a chute.
+- **No gravel face yet (R4a).** The screen's 6-40 mm gravel always goes round to the cone; the aggregate face in crushing-circuit.md is not built.
+- **Ingots in the assay (R4a).** The vanilla metals are counted in ingots, so an ingot's worth of metal counts as 1 kg in the slurry assay.
+- **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel.
 - **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron.
 - **R3 models were not seen in a live client.** They were checked as previews (`build/model-previews/`) and by ModelLint. Screenshots come with R7.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.

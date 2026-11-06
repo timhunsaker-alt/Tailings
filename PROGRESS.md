@@ -43,6 +43,21 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R4a: the crushing circuit (2026-11-05)
+
+The crushing circuit runs as crushing-circuit.md says, on Wildcatter v0.3.0's assayed slurry:
+- every part runs on its own motor at its share of 50 t/h; no controller and no shortcut;
+- dry rock moves in kg on belt runs, each driven from its head end (7.5 kW each 30 m), with lumps drawn on the belt;
+- grizzly, jaw, screen and cone in closed circuit; sand onto the ball mill;
+- the ball mill and cyclones at a 250 % circulating load, with water from Wildcatter pumps; mill discharge and fines slurry on
+  steel pipe, each carrying the rock's mineral assay;
+- the ore bin feeds the belt under it.
+
+**Tests:**
+- `CrushingRatesTest` (rates, Bond's law, drives, slurry water, rock loads, assays);
+- game tests `crushing_circuit`, `bin_feeds`, `belt_drive` and a new `not_built`; every scene now has padding and its chunks
+  loaded, as the true-size parts reach past the test's own chunk.
+
 ## R3: big parts and real models (2026-11-05)
 
 Every static machine in the R2 specs is now a Wildcatter big part with a real model:

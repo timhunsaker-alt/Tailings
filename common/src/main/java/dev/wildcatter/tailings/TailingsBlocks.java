@@ -3,6 +3,7 @@ package dev.wildcatter.tailings;
 import dev.wildcatter.tailings.block.BlockSignalBlock;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
+import dev.wildcatter.tailings.block.BeltBlockEntity;
 import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlock;
@@ -67,6 +68,7 @@ public final class TailingsBlocks {
 	public static final Block APRON_FEEDER = plant(Machine.APRON_FEEDER, MapColor.COLOR_GRAY);
 	public static final Block ORE_SORTER = plant(Machine.ORE_SORTER, MapColor.COLOR_GRAY);
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
+	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
@@ -124,6 +126,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tunnel_drill"), DRILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("dewatering_pump"), PUMP);
 		add("belt_conveyor", BELT_CONVEYOR);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("belt_conveyor"), BELT);
 		legacy("flotation_cell");
 		legacy("dump_station");
 		add("block_signal", BLOCK_SIGNAL);

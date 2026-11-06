@@ -60,14 +60,22 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
 - **Collision:** read from `assets/tailings/shapes/<id>.json`, which the model tool writes.
 - **Motor box:** on the west face of the main cell, turned with the part (`TailingsPartBlock.boxFace`); no other face takes a cable.
 
-**How a line forms (R3, until R4's real process):**
-- **Finding the parts:** the jaw and the conditioning tank lead. Every 20 ticks each finds the parts joined to it (`PlantBlockEntity.joined`): parts that touch it or each other, and parts joined through a belt run (`block.BeltConveyorBlock`) that a `conveyor_drive` touches.
-- **What it needs:**
-  - the jaw needs a grizzly sitting on top of it, a screen, a cone, a ball mill and a cyclone cluster;
-  - the tank needs a flotation bank, a blower touching the bank, a thickener and a filter. Touching stands in for R4's pipes.
-- **Not built:** missing parts read NOT BUILT and are named.
-- **Running:** while every motor in the line runs, one block of feed moves per second (`CYCLE_TICKS` 20), by the old shortcut (grizzly to fines at the cyclones; fines to the 75% ladder at the filter).
-- **Alone:** nothing runs on its own.
+**How the crushing circuit runs (R4a, docs/multiblocks/crushing-circuit.md):**
+- **No controller.** Each part's block entity runs its own `block.stage.Stage` (`Crushing`, `Grinding`, `Belts`): it runs its motor while it has feed, and works at its share of 50 t/h (`plant.PlantRates`) times its motor's output, only as fast as its product has somewhere to go.
+- **Dry rock is kg, not items** (`plant.RockLoad`: kg of each rock and size class). One rock item is one 2.7 t block. Items exist only where the player hands rock in (a bin, the grizzly, any dry part by hand or hopper) or takes a product out (the screen's sand, as items, when no belt is on its sand face).
+- **Belts:** a run is the belts of one axis end to end, level or a block up or down. The `conveyor_drive` touching an end is its head; it holds the run's load (30 s of flow) and puts it into what the head end touches: ahead, under, beside, then over. It moves only with a running 7.5 kW drive for each 30 m of run (NO DRIVE). Each belt block draws lumps of the run's main rock (`client.BeltRenderer`).
+- **Where product goes:** out of a part's output face onto a belt, or straight into a part touching that face (a chute).
+- **The parts:**
+  - grizzly: unbroken rock; 30 % passes the bars to a belt (or part) on its east face as crushed rock, the rest drops into the jaw under it (NOT BUILT without one);
+  - jaw: unbroken to crushed, out of its south face;
+  - screen (3 x the plant rate, for the circulating load): 15 % of crushed and 40 % of gravel pass 6 mm as sand, out of its east face; the oversize out of its south face to the cone;
+  - cone (2.5 x): crushed or gravel to gravel, out of its south face back to the screen;
+  - ball mill: sand and the cyclone underflow (first), water from a Wildcatter pump; mill discharge at 70 % solids on steel pipe at the south face of its back bottom cells;
+  - cyclone cluster: mill discharge in at its north face, water from a pump; at a 250 % circulating load a 3.5th of the solids leave as fines slurry at 35 % solids on its south face, the rest goes back into the mill it touches (NOT BUILT without one);
+  - ore bin: 8,192 rock items, fed by hand or hopper, out onto the belt under it.
+- **Assays:** the slurry carries Wildcatter's assay (v0.3.0), keyed by each mineral's item id: the whole mineral the rock holds per kg (`plant.Assays`). Crushing liberates and recovers nothing. For the vanilla metals, counted in ingots, an ingot's worth counts as 1 kg.
+- **Readouts:** NO FEED, NO WATER, NO DRIVE, NOT BUILT (names the part), FULL, "its output has nowhere to go".
+- **Flotation until R4b:** the conditioning tank keeps R3's shortcut, fines items by hand, floated when the bank, blower, thickener and filter touch it.
 
 **Parts (`plant.Machine`):**
 - **Crushing:** grizzly (3×2×4), jaw (3×4×4, 110 kW), screen (3×3×6, 22 kW), cone (3×4×3, 132 kW), conveyor drive (1×1×2, 7.5 kW), ball mill (4×4×6, 600 kW), cyclones (2×4×2, 45 kW).

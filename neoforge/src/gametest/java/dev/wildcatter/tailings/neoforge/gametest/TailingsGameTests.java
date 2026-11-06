@@ -27,6 +27,11 @@ import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DriveCourse;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.plant.Machine;
+import dev.wildcatter.tailings.rock.SizeClass;
+import dev.wildcatter.tailings.rock.Rock;
+import dev.wildcatter.tailings.plant.RockLoad;
+import dev.wildcatter.tailings.plant.PlantRates;
+import dev.wildcatter.fluid.Product;
 import dev.wildcatter.tailings.plant.Reagent;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
@@ -59,35 +64,55 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
-			helper.register(id("registers"), (Consumer<GameTestHelper>) TailingsGameTests::registers);
-			helper.register(id("stamp"), (Consumer<GameTestHelper>) TailingsGameTests::stamp);
-			helper.register(id("magnet"), (Consumer<GameTestHelper>) TailingsGameTests::magnet);
-			helper.register(id("jaw_size"), (Consumer<GameTestHelper>) TailingsGameTests::jawSize);
-			helper.register(id("crushing"), (Consumer<GameTestHelper>) TailingsGameTests::crushing);
-			helper.register(id("flotation"), (Consumer<GameTestHelper>) TailingsGameTests::flotation);
-			helper.register(id("drill"), (Consumer<GameTestHelper>) TailingsGameTests::drill);
-			helper.register(id("drill_pause"), (Consumer<GameTestHelper>) TailingsGameTests::drillPause);
-			helper.register(id("haul"), (Consumer<GameTestHelper>) TailingsGameTests::haul);
-			helper.register(id("models"), (Consumer<GameTestHelper>) TailingsGameTests::models);
-			helper.register(id("haul_turnout"), (Consumer<GameTestHelper>) TailingsGameTests::haulTurnout);
-			helper.register(id("train_tickets"), (Consumer<GameTestHelper>) TailingsGameTests::trainTickets);
-			helper.register(id("drill_blocked"), (Consumer<GameTestHelper>) TailingsGameTests::drillBlocked);
-			helper.register(id("plant_drops"), (Consumer<GameTestHelper>) TailingsGameTests::plantDrops);
-			helper.register(id("part_break"), (Consumer<GameTestHelper>) TailingsGameTests::partBreak);
-			helper.register(id("not_built"), (Consumer<GameTestHelper>) TailingsGameTests::notBuilt);
-			helper.register(id("terminal"), (Consumer<GameTestHelper>) TailingsGameTests::terminal);
+			helper.register(id("registers"), loaded(TailingsGameTests::registers));
+			helper.register(id("stamp"), loaded(TailingsGameTests::stamp));
+			helper.register(id("magnet"), loaded(TailingsGameTests::magnet));
+			helper.register(id("jaw_size"), loaded(TailingsGameTests::jawSize));
+			helper.register(id("crushing_circuit"), loaded(TailingsGameTests::crushingCircuit));
+			helper.register(id("bin_feeds"), loaded(TailingsGameTests::binFeeds));
+			helper.register(id("belt_drive"), loaded(TailingsGameTests::beltDrive));
+			helper.register(id("flotation"), loaded(TailingsGameTests::flotation));
+			helper.register(id("drill"), loaded(TailingsGameTests::drill));
+			helper.register(id("drill_pause"), loaded(TailingsGameTests::drillPause));
+			helper.register(id("haul"), loaded(TailingsGameTests::haul));
+			helper.register(id("models"), loaded(TailingsGameTests::models));
+			helper.register(id("haul_turnout"), loaded(TailingsGameTests::haulTurnout));
+			helper.register(id("train_tickets"), loaded(TailingsGameTests::trainTickets));
+			helper.register(id("drill_blocked"), loaded(TailingsGameTests::drillBlocked));
+			helper.register(id("plant_drops"), loaded(TailingsGameTests::plantDrops));
+			helper.register(id("part_break"), loaded(TailingsGameTests::partBreak));
+			helper.register(id("not_built"), loaded(TailingsGameTests::notBuilt));
+			helper.register(id("terminal"), loaded(TailingsGameTests::terminal));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
 			for (String scene : SCENES) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
-						new TestData<>(plain, Identifier.withDefaultNamespace("empty"), 400, 1, true)));
+						// the plant's parts are true size: padding keeps each scene clear of the next
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), 400, 1, true,
+								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, 40)));
 			}
 		});
+	}
+
+	/**
+	 * Runs a scene with the chunks around it loaded and ticking: the padding puts each scene on its own ground, and a true-size plant
+	 * reaches past the chunk the test starts in.
+	 */
+	private static Consumer<GameTestHelper> loaded(Consumer<GameTestHelper> scene) {
+		return helper -> {
+			ChunkPos origin = ChunkPos.containing(helper.absolutePos(BlockPos.ZERO));
+			for (int dx = -1; dx <= 2; dx++) {
+				for (int dz = -1; dz <= 2; dz++) {
+					helper.getLevel().setChunkForced(origin.x() + dx, origin.z() + dz, true);
+				}
+			}
+			scene.accept(helper);
+		};
 	}
 
 	private static Identifier id(String path) {
@@ -153,37 +178,114 @@ public class TailingsGameTests {
 		helper.succeed();
 	}
 
-	/**
-	 * A crushing line joined as R3 joins it: the grizzly on top of the jaw, the screen and cone touching, then a driven belt run
-	 * from the cone to the ball mill, and the cyclones touching the mill.
-	 */
-	private static PlantBlockEntity crushingLine(GameTestHelper helper, int y) {
-		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, y, 0));
-		plant(helper, Machine.GRIZZLY, new BlockPos(0, y + 4, 0));
-		plant(helper, Machine.SCREEN, new BlockPos(3, y, 0));
-		plant(helper, Machine.CONE, new BlockPos(6, y, 0));
-		BlockState belt = TailingsBlocks.BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, Direction.Axis.X);
-		helper.setBlock(new BlockPos(9, y, 1), belt);
-		helper.setBlock(new BlockPos(10, y, 1), belt);
-		plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(9, y + 1, 0));
-		plant(helper, Machine.BALL_MILL, new BlockPos(11, y, 0));
-		plant(helper, Machine.CYCLONE, new BlockPos(15, y, 0));
-		return jaw;
+	private static BlockState belt(Direction.Axis axis) {
+		return TailingsBlocks.BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, axis);
 	}
 
-	private static void crushing(GameTestHelper helper) {
-		int y = 6;
-		PlantBlockEntity jaw = crushingLine(helper, y);
-		jaw.refresh();
-		jaw.forceRunning();
-		PlantBlockEntity grizzly = helper.getBlockEntity(new BlockPos(0, y + 4, 0), PlantBlockEntity.class);
-		PlantBlockEntity cyclone = helper.getBlockEntity(new BlockPos(15, y, 0), PlantBlockEntity.class);
-		helper.assertTrue(jaw.formed(), Component.literal("the line should form: " + jaw.status()));
-		helper.assertTrue(grizzly.offer(new ItemStack(Blocks.COBBLESTONE)), Component.literal("the grizzly should take cobble"));
+	private static void pipe(GameTestHelper helper, BlockPos... at) {
+		Block steel = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "gas_line"));
+		for (BlockPos pos : at) {
+			helper.setBlock(pos, steel);
+		}
+	}
+
+	/**
+	 * The crushing circuit at 50 t/h (docs/multiblocks/crushing-circuit.md, game test checks 1-3): copper ore on the grizzly, the jaw
+	 * under it, a belt climbing to the screen, the screen's oversize into the cone and its sand by belt onto the ball mill, mill
+	 * discharge by steel pipe to the cyclones, and fines slurry at the cyclones carrying the copper ore's mineral.
+	 */
+	private static void crushingCircuit(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, y, 0));
+		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(0, y + 4, 0));
+		// the jaw's discharge belt, east along its south face and up two blocks to under the screen
+		for (BlockPos at : new BlockPos[] {new BlockPos(0, y, 4), new BlockPos(1, y, 4), new BlockPos(2, y, 4), new BlockPos(3, y, 4),
+				new BlockPos(4, y + 1, 4), new BlockPos(5, y + 2, 4)}) {
+			helper.setBlock(at, belt(Direction.Axis.X));
+		}
+		PlantBlockEntity jawDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(6, y + 2, 4));
+		PlantBlockEntity screen = plant(helper, Machine.SCREEN, new BlockPos(3, y + 3, 0));
+		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(3, y + 3, 6));
+		// the sand belt, off the screen's east face and over the mill
+		for (int x = 6; x <= 8; x++) {
+			helper.setBlock(new BlockPos(x, y + 3, 1), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity sandDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(9, y + 3, 1));
+		PlantBlockEntity mill = plant(helper, Machine.BALL_MILL, new BlockPos(7, y - 1, 0));
+		PlantBlockEntity cyclone = plant(helper, Machine.CYCLONE, new BlockPos(11, y - 1, 2));
+		pipe(helper, new BlockPos(10, y - 1, 6), new BlockPos(11, y - 1, 6), new BlockPos(12, y - 1, 6), new BlockPos(13, y - 1, 6),
+				new BlockPos(13, y - 1, 5), new BlockPos(13, y - 1, 4), new BlockPos(13, y - 1, 3), new BlockPos(13, y - 1, 2),
+				new BlockPos(13, y - 1, 1), new BlockPos(12, y - 1, 1));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, jawDrive, sandDrive, mill, cyclone}) {
+			part.forceRunning();
+		}
+		helper.onEachTick(() -> {
+			mill.addWater(1000);
+			cyclone.addWater(1000);
+		});
+		helper.assertTrue(grizzly.offer(new ItemStack(Blocks.COPPER_ORE)), Component.literal("the grizzly should take copper ore"));
 		helper.succeedWhen(() -> {
-			ItemStack out = cyclone.product();
-			helper.assertTrue(jaw.formed() && out.is(BuiltInRegistries.ITEM.getValue(Tailings.id("fines_cobblestone"))),
-					Component.literal("the circuit should make fines, got " + out + " (" + jaw.status() + ")"));
+			double fines = cyclone.out().held(Product.FINES_SLURRY);
+			double copper = cyclone.out().assayOf(Product.FINES_SLURRY).get("minecraft:copper_ingot");
+			helper.assertTrue(cone.hold().total() > 0, Component.literal("the cone should get the screen's oversize (" + screen.status() + ")"));
+			helper.assertTrue(fines > 0 && copper > 0, Component.literal("fines slurry with copper should leave the cyclones, got " + fines
+					+ " kg (jaw " + jaw.status() + "; screen " + screen.status() + "; mill " + mill.status() + "; cyclone " + cyclone.status() + ")"));
+		});
+	}
+
+	/** An ore bin feeds the belt under it, and the belt drops the rock onto the grizzly under its head end. */
+	private static void binFeeds(GameTestHelper helper) {
+		int y = 6;
+		PlantBlockEntity bin = plant(helper, Machine.ORE_BIN, new BlockPos(0, y + 1, 0));
+		for (int x = 0; x <= 3; x++) {
+			helper.setBlock(new BlockPos(x, y, 1), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity drive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(4, y, 1));
+		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(3, y - 2, 0));
+		drive.forceRunning();
+		helper.assertTrue(bin.offer(new ItemStack(Blocks.COBBLESTONE, 2)), Component.literal("the bin should take cobble"));
+		helper.succeedWhen(() -> helper.assertTrue(grizzly.hold().total() > 0,
+				Component.literal("cobble should reach the grizzly (bin " + bin.status() + "; drive " + drive.status() + ")")));
+	}
+
+	/** A belt moves only with enough running drive, and stops taking when full (FULL). */
+	private static void beltDrive(GameTestHelper helper) {
+		int y = 6;
+		// a 31 m run with one drive needs two
+		for (int x = 0; x < 31; x++) {
+			helper.setBlock(new BlockPos(x, y, 0), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity longDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(31, y, 0));
+		longDrive.forceRunning();
+		// a drive with no power
+		for (int x = 0; x < 3; x++) {
+			helper.setBlock(new BlockPos(x, y, 4), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity dead = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(3, y, 4));
+		// a full sand belt onto a full, stopped mill: the screen feeding it reads FULL
+		PlantBlockEntity screen = plant(helper, Machine.SCREEN, new BlockPos(0, y, 10));
+		for (int x = 3; x <= 5; x++) {
+			helper.setBlock(new BlockPos(x, y + 1, 11), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity sandDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(6, y + 1, 11));
+		PlantBlockEntity mill = plant(helper, Machine.BALL_MILL, new BlockPos(4, y - 3, 10));
+		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(0, y, 16));
+		screen.forceRunning();
+		sandDrive.forceRunning();
+		cone.forceRunning();
+		RockLoad fullMill = new RockLoad();
+		fullMill.add(Rock.GRANITE, SizeClass.SAND, PlantRates.DRY_HOLD_KG);
+		mill.receive(fullMill);
+		RockLoad fullBelt = new RockLoad();
+		fullBelt.add(Rock.GRANITE, SizeClass.SAND, PlantRates.BELT_HOLD_KG);
+		sandDrive.receive(fullBelt);
+		helper.assertTrue(screen.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("crushed_granite")))),
+				Component.literal("the screen should take crushed granite"));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(longDrive.status().startsWith("NO DRIVE") && longDrive.status().contains("2 drives"),
+					Component.literal("a 31 m run should want 2 drives, got " + longDrive.status()));
+			helper.assertTrue(dead.status().startsWith("NO DRIVE"), Component.literal("an unpowered drive should read NO DRIVE, got " + dead.status()));
+			helper.assertTrue(screen.status().startsWith("FULL"), Component.literal("the screen should read FULL, got " + screen.status()));
 		});
 	}
 
@@ -230,14 +332,18 @@ public class TailingsGameTests {
 				.thenSucceed();
 	}
 
-	/** A jaw with its grizzly but no screen reads what it needs. */
+	/** A grizzly with no jaw under it, and cyclones with no mill beside them, read what they need. */
 	private static void notBuilt(GameTestHelper helper) {
-		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, 40, 0));
-		plant(helper, Machine.GRIZZLY, new BlockPos(0, 44, 0));
-		helper.assertFalse(jaw.refresh(), Component.literal("a lone jaw should not form"));
-		helper.assertTrue(jaw.status().startsWith("NOT BUILT") && jaw.status().contains("Double-Deck Screen"),
-				Component.literal("it should name the screen, got " + jaw.status()));
-		helper.succeed();
+		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(0, 40, 0));
+		PlantBlockEntity cyclone = plant(helper, Machine.CYCLONE, new BlockPos(6, 40, 0));
+		cyclone.forceRunning();
+		helper.assertTrue(grizzly.offer(new ItemStack(Blocks.COBBLESTONE)), Component.literal("the grizzly should take cobble"));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(grizzly.status().startsWith("NOT BUILT") && grizzly.status().contains("Jaw Crusher"),
+					Component.literal("the grizzly should name the jaw, got " + grizzly.status()));
+			helper.assertTrue(cyclone.status().startsWith("NOT BUILT") && cyclone.status().contains("Ball Mill"),
+					Component.literal("the cyclones should name the mill, got " + cyclone.status()));
+		});
 	}
 
 	/** The jaw's motor box is the west face of its main cell, turned with the part, and nowhere else. */

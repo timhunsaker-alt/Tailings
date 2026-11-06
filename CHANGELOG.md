@@ -4,6 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R4a — The crushing circuit (2026-11-05)
+
+- **Real flow:** the grizzly, jaw, screen, cone, ball mill and cyclones each run on their own motor at their share of 50 t/h. No more line forming or shortcut.
+- **Belts** carry rock in kg from part to part. A `conveyor_drive` at the head end drives and holds each run; long runs need a drive for each 30 m. Belts show the rock they carry.
+- **Slurry on Wildcatter's steel pipe** from the ball mill on: mill discharge to the cyclones, fines slurry out, each with the rock's mineral assay (Wildcatter 0.3.0).
+- **Water** for the mill and cyclones from a Wildcatter pump.
+- **The ore bin** holds 8,192 rock items and feeds the belt under it.
+- **The screen's sand** comes out as items for a hopper when no belt is on its sand face (the hand line's 2x route).
+- **Tests:** `CrushingRatesTest`; game tests `crushing_circuit`, `bin_feeds`, `belt_drive`, `not_built`.
+
 ## R3 — Big parts and real models (2026-11-05)
 
 - **Wildcatter's big parts:** every crushing, flotation and dump-station part, and the traction rectifier, now uses them. You get one item at its real size, the ghost outline, pieces that break together, real collision, and the motor box on the west face of the main cell.

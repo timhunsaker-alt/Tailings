@@ -46,7 +46,7 @@ dependencies {
 	// Mojmap jar, so common can call Wildcatter's motor and multiblock helpers. Not bundled.
 	compileOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
 	// ModelLint looks up the Wildcatter material textures the part models use, in Wildcatter's jar
-	testRuntimeOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
+	testImplementation("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
 	testImplementation 'com.google.code.gson:gson:2.11.0'
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'

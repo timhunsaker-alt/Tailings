@@ -1,8 +1,6 @@
 package dev.wildcatter.tailings.block;
 
-import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.plant.Machine;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +10,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -22,10 +22,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * One metre of a belt conveyor run (docs/multiblocks/crushing-circuit.md): a 600 mm troughed belt on idlers, laid block by block
- * along one horizontal axis like a pipe run. It has no motor of its own: a {@link Machine#CONVEYOR_DRIVE} touching the run drives
- * it, and a run with no drive carries nothing.
+ * along one horizontal axis like a pipe run, or a block up or down for a grade. It has no motor of its own: the {@link
+ * Machine#CONVEYOR_DRIVE} at the run's head end drives it and holds its load, and a run with no drive carries nothing.
  */
-public class BeltConveyorBlock extends Block {
+public class BeltConveyorBlock extends Block implements EntityBlock {
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
 	/** The frame and belt: 0.8 m wide, its belt 0.75 m up. */
 	private static final VoxelShape X = Shapes.or(Block.box(0, 0, 1.6, 16, 12, 14.4));
@@ -54,37 +54,65 @@ public class BeltConveyorBlock extends Block {
 		return state.getValue(AXIS) == Direction.Axis.X ? X : Z;
 	}
 
-	/** The run {@code start} belongs to: every belt block joined to it, end to end along their axis or side by side. */
+	/**
+	 * The run {@code start} belongs to, in order from one end to the other: belts of the same axis end to end, level or one block up
+	 * or down (a grade). Belts side by side are separate runs.
+	 */
 	public static List<BlockPos> run(BlockGetter level, BlockPos start) {
-		List<BlockPos> run = new ArrayList<>();
-		Set<BlockPos> seen = new HashSet<>();
-		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-		queue.add(start);
-		seen.add(start);
-		while (!queue.isEmpty() && run.size() < MAX_RUN) {
-			BlockPos pos = queue.removeFirst();
-			run.add(pos);
-			for (Direction side : Direction.values()) {
-				BlockPos next = pos.relative(side);
-				if (seen.add(next) && level.getBlockState(next).getBlock() instanceof BeltConveyorBlock) {
-					queue.add(next);
-				}
-			}
+		BlockState first = level.getBlockState(start);
+		if (!(first.getBlock() instanceof BeltConveyorBlock)) {
+			return List.of();
 		}
+		Direction.Axis axis = first.getValue(AXIS);
+		Direction forward = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
+		List<BlockPos> back = walk(level, start, forward.getOpposite(), axis);
+		List<BlockPos> run = new ArrayList<>();
+		for (int i = back.size() - 1; i >= 0; i--) {
+			run.add(back.get(i));
+		}
+		run.add(start);
+		run.addAll(walk(level, start, forward, axis));
 		return run;
 	}
 
-	/** A conveyor drive touches some block of the run. */
-	public static boolean driven(BlockGetter level, List<BlockPos> run) {
-		for (BlockPos pos : run) {
-			for (Direction side : Direction.values()) {
-				BlockState there = level.getBlockState(pos.relative(side));
-				if (there.getBlock() instanceof PlantMachineBlock block && block.machine() == Machine.CONVEYOR_DRIVE
-						&& BigParts.entity(level, pos.relative(side)) != null) {
-					return true;
+	private static List<BlockPos> walk(BlockGetter level, BlockPos start, Direction way, Direction.Axis axis) {
+		List<BlockPos> out = new ArrayList<>();
+		Set<BlockPos> seen = new HashSet<>();
+		seen.add(start);
+		BlockPos at = start;
+		while (out.size() < MAX_RUN) {
+			BlockPos next = null;
+			for (int dy : new int[] {0, 1, -1}) {
+				BlockPos maybe = at.relative(way).above(dy);
+				BlockState there = level.getBlockState(maybe);
+				if (there.getBlock() instanceof BeltConveyorBlock && there.getValue(AXIS) == axis && seen.add(maybe)) {
+					next = maybe;
+					break;
 				}
 			}
+			if (next == null) {
+				break;
+			}
+			out.add(next);
+			at = next;
 		}
-		return false;
+		return out;
+	}
+
+	/** The way a run moves at its {@code end} block: out of the run along its axis, or, for a one-block run, away from {@code from}. */
+	public static Direction outward(BlockGetter level, List<BlockPos> run, BlockPos end, BlockPos from) {
+		if (run.size() > 1) {
+			BlockPos other = end.equals(run.get(0)) ? run.get(1) : run.get(run.size() - 2);
+			int dx = end.getX() - other.getX(), dz = end.getZ() - other.getZ();
+			return dx > 0 ? Direction.EAST : dx < 0 ? Direction.WEST : dz > 0 ? Direction.SOUTH : Direction.NORTH;
+		}
+		Direction.Axis axis = level.getBlockState(end).getValue(AXIS);
+		Direction plus = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
+		return end.relative(plus).equals(from) ? plus.getOpposite() : plus;
+	}
+
+	@Override
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+		return new BeltBlockEntity(pos, state);
 	}
 }
