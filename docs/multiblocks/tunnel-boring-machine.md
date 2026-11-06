@@ -286,3 +286,9 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
      as the contraption and its cab screen still opens.
   6. Dismantled, it drops every part and the slots' contents.
 - **Screenshot:** the machine running on the decline.
+
+## Powering it (found by the R10 playthrough, 2026-11-06)
+The machine's 1 MW comes on all at once at the junction.
+- One 1 MW gas set trips on frequency (56.3 Hz).
+- Two sets paralleled onto one 1 MVA unit substation overload it (112 %), and 1,350 A burns through 800 A busway in about 2 minutes.
+- **What works:** two 1 MW gas sets, each through its own unit substation run backward, joined on the 4.16 kV side (each 660 A at 51 %). A grid connection would do as well.

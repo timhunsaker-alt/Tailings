@@ -14,6 +14,8 @@ public enum Machine {
 	CONVEYOR_DRIVE("conveyor_drive", "Conveyor Drive", 1, 1, 2, 7_500, Supply.INDUSTRIAL),
 	BALL_MILL("ball_mill", "Ball Mill", 4, 4, 6, 600_000, Supply.MEDIUM),
 	CYCLONE("cyclone_cluster", "Cyclone Cluster", 2, 4, 2, 45_000, Supply.INDUSTRIAL),
+	/** The 2x route at plant scale: 24 twin-start spirals on the cyclones' overflow, with a 37 kW feed pump (gravity-circuit.md). */
+	SPIRAL_BANK("spiral_bank", "Spiral Bank", 4, 5, 6, 37_000, Supply.INDUSTRIAL),
 	CONDITIONER("conditioning_tank", "Conditioning Tank", 3, 4, 3, 15_000, Supply.INDUSTRIAL),
 	/** Eight 20 m3 cells, 8 x 45 kW of agitators on one motor box. */
 	FLOTATION_BANK("flotation_bank", "Flotation Bank", 7, 4, 13, 360_000, Supply.INDUSTRIAL),

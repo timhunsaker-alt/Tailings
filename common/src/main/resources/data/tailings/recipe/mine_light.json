@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IGI",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_nugget",
+    "G": "minecraft:glass_pane",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "tailings:mine_light",
+    "count": 4
+  }
+}

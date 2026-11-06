@@ -87,6 +87,9 @@ minerals each rock really holds, from the table above.
 
   The crushers alone give no nuggets.
 
+## A layout that wires (found by the R10 playthrough)
+A part's motor box needs its west cell free. So the screen stands clear of the jaw, with a short belt off the grizzly's east face; the cyclones stand on the mill's west face, not its east; the blower on the bank's west. `Playthrough.java` holds a full working layout.
+
 ## Parts
 | Part | Cells (W x H x L) | Real-world basis |
 |---|---|---|
@@ -181,8 +184,7 @@ Elevation of the jaw and grizzly, looking west:
 ## Left out (ROADMAP)
 - Real size distributions inside a size class (P80 only).
 - Screen blinding, liner and media wear, steel ball consumption.
-- **A plant-scale gravity circuit** (spirals, jigs) for the 2x route: an open **DECISION**. Today the hand line's shaking table
-  is the gravity machine, fed with sand from the screen's sand face.
+- A plant-scale gravity circuit: now [gravity-circuit.md](gravity-circuit.md).
 
 ## Game test
 `crushingCircuit` (Fabric client game test):

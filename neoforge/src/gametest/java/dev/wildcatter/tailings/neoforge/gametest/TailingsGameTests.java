@@ -15,6 +15,7 @@ import dev.wildcatter.tailings.entity.GantryEntity;
 import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.entity.TbmEntity;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
+import dev.wildcatter.tailings.block.Feeds;
 import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.MineRailBlock;
 import dev.wildcatter.tailings.block.MineSwitchBlock;
@@ -80,7 +81,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
@@ -110,6 +111,7 @@ public class TailingsGameTests {
 			helper.register(id("tbm_dismantle"), loaded(TailingsGameTests::tbmDismantle));
 			helper.register(id("tbm_seat"), loaded(TailingsGameTests::tbmSeat));
 			helper.register(id("tbm_gantries"), loaded(TailingsGameTests::tbmGantries));
+			helper.register(id("spiral_bank"), loaded(TailingsGameTests::spiralBank));
 			helper.register(id("tbm_muck"), loaded(TailingsGameTests::tbmMuck));
 			helper.register(id("tbm_train_loads"), loaded(TailingsGameTests::tbmTrainLoads));
 			helper.register(id("tbm_cable_end"), loaded(TailingsGameTests::tbmCableEnd));
@@ -397,6 +399,33 @@ public class TailingsGameTests {
 					+ "; bank " + bank.status() + "; thickener " + thickener.status() + "; filter " + filter.status() + ")"));
 			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 1e-3, Component.literal("the tails should carry the rest of the copper, got "
 					+ tailCopper + " (pond " + pond.status() + ")"));
+		});
+	}
+
+	/** The spirals take half the cassiterite to concentrate and the filter pays it; the galena, which floats, goes on untouched (gravity-circuit.md). */
+	private static void spiralBank(GameTestHelper helper) {
+		int y = 4;
+		var tin = dev.wildcatter.tailings.rock.Mineral.CASSITERITE;
+		var lead = dev.wildcatter.tailings.rock.Mineral.GALENA;
+		double tinKg = tin.itemAmount().doubleValue() * 2;
+		fines(helper, new BlockPos(0, y, 0), 400, java.util.Map.of(tin.mineralItemId(), tinKg / 400, lead.mineralItemId(), 1.0 / 400));
+		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
+		PlantBlockEntity spirals = plant(helper, Machine.SPIRAL_BANK, new BlockPos(0, y, 3));
+		pipe(helper, new BlockPos(0, y, 9));
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(0, y, 10));
+		pipe(helper, new BlockPos(3, y, 9));
+		pipe(helper, new BlockPos(7, y, 9), new BlockPos(6, y, 9), new BlockPos(5, y, 9), new BlockPos(4, y, 9));
+		PlantBlockEntity thickener = plant(helper, Machine.THICKENER, new BlockPos(7, y, 10));
+		pipe(helper, new BlockPos(7, y, 18));
+		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(7, y, 19));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {spirals, thickener, filter}) {
+			part.forceRunning();
+		}
+		helper.succeedWhen(() -> {
+			int paid = filter.countIn(new int[] {1, 2}, Feeds.stack(tin.phaseOneProductId(), 1));
+			helper.assertTrue(paid == 1, Component.literal("two items' worth of tin in should pay one (the ladder's 50 %), got " + paid + " (" + spirals.inspect().getString() + " | " + thickener.inspect().getString() + " | " + filter.inspect().getString() + " | " + pond.inspect().getString()
+					+ " | out " + filter.getItem(1) + " " + filter.getItem(2) + ")"));
+			helper.assertTrue(filter.countIn(new int[] {1, 2}, Feeds.stack(lead.nuggetId(), 1)) == 0, Component.literal("and no galena"));
 		});
 	}
 

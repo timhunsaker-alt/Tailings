@@ -68,6 +68,7 @@ public final class TailingsBlocks {
 	public static final Block CONDITIONER = plant(Machine.CONDITIONER, MapColor.COLOR_LIGHT_GRAY);
 	public static final Block FLOTATION_BANK = plant(Machine.FLOTATION_BANK, MapColor.COLOR_LIGHT_BLUE);
 	public static final Block BLOWER = plant(Machine.BLOWER, MapColor.COLOR_BLUE);
+	public static final Block SPIRAL_BANK = plant(Machine.SPIRAL_BANK, MapColor.METAL);
 	public static final Block THICKENER = plant(Machine.THICKENER, MapColor.TERRACOTTA_BROWN);
 	public static final Block FILTER = plant(Machine.FILTER, MapColor.TERRACOTTA_WHITE);
 	public static final Block TAILINGS_POND = plant(Machine.TAILINGS_POND, MapColor.CLAY);
@@ -78,7 +79,7 @@ public final class TailingsBlocks {
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
-			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
+			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
@@ -178,6 +179,7 @@ public final class TailingsBlocks {
 			case CONDITIONER -> CONDITIONER;
 			case FLOTATION_BANK -> FLOTATION_BANK;
 			case BLOWER -> BLOWER;
+			case SPIRAL_BANK -> SPIRAL_BANK;
 			case THICKENER -> THICKENER;
 			case FILTER -> FILTER;
 			case TAILINGS_POND -> TAILINGS_POND;

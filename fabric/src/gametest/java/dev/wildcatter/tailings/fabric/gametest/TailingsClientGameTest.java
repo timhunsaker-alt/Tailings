@@ -68,6 +68,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		// the playthrough is its own long run in its own real world: only when named
+		if ("playthrough".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Playthrough(context).run();
+			return;
+		}
 		context.runOnClient(client -> client.getSoundManager().addListener((sound, accessor, range) -> HEARD.computeIfAbsent(sound.getIdentifier().toString(), id -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(System.identityHashCode(sound))));
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			TestServerContext server = world.getServer();
@@ -89,6 +94,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			}
 			if (only("flotation")) {
 				flotation(context, world, server);
+			}
+			if (only("spirals")) {
+				spirals(context, world, server);
 			}
 			if (only("dump")) {
 				dump(context, world, server);
@@ -398,6 +406,45 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-flotation-end");
 		film.stop();
 		heard("flotation", "tailings:agitator", "wildcatter:fan", "wildcatter:motor_hum", "tailings:pressure_filter");
+	}
+
+	/** Tin slurry over the spiral bank: half its tin to the filter, the rest on (gravity-circuit.md). */
+	private void spirals(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(60, y + 1, 400);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		Mineral tin = Mineral.CASSITERITE;
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
+			source.out().offer(Product.FINES_SLURRY, 800, SlurryAssay.of(java.util.Map.of(tin.mineralItemId(), tin.itemAmount().doubleValue() * 2 / 400)));
+			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
+			PlantBlockEntity bank = plant(level, Machine.SPIRAL_BANK, o.offset(0, 0, 3));
+			pipe(level, o.offset(0, 0, 9));
+			PlantBlockEntity pond = plant(level, Machine.TAILINGS_POND, o.offset(0, 0, 10));
+			pipe(level, o.offset(3, 0, 9), o.offset(4, 0, 9), o.offset(5, 0, 9), o.offset(6, 0, 9), o.offset(7, 0, 9));
+			PlantBlockEntity thickener = plant(level, Machine.THICKENER, o.offset(7, 0, 10));
+			pipe(level, o.offset(7, 0, 18));
+			PlantBlockEntity filter = plant(level, Machine.FILTER, o.offset(7, 0, 19));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {bank, thickener, filter}) {
+				part.forceRunning();
+			}
+			parts[0] = new PlantBlockEntity[] {bank, thickener, filter, pond};
+		});
+		server.runCommand("tp @p " + (o.getX() + 14) + " " + (o.getY() + 9) + " " + (o.getZ() + 2) + " 120 28");
+		context.waitTicks(40);
+		Filming film = film(context, world, "spirals");
+		context.takeScreenshot("tailings-spirals-built");
+		for (int t = 0; t < 30; t++) {
+			context.waitTicks(20);
+			if (t % 5 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] spirals: " + parts[0][0].status() + "; thickener " + parts[0][1].status() + "; filter " + parts[0][2].inspect().getString()));
+			}
+		}
+		context.takeScreenshot("tailings-spirals-end");
+		film.stop();
+		int paid = server.computeOnServer(srv -> parts[0][2].countIn(new int[] {1, 2}, dev.wildcatter.tailings.block.Feeds.stack(tin.phaseOneProductId(), 1)));
+		require(paid == 2, "the spirals should pay half the tin: two items, got " + paid);
+		heard("spirals", "tailings:slurry_rush", "tailings:pressure_filter");
 	}
 
 	/** The pocket, its feeder, the sorter and bins under one rail. Returns the parts: feeder, sorter, ore bin, waste bin. */

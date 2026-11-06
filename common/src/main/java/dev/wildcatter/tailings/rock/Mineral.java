@@ -76,6 +76,11 @@ public enum Mineral {
 		return separator;
 	}
 
+	/** What the spiral bank takes (gravity-circuit.md): whatever has a gravity or magnetic route and does not float. */
+	public boolean spirals() {
+		return separator != null && !floats();
+	}
+
 	/** Sulfides, vanilla copper and vanilla gold: the flotation bank's 75% route. */
 	public boolean floats() {
 		return switch (this) {

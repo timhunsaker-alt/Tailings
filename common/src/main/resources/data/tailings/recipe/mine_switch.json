@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "R R",
+    "RLR",
+    "R R"
+  ],
+  "key": {
+    "R": "tailings:mine_rail",
+    "L": "minecraft:lever"
+  },
+  "result": {
+    "id": "tailings:mine_switch",
+    "count": 1
+  }
+}

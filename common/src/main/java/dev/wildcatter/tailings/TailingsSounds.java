@@ -52,6 +52,7 @@ public final class TailingsSounds {
 			case FILTER -> PRESSURE_FILTER;
 			case ORE_SORTER -> ORE_SORTER;
 			case BLOWER -> WildcatterSounds.FAN;
+			case SPIRAL_BANK -> SLURRY_RUSH;
 			case THICKENER -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};

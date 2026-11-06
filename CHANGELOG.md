@@ -4,6 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## G — The gravity circuit (2026-11-06)
+
+- **The spiral bank:** 4 x 5 x 6, 37 kW. On the cyclones' overflow it pays the 2x route at plant scale for everything that does not float, iron included. Copper, gold and the sulfides pass through to flotation.
+
+## R10 — The playthrough (2026-11-06)
+
+- **A filmed run from nothing in a real generated survival world,** real recipes, real placement, real generators, real rock to copper ingots.
+- **Recipes:** `mine_switch` and `mine_light`.
+- **Found:** what the machine really needs for power (tunnel-boring-machine.md), and a layout that can be wired (crushing-circuit.md).
+
 ## R9 — Real vehicle length (2026-11-06)
 
 - **The locomotive is 3 m and the cars are 2 m,** on 0.5 m couplings. New models and skins; a vehicle's hit box now runs its whole length along the track.

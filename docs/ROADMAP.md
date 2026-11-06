@@ -135,13 +135,15 @@ R brings it in line, one wave at a time.
 
 - **R9. Vehicles at their real length — DONE (2026-11-06, Tim's decision):** a 3 m locomotive and 2 m cars on 0.5 m couplings, new models and skins from `tools/models/vehicles.py`, boxes along the track. The conveyor's chute reaches 13 rows, so a stopped train still loads its first four cars.
 
+- **R10. The playthrough — DONE (2026-11-06, Tim's request):** `TAILINGS_ONLY=playthrough ./gradlew :fabric:runClientGameTest`, about 15 minutes, filmed. A generated survival world at a fixed seed; every part crafted through the game's own recipe matching and placed through the game's item use from a survival hand; six real generators, nothing force-run; the machine bores real rock; real ore by train to the dump, through crushing and flotation to ingots, at 11.5 game minutes. It writes the mine's bill of materials to `playthrough-bill.txt`. It found: the machine needs two gas sets and two substations (below); the old film layouts blocked three motor boxes; a live fault with busway straight onto the rectifier (Known gaps).
+- **G. The gravity circuit — DONE (2026-11-06, as recommended, Tim):** a spiral bank on the cyclones' overflow pays the 2x route at plant scale, for what does not float, iron included ([gravity-circuit.md](multiblocks/gravity-circuit.md)). Jigs left out, with the reason.
+
 **Open DECISIONs from the R2 specs (listed, not chosen):**
-- A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
 
 ## Phase 4 — Full recovery — next after R
 
-Not started.
+Draft spec: [full-recovery.md](multiblocks/full-recovery.md), waiting on its DECISIONs. Wildcatter Phase 12 comes first.
 
 - **4a.** Scavenger and cleaner flotation beyond the fixed bank, and a regrind.
 - **4b.** Leaching the flotation tails: tank leach with Wildcatter's sulfuric acid, and heap leach on a lined pad.
@@ -195,12 +197,13 @@ These are in the current build on purpose, or because the art and tests have not
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Sound levels are not tuned by ear (R8).** The volumes in `sound.md` were set from the files' levels. The tests prove each sound starts, not how it sounds together. The films have no audio: `screencapture` can only record a microphone.
 - **Silent for now (R8).** The traction rectifier, the small phase 1 machines, the reel gantry, and the wheels of an unpowered car. A plant part's sound does not follow its load.
-- **The filmed scenes are staged.** They run at test speed with the parts force-running, not wired to a real grid, and `crushing`'s cone has no belt off it (as its server scene). Survival play from scratch, crafting every part and powering it from Wildcatter, has not been run start to finish.
+- **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
+- **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10, not diagnosed).** Sized cable works, and one train needs only about 110 A.
+- **The waste bin has no outlet (R10).** 992 items in 11 game minutes against 8,192: about 90 minutes of driving before the pocket backs up. A belt off it to nowhere does not exist yet; Phase 4b's heap pad is its first use.
 
 Other stand-ins worth knowing:
 
 - Powered-machine recipes are eight iron and one copper, for every plant part. The ramp, pocket and bin are iron around a hopper. The belt is leather over iron.
-- `mine_switch` and `mine_light` have no crafting recipe.
 - Slope, stair, landing, and mine floor are not crafted. The drill cuts them from mined stone.
 - The eight-slice ramp is a cuboid stand-in for a smooth mesh. Vanilla JSON models cannot be an arbitrary wedge.
 - The dump's "sensor sorter" is a slot map, not an X-ray sorter.

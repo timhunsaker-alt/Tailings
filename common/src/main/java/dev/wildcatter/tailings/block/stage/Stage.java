@@ -47,6 +47,7 @@ public interface Stage {
 			case CYCLONE -> Grinding.CYCLONE;
 			case CONVEYOR_DRIVE -> Belts.DRIVE;
 			case ORE_BIN -> Belts.BIN;
+			case SPIRAL_BANK -> Gravity.SPIRALS;
 			case CONDITIONER -> Flotation.CONDITIONER;
 			case FLOTATION_BANK -> Flotation.BANK;
 			case BLOWER -> Flotation.BLOWER;

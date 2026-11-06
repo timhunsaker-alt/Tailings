@@ -179,3 +179,7 @@ The plant keeps running on the old shortcut until R4 (Tim's choice). A line form
 ## R9: real vehicle length (2026-11-06)
 
 Tim chose real length. `Haul.carOffset` and `tailOffset` replace the one spacing; `tools/models/vehicles.py` makes the boxes and skins. The longer locomotive left the first car outside the old five-row chute, which only the filmed `haul` showed, so the chute is 13 rows and `tbm_train_loads` covers it on the server. 50 NeoForge scenes pass; `train`, `dump`, `haul` and `hand` were filmed.
+
+## R10: the playthrough, and G: the spiral bank (2026-11-06)
+
+`Playthrough.java` plays the mine in a real world; `spirals` films the new part. Tim saw the first attempts die: the scene dug the pit under the player, who fell in, and the locked test window sat on the death screen. The player now goes to spectator first, and the scene fails if they die. The mean tick was 12 ms with six generators and the whole plant running. Bill of materials in `playthrough-bill.txt`: about 3,700 copper ingots, 2,100 iron, 1,000 steel and 1,300 plastic sheet, mostly cable and busway. 51 NeoForge scenes pass.

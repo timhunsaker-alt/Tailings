@@ -42,6 +42,7 @@
     "tailings:dump_pocket",
     "tailings:apron_feeder",
     "tailings:ore_sorter",
-    "tailings:ore_bin"
+    "tailings:ore_bin",
+    "tailings:spiral_bank"
   ]
 }

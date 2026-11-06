@@ -206,6 +206,7 @@
   "block.tailings.cyclone_cluster": "Cyclone Cluster",
   "block.tailings.conditioning_tank": "Conditioning Tank",
   "block.tailings.air_blower": "Air Blower",
+  "block.tailings.spiral_bank": "Spiral Bank",
   "block.tailings.concentrate_thickener": "Concentrate Thickener",
   "block.tailings.pressure_filter": "Pressure Filter",
   "entity.tailings.mine_locomotive": "Mine Locomotive",
