@@ -75,11 +75,17 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
   - ore bin: 8,192 rock items, fed by hand or hopper, out onto the belt under it.
 - **Assays:** the slurry carries Wildcatter's assay (v0.3.0), keyed by each mineral's item id: the whole mineral the rock holds per kg (`plant.Assays`). Crushing liberates and recovers nothing. For the vanilla metals, counted in ingots, an ingot's worth counts as 1 kg.
 - **Readouts:** NO FEED, NO WATER, NO DRIVE, NOT BUILT (names the part), FULL, "its output has nowhere to go".
-- **Flotation until R4b:** the conditioning tank keeps R3's shortcut, fines items by hand, floated when the bank, blower, thickener and filter touch it.
+
+**How flotation runs (R4b, docs/multiblocks/flotation-bank.md):** each part draws its feed off steel pipe at the north face of its front cells into a few seconds' buffer, and puts its product on pipe at the south face of its back cells (`block.stage.Flotation`).
+- conditioning tank: fines slurry to conditioned slurry, dosing the reagents per tonne of solids; copper sulfate only when the assay holds sphalerite (NO REAGENT names what is short);
+- flotation bank: needs an air blower touching it, running (NO AIR); each floating mineral's 75 % (`RecoveryRoute.FLOTATION`) to concentrate slurry at 30 % solids out of its back cell at x 6, the rest of the feed to tails slurry at x 0;
+- concentrate thickener: to thickened concentrate at 60 % solids;
+- pressure filter: its cake (`plant.FilterCake`) pays a nugget for each nugget's worth, and nine of a mineral's nuggets are packed into the ladder's item (`Mineral.phaseOneProductId`) in its two output stacks, for a hopper under it or a hand (FULL: take the concentrate);
+- tailings pond (placeholder): takes tails slurry off a pipe on any side, up to 3,400 t (FULL).
 
 **Parts (`plant.Machine`):**
 - **Crushing:** grizzly (3×2×4), jaw (3×4×4, 110 kW), screen (3×3×6, 22 kW), cone (3×4×3, 132 kW), conveyor drive (1×1×2, 7.5 kW), ball mill (4×4×6, 600 kW), cyclones (2×4×2, 45 kW).
-- **Flotation:** conditioner (3×4×3, 15 kW), flotation bank (7×4×13, eight 20 m³ cells, 360 kW), blower (2×2×3, 75 kW), thickener (8×3×8, 5.5 kW), filter (3×3×5, 15 kW).
+- **Flotation:** conditioner (3×4×3, 15 kW), flotation bank (7×4×13, eight 20 m³ cells, 360 kW), blower (2×2×3, 75 kW), thickener (8×3×8, 5.5 kW), filter (3×3×5, 15 kW), tailings pond placeholder (6×2×6).
 - **Dump station:** ramp (1×1×4), pocket (4×3×3), apron feeder (2×1×4, 11 kW), ore sorter (3×3×3, 40 kW), ore bin (3×6×3).
 - **Belts:** `belt_conveyor` is one block a metre, laid along the way the player faces.
 

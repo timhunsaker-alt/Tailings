@@ -4,7 +4,8 @@
   scavengers and two cleaners on the west, their froth launders, the agitator drives and the walkway between;
 - air_blower, 2 x 2 x 3: a multistage centrifugal blower on its skid with its 75 kW motor; the header leaves its east side;
 - concentrate_thickener, 8 x 3 x 8: the 8 m high-rate thickener on its legs, the bridge and rake drive;
-- pressure_filter, 3 x 3 x 5: a plate-and-frame filter, the plate pack between its head and tail, the hydraulic closing ram.
+- pressure_filter, 3 x 3 x 5: a plate-and-frame filter, the plate pack between its head and tail, the hydraulic closing ram;
+- tailings_pond_placeholder, 6 x 2 x 6: an earthen pond, its berms and the tails line, until Phase 4d's lined cell.
 """
 import tlib
 from tlib import disc, model, motor_box
@@ -89,4 +90,17 @@ motor_box(PF, 0.3, 0.3, 0.5, 0.4)
 PF.pipe([(1.5, 2.0, 0.0), (1.5, 2.0, 0.2)], 3, "rubber")                    # thickened concentrate in, the front
 PF.collide((0.3, 0.0, 0.2), (2.7, 2.8, 4.95))
 
-MODELS = [CT, FB, AB, TH, PF]
+# ---- the tailings pond (placeholder until Phase 4d's lined cell) -------------------------------------------------------------------
+TP = model("tailings_pond_placeholder", 6, 2, 6, "concrete")
+TP.box((0.0, 0.0, 0.0), (6.0, 0.3, 6.0), "concrete")                       # the floor
+for (x1, z1, x2, z2) in ((0.0, 0.0, 6.0, 0.6), (0.0, 5.4, 6.0, 6.0), (0.0, 0.6, 0.6, 5.4), (5.4, 0.6, 6.0, 5.4)):
+	TP.box((x1, 0.3, z1), (x2, 1.8, z2), "concrete")                        # the berms
+TP.box((0.6, 0.3, 0.6), (5.4, 1.1, 5.4), "polymer")                         # the settled tails
+TP.pipe([(3.0, 1.6, 0.0), (3.0, 1.6, 0.9)], 3, "rubber")                    # the tails line over the north berm
+TP.collide((0.0, 0.0, 0.0), (6.0, 1.1, 6.0))
+TP.collide((0.0, 1.1, 0.0), (6.0, 1.8, 0.6))
+TP.collide((0.0, 1.1, 5.4), (6.0, 1.8, 6.0))
+TP.collide((0.0, 1.1, 0.6), (0.6, 1.8, 5.4))
+TP.collide((5.4, 1.1, 0.6), (6.0, 1.8, 5.4))
+
+MODELS = [CT, FB, AB, TH, PF, TP]

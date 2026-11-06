@@ -26,6 +26,37 @@ public final class ReagentStock {
 		return kilograms(reagent).setScale(0, RoundingMode.CEILING).intValueExact();
 	}
 
+	/** True if it holds the dose for {@code tonnes} of feed solids (copper sulfate only with sphalerite in the feed). */
+	public boolean covers(double tonnes, boolean sphalerite) {
+		return missing(tonnes, sphalerite).isEmpty();
+	}
+
+	/** The reagents short for {@code tonnes} of feed, by name; empty when it has them all. */
+	public String missing(double tonnes, boolean sphalerite) {
+		StringBuilder out = new StringBuilder();
+		for (Reagent reagent : Reagent.values()) {
+			if (reagent.requiredFor(sphalerite) && kilograms(reagent).compareTo(reagent.kilogramsFor(tonnes)) < 0) {
+				out.append(out.length() > 0 ? ", " : "").append(reagent.displayName());
+			}
+		}
+		return out.toString();
+	}
+
+	/** Doses {@code tonnes} of feed solids. The caller has already checked {@link #covers(double, boolean)}. */
+	public void consume(double tonnes, boolean sphalerite) {
+		for (Reagent reagent : Reagent.values()) {
+			if (!reagent.requiredFor(sphalerite)) {
+				continue;
+			}
+			BigDecimal left = kilograms(reagent).subtract(reagent.kilogramsFor(tonnes));
+			if (left.signum() <= 0) {
+				kilograms.remove(reagent);
+			} else {
+				kilograms.put(reagent, left);
+			}
+		}
+	}
+
 	public boolean covers(Rock rock) {
 		for (Map.Entry<Reagent, BigDecimal> need : Reagent.dose(rock).entrySet()) {
 			if (kilograms(need.getKey()).compareTo(need.getValue()) < 0) {

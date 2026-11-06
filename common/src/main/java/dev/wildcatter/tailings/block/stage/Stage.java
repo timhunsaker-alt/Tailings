@@ -47,6 +47,12 @@ public interface Stage {
 			case CYCLONE -> Grinding.CYCLONE;
 			case CONVEYOR_DRIVE -> Belts.DRIVE;
 			case ORE_BIN -> Belts.BIN;
+			case CONDITIONER -> Flotation.CONDITIONER;
+			case FLOTATION_BANK -> Flotation.BANK;
+			case BLOWER -> Flotation.BLOWER;
+			case THICKENER -> Flotation.THICKENER;
+			case FILTER -> Flotation.FILTER;
+			case TAILINGS_POND -> Flotation.POND;
 			default -> Idle.INSTANCE;
 		};
 	}

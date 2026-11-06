@@ -4,6 +4,15 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R4b — Flotation to items (2026-11-05)
+
+- **Real flotation on steel pipe:** conditioning tank, flotation bank with its air blower, concentrate thickener and pressure filter, each on its own motor.
+- **Reagents** are dosed per tonne of feed; copper sulfate only when the feed holds sphalerite.
+- **The 75 % ladder** in the bank; the filter pays nuggets and packs nine into the ingot or mineral item, so a copper ore block still gives 3 ingots.
+- **New part: `tailings_pond_placeholder`** takes the final tails until the lined cell (Phase 4d).
+- **Removed:** R3's flotation shortcut.
+- **Tests:** `FlotationTest`; game tests `flotation`, `flotation_stops`.
+
 ## R4a — The crushing circuit (2026-11-05)
 
 - **Real flow:** the grizzly, jaw, screen, cone, ball mill and cyclones each run on their own motor at their share of 50 t/h. No more line forming or shortcut.

@@ -77,6 +77,7 @@ These are real figures; the game multiplies each by the crushing circuit's 90 % 
 | `air_blower` | 2 x 2 x 3 | A multistage centrifugal blower, **75 kW at 480 V**, about 1 m³/s at 50 kPa *(proposed)*, for up to eight cells. It touches the bank |
 | `concentrate_thickener` | 8 x 3 x 8 | An 8 m high-rate thickener, **5.5 kW rake at 480 V**. Concentrate slurry in; thickened concentrate at 60 % solids out *(proposed)*. The overflow water is left out (below) |
 | `pressure_filter` | 3 x 3 x 5 | A plate-and-frame pressure filter to 8 % moisture: **15 kW at 480 V**. Thickened concentrate in on pipe; the cake goes out as items to a hopper under it, or to an empty hand |
+| `tailings_pond_placeholder` | 6 x 2 x 6 | An earthen tailings pond with its berms (decided with Tim, 2026-11-05, R4). Tails slurry in on pipe at any side; it holds about a day of the plant's tails, **3,400 t** *(proposed)*. No motor. A placeholder until Phase 4d's lined cell |
 
 **The items the filter pays** are the same ones the ladder pays today (DESIGN.md):
 - the ingot, where the concentrate is one that smelts (copper, gold, galena to lead, acanthite to silver);
@@ -135,8 +136,7 @@ Plan, bottom layer (y 0):
 - **The pressure filter** bags the cake into items each time an item's worth of mineral is in it, and holds two stacks at most.
 - **The final tail:**
   - the tails slurry goes to whatever its pipe joins;
-  - until Phase 4d's lined tailings cell, it may run to a tailings pond made of any storage Wildcatter's pipe can fill
-    *(proposed; see Open DECISIONs)*;
+  - until Phase 4d's lined tailings cell, it runs to a `tailings_pond_placeholder` (decided with Tim, 2026-11-05);
   - with nowhere to go, the bank stops: "its output has nowhere to go".
 - **What each part reads when it stops:**
   - NO FEED;
@@ -153,8 +153,16 @@ Plan, bottom layer (y 0):
 - Thickener overflow water recycled to the plant; froth chemistry beyond the four reagents; pyrite as a by-product.
 
 ## Open DECISIONs (listed, not chosen)
-- Where the final tails go before Phase 4d.
 - Selective circuits (above).
+
+Decided with Tim on 2026-11-05 (R4): the final tails go to a `tailings_pond_placeholder` until Phase 4d.
+
+## Added while building (R4b)
+- **Inlet buffers:** each part draws its feed off the pipe into a few seconds' buffer, so it knows the feed's assay (for the copper
+  sulfate dose, and the bank's split) before it works it.
+- **The concentrate** is the recovered mineral at 30 % solids *(proposed)*; the gangue that real concentrate carries is left out.
+- **The filter** pays a nugget for each nugget's worth of a mineral and packs each nine of a mineral's nuggets into the item the
+  ladder pays (a copper ingot, a lead ingot, ...), so an ore block still pays exactly 3.
 
 ## Game test
 `flotationBank` (Fabric client game test):

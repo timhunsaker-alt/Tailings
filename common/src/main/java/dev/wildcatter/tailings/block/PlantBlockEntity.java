@@ -17,18 +17,14 @@ import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.stage.Stage;
-import dev.wildcatter.tailings.plant.Concentrator;
+import dev.wildcatter.tailings.plant.FilterCake;
 import dev.wildcatter.tailings.plant.Machine;
-import dev.wildcatter.tailings.plant.PlantPlan;
 import dev.wildcatter.tailings.plant.PlantRates;
 import dev.wildcatter.tailings.plant.Reagent;
 import dev.wildcatter.tailings.plant.ReagentStock;
 import dev.wildcatter.tailings.plant.RockLoad;
-import dev.wildcatter.tailings.rock.Milling;
-import dev.wildcatter.tailings.rock.NuggetBank;
 import dev.wildcatter.tailings.rock.Rock;
 import dev.wildcatter.tailings.rock.SizeClass;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
@@ -54,18 +50,13 @@ import org.jspecify.annotations.Nullable;
  * own: its {@link Stage} moves rock or slurry while its motor runs, it has feed, and its product has somewhere to go. Dry rock is
  * held in kg ({@link RockLoad}); slurry for the pipe in a Wildcatter {@link SlurryHold}, with its assay. Items exist only where the
  * player hands rock in or takes a product out.
- *
- * <p>Until R4b the conditioning tank keeps R3's shortcut: fines items by hand, floated when the bank, blower, thickener and filter
- * touch it.
  */
 public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
 		WaterUser {
-	/** What the conditioning tank needs touching it until R4b. */
-	static final List<Machine> FLOTATION = List.of(Machine.FLOTATION_BANK, Machine.BLOWER, Machine.THICKENER, Machine.FILTER);
-
 	private boolean grown;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(6, ItemStack.EMPTY);
-	private final NuggetBank bank = new NuggetBank();
+	/** The pressure filter's cake, paid out as nuggets. */
+	private final FilterCake cake = new FilterCake();
 	private final ReagentStock reagents = new ReagentStock();
 	/** Dry rock waiting to be worked, or, in a conveyor drive, the load on its run. */
 	private final RockLoad hold = new RockLoad();
@@ -73,20 +64,21 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final RockLoad made = new RockLoad();
 	/** What it puts on steel pipe. */
 	private final SlurryHold out = new SlurryHold();
-	/** The ball mill's cyclone underflow, dry kg with its assay, ground before new feed. */
+	/** The ball mill's cyclone underflow (dry kg with its assay, ground before new feed); a flotation part's inlet buffer; the pond's tails. */
 	private final SlurryHold back = new SlurryHold();
 	/** An ore bin's rock items, by charge, past the one in its intake slot. */
 	private final java.util.Map<String, Integer> binned = new java.util.LinkedHashMap<>();
 	private double water;
-	private List<PlantBlockEntity> line = List.of();
 	private Motor motor;
 	private boolean demand;
 	private boolean forced;
-	private boolean formed;
 	private boolean loading;
 	private String status = "idle";
 	/** A conveyor drive's last scan of its run (not saved). */
 	public @Nullable Object run;
+
+	private static final List<Product> SLURRIES = List.of(Product.MILL_DISCHARGE, Product.FINES_SLURRY, Product.CONDITIONED_SLURRY,
+			Product.CONCENTRATE_SLURRY, Product.THICKENED_CONCENTRATE, Product.TAILS_SLURRY);
 
 	public PlantBlockEntity(BlockPos pos, BlockState state) {
 		super(TailingsBlocks.PLANT, pos, state);
@@ -113,10 +105,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	private void serverTick() {
-		if (machine() == Machine.CONDITIONER) {
-			legacyFlotation();
-			return;
-		}
 		demand = false;
 		intake();
 		stage().tick(this);
@@ -340,113 +328,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return slots;
 	}
 
-	// ---- R3's shortcut for the flotation side, until R4b -------------------------------------------------------------------------
-
-	private void legacyFlotation() {
-		if (scanDue() || line.isEmpty()) {
-			formed = matches();
-		}
-		boolean work = formed && Feeds.parse(slots.get(0)) instanceof Feeds.Charge c && c.size() == SizeClass.FINES;
-		for (PlantBlockEntity part : line) {
-			part.demand = work;
-		}
-		if (formed && level.getGameTime() % PlantPlan.CYCLE_TICKS == 0 && allRunning()) {
-			floatOre();
-		}
-	}
-
-	/** The flotation parts touching the tank, or touching each other from it; the status names what is missing. */
-	private boolean matches() {
-		List<PlantBlockEntity> joined = new ArrayList<>();
-		joined.add(this);
-		for (int i = 0; i < joined.size() && joined.size() < 16; i++) {
-			for (Machine need : FLOTATION) {
-				PlantBlockEntity found = joined.get(i).touching(need);
-				if (found != null && !joined.contains(found)) {
-					joined.add(found);
-				}
-			}
-		}
-		StringBuilder missing = new StringBuilder();
-		for (Machine need : FLOTATION) {
-			if (find(joined, need) == null) {
-				missing.append(missing.length() > 0 ? ", " : "").append(need.displayName());
-			}
-		}
-		line = List.copyOf(joined);
-		status = missing.isEmpty() ? "formed" : "NOT BUILT: needs " + missing;
-		return missing.isEmpty();
-	}
-
-	private static @Nullable PlantBlockEntity find(List<PlantBlockEntity> parts, Machine machine) {
-		for (PlantBlockEntity part : parts) {
-			if (part.machine() == machine) {
-				return part;
-			}
-		}
-		return null;
-	}
-
-	private boolean allRunning() {
-		for (PlantBlockEntity part : line) {
-			if (part.machine().watts() > 0 && !part.running()) {
-				status = part.machine().displayName() + " is not running: " + part.motor.describe();
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private void floatOre() {
-		Feeds.Charge charge = Feeds.parse(slots.get(0));
-		if (charge == null || charge.size() != SizeClass.FINES) {
-			status = "the tank wants fines";
-			return;
-		}
-		if (!reagents.covers(charge.rock())) {
-			status = "short of " + reagents.missing(charge.rock());
-			return;
-		}
-		PlantBlockEntity filter = find(line, Machine.FILTER);
-		if (filter == null) {
-			return;
-		}
-		List<Milling.Yield> yields = Concentrator.floatBank(charge.rock(), copyBank());
-		if (!filter.fits(yields)) {
-			status = "the filter is full";
-			return;
-		}
-		NuggetBank next = copyBank();
-		Concentrator.floatBank(charge.rock(), next);
-		reagents.consume(charge.rock());
-		trimReagents();
-		slots.get(0).shrink(1);
-		for (Milling.Yield yield : yields) {
-			filter.add(Feeds.stack(yield.itemId(), yield.count()));
-		}
-		bank.load(next.save());
-		status = "floating " + charge.rock().displayName();
-		setChanged();
-	}
-
-	/** The game test turns the motors on without building a grid. */
+	/** The game test turns the motors on without building a grid, or off again. */
 	public void forceRunning() {
 		forced = true;
-		if (machine() == Machine.CONDITIONER && level != null) {
-			formed = matches();
-			for (PlantBlockEntity part : line) {
-				part.forced = true;
-			}
-		}
 	}
 
-	public boolean formed() {
-		return formed;
-	}
-
-	public boolean refresh() {
-		formed = matches();
-		return formed;
+	public void stopForced() {
+		forced = false;
 	}
 
 	public String status() {
@@ -492,14 +380,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			setChanged();
 			return true;
 		}
-		if (machine() == Machine.CONDITIONER) {
-			if (charge.size() != SizeClass.FINES || !slots.get(0).isEmpty()) {
-				return false;
-			}
-			slots.set(0, stack.split(1));
-			setChanged();
-			return true;
-		}
 		if (!accepts(charge.rock(), charge.size()) || room() < PlantRates.BLOCK_KG) {
 			return false;
 		}
@@ -510,18 +390,72 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	public boolean give(Player player) {
-		ItemStack stack = slots.get(1);
-		if (stack.isEmpty()) {
-			return false;
+		boolean gave = false;
+		for (int slot : machine() == Machine.FILTER ? new int[] {1, 2} : new int[] {1}) {
+			ItemStack stack = slots.get(slot);
+			if (!stack.isEmpty()) {
+				player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
+				slots.set(slot, ItemStack.EMPTY);
+				gave = true;
+			}
 		}
-		player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
-		slots.set(1, ItemStack.EMPTY);
+		if (gave) {
+			setChanged();
+		}
+		return gave;
+	}
+
+	public ReagentStock reagents() {
+		return reagents;
+	}
+
+	public FilterCake cake() {
+		return cake;
+	}
+
+	/** Puts {@code stack} into the first of {@code into} that takes it whole; false if none does. */
+	public boolean emitTo(int[] into, ItemStack stack) {
+		for (int slot : into) {
+			ItemStack there = slots.get(slot);
+			if (there.isEmpty()) {
+				slots.set(slot, stack.copy());
+				setChanged();
+				return true;
+			}
+			if (ItemStack.isSameItemSameComponents(there, stack) && there.getCount() + stack.getCount() <= there.getMaxStackSize()) {
+				there.grow(stack.getCount());
+				setChanged();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** How many of {@code like} are in these slots. */
+	public int countIn(int[] in, ItemStack like) {
+		int n = 0;
+		for (int slot : in) {
+			if (ItemStack.isSameItemSameComponents(slots.get(slot), like)) {
+				n += slots.get(slot).getCount();
+			}
+		}
+		return n;
+	}
+
+	/** Takes {@code count} of {@code like} out of these slots. */
+	public void removeFrom(int[] in, ItemStack like, int count) {
+		for (int slot : in) {
+			if (count > 0 && ItemStack.isSameItemSameComponents(slots.get(slot), like)) {
+				int take = Math.min(count, slots.get(slot).getCount());
+				slots.get(slot).shrink(take);
+				count -= take;
+			}
+		}
 		setChanged();
-		return true;
 	}
 
 	/** Takes out the reagent items whose kilogram has been dosed, so the slots never fill with spent reagent. */
-	private void trimReagents() {
+	public void trimReagents() {
 		for (Reagent reagent : Reagent.values()) {
 			int extra = -reagents.items(reagent);
 			for (int slot = 2; slot <= 5; slot++) {
@@ -551,22 +485,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 		}
 		return null;
-	}
-
-	private NuggetBank copyBank() {
-		NuggetBank copy = new NuggetBank();
-		copy.load(bank.save());
-		return copy;
-	}
-
-	private boolean fits(List<Milling.Yield> yields) {
-		for (Milling.Yield yield : yields) {
-			ItemStack stack = Feeds.stack(yield.itemId(), yield.count());
-			if (stack.isEmpty() || !roomFor(stack)) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	private boolean roomFor(ItemStack stack) {
@@ -662,7 +580,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void apply(Circuit circuit, int ticks) {
 		if (motor != null) {
-			motor.apply(circuit, ticks, demand || (machine() == Machine.CONDITIONER && !slots.get(0).isEmpty()));
+			motor.apply(circuit, ticks, demand);
 		}
 	}
 
@@ -673,9 +591,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (!hold.isEmpty()) {
 			held.append(String.format("; holds %.0f kg of rock", hold.total()));
 		}
-		for (Product p : List.of(Product.MILL_DISCHARGE, Product.FINES_SLURRY)) {
-			if (out.held(p) > 0) {
-				held.append(String.format("; %.0f kg of %s (%s)", out.held(p), p.label(), out.assayOf(p).describe()));
+		for (Product p : SLURRIES) {
+			for (SlurryHold h : List.of(back, out)) {
+				if (h.held(p) > 0.5 && (h == out || machine() != Machine.BALL_MILL)) {
+					held.append(String.format("; %.0f kg of %s (%s)", h.held(p), p.label(), h.assayOf(p).describe()));
+				}
 			}
 		}
 		if (stage().waterHold() > 0) {
@@ -703,7 +623,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		super.saveAdditional(output);
 		output.putBoolean("grown", grown);
 		ContainerHelper.saveAllItems(output, slots);
-		output.putString("bank", bank.save());
+		output.putString("cake", cake.save());
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
 		output.putString("hold", hold.save());
@@ -724,7 +644,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		loading = true;
 		ContainerHelper.loadAllItems(input, slots);
 		loading = false;
-		bank.load(input.getStringOr("bank", ""));
+		cake.load(input.getStringOr("cake", ""));
 		reagents.load(input.getStringOr("reagents", ""));
 		// a tank saved by an older build may hold spent reagent items
 		trimReagents();
@@ -817,6 +737,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public int[] getSlotsForFace(Direction side) {
+		if (machine() == Machine.FILTER) {
+			return side == Direction.UP ? new int[0] : new int[] {1, 2};
+		}
 		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5} : new int[] {1};
 	}
 
@@ -829,7 +752,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			return switch (machine()) {
 				case ORE_BIN -> binCount() < PlantRates.BIN_ITEMS;
-				case CONDITIONER -> charge.size() == SizeClass.FINES;
+				case CONDITIONER, FILTER -> false;
 				default -> accepts(charge.rock(), charge.size());
 			};
 		}
@@ -843,6 +766,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return slot == 1 && side != Direction.UP;
+		return (slot == 1 || slot == 2 && machine() == Machine.FILTER) && side != Direction.UP;
 	}
 }

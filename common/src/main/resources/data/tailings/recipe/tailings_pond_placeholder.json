@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "C C",
+    "CCC"
+  ],
+  "key": {
+    "C": "minecraft:clay"
+  },
+  "result": {
+    "id": "tailings:tailings_pond_placeholder",
+    "count": 1
+  }
+}

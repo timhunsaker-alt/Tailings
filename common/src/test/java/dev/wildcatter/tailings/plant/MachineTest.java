@@ -18,6 +18,7 @@ class MachineTest {
 			Map.entry(Machine.BALL_MILL, new int[] {4, 4, 6}),
 			Map.entry(Machine.CYCLONE, new int[] {2, 4, 2}),
 			Map.entry(Machine.CONDITIONER, new int[] {3, 4, 3}),
+			Map.entry(Machine.TAILINGS_POND, new int[] {6, 2, 6}),
 			Map.entry(Machine.FLOTATION_BANK, new int[] {7, 4, 13}),
 			Map.entry(Machine.BLOWER, new int[] {2, 2, 3}),
 			Map.entry(Machine.THICKENER, new int[] {8, 3, 8}),

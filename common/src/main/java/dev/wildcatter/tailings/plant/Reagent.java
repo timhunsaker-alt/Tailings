@@ -47,6 +47,16 @@ public enum Reagent {
 		return gramsPerTonne.multiply(BLOCK_TONNES).divide(new BigDecimal("1000"), 8, RoundingMode.DOWN);
 	}
 
+	/** Kilograms of this reagent {@code tonnes} of feed solids consume. */
+	public BigDecimal kilogramsFor(double tonnes) {
+		return gramsPerTonne.multiply(BigDecimal.valueOf(tonnes)).divide(new BigDecimal("1000"), 8, RoundingMode.UP);
+	}
+
+	/** Copper sulfate only for feed that holds sphalerite; every other reagent always. */
+	public boolean requiredFor(boolean sphalerite) {
+		return this != COPPER_SULFATE || sphalerite;
+	}
+
 	public boolean requiredFor(Rock rock) {
 		if (this == COPPER_SULFATE) {
 			return rock.contained(Mineral.SPHALERITE).signum() > 0;

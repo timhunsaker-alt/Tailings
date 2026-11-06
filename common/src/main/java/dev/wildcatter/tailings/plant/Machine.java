@@ -20,6 +20,8 @@ public enum Machine {
 	BLOWER("air_blower", "Air Blower", 2, 2, 3, 75_000, Supply.INDUSTRIAL),
 	THICKENER("concentrate_thickener", "Concentrate Thickener", 8, 3, 8, 5_500, Supply.INDUSTRIAL),
 	FILTER("pressure_filter", "Pressure Filter", 3, 3, 5, 15_000, Supply.INDUSTRIAL),
+	/** An earthen pond for the final tails until Phase 4d's lined cell (decided with Tim, 2026-11-05). A placeholder. */
+	TAILINGS_POND("tailings_pond_placeholder", "Tailings Pond (placeholder)", 6, 2, 6, 0, Supply.NONE),
 	DUMP_RAMP("dump_ramp", "Dump Ramp", 1, 1, 4, 0, Supply.NONE),
 	DUMP_POCKET("dump_pocket", "Dump Pocket", 4, 3, 3, 0, Supply.NONE),
 	APRON_FEEDER("apron_feeder", "Apron Feeder", 2, 1, 4, 11_000, Supply.INDUSTRIAL),

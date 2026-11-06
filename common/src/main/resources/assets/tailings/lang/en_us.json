@@ -208,6 +208,7 @@
   "block.tailings.air_blower": "Air Blower",
   "block.tailings.concentrate_thickener": "Concentrate Thickener",
   "block.tailings.pressure_filter": "Pressure Filter",
+  "block.tailings.tailings_pond_placeholder": "Tailings Pond (placeholder)",
   "item.tailings.lime": "Quicklime",
   "item.tailings.xanthate": "Potassium Amyl Xanthate",
   "item.tailings.mibc": "MIBC Frother",

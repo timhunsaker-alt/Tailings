@@ -43,6 +43,20 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R4b: flotation to items (2026-11-05)
+
+The flotation circuit runs as flotation-bank.md says, on steel pipe:
+- the conditioning tank doses the reagents per tonne of feed (copper sulfate only for sphalerite);
+- the bank, with its blower, floats 75 % of each floating mineral to concentrate and sends the rest to tails;
+- the thickener and pressure filter turn the concentrate into items: nuggets, nine packed into the ladder's item, so a block of
+  copper ore still pays 3 ingots;
+- the tails go to a new `tailings_pond_placeholder` (Tim's decision) until Phase 4d.
+
+R3's flotation shortcut, `Concentrator` and `PlantPlan` are gone.
+
+**Tests:** `FlotationTest` (the split, the cake, reagents by the tonne); game tests `flotation` (3 ingots, the rest of the copper in
+the pond) and `flotation_stops` (NO AIR, NO REAGENT, a full pond, tails with nowhere to go).
+
 ## R4a: the crushing circuit (2026-11-05)
 
 The crushing circuit runs as crushing-circuit.md says, on Wildcatter v0.3.0's assayed slurry:

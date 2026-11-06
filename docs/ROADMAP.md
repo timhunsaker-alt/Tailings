@@ -104,7 +104,8 @@ R brings it in line, one wave at a time.
   - **R4a. The crushing circuit — DONE (2026-11-05).** Belts with head drives, the grizzly, jaw, screen, cone, ball mill and
     cyclones each on their own motor at 50 t/h; mill discharge and fines slurry on steel pipe with their assay; the ore bin feeds
     its belt.
-  - **R4b. Flotation to items.** The conditioning tank, bank, blower, thickener and filter on pipe; the tailings pond.
+  - **R4b. Flotation to items — DONE (2026-11-05).** The conditioning tank, bank, blower, thickener and filter on pipe, at the
+    75 % ladder; the filter pays nuggets packed into ingots; the tails to a `tailings_pond_placeholder`.
   - **R4c. The dump station.** Pocket, apron feeder, sorter and bins; the train waits at a full pocket.
 - **R5. Haulage, per haulage.md:**
   - trains as entities;
@@ -117,7 +118,6 @@ R brings it in line, one wave at a time.
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
-- Where the final tails go before Phase 4d's lined cell (flotation-bank.md).
 - The traction rectifier's DC source: a voltage-regulated Wildcatter rectifier, or a Tailings source on Wildcatter's DC solver
   (haulage.md).
 - Whether a train waits at the dump, or the pocket buffers it (dump-station.md).
@@ -153,7 +153,9 @@ These are in the current build on purpose, or because the art and tests have not
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
 - **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
-- **Flotation keeps R3's shortcut until R4b.** The tank takes fines items by hand. The crushing circuit now makes fines slurry, not fines items, so until R4b fines items come only from the creative tab.
+- **The tailings pond is a placeholder (R4b).** `tailings_pond_placeholder` holds 3,400 t of tails, then the bank stops. Its model is plain berms and its recipe is 8 clay. Phase 4d's lined cell replaces it.
+- **Concentrate is mineral only (R4b).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out.
+- **Fines items have no use now (R4b).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.
 - **The dump's feeder, sorter and pocket sorting wait for R4c.** The pocket sorts by itself, as the one-block dump station did. The ore bin already feeds its belt (R4a).
 - **Belts deliver at once (R4a).** A run's load reaches its head end without a transit time; the lumps are drawn moving.
 - **Feed faces are not checked (R4a).** A belt's head end feeds whatever part it touches, and a part takes rock through any face, not only the spec's feed face. Parts touching an output face take the product straight in, as a chute.

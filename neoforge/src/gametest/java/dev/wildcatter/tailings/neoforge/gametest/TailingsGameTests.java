@@ -64,7 +64,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -76,6 +76,7 @@ public class TailingsGameTests {
 			helper.register(id("bin_feeds"), loaded(TailingsGameTests::binFeeds));
 			helper.register(id("belt_drive"), loaded(TailingsGameTests::beltDrive));
 			helper.register(id("flotation"), loaded(TailingsGameTests::flotation));
+			helper.register(id("flotation_stops"), loaded(TailingsGameTests::flotationStops));
 			helper.register(id("drill"), loaded(TailingsGameTests::drill));
 			helper.register(id("drill_pause"), loaded(TailingsGameTests::drillPause));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
@@ -289,24 +290,85 @@ public class TailingsGameTests {
 		});
 	}
 
-	private static void flotation(GameTestHelper helper) {
-		int y = 16;
-		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 0));
-		plant(helper, Machine.FLOTATION_BANK, new BlockPos(3, y, 0));
-		plant(helper, Machine.BLOWER, new BlockPos(10, y, 0));
-		plant(helper, Machine.THICKENER, new BlockPos(12, y, 0));
-		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(20, y, 0));
-		tank.forceRunning();
-		ItemStack fines = new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("fines_copper")));
-		helper.assertTrue(tank.offer(fines), Component.literal("the tank should take copper fines"));
-		for (Reagent reagent : new Reagent[] {Reagent.LIME, Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC}) {
+	/** A stand-in for the crushing circuit's overflow: cyclones holding fines slurry of this assay at their south face. */
+	private static PlantBlockEntity fines(GameTestHelper helper, BlockPos pos, double kg, java.util.Map<String, Double> assay) {
+		PlantBlockEntity source = plant(helper, Machine.CYCLONE, pos);
+		source.out().offer(Product.FINES_SLURRY, kg, dev.wildcatter.fluid.SlurryAssay.of(assay));
+		return source;
+	}
+
+	private static void reagents(GameTestHelper helper, PlantBlockEntity tank, Reagent... which) {
+		for (Reagent reagent : which) {
 			helper.assertTrue(tank.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id(reagent.id())))),
 					Component.literal("the tank should take " + reagent.displayName()));
 		}
+	}
+
+	/**
+	 * The flotation circuit on steel pipe (docs/multiblocks/flotation-bank.md, game test checks 1, 3 and 4): fines slurry holding one
+	 * block of copper ore's copper, conditioned, floated with the blower running, thickened and filtered to 3 copper ingots; the
+	 * tails, with the rest of the copper, to the tailings pond.
+	 */
+	private static void flotation(GameTestHelper helper) {
+		int y = 4;
+		double copper = Rock.COPPER.contained(dev.wildcatter.tailings.rock.Mineral.COPPER).doubleValue();
+		fines(helper, new BlockPos(0, y, 0), 100, java.util.Map.of("minecraft:copper_ingot", copper / 100));
+		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
+		pipe(helper, new BlockPos(0, y, 6));
+		PlantBlockEntity bank = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 7));
+		PlantBlockEntity blower = plant(helper, Machine.BLOWER, new BlockPos(7, y, 7));
+		pipe(helper, new BlockPos(6, y, 20));
+		PlantBlockEntity thickener = plant(helper, Machine.THICKENER, new BlockPos(6, y, 21));
+		pipe(helper, new BlockPos(6, y, 29));
+		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(6, y, 30));
+		pipe(helper, new BlockPos(0, y, 20), new BlockPos(0, y, 21));
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(0, y, 22));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {tank, bank, blower, thickener, filter}) {
+			part.forceRunning();
+		}
+		reagents(helper, tank, Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC);
 		helper.succeedWhen(() -> {
-			ItemStack out = filter.product();
-			helper.assertTrue(tank.formed() && out.is(Items.COPPER_INGOT) && out.getCount() == 3,
-					Component.literal("flotation should pay 3 copper ingots, got " + out + " (" + tank.status() + ")"));
+			int ingots = filter.countIn(new int[] {1, 2}, new ItemStack(Items.COPPER_INGOT));
+			double tailCopper = pond.back().assayOf(Product.TAILS_SLURRY).get("minecraft:copper_ingot") * pond.back().held(Product.TAILS_SLURRY);
+			helper.assertTrue(ingots == 3, Component.literal("the filter should pay 3 copper ingots, got " + ingots + " (tank " + tank.status()
+					+ "; bank " + bank.status() + "; thickener " + thickener.status() + "; filter " + filter.status() + ")"));
+			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 1e-3, Component.literal("the tails should carry the rest of the copper, got "
+					+ tailCopper + " (pond " + pond.status() + ")"));
+		});
+	}
+
+	/**
+	 * What stops the flotation parts (flotation-bank.md, checks 2 and 5): a bank whose blower is off reads NO AIR; a sphalerite feed
+	 * without copper sulfate reads NO REAGENT (Copper Sulfate); a full pond reads FULL, and a bank whose tails have nowhere to go
+	 * stops.
+	 */
+	private static void flotationStops(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity still = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
+		plant(helper, Machine.BLOWER, new BlockPos(7, y, 0));
+		still.forceRunning();
+		still.back().offer(Product.CONDITIONED_SLURRY, 50, dev.wildcatter.fluid.SlurryAssay.EMPTY);
+
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 15));
+		tank.forceRunning();
+		tank.back().offer(Product.FINES_SLURRY, 50, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("wildcatter:sphalerite", 0.01)));
+		reagents(helper, tank, Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC);
+
+		PlantBlockEntity choked = plant(helper, Machine.FLOTATION_BANK, new BlockPos(10, y, 0));
+		PlantBlockEntity air = plant(helper, Machine.BLOWER, new BlockPos(17, y, 0));
+		choked.forceRunning();
+		air.forceRunning();
+		choked.back().offer(Product.CONDITIONED_SLURRY, 50, dev.wildcatter.fluid.SlurryAssay.EMPTY);
+		choked.out().offer(Product.TAILS_SLURRY, 1_000_000, dev.wildcatter.fluid.SlurryAssay.EMPTY);
+
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(10, y, 15));
+		pond.back().offer(Product.TAILS_SLURRY, 3_400_000, dev.wildcatter.fluid.SlurryAssay.EMPTY);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(still.status().startsWith("NO AIR"), Component.literal("the bank should read NO AIR, got " + still.status()));
+			helper.assertTrue(tank.status().equals("NO REAGENT: Copper Sulfate"), Component.literal("the tank should want copper sulfate, got " + tank.status()));
+			helper.assertTrue(choked.status().contains("nowhere to go"), Component.literal("the choked bank should stop, got " + choked.status()));
+			helper.assertTrue(pond.status().startsWith("FULL"), Component.literal("the pond should read FULL, got " + pond.status()));
 		});
 	}
 
