@@ -23,8 +23,8 @@ import net.minecraft.util.LightCoordsUtil;
  * headlight cube is submitted again with the eyes render type so it is full bright.
  */
 public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineVehicleRenderer.VehicleState> {
-	private static final Identifier LOCOMOTIVE_TEXTURE = Tailings.id("textures/entity/mine_locomotive.png");
-	private static final Identifier CAR_TEXTURE = Tailings.id("textures/entity/mine_car.png");
+	private static final Identifier LOCOMOTIVE_TEXTURE = Tailings.id("textures/entity/mine_locomotive_placeholder.png");
+	private static final Identifier CAR_TEXTURE = Tailings.id("textures/entity/mine_car_placeholder.png");
 	/** The model root is 24 pixels above the wheel bottoms. */
 	private static final float MODEL_ROOT = 1.5F;
 

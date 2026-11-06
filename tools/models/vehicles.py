@@ -107,7 +107,7 @@ def paint(boxes, name):
                      f'.addBox({x}F, {y}F, {z}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);'.replace("'", '"'))
         u += w + 1
         row = max(row, h)
-    img.save(OUT + name + ".png")
+    img.save(OUT + name + "_placeholder.png")   # drawn by script: a placeholder until the art comes from Ludo
     print(f"// {name}")
     print("\n".join(lines))
 

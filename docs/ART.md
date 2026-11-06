@@ -10,7 +10,7 @@ All runtime art is under `common/src/main/resources/assets/tailings/`.
 |---|---|
 | `textures/block/*.png` | 16×16 block sprites, including the rail overlays, ballast, signal lamps, and mine light on/off |
 | `textures/item/mine_car.png`, `textures/item/mine_locomotive.png` | 16×16 inventory icons |
-| `textures/entity/mine_car.png`, `textures/entity/mine_locomotive.png` | 256×256 entity skins (tools/models/vehicles.py) |
+| `textures/entity/mine_car_placeholder.png`, `textures/entity/mine_locomotive_placeholder.png` | 256×256 entity skins, script-drawn placeholders (tools/models/vehicles.py) |
 | `models/block/*.json` | Block models. Slopes and sloped rails are element models (eight slices). Flat rail and the switch are a full cube plus a thin overlay |
 | `models/item/mine_car.json`, `models/item/mine_locomotive.json` | `minecraft:item/generated` icons |
 | `blockstates/*.json` | Variants. `mine_rail` picks slope, look, and rack. `block_signal` picks the lamp. `mine_light` picks on/off. `mine_switch` picks thrown |

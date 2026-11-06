@@ -1,7 +1,7 @@
-# Full recovery: Phase 4 (DRAFT, not yet approved by Tim)
+# Full recovery: Phase 4 (decisions taken by Tim 2026-11-06; figures still proposed)
 
 Taking the ladder from flotation's 75 % (3x) to the 95 % the top rung pays (4x), and giving the tails somewhere to go. Tim said to go on to
-Phase 4 on 2026-11-06. The choices below are recommendations; each marked **DECISION** waits for Tim.
+Phase 4 on 2026-11-06, and answered its four decisions the same day.
 
 **Sources:**
 - Wills & Finch, *Wills' Mineral Processing Technology*, 8th ed. (2016): scavenging, regrind, cleaning.
@@ -19,9 +19,7 @@ A figure marked *(proposed)* is a textbook value, a scaled value, or a proposal.
 
 - The steps are a real plant's. The exact shares are set so they add to the ladder's written 95 %. Nothing pays over what the block holds (VISION.md).
 - Each step takes only what the one before left, so a plant can stop at any rung and still pay that rung.
-- **Minerals that do not float** go 50 % on the spirals (gravity-circuit.md). **DECISION 1:** the recommendation is that they stop at 2x, since real tin,
-  zircon and ilmenite are not leached from tails. VISION.md's table says 95 % is "only what the real best plant loses", and these are not recovered that way.
-  The alternative is a share at 4b so every mineral can reach 4x.
+- **Minerals that do not float (Tim, 2026-11-06: reach 4x too):** 50 % on the spirals (gravity-circuit.md), then the leach takes them to 95 %. They have no 3x rung. This is a **written game choice**: real tin, zircon and ilmenite are not leached from tails, and this is the one place the ladder is more uniform than real plants.
 
 ```
 BANK -> tails -> SCAVENGER BANK -> tails -> LEACH TANK -> CCD THICKENER -> washed tails -> LINED CELL
@@ -50,8 +48,7 @@ Reagents are carried in the pulp from the conditioner *(a game choice, Left out 
 | `electrowinning_bank` | 5 x 3 x 9 | Cathode cells at about 2 kWh a kg of copper. **400 kW at 480 V through its own rectifier section** *(proposed)*. Pays through the filter's nugget rule |
 
 **Heap leach on a lined pad** *(ROADMAP 4b)*: `heap_pad`, player-built from liner, fed by belt from the waste bin, sprayed with acid, draining to the
-electrowinning bank. It is the first use for the waste bin. **DECISION 2:** the recommendation is to build it as its own wave after the tank route, paying only country-rock
-copper and uranium nuggets at the 50 % rate.
+electrowinning bank. It is the first use for the waste bin. **Tim, 2026-11-06:** its own wave after the tank route, paying country rock's nuggets at the 50 % rate.
 
 ## 4c. By-products
 | From | By-product, per the concentrate's metal *(proposed, real concentrate grades)* | Real-world route |
@@ -64,13 +61,13 @@ copper and uranium nuggets at the 50 % rate.
 
 - A **`byproduct_plant`** (5 x 5 x 8, 250 kW at 480 V *(proposed)*) takes those concentrates as items and returns them with the by-product nuggets, as Wildcatter's refineries take items.
 - Real grades are too small to feel in play, so they are scaled ×10 as ores.md scales grades *(proposed)*.
-- **DECISION 3:** the recommendation is new by-product items for what Wildcatter has no use for yet (cadmium, indium, rhenium, rare earth oxide), and Wildcatter's silver.
+- **Tim, 2026-11-06:** new by-product items from one plant (cadmium, indium, rhenium, rare earth oxide), and Wildcatter's silver.
 
 ## 4d. The lined tailings cell (shared with Wildcatter)
 Replaces `tailings_pond_placeholder`. It belongs in **Wildcatter**, because the uranium mill needs it too (Wildcatter ROADMAP Ideas): see Wildcatter's Phase 12.
 - Player-built: a `cell_liner` floor and walls in any rectangle, one `decant_tower`. Holds about 2.2 t a block, so a plant's day needs about 1,500 blocks of volume.
 - Tails slurry settles; **the decant returns water on a pipe** *(closing the Known gap on overflow water)*.
-- A breach in the liner or an overtopped berm leaks: **DECISION 4:** the recommendation is a visible seep and the cell stopping, no contaminated ground, as Tim decided for broken lining in R6.
+- **A breach or an overtopped cell (Tim, 2026-11-06):** a visible seep and the cell stops taking tails until it is repaired. No contaminated ground.
 
 ## Left out (ROADMAP)
 - Selective lead-then-zinc flotation (still Tim's open DECISION, flotation-bank.md).
