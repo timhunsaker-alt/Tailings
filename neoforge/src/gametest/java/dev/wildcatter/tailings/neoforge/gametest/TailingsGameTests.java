@@ -81,7 +81,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
@@ -113,6 +113,8 @@ public class TailingsGameTests {
 			helper.register(id("tbm_gantries"), loaded(TailingsGameTests::tbmGantries));
 			helper.register(id("spiral_bank"), loaded(TailingsGameTests::spiralBank));
 			helper.register(id("full_recovery"), loaded(TailingsGameTests::fullRecovery));
+			helper.register(id("tails_to_cell"), loaded(TailingsGameTests::tailsToCell));
+			helper.register(id("cell_breached"), loaded(TailingsGameTests::cellBreached));
 			helper.register(id("leach_no_acid"), loaded(TailingsGameTests::leachNoAcid));
 			helper.register(id("byproducts"), loaded(TailingsGameTests::byproducts));
 			helper.register(id("heap_leach"), loaded(TailingsGameTests::heapLeach));
@@ -441,9 +443,60 @@ public class TailingsGameTests {
 		helper.succeedWhen(() -> {
 			int fromFilter = filter.countIn(new int[] {1, 2}, nugget), fromCells = ew.countIn(new int[] {1, 2}, nugget);
 			String all = scavenger.status() + " | " + regrind.status() + " | " + cleaner.status() + " | " + thickener.status() + " | " + filter.status() + " | " + leach.status() + " | " + ccd.status() + " | " + ew.status() + " | " + pond.status();
+			helper.assertTrue(!blower.status().contains("NOT BUILT"), Component.literal("a blower should serve the scavenger bank it touches: " + blower.status()));
 			helper.assertTrue(fromFilter == 3, Component.literal("the scavengers' 0.4 of an ingot should pay 3 nuggets at the filter, got " + fromFilter + ": " + all));
 			helper.assertTrue(fromCells == 5, Component.literal("the leach's 0.6 of an ingot should pay 5 nuggets at the cells, got " + fromCells + ": " + all));
 		});
+	}
+
+	/** A lined cell of Wildcatter's, 5 x 5 inside and 2 high, its tower at (3, 5, 18), with a bank's tails coming in over the rim. */
+	private static PlantBlockEntity cellOnPipe(GameTestHelper helper) {
+		int y = 4;
+		Block liner = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "cell_liner"));
+		for (int x = 0; x <= 6; x++) {
+			for (int z = 15; z <= 21; z++) {
+				helper.setBlock(new BlockPos(x, y, z), liner);
+				if (x == 0 || x == 6 || z == 15 || z == 21) {
+					helper.setBlock(new BlockPos(x, y + 1, z), liner);
+					helper.setBlock(new BlockPos(x, y + 2, z), liner);
+				}
+			}
+		}
+		helper.setBlock(new BlockPos(3, y + 1, 18), BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "decant_tower")));
+		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
+		source.out().offer(Product.TAILS_SLURRY, 100, dev.wildcatter.fluid.SlurryAssay.EMPTY);
+		pipe(helper, new BlockPos(0, y, 13), new BlockPos(0, y, 14), new BlockPos(0, y + 1, 14), new BlockPos(0, y + 2, 14), new BlockPos(0, y + 3, 14), new BlockPos(1, y + 3, 14), new BlockPos(2, y + 3, 14),
+				new BlockPos(3, y + 3, 14), new BlockPos(3, y + 3, 15), new BlockPos(3, y + 3, 16), new BlockPos(3, y + 3, 17), new BlockPos(3, y + 3, 18), new BlockPos(3, y + 2, 18));
+		return source;
+	}
+
+	/** Phase 4d: tails settle in the lined cell over a real pipe, and the decant's water comes back to the mill on its own pipe. */
+	private static void tailsToCell(GameTestHelper helper) {
+		int y = 4;
+		cellOnPipe(helper);
+		Block water = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "pipe"));
+		for (BlockPos at : new BlockPos[] {new BlockPos(3, y + 1, 19), new BlockPos(3, y + 2, 19), new BlockPos(3, y + 3, 19), new BlockPos(3, y + 3, 20), new BlockPos(3, y + 3, 21), new BlockPos(3, y + 3, 22)}) {
+			helper.setBlock(at, water);
+		}
+		PlantBlockEntity mill = plant(helper, Machine.BALL_MILL, new BlockPos(0, y, 23));
+		helper.succeedWhen(() -> {
+			var tower = helper.getBlockEntity(new BlockPos(3, y + 1, 18), dev.wildcatter.block.DecantTowerBlockEntity.class);
+			helper.assertTrue(Math.abs(tower.settledKg() - 40) < 1e-3, Component.literal("100 kg of slurry at 40 % solids should settle 40 kg, got " + tower.settledKg() + ": " + tower.status()));
+			helper.assertTrue(mill.water() > 0, Component.literal("the decant should send water back to the mill: " + mill.status()));
+		});
+	}
+
+	/** Phase 4d: a cell with a hole in its floor seeps and takes no tails, so they stay on the bank's outlet. */
+	private static void cellBreached(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity source = cellOnPipe(helper);
+		helper.setBlock(new BlockPos(1, y, 16), Blocks.DIRT);
+		helper.startSequence().thenExecuteAfter(100, () -> {
+			var tower = helper.getBlockEntity(new BlockPos(3, y + 1, 18), dev.wildcatter.block.DecantTowerBlockEntity.class);
+			helper.assertTrue(tower.status().contains("BREACHED"), Component.literal("it should read BREACHED: " + tower.status()));
+			helper.assertTrue(tower.settledKg() == 0, Component.literal("and take nothing, got " + tower.settledKg()));
+			helper.assertTrue(source.out().held(Product.TAILS_SLURRY) == 100, Component.literal("the tails should wait at the bank, got " + source.out().held(Product.TAILS_SLURRY)));
+		}).thenSucceed();
 	}
 
 	/** Phase 4c: lead goes in and comes back, with the silver it carried; the working time is 20 s an item. */

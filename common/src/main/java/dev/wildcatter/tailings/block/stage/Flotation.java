@@ -196,9 +196,8 @@ final class Flotation {
 	static final Stage BLOWER = new Stage() {
 		@Override
 		public void tick(PlantBlockEntity part) {
-			PlantBlockEntity bank = part.touching(Machine.FLOTATION_BANK);
-			if (bank == null) {
-				part.say("NOT BUILT: needs a Flotation Bank touching it");
+			if (part.touching(Machine.FLOTATION_BANK) == null && part.touching(Machine.SCAVENGER_BANK) == null) {
+				part.say("NOT BUILT: needs a Flotation Bank or Scavenger Bank touching it");
 				return;
 			}
 			part.want();

@@ -45,7 +45,9 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.SHAKING_TABLE));
 		output.accept(new ItemStack(TailingsBlocks.MAGNETIC_SEPARATOR));
 		for (dev.wildcatter.tailings.plant.Machine machine : dev.wildcatter.tailings.plant.Machine.values()) {
-			output.accept(new ItemStack(TailingsBlocks.plantBlock(machine)));
+			if (machine != dev.wildcatter.tailings.plant.Machine.TAILINGS_POND) {
+				output.accept(new ItemStack(TailingsBlocks.plantBlock(machine)));
+			}
 		}
 		output.accept(new ItemStack(TailingsBlocks.CUTTERHEAD));
 		output.accept(new ItemStack(TailingsBlocks.SEGMENT_ERECTOR));

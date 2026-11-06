@@ -59,10 +59,11 @@ import net.minecraft.world.phys.Vec3;
 /**
  * The mine played from nothing, in a real generated survival world: every part crafted through its real recipe and placed through
  * the real placement code with a survival player's hand, every motor wired to a generator that really runs, nothing force-run. The
- * machine bores real rock; what it finds goes by train to the dump, through the crushing circuit and the flotation bank to ingots.
+ * machine bores real rock; what it finds goes by train to the dump, through the crushing circuit and the flotation bank to ingots,
+ * and the bank's tails on through the scavengers, the leach and the cells to a lined cell, whose water comes back to the mill.
  *
- * What is still staged, and logged as such: digging the site's pit, the gas and diesel in the generators, the water, and the raw
- * materials (the bill they add up to is written to playthrough-bill.txt).
+ * What is still staged, and logged as such: digging the site's pit, the gas and diesel in the generators, the acid in its tank, the
+ * water hole under the pump, and the raw materials (the bill they add up to is written to playthrough-bill.txt).
  */
 final class Playthrough {
 	private static final String SEED = System.getenv().getOrDefault("TAILINGS_SEED", "tailings");
@@ -75,6 +76,7 @@ final class Playthrough {
 	private final Map<String, Boolean> proved = new HashMap<>();
 	private final Map<String, Integer> raw = new TreeMap<>();
 	private final Map<String, Integer> crafted = new TreeMap<>();
+	private final Map<String, Integer> spare = new HashMap<>();
 	private final List<String> notCraftable = new ArrayList<>();
 
 	private BlockPos c;
@@ -126,8 +128,8 @@ final class Playthrough {
 			server.runCommand("tp @p " + (c.getX() + 8) + " " + gy + " " + (c.getZ() + 48));
 			server.runCommand("gamemode survival @p");
 			// the plant runs while its chunks are loaded: here a forced area stands in for the player staying near, or a chunk loader
-			server.runCommand("forceload add " + (c.getX() - 24) + " " + (c.getZ() - 8) + " " + (c.getX() + 46) + " " + (c.getZ() + 92));
-			for (int wait = 0; wait < 120 && !server.computeOnServer(srv -> srv.overworld().isPositionEntityTicking(c.offset(2, 1, 12)) && srv.overworld().isPositionEntityTicking(c.offset(30, 1, 85))); wait++) {
+			server.runCommand("forceload add " + (c.getX() - 24) + " " + (c.getZ() - 8) + " " + (c.getX() + 46) + " " + (c.getZ() + 120));
+			for (int wait = 0; wait < 120 && !server.computeOnServer(srv -> srv.overworld().isPositionEntityTicking(c.offset(2, 1, 12)) && srv.overworld().isPositionEntityTicking(c.offset(30, 1, 118))); wait++) {
 				context.waitTicks(10);
 			}
 			require(server.computeOnServer(srv -> srv.overworld().isPositionEntityTicking(c.offset(2, 1, 12))), "the site's chunks should load");
@@ -203,7 +205,7 @@ final class Playthrough {
 		ServerLevel level = srv.overworld();
 		BlockState air = Blocks.AIR.defaultBlockState();
 		for (int x = -24; x <= 46; x++) {
-			for (int z = 0; z <= 92; z++) {
+			for (int z = 0; z <= 120; z++) {
 				level.setBlock(new BlockPos(c.getX() + x, gy - 1, c.getZ() + z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
 				for (int yy = gy; yy < level.getHeight(); yy++) {
 					BlockPos at = new BlockPos(c.getX() + x, yy, c.getZ() + z);
@@ -326,7 +328,10 @@ final class Playthrough {
 			Optional<?> match = srv.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, srv.overworld());
 			require(match.isPresent(), "the game's crafting table should take the recipe for " + id + " (" + grid + ")");
 		}
-		int times = (count + makes - 1) / makes;
+		// a batch's spare items go toward the next one asked for: 172 liners at 8 a craft are 22 crafts, not 172
+		int short_ = count - spare.getOrDefault(id, 0);
+		int times = Math.max(0, (short_ + makes - 1) / makes);
+		spare.put(id, times * makes - short_);
 		Map<String, Integer> inputs = new HashMap<>();
 		for (ItemStack stack : grid) {
 			if (!stack.isEmpty()) {
@@ -435,6 +440,7 @@ final class Playthrough {
 			dump(srv);
 			crushing(srv);
 			flotation(srv);
+			recovery(srv);
 			log(parts.size() + " plant parts placed");
 		});
 		context.waitTicks(40);
@@ -583,8 +589,53 @@ final class Playthrough {
 		part(srv, "thickener", Machine.THICKENER, at(22, -1, 26));
 		line(srv, pipe, at(22, -1, 34));
 		part(srv, "filter", Machine.FILTER, at(22, -1, 35));
-		line(srv, pipe, at(16, -1, 25), at(16, -1, 26));
-		part(srv, "pond", Machine.TAILINGS_POND, at(16, -1, 27));
+	}
+
+	/** The bank's tails on to the top rung (full-recovery.md), the lined cell they end in, and the plant's water. */
+	private void recovery(MinecraftServer srv) {
+		String pipe = "wildcatter:gas_line", water = "wildcatter:pipe";
+		line(srv, pipe, at(16, -1, 25), at(8, -1, 25));
+		part(srv, "scavenger", Machine.SCAVENGER_BANK, at(8, -1, 26));
+		part(srv, "scavengerBlower", Machine.BLOWER, at(6, -1, 27));
+		// the scavengers' concentrate east to the regrind mill, the cleaners, and a thickener and filter of their own
+		line(srv, pipe, at(12, -1, 35), at(18, -1, 35));
+		part(srv, "regrind", Machine.REGRIND_MILL, at(18, -1, 36));
+		line(srv, pipe, at(18, -1, 41));
+		part(srv, "cleaner", Machine.CLEANER_BANK, at(18, -1, 42));
+		line(srv, pipe, at(18, -1, 48));
+		part(srv, "thickenerTwo", Machine.THICKENER, at(18, -1, 49));
+		line(srv, pipe, at(18, -1, 57));
+		part(srv, "filterTwo", Machine.FILTER, at(18, -1, 58));
+		// the scavengers' tails down into the leach, the acid off a tank at its east side, the wash, and the cells
+		line(srv, pipe, at(8, -1, 35));
+		part(srv, "leach", Machine.LEACH_TANK, at(6, -1, 36));
+		line(srv, pipe, at(11, -1, 38));
+		bigPart(srv, BuiltInRegistries.BLOCK.getValue(Identifier.parse("wildcatter:stock_tank")), at(12, -1, 37));
+		((dev.wildcatter.block.StorageTankBlockEntity) srv.overworld().getBlockEntity(at(12, -1, 37))).testFill(dev.wildcatter.fluid.Product.SULFURIC_ACID, 5000);
+		log("staged: acid put in its tank");
+		line(srv, pipe, at(8, -1, 41));
+		part(srv, "ccd", Machine.CCD_THICKENER, at(5, -1, 42));
+		line(srv, pipe, at(16, -1, 54));
+		part(srv, "cells", Machine.ELECTROWINNING_BANK, at(12, -1, 55));
+		// the lined cell: a floor and walls in any rectangle, the tower in the middle, the pipes over the rim so the walls stay whole
+		for (int x = -7; x <= 2; x++) {
+			for (int z = 49; z <= 58; z++) {
+				place(srv, "wildcatter:cell_liner", at(x, -1, z), SOUTH);
+				if (x == -7 || x == 2 || z == 49 || z == 58) {
+					place(srv, "wildcatter:cell_liner", at(x, 0, z), SOUTH);
+					place(srv, "wildcatter:cell_liner", at(x, 1, z), SOUTH);
+				}
+			}
+		}
+		place(srv, "wildcatter:decant_tower", at(-2, 0, 54), SOUTH);
+		line(srv, pipe, at(5, -1, 54), at(4, -1, 54), at(4, 2, 54), at(-2, 2, 54), at(-2, 1, 54));
+		// the plant's water: a process pump on a hole in the floor, a header over the mill and the cyclones, the cell's decant joined to it
+		srv.overworld().setBlock(at(16, -2, 3), Blocks.WATER.defaultBlockState(), Block.UPDATE_ALL);
+		raw.merge("minecraft:water_bucket", 1, Integer::sum);
+		log("staged: a bucket of water in a hole under the pump");
+		place(srv, "wildcatter:process_water_pump", at(16, -1, 3), SOUTH);
+		line(srv, water, at(15, -1, 3), at(15, 3, 3), at(10, 3, 3));
+		line(srv, water, at(-2, 0, 55), at(-2, 17, 55), at(-2, 17, 3), at(11, 17, 3), at(11, 4, 3));
 	}
 
 	// ---- power ----------------------------------------------------------------------------------------------------------------
@@ -663,7 +714,29 @@ final class Playthrough {
 		for (BlockPos box : new BlockPos[] {at(15, -1, 8), at(21, -1, 26), at(21, -1, 35)}) {
 			drop(srv, lv, box, high, trunkB);
 		}
-		log("wired: six generators, conductors sized to their amps");
+		int highUp = high - o.getY();
+		// the scavengers to the wash: their own 1 MW gas set and busway, on a trunk along z = 41 above the flotation plant's
+		BlockPos recover = skid(srv, at(-12, py - o.getY(), 41), true);
+		int over = highUp + 2, trunkC = 41;
+		size = null;
+		line(srv, bus, recover.east(), new BlockPos(recover.getX() + 1, o.getY() + over, recover.getZ()), at(17, over, trunkC));
+		line(srv, bus, at(7, -1, 26), at(7, over, 26), at(7, over, trunkC));   // the scavengers, 255 A
+		size = dev.wildcatter.energy.ConductorSize.KCMIL_500;
+		line(srv, lv, at(17, -1, 36), at(17, over, 36), at(17, over, trunkC));   // the regrind mill, 212 A
+		size = dev.wildcatter.energy.ConductorSize.AWG_4_0;
+		line(srv, lv, at(5, -1, 27), at(5, over, 27), at(5, over, trunkC));   // the blower, 113 A
+		line(srv, lv, at(17, -1, 42), at(17, over, 42), at(17, over, trunkC));   // the cleaners, 62 A
+		line(srv, lv, at(5, -1, 36), at(5, over, 36));   // the leach tank, 42 A
+		// the process water pump, 56 A: on this set, as the 37 kW on the flotation set left it no margin to start the bank (it tripped at 56.1 Hz)
+		line(srv, lv, at(17, -1, 3), at(17, over, 3), at(17, over, trunkC));
+		size = null;
+		line(srv, lv, at(4, -1, 42), at(4, over, 42), at(4, over, trunkC));
+		line(srv, lv, at(17, -1, 49), at(17, over, 49), at(17, over, 42));
+		line(srv, lv, at(17, -1, 58), at(17, over, 58), at(17, over, 49));
+		// the cells' 400 kW on a set and busway of their own
+		BlockPos cells = skid(srv, at(-12, py - o.getY(), 66), true);
+		line(srv, bus, cells.east(), new BlockPos(cells.getX() + 1, o.getY() + over, cells.getZ()), at(11, over, 66), at(11, over, 55), at(11, -1, 55));
+		log("wired: eight generators, conductors sized to their amps");
 	}
 
 	private void drop(MinecraftServer srv, String lv, BlockPos box, int top, int trunkZ) {
@@ -714,11 +787,6 @@ final class Playthrough {
 			long from = server.computeOnServer(srv -> srv.overworld().getGameTime());
 			while (server.computeOnServer(srv -> srv.overworld().getGameTime()) - from < 600) {   // 30 game seconds
 				context.waitTicks(10);
-				server.runOnServer(srv -> {
-					for (String name : List.of("mill", "cyclone")) {   // staged: the mill only holds 3 s of its water
-						((PlantBlockEntity) srv.overworld().getBlockEntity(parts.get(name))).addWater(100_000);
-					}
-				});
 			}
 			int half = t;
 			server.runOnServer(srv -> {
@@ -726,9 +794,6 @@ final class Playthrough {
 				for (BlockPos panel : panels) {
 					GensetControlPanelBlockEntity box = (GensetControlPanelBlockEntity) level.getBlockEntity(panel);
 					box.setGasForTest(200);
-				}
-				for (String name : List.of("mill", "cyclone")) {
-					((PlantBlockEntity) level.getBlockEntity(parts.get(name))).addWater(100_000);
 				}
 				PlantBlockEntity tank = (PlantBlockEntity) level.getBlockEntity(parts.get("tank"));
 				for (String reagent : List.of("tailings:lime", "tailings:xanthate", "tailings:mibc")) {
@@ -766,7 +831,14 @@ final class Playthrough {
 					log("  junction: " + read(srv, c.offset(-2, 0, 14)));
 					log("  mine substation: " + read(srv, c.offset(-10, gy + 1 - c.getY(), 10)));
 				}
-				if (ingots >= 3) {
+				PlantBlockEntity filterTwo = (PlantBlockEntity) level.getBlockEntity(parts.get("filterTwo"));
+				PlantBlockEntity cells = (PlantBlockEntity) level.getBlockEntity(parts.get("cells"));
+				var tower = (dev.wildcatter.block.DecantTowerBlockEntity) level.getBlockEntity(at(-2, 0, 54));
+				log(String.format("  top rung: scavengers' filter %s %s; cells %s %s; lined cell %.1f t, %s; mill water %.0f L; pump: %s", filterTwo.getItem(1), filterTwo.getItem(2), cells.getItem(1), cells.getItem(2),
+						tower.settledKg() / 1000, tower.status(), ((PlantBlockEntity) level.getBlockEntity(parts.get("mill"))).water(), read(srv, at(16, -1, 3))));
+				boolean scavenged = !filterTwo.getItem(1).isEmpty() || !filterTwo.getItem(2).isEmpty();
+				boolean won = !cells.getItem(1).isEmpty() || !cells.getItem(2).isEmpty();
+				if (ingots >= 3 && scavenged && won && tower.settledKg() > 0) {
 					done[0] = true;
 				}
 			});
@@ -777,7 +849,10 @@ final class Playthrough {
 		server.runCommand("tick rate 20");
 		context.waitTicks(40);
 		context.takeScreenshot("tailings-play-end");
-		require(done[0], "the mine should pay ingots within " + minutes + " game minutes");
-		log("PAID: real rock to ingots");
+		require(done[0], "the mine should pay on every rung, and put its tails in the lined cell, within " + minutes + " game minutes");
+		log("PAID: real rock to ingots, every rung, tails in the lined cell");
+		camera(server, 36, 24, 124, 135, 35);
+		context.waitTicks(100);
+		context.takeScreenshot("tailings-play-recovery");
 	}
 }

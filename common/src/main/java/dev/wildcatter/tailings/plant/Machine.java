@@ -33,8 +33,8 @@ public enum Machine {
 	BYPRODUCT_PLANT("byproduct_plant", "By-Product Plant", 5, 5, 8, 250_000, Supply.INDUSTRIAL),
 	/** Phase 4b: a lined heap of waste rock under acid sprays, at a tenth of the plant's rate. Its pump is 15 kW (proposed). */
 	HEAP_PAD("heap_pad", "Heap Leach Pad", 10, 3, 10, 15_000, Supply.INDUSTRIAL),
-	/** An earthen pond for the final tails until Phase 4d's lined cell (decided with Tim, 2026-11-05). A placeholder. */
-	TAILINGS_POND("tailings_pond_placeholder", "Tailings Pond (placeholder)", 6, 2, 6, 0, Supply.NONE),
+	/** The earthen pond from before Wildcatter's lined cell (Phase 4d): a legacy part, with no recipe and out of the creative tab; an old plant's pond goes on working. */
+	TAILINGS_POND("tailings_pond_placeholder", "Tailings Pond (legacy)", 6, 2, 6, 0, Supply.NONE),
 	DUMP_RAMP("dump_ramp", "Dump Ramp", 1, 1, 4, 0, Supply.NONE),
 	DUMP_POCKET("dump_pocket", "Dump Pocket", 4, 3, 3, 0, Supply.NONE),
 	APRON_FEEDER("apron_feeder", "Apron Feeder", 2, 1, 4, 11_000, Supply.INDUSTRIAL),

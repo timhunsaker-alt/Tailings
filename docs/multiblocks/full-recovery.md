@@ -75,6 +75,10 @@ Replaces `tailings_pond_placeholder`. It belongs in **Wildcatter**, because the 
 - **Pregnant liquor carries its mineral at up to 30 %** *(a game figure)*: the liquor's volume does not matter here.
 - **The cells have no rectifier section of their own to wire:** they are a 400 kW motor load at 480 V, and raffinate is not returned.
 
+- **A blower serves a scavenger bank as well as a flotation bank.** The playthrough found this: the blower read NOT BUILT, and the scene had hidden it by force-running.
+- **4d, in the playthrough:** 8 x 8 cell, 2 high, 279 t. The tails come over the rim on steel pipe to the top of the tower, so the walls stay whole, and the water leaves the tower's side and goes back over the rim to the mill's header, which the process water pump also feeds.
+- **Power, as played:** the top rung is about 950 kW on two 1 MW sets: the 400 kW cells on one, the rest and the 37 kW water pump on the other. The pump does not fit on the flotation set: with it, starting the 360 kW bank tripped the set at 56.1 Hz.
+
 ## Left out (ROADMAP)
 - Selective lead-then-zinc flotation (still Tim's open DECISION, flotation-bank.md).
 - Reagent doses at the scavengers and cleaners.

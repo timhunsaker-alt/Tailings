@@ -77,7 +77,7 @@ These are real figures; the game multiplies each by the crushing circuit's 90 % 
 | `air_blower` | 2 x 2 x 3 | A multistage centrifugal blower, **75 kW at 480 V**, about 1 m³/s at 50 kPa *(proposed)*, for up to eight cells. It touches the bank |
 | `concentrate_thickener` | 8 x 3 x 8 | An 8 m high-rate thickener, **5.5 kW rake at 480 V**. Concentrate slurry in; thickened concentrate at 60 % solids out *(proposed)*. The overflow water is left out (below) |
 | `pressure_filter` | 3 x 3 x 5 | A plate-and-frame pressure filter to 8 % moisture: **15 kW at 480 V**. Thickened concentrate in on pipe; the cake goes out as items to a hopper under it, or to an empty hand |
-| `tailings_pond_placeholder` | 6 x 2 x 6 | An earthen tailings pond with its berms (decided with Tim, 2026-11-05, R4). Tails slurry in on pipe at any side; it holds about a day of the plant's tails, **3,400 t** *(proposed)*. No motor. A placeholder until Phase 4d's lined cell |
+| `tailings_pond_placeholder` | 6 x 2 x 6 | *Legacy since Phase 4d: Wildcatter's lined cell takes the tails.* An earthen tailings pond with its berms (decided with Tim, 2026-11-05, R4). Tails slurry in on pipe at any side; it holds about a day of the plant's tails, **3,400 t** *(proposed)*. No motor. A placeholder until Phase 4d's lined cell |
 
 **The items the filter pays** are the same ones the ladder pays today (DESIGN.md):
 - the ingot, where the concentrate is one that smelts (copper, gold, galena to lead, acanthite to silver);

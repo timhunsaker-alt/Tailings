@@ -187,3 +187,11 @@ Tim chose real length. `Haul.carOffset` and `tailOffset` replace the one spacing
 ## Phase 4a to 4c (2026-11-06)
 
 Spec: docs/multiblocks/full-recovery.md. `FullRecoveryRates` holds the shares and is unit-tested to 95 % and 4 items for both routes. NeoForge scenes `full_recovery`, `leach_no_acid`, `byproducts`, `heap_leach`: 55 pass. The filmed `recovery` scene and 4d follow Wildcatter v0.4.0.
+
+## Phase 4d (2026-11-06)
+
+Tails to Wildcatter's lined cell on v0.4.0, the pond retired as a legacy part, scenes `tails_to_cell` and `cell_breached`. The playthrough now covers the top rung, the cell and real pumped water.
+
+It passed on 2026-11-06 in 15 minutes, on a **local build of Wildcatter with the solver fix (not yet released)**: 0 unsolved circuits, 0 trips, mean tick about 19 ms, 3 ingots at the main filter, 3 nuggets at the scavengers' filter, 5 at the cells, 3.3 t in the cell. On released v0.4.0 the same run stalls, as two generators never close their breakers.
+
+Three things it found that scenes did not: that solver failure (probably also the old "busway onto the rectifier" gap, which has the same symptom; not re-tested); the blower refusing a scavenger bank, hidden by force-running; and the water pump leaving the flotation set no margin to start the bank.

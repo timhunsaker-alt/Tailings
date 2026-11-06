@@ -143,7 +143,7 @@ R brings it in line, one wave at a time.
 
 ## Phase 4 — Full recovery — next after R
 
-Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **4a, 4b, the heap and 4c are built** (2026-11-06, not yet filmed or played through); 4d waits on Wildcatter v0.4.0.
+Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **All four waves are built** (2026-11-06). The playthrough now runs the top rung and the lined cell for real, on real rock, with nothing force-run; the heap and the by-product plant are proved by NeoForge scenes only, as copper is no by-product ore and the playthrough builds no heap. Selective lead-then-zinc flotation stays Tim's open DECISION.
 
 - **4a.** Scavenger and cleaner flotation beyond the fixed bank, and a regrind.
 - **4b.** Leaching the flotation tails: tank leach with Wildcatter's sulfuric acid, and heap leach on a lined pad.
@@ -180,7 +180,10 @@ These are in the current build on purpose, or because the art and tests have not
 - **The mine light item icon is the old sprite.** Placed `mine_light` uses `mine_light_on` and `mine_light_off`. The item model still points at `textures/block/mine_light.png`.
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
 - **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
-- **The tailings pond is a placeholder (R4b).** `tailings_pond_placeholder` holds 3,400 t of tails, then the bank stops. Its model is plain berms and its recipe is 8 clay. Phase 4d's lined cell replaces it.
+- **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one.
+- **The playthrough needs Wildcatter's solver fix (4d).** On v0.4.0 a dead bus with long busway can fail to solve, and a generator on it never closes its breaker (`Could not solve the circuit`). The fix is in Wildcatter's tree, not yet released, and the 2026-11-06 playthrough ran on a local build of it. Plants on released v0.4.0 can hit this; the NeoForge scenes do not.
+- **Still staged in the playthrough (R10, 4d):** digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, and the forced chunks. The plant's water is real now, from the process pump and the cell's decant.
+- **The scavengers' concentrate has its own thickener and filter in the playthrough (4d),** only as that was the shorter layout; a pipe to the main thickener works too.
 - **Concentrate is mineral only (R4b).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out.
 - **Fines items have no use now (R4b).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.
 - **The sorter's screen is clicks, not a screen (R4c).** A side is set by clicking it with a rock item; the waste side by a sneaking empty-hand click.
@@ -199,7 +202,7 @@ These are in the current build on purpose, or because the art and tests have not
 - **Silent for now (R8).** The traction rectifier, the small phase 1 machines, the reel gantry, and the wheels of an unpowered car. A plant part's sound does not follow its load.
 - **The locomotive and car skins are script-drawn placeholders (R9):** `mine_locomotive_placeholder`, `mine_car_placeholder`, from `tools/models/vehicles.py`, until they come from Ludo.
 - **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
-- **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10, not diagnosed).** Sized cable works, and one train needs only about 110 A.
+- **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10).** Sized cable works, and one train needs only about 110 A. Probably the same solver failure as above, from the same symptom; not re-tested with the fix.
 - **The waste bin backs up in about 90 minutes of driving without a heap (R10).** 992 items in 11 game minutes against 8,192. A belt under it to a `heap_pad` is the way out, and the heap holds 100 blocks at a tenth of the plant's rate.
 - **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot. **By-product item icons are script-drawn placeholders.**
 

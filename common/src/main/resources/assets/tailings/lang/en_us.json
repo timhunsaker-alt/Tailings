@@ -235,7 +235,7 @@
   "block.tailings.reel_gantry": "Reel Gantry",
   "block.tailings.conveyor_gantry": "Conveyor Gantry",
   "entity.tailings.mine_train": "Mine Train (old)",
-  "block.tailings.tailings_pond_placeholder": "Tailings Pond (placeholder)",
+  "block.tailings.tailings_pond_placeholder": "Tailings Pond (legacy)",
   "item.tailings.lime": "Quicklime",
   "item.tailings.xanthate": "Potassium Amyl Xanthate",
   "item.tailings.mibc": "MIBC Frother",

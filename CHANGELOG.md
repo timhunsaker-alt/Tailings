@@ -4,6 +4,13 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## Phase 4d — The lined cell (2026-11-06)
+
+- **Tails go to Wildcatter's lined cell** (v0.4.0), on a real pipe over its rim; the decant's water comes back to the mill. The old pond is a legacy part: no recipe, out of the creative tab.
+- **The playthrough runs Phase 4:** real rock through the scavengers, leach and cells, tails in a lined cell, water from a process pump instead of staged. About 950 kW more, on two more generators.
+- **Fixed, found by the playthrough:** a blower now serves the scavenger bank it touches. The bill of materials counts crafting batches properly.
+- **Tests:** `tails_to_cell`, `cell_breached`.
+
 ## Phase 4a, 4b, 4c — Full recovery (2026-11-06)
 
 - **Scavenger bank, regrind mill, cleaner bank:** 85 % of what floats.
