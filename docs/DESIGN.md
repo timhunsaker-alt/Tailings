@@ -196,7 +196,7 @@ The dump station (R4c, docs/multiblocks/dump-station.md):
 
 `block_signal` claims the next 16 rails in the direction it faces as one section. A train enters only when the signal allows it. The recipe is a redstone torch over an iron ingot. The facing face uses `signal_lamp_off` or `signal_lamp_on`. The other faces use `block_signal.png`.
 
-`traction_rectifier` is a 2×3×2 big part. It feeds rail and switches touching any of its cells, and its AC box is the west face of its main cell. It must be powered like the other Wildcatter machines (`forceRunning` in tests). `spread` marks joined rail and switches as fed and refreshes lights and signals. The recipe is iron, redstone, and a copper block in the middle.
+`traction_rectifier` is a 2×3×2 big part, on Wildcatter's DC solver since R5b (docs/multiblocks/haulage.md): a 250 V source behind 4.2 mΩ (2 % at 300 kW), its minus on earth (the running rails), its plus on every rail or switch touching any of its cells. Each rail and switch is a node of conductor rail at 0.02 Ω/km (`RailBlockEntity` is a Wildcatter `CircuitPart`); rails a block up or down the grade are joined by a span. A locomotive draws through the rail under it, a constant-power load sized from the last solve's volts, and its motors give 74 kW times the square of the volts over 250. A rail over half the rating is fed: lights and block signals beside it light, or go dark. The AC side is a Wildcatter `DriveLoad` at 480 V on the west face of its main cell, drawing the DC watts over 97 %. Its DC breaker trips at 1,500 A held for 1 s; a click resets it. `forceRunning` (tests) runs it without a grid. The recipe is iron, redstone, and a copper block in the middle.
 
 ```
 III

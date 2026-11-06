@@ -3,15 +3,14 @@ package dev.wildcatter.tailings.block;
 import dev.wildcatter.circuit.Circuit;
 import dev.wildcatter.circuit.CircuitPart;
 import dev.wildcatter.circuit.Conductor;
-import dev.wildcatter.circuit.Motor;
+import dev.wildcatter.circuit.DriveLoad;
 import dev.wildcatter.energy.Inspectable;
-import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.energy.Voltage;
+import dev.wildcatter.multiblock.BigPartEntity;
+import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.haul.Haul;
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -21,98 +20,62 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * 480 V in, 250 V DC out to the mine rail (docs/multiblocks/haulage.md). Until R5 the DC side stays inside this part. A rail is fed only while this motor
- * is running and the rail is connected, including a one-block step down the decline.
+ * The traction rectifier (docs/multiblocks/haulage.md): 480 V three-phase in, 250 V DC out to the conductor rail, 300 kW. On
+ * Wildcatter's DC solver it is a 250 V source behind its internal resistance, its minus on the running rails (earth), its plus on
+ * every rail or switch touching it; the track carries it on. Its AC side is a Wildcatter variable load whose draw follows the DC
+ * watts. Its DC breaker trips at 1.25 times its rated current held for 1 s; a click resets it.
  */
 public class RectifierBlockEntity extends BlockEntity implements CircuitPart, Inspectable, BigPartEntity {
+	private static final double POWER_FACTOR = 0.95;
+
 	private boolean grown;
-	private final Motor motor = new Motor(true, Voltage.INDUSTRIAL, Haul.RECTIFIER_WATTS);
-	private final Set<BlockPos> fed = new HashSet<>();
-	private boolean demand = true;
+	private final DriveLoad ac = new DriveLoad(Voltage.INDUSTRIAL, POWER_FACTOR, 0);
 	private boolean forced;
+	private boolean acLive;
+	private boolean tripped;
+	private double over;
+	private int plus = -1;
+	private int branch = -1;
+	private double volts;
+	private double amps;
 
 	public RectifierBlockEntity(BlockPos pos, BlockState state) {
 		super(TailingsBlocks.RECTIFIER, pos, state);
 	}
 
 	public static void tick(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, RectifierBlockEntity rectifier) {
-		if (level.getGameTime() % 20 == 0) {
-			rectifier.spread();
-		}
 	}
 
-	public boolean powered() {
-		return forced || motor.output() > 0;
-	}
-
+	/** The game test runs it without building a grid: its DC side is on whatever the AC side does. */
 	public void forceRunning() {
 		forced = true;
 	}
 
-	public int fedCount() {
-		return fed.size();
+	public boolean powered() {
+		return !tripped && (forced || acLive);
 	}
 
-	public void spread() {
-		if (level == null) {
-			return;
+	public boolean tripped() {
+		return tripped;
+	}
+
+	public double volts() {
+		return volts;
+	}
+
+	public double amps() {
+		return amps;
+	}
+
+	/** Closes the tripped DC breaker again. */
+	public boolean reset() {
+		if (!tripped) {
+			return false;
 		}
-		Set<BlockPos> found = new HashSet<>();
-		if (powered()) {
-			ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-			for (BlockPos cell : dev.wildcatter.multiblock.BigParts.cells(worldPosition, getBlockState())) {
-				for (Direction direction : Direction.values()) {
-					consider(cell.relative(direction), queue, found);
-				}
-			}
-			while (!queue.isEmpty() && found.size() < 128) {
-				BlockPos pos = queue.removeFirst();
-				for (int dy = -1; dy <= 1; dy++) {
-					for (int dx = -1; dx <= 1; dx++) {
-						for (int dz = -1; dz <= 1; dz++) {
-							if (dx == 0 && dy == 0 && dz == 0) {
-								continue;
-							}
-							consider(pos.offset(dx, dy, dz), queue, found);
-						}
-					}
-				}
-			}
-		}
-		for (BlockPos old : fed) {
-			if (!found.contains(old) && level.getBlockEntity(old) instanceof RailBlockEntity rail) {
-				rail.setPowered(false);
-			}
-		}
-		fed.clear();
-		for (BlockPos pos : found) {
-			if (level.getBlockEntity(pos) instanceof RailBlockEntity rail) {
-				rail.setPowered(true);
-				fed.add(pos);
-				lightNeighbors(pos);
-			}
-		}
+		tripped = false;
+		over = 0;
 		setChanged();
-	}
-
-	private void lightNeighbors(BlockPos rail) {
-		for (Direction direction : Direction.values()) {
-			BlockPos beside = rail.relative(direction);
-			BlockState state = level.getBlockState(beside);
-			if (state.getBlock() instanceof MineLightBlock) {
-				MineLightBlock.refresh(level, beside, state);
-			} else if (state.getBlock() instanceof BlockSignalBlock && !state.getValue(BlockSignalBlock.LIT)) {
-				level.setBlock(beside, state.setValue(BlockSignalBlock.LIT, true), 3);
-			}
-		}
-	}
-
-	private void consider(BlockPos pos, ArrayDeque<BlockPos> queue, Set<BlockPos> found) {
-		// a switch is track too: without it a fed train could never take a turnout
-		var block = level.getBlockState(pos).getBlock();
-		if ((block == TailingsBlocks.MINE_RAIL || block == TailingsBlocks.MINE_SWITCH) && found.add(pos)) {
-			queue.add(pos);
-		}
+		return true;
 	}
 
 	@Override
@@ -123,22 +86,61 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 	/** Its AC terminal box is on the west face of its main cell, turned with it. */
 	@Override
 	public boolean hasPortAt(BlockPos cell, Direction face, Conductor role, Voltage voltage) {
-		return cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == motor.voltage() && role != Conductor.N;
+		return cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == ac.voltage() && role != Conductor.N;
 	}
 
 	@Override
 	public void build(Circuit circuit) {
-		motor.build(circuit, worldPosition, java.util.List.of(TailingsPartBlock.boxFace(getBlockState())));
+		ac.setDemand(volts * amps / Haul.RECTIFIER_EFFICIENCY);
+		ac.build(circuit, worldPosition, List.of(TailingsPartBlock.boxFace(getBlockState())));
+		plus = circuit.node();
+		branch = -1;
+		if (powered()) {
+			int inside = circuit.node();
+			circuit.source(inside, 0, Haul.TRACTION_VOLTS);
+			branch = circuit.resistor(inside, plus, Haul.RECTIFIER_OHMS);
+		}
+		List<BlockPos> cells = BigParts.cells(worldPosition, getBlockState());
+		for (BlockPos cell : cells) {
+			for (Direction face : Direction.values()) {
+				BlockPos there = cell.relative(face);
+				var block = level.getBlockState(there).getBlock();
+				if (!cells.contains(there) && (block == TailingsBlocks.MINE_RAIL || block == TailingsBlocks.MINE_SWITCH)) {
+					circuit.dcPort(cell, face, plus, Haul.CONDUCTOR_OHMS_PER_METRE / 2, false);
+				}
+			}
+		}
 	}
 
 	@Override
 	public void apply(Circuit circuit, int ticks) {
-		motor.apply(circuit, ticks, demand);
+		ac.apply(circuit, ticks);
+		acLive = ac.volts() > 1 && !ac.undervoltage();
+		if (branch < 0) {
+			volts = 0;
+			amps = 0;
+			return;
+		}
+		volts = circuit.dcVolts(plus);
+		amps = Math.abs(circuit.dcAmps(branch));
+		if (amps > Haul.TRIP_SHARE * Haul.RECTIFIER_AMPS) {
+			over += ticks / 20.0;
+			if (over >= Haul.TRIP_SECONDS) {
+				tripped = true;
+				over = 0;
+				setChanged();
+			}
+		} else {
+			over = 0;
+		}
 	}
 
 	@Override
 	public Component inspect() {
-		return Component.literal("Traction rectifier (300 kW, 250 V DC inside): " + fed.size() + " rails; " + motor.describe());
+		String dc = tripped ? "DC breaker TRIPPED on overload: click to reset"
+				: powered() ? String.format("%.0f V DC, %.0f A, %.0f kW to the track", volts, amps, volts * amps / 1000)
+				: "no 480 V in";
+		return Component.literal("Traction rectifier (300 kW, 250 V DC): " + dc + "; AC " + ac.describe());
 	}
 
 	@Override
@@ -156,11 +158,13 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
 		output.putBoolean("grown", grown);
+		output.putBoolean("tripped", tripped);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		grown = input.getBooleanOr("grown", false);
+		tripped = input.getBooleanOr("tripped", false);
 	}
 }

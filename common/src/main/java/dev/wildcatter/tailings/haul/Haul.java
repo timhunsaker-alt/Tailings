@@ -44,6 +44,19 @@ public final class Haul {
 	/** The traction rectifier (unverified): 300 kW, 250 V DC to the conductor rail. */
 	public static final int RECTIFIER_WATTS = 300_000;
 	public static final double TRACTION_VOLTS = 250.0;
+	/** Its rated current, 1,200 A. */
+	public static final double RECTIFIER_AMPS = RECTIFIER_WATTS / TRACTION_VOLTS;
+	/** Its internal resistance, a 2 % drop at its rating (proposed): about 4.2 milliohm. */
+	public static final double RECTIFIER_OHMS = 0.02 * TRACTION_VOLTS / RECTIFIER_AMPS;
+	/** Its DC breaker trips at 1.25 times its rating held for 1 s, as Wildcatter's rectifier does. */
+	public static final double TRIP_SHARE = 1.25;
+	public static final double TRIP_SECONDS = 1.0;
+	/** Its AC draw is the DC watts over this (proposed). */
+	public static final double RECTIFIER_EFFICIENCY = 0.97;
+	/** The conductor rail with its return, 0.02 ohm/km (proposed; steel conductor rail is 0.007-0.02). */
+	public static final double CONDUCTOR_OHMS_PER_METRE = 0.02 / 1000;
+	/** A rail is fed while its volts are over this share of the rating (proposed). */
+	public static final double FED_SHARE = 0.5;
 
 	private Haul() {
 	}

@@ -38,4 +38,14 @@ class TractionTest {
 		assertEquals(18_000, Traction.mass(10, 0), 1e-6);
 		assertTrue(Traction.mass(3, Haul.CAR_ITEMS) > Traction.mass(3, 0));
 	}
+
+	@Test
+	void theRectifierIsSizedFromItsRating() {
+		assertEquals(1_200, Haul.RECTIFIER_AMPS, 1e-9, "300 kW at 250 V");
+		assertEquals(0.0042, Haul.RECTIFIER_OHMS, 0.0001, "a 2 % drop at its rating");
+		assertEquals(5.0, Haul.RECTIFIER_OHMS * Haul.RECTIFIER_AMPS, 1e-9);
+		assertEquals(1_500, Haul.TRIP_SHARE * Haul.RECTIFIER_AMPS, 1e-9, "it trips at 1,500 A held for a second");
+		assertEquals(296, Haul.TRACTION_WATTS / Haul.TRACTION_VOLTS, 1, "a locomotive's 74 kW is 296 A");
+		assertEquals(0.002, Haul.CONDUCTOR_OHMS_PER_METRE * 100, 1e-12, "100 m of conductor rail and return");
+	}
 }

@@ -109,12 +109,14 @@ R brings it in line, one wave at a time.
   - **R4c. The dump station — DONE (2026-11-05).** The pocket takes whole car loads up to one train; the apron feeder draws a
     stack a second to the sorter; the sorter sends each type out of the side set for it into the ore bin there; a loaded car over
     a full pocket holds the train.
-- **R5. Haulage, per haulage.md.** Decided with Tim on 2026-11-05: the rectifier is a Tailings DC source on Wildcatter's DC solver;
+- **R5. Haulage, per haulage.md — DONE (2026-11-05).** Decided with Tim on 2026-11-05: the rectifier is a Tailings DC source on Wildcatter's DC solver;
   two waves; couplings never break in R5; trains saved on rails become entities.
   - **R5a. Trains as entities — DONE (2026-11-05).** Every vehicle is an entity and trains glide along the rails, through switches
     and up and down the decline, at speeds from power over force; placing, coupling, run/hold/reverse, signals, the dump, the
     drill's loading point, derailing, harm, chunk tickets; the ratings in `haul.Haul`.
-  - **R5b. The rectifier on Wildcatter's DC solver.** A 250 V source, the rails as the conductor, locomotives as DC loads.
+  - **R5b. The rectifier on Wildcatter's DC solver — DONE (2026-11-05).** A 250 V source behind 2 %, with its DC breaker (1.25 x
+    for 1 s) and an AC draw that follows the trains; the rails as the conductor rail; locomotives as DC loads whose speed follows
+    the track's volts.
 - **R6. The contraption TBM**, per tunnel-boring-machine.md.
 - **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
   its fixes.
@@ -122,8 +124,6 @@ R brings it in line, one wave at a time.
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
-- The traction rectifier's DC source: a voltage-regulated Wildcatter rectifier, or a Tailings source on Wildcatter's DC solver
-  (haulage.md).
 - Carried from the first draft: the 1-in-1 steep option, leaking broken lining (tunnel-boring-machine.md). Ballast on the decline:
   decided with Tim (2026-11-05), yes if it can be done, in R6.
 
@@ -170,7 +170,7 @@ These are in the current build on purpose, or because the art and tests have not
 - **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel.
 - **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron.
 - **R3 models were not seen in a live client.** They were checked as previews (`build/model-previews/`) and by ModelLint. Screenshots come with R7.
-- **Trains still run on the rectifier's on/off feed until R5b.** Full power on any fed rail; no voltage drop yet.
+- **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in. A line split by unloaded chunks loses its far end until they load.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).

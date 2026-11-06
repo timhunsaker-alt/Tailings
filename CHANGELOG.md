@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R5b — Traction power on Wildcatter's DC solver (2026-11-05)
+
+- **The traction rectifier** is a real 250 V DC source on Wildcatter's circuit, with a DC breaker (trips at 1.25x for 1 s; click to reset). Its 480 V draw follows the trains.
+- **The track is the conductor rail:** volts fall along a long line, so a long drive wants a second rectifier.
+- **Locomotives draw real DC power,** and their speed follows the track's volts.
+- **Lights and signals** go dark when their rail is not fed.
+- **Tests:** game tests `traction_dc`, `traction_trip`, `traction_far`.
+
 ## R5a — Trains as entities (2026-11-05)
 
 - **Every vehicle is an entity,** and trains glide along the track instead of jumping a block at a time.

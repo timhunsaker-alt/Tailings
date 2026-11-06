@@ -117,6 +117,15 @@ first draft and is still to be checked.
   Track broken under a train, or ahead closer than it can stop, derails it.
 - **Spacing:** cars sit at the existing models' length until the art pass (R7) draws them at their real length.
 
+## Added while building R5b
+- **The conductor rail on Wildcatter's solver:** each rail or switch is one node, joined to its neighbours at 0.02 ohm/km; rails a
+  block up or down the grade are joined by a span. The running rails are the return (earth).
+- **A locomotive's power** is what the track's volts give it: its 74 kW at 250 V, falling with the square of the volts *(proposed)*;
+  it draws only what it uses (holding the grade, rolling, speeding up) through the rail under it.
+- **Fed track:** a rail is fed while its volts are over half the rating *(proposed)*; lights and block signals beside it go dark when
+  it is not.
+- **The rectifier's AC side:** a Wildcatter variable load at power factor 0.95 *(proposed)*.
+
 ## Breaking and removing
 - **Breaking a track piece** leaves the rest. A train reaching the gap derails: the cars at the gap stop and drop their loads as
   items, and the train reads DERAILED until it is put back on the rail *(proposed)*.

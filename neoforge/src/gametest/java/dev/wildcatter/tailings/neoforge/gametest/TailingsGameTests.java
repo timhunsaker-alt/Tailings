@@ -71,11 +71,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits");
+			"dump_station", "dump_waits", "traction_dc");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -100,6 +100,9 @@ public class TailingsGameTests {
 			helper.register(id("train_derail"), loaded(TailingsGameTests::trainDerail));
 			helper.register(id("train_harm"), loaded(TailingsGameTests::trainHarm));
 			helper.register(id("train_migrate"), loaded(TailingsGameTests::trainMigrate));
+			helper.register(id("traction_dc"), loaded(TailingsGameTests::tractionDc));
+			helper.register(id("traction_trip"), loaded(TailingsGameTests::tractionTrip));
+			helper.register(id("traction_far"), loaded(TailingsGameTests::tractionFar));
 			helper.register(id("train_tickets"), loaded(TailingsGameTests::trainTickets));
 			helper.register(id("drill_blocked"), loaded(TailingsGameTests::drillBlocked));
 			helper.register(id("plant_drops"), loaded(TailingsGameTests::plantDrops));
@@ -552,7 +555,6 @@ public class TailingsGameTests {
 		for (int z = 0; z <= last; z++) {
 			helper.setBlock(new BlockPos(3, y, z), rail);
 		}
-		box.spread();
 	}
 
 	private static MineVehicleEntity loco(GameTestHelper helper, BlockPos at, Heading heading) {
@@ -581,13 +583,14 @@ public class TailingsGameTests {
 		int y = 60;
 		track(helper, y, 12);
 		RailBlockEntity fed = helper.getBlockEntity(new BlockPos(3, y, 9), RailBlockEntity.class);
-		helper.assertTrue(fed.powered() && fed.conductorLive(), Component.literal("the rectifier should feed the track joined to it"));
 		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 8), Heading.NORTH);
 		MineVehicleEntity car = car(helper, new BlockPos(3, y, 9), Heading.NORTH);
 		helper.assertTrue(car.locomotiveId() != null && loco.carIds().size() == 1, Component.literal("the car should couple to the locomotive ahead"));
 		car.load().add("minecraft:cobblestone", 2);
 		car.refreshLoad();
 		helper.succeedWhen(() -> {
+			helper.assertTrue(fed.powered() && fed.conductorLive() && fed.volts() > 240, Component.literal("the rectifier should feed the track joined to it, "
+					+ fed.volts() + " V"));
 			helper.assertTrue(relZ(helper, loco) < 4, Component.literal("the locomotive should glide north, at z " + relZ(helper, loco) + " (" + loco.status() + ")"));
 			helper.assertTrue(Math.abs(relZ(helper, car) - relZ(helper, loco) - Haul.SPACING) < 0.05, Component.literal("the car should keep its place behind"));
 			helper.assertTrue(car.load().total() == 2, Component.literal("the car keeps its load"));
@@ -627,7 +630,6 @@ public class TailingsGameTests {
 		for (int x = 4; x <= 12; x++) {
 			helper.setBlock(new BlockPos(x, y, 1), TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST));
 		}
-		helper.getBlockEntity(new BlockPos(1, y, 2), RectifierBlockEntity.class).spread();
 		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 5), Heading.NORTH);
 		MineVehicleEntity first = car(helper, new BlockPos(3, y, 6), Heading.NORTH);
 		MineVehicleEntity second = car(helper, new BlockPos(3, y, 7), Heading.NORTH);
@@ -655,7 +657,6 @@ public class TailingsGameTests {
 		for (int z = 0; z <= 4; z++) {
 			helper.setBlock(new BlockPos(3, top - 3, z), flat);
 		}
-		box.spread();
 		MineVehicleEntity loco = loco(helper, new BlockPos(3, top, 13), Heading.NORTH);
 		double[] most = {0, 0};   // fastest down the grade, fastest up it
 		helper.onEachTick(() -> {
@@ -786,6 +787,89 @@ public class TailingsGameTests {
 				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0 && pocket.pocket() == Haul.POCKET_ITEMS,
 						Component.literal("with room, the car tips")))
 				.thenSucceed();
+	}
+
+	/**
+	 * A 14 t train (the locomotive, three cars, one of them full) climbs the 1-in-2 rack decline on the rectifier's 250 V
+	 * (haulage.md, check 2): the rectifier's DC amps rise while it climbs, and it climbs at about 1.2 m/s, power over force.
+	 */
+	private static void tractionDc(GameTestHelper helper) {
+		int top = 64;
+		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, new BlockPos(1, top - 3, 2), RectifierBlockEntity.class);
+		box.forceRunning();
+		BlockState flat = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 0; z <= 10; z++) {
+			helper.setBlock(new BlockPos(3, top - 3, z), flat);
+		}
+		for (int k = 0; k < 3; k++) {
+			helper.setBlock(new BlockPos(3, top - k, 16 - 2 * k), flat.setValue(MineRailBlock.GRADE, RailGrade.UPPER).setValue(MineRailBlock.RACK, true));
+			helper.setBlock(new BlockPos(3, top - k, 15 - 2 * k), flat.setValue(MineRailBlock.GRADE, RailGrade.LOWER).setValue(MineRailBlock.RACK, true));
+		}
+		for (int z = 17; z <= 26; z++) {
+			helper.setBlock(new BlockPos(3, top, z), flat);
+		}
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, top - 3, 8), Heading.SOUTH);
+		MineVehicleEntity full = car(helper, new BlockPos(3, top - 3, 7), Heading.SOUTH);
+		car(helper, new BlockPos(3, top - 3, 6), Heading.SOUTH);
+		car(helper, new BlockPos(3, top - 3, 5), Heading.SOUTH);
+		full.load().add("minecraft:cobblestone", Haul.CAR_ITEMS);
+		helper.assertTrue(loco.carIds().size() == 3, Component.literal("three cars should couple, got " + loco.carIds().size()));
+		double[] seen = {0, 0, 0};   // fastest on the upper grade, slowest there, most amps
+		helper.onEachTick(() -> {
+			double z = relZ(helper, loco);
+			if (z > 13.5 && z < 16.5) {
+				seen[0] = Math.max(seen[0], loco.speed());
+				seen[1] = seen[1] == 0 ? loco.speed() : Math.min(seen[1], loco.speed());
+				seen[2] = Math.max(seen[2], box.amps());
+			}
+		});
+		helper.succeedWhen(() -> {
+			helper.assertTrue(relZ(helper, loco) > 18, Component.literal("the train should climb to the top, at " + loco.position() + " (" + loco.status() + ")"));
+			helper.assertTrue(Math.abs(seen[0] - 1.18) < 0.08 && seen[1] > 1.0, Component.literal("it should climb at about 1.2 m/s, between "
+					+ seen[1] + " and " + seen[0]));
+			helper.assertTrue(seen[2] > 250, Component.literal("the rectifier's amps should rise while it climbs, most " + seen[2]));
+		});
+	}
+
+	/** Twice the rectifier's rating held on the track trips its DC breaker after a second; the track goes dead; a reset feeds it. */
+	private static void tractionTrip(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 6);
+		RectifierBlockEntity box = helper.getBlockEntity(new BlockPos(1, y, 2), RectifierBlockEntity.class);
+		RailBlockEntity rail = helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class);
+		boolean[] loading = {true};
+		helper.onEachTick(() -> {
+			if (loading[0]) {
+				rail.draw(2 * Haul.RECTIFIER_WATTS);
+			}
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(box.tripped(), Component.literal("the DC breaker should trip, " + box.amps() + " A")))
+				.thenExecute(() -> loading[0] = false)
+				.thenWaitUntil(() -> helper.assertFalse(rail.powered(), Component.literal("the track should go dead")))
+				.thenExecute(() -> helper.assertTrue(box.reset(), Component.literal("a click resets it")))
+				.thenWaitUntil(() -> helper.assertTrue(rail.powered() && rail.volts() > 240, Component.literal("the track is fed again")))
+				.thenSucceed();
+	}
+
+	/** Along 120 m of conductor rail the volts fall under a 300 kW load at its far end: 0.02 ohm/km. */
+	private static void tractionFar(GameTestHelper helper) {
+		int y = 60;
+		ChunkPos origin = ChunkPos.containing(helper.absolutePos(BlockPos.ZERO));
+		for (int dz = 2; dz <= 9; dz++) {
+			for (int dx = -1; dx <= 1; dx++) {
+				helper.getLevel().setChunkForced(origin.x() + dx, origin.z() + dz, true);
+			}
+		}
+		track(helper, y, 120);
+		RailBlockEntity near = helper.getBlockEntity(new BlockPos(3, y, 3), RailBlockEntity.class);
+		RailBlockEntity far = helper.getBlockEntity(new BlockPos(3, y, 120), RailBlockEntity.class);
+		helper.onEachTick(() -> far.draw(Haul.RECTIFIER_WATTS));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(far.powered(), Component.literal("the far end should be fed, " + far.volts() + " V"));
+			double drop = near.volts() - far.volts();
+			helper.assertTrue(drop > 1.5 && drop < 5, Component.literal("about 1,200 A over 117 m of rail should drop 2.8 V, got " + drop));
+		});
 	}
 
 	/** The entity layers bake, and the rail surface meets across a 1-in-2 pair. */

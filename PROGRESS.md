@@ -43,6 +43,18 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R5b: the traction rectifier on Wildcatter's DC solver (2026-11-05); R5 done
+
+The track carries real DC power, as haulage.md says (Tim's choice: a Tailings source on Wildcatter's solver):
+- the traction rectifier is a 250 V source behind its 2 % internal resistance, with a DC breaker that trips at 1.25 times its
+  rating for a second; its 480 V draw follows the trains;
+- every rail and switch is a length of conductor rail on Wildcatter's circuit, so the volts fall along a long line;
+- each locomotive is a DC load drawing what it uses through the rail under it, and its power, so its speed, follows the volts;
+- lights and signals follow whether their rail is fed.
+
+**Tests:** `TractionTest` (the rectifier's sizing); game tests `traction_dc` (a 14 t train climbs the decline at about 1.2 m/s while
+the rectifier's amps rise), `traction_trip`, `traction_far`; `haul` reads the track's volts.
+
 ## R5a: trains as entities (2026-11-05)
 
 Every locomotive and car is an entity, and trains glide along the rails as haulage.md says:

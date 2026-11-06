@@ -400,6 +400,9 @@ public class MineVehicleEntity extends Entity {
 		Track.Step under = path.stepAt(front);
 		RailBlockEntity rail = server.getBlockEntity(RailView.pos(under.cell())) instanceof RailBlockEntity r ? r : null;
 		boolean fed = rail != null && rail.conductorLive();
+		// the motors take what the track's volts give them: full power at 250 V, less as the volts fall along the line
+		double share = rail == null ? 0 : Math.min(1, Math.pow(rail.volts() / Haul.TRACTION_VOLTS, 2));
+		double available = fed ? Haul.TRACTION_WATTS * share : 0;
 		double sine = Track.sine(under) * direction;
 		int items = 0;
 		for (MineVehicleEntity v : train) {
@@ -413,12 +416,12 @@ public class MineVehicleEntity extends Entity {
 			why = "held";
 		} else if (!fed) {
 			target = 0;
-			why = "NO POWER: its rail is not fed";
+			why = "NO POWER: the track under it is not fed";
 		} else if (under.cell().graded() && !under.cell().rack()) {
 			target = 0;
 			why = "NO RACK on the grade";
 		} else {
-			target = Traction.limit(mass, sine, Haul.TRACTION_WATTS);
+			target = Traction.limit(mass, sine, available);
 			why = String.format("running %.1f m/s", speed);
 		}
 		double stop = ahead;
@@ -452,12 +455,18 @@ public class MineVehicleEntity extends Entity {
 			endWait = Haul.END_WAIT_TICKS;
 			why = "at the end of the track";
 		}
+		boolean speeding = target > speed;
 		speed = Traction.approach(speed, target, TICK);
 		double move = Math.min(speed * TICK, Math.max(0, stop));
 		if (move < speed * TICK) {
 			speed = move / TICK;   // held short by what is ahead
 		}
 		front += move * direction;
+		if (rail != null) {
+			// what it draws through its shoe: holding the grade and rolling, and speeding up
+			double force = mass * Haul.GRAVITY * Math.max(0, sine + Haul.ROLLING) + (speeding ? mass * Haul.ACCELERATION : 0);
+			rail.draw(Math.min(available, force * speed));
+		}
 		enterSections(server);
 		// drop the track well behind
 		if (direction > 0) {
