@@ -53,6 +53,10 @@ A Fabric client game test now builds scenes in a real game and films the game wi
 - unfed track could not be solved (its joints are too stiff for the solver's tiny leak): each rail now has its insulators' 1 Mohm leak to
   earth. `traction_unfed` covers it.
 
+## R7: testing and art (2026-11-06)
+
+Every spec now has a filmed client scene. Three things turned up that the server scenes could not show, all fixed: a full train never left a moving gantry; the cab's screen had no slot outlines and ran off its panel; and the name of a missing part never reached the player. 48 game test scenes pass, and all the client scenes. The models stay as they are. R is done; what is left before phase 4 is a survival playthrough.
+
 ## R6c: the gantries (2026-11-06)
 
 Pump, reel and conveyor gantries ride the twin track behind the machine, coupled in order. The conveyor loads the cars behind its tail, trains stop short of it, and a missing gantry or the cable's end stops the machine. 47 game test scenes pass; both drives are filmed with the gantries. R6 is complete; R7 is next.

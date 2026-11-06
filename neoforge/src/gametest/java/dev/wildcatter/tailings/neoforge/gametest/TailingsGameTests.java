@@ -80,11 +80,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -116,6 +116,7 @@ public class TailingsGameTests {
 			helper.register(id("tbm_uncoupled"), loaded(TailingsGameTests::tbmUncoupled));
 			helper.register(id("tbm_gantries_decline"), loaded(TailingsGameTests::tbmGantriesDecline));
 			helper.register(id("tbm_train_stops"), loaded(TailingsGameTests::tbmTrainStops));
+			helper.register(id("tbm_train_turns"), loaded(TailingsGameTests::tbmTrainTurns));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
 			helper.register(id("models"), loaded(TailingsGameTests::models));
 			helper.register(id("train_runs"), loaded(TailingsGameTests::trainRuns));
@@ -1219,6 +1220,18 @@ public class TailingsGameTests {
 				.thenWaitUntil(() -> helper.assertTrue(loco.direction() < 0 && relZ(helper, loco) > 13,
 						Component.literal("it should turn back from the gantry, at z " + relZ(helper, loco) + " (" + loco.status() + ")")))
 				.thenSucceed();
+	}
+
+	/** Behind a gantry moving at the machine's real rate, one block in 20 seconds, the train still turns back. */
+	private static void tbmTrainTurns(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 40);
+		GantryEntity gantry = GantryEntity.place(helper.getLevel(), helper.absolutePos(new BlockPos(3, y, 10)), TbmGantry.CONVEYOR, Direction.NORTH);
+		helper.assertTrue(gantry != null, Component.literal("the gantry should go on the rail"));
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 26), Heading.NORTH);
+		car(helper, new BlockPos(3, y, 27), Heading.NORTH);
+		helper.onEachTick(() -> gantry.setAt(gantry.position().add(0, 0, -0.0025), Direction.NORTH, 0));
+		helper.succeedWhen(() -> helper.assertTrue(loco.direction() < 0, Component.literal("it should turn back from the moving gantry, at z " + relZ(helper, loco) + " (" + loco.status() + ")")));
 	}
 
 	/** A machine with no track layer stays blocks, reads NOT BUILT and names it. */

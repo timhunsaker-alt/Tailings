@@ -56,6 +56,8 @@ import org.jspecify.annotations.Nullable;
 public class MineVehicleEntity extends Entity {
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final double TICK = 1.0 / 20;
+	/** How close behind a gantry a train turns back, in metres. */
+	private static final double GANTRY_TURN = 0.5;
 	/** Cells each train covered on its last tick, per level: two trains never share one. */
 	private static final Map<Level, Map<Long, Claim>> CLAIMS = new WeakHashMap<>();
 
@@ -396,7 +398,8 @@ public class MineVehicleEntity extends Entity {
 		}
 		reachedAhead = ahead;
 		double gantry = gantryAhead(server);
-		if (gantry >= 0 && gantry < ahead) {
+		boolean behindGantry = gantry >= 0 && gantry < ahead;
+		if (behindGantry) {
 			ahead = gantry;   // a gantry over the track is the end of the way: the train turns back there
 		}
 
@@ -454,7 +457,9 @@ public class MineVehicleEntity extends Entity {
 			} else {
 				why = "at the end of the track";
 			}
-		} else if (running && fed && ahead < 0.02 && speed < 0.01 && held == null && (signal < 0 || signal > ahead) && (other < 0 || other > ahead)) {
+		} else if (running && fed && held == null && (signal < 0 || signal > ahead) && (other < 0 || other > ahead)
+				// a gantry on the move never lets the train come to rest behind it, so close behind one is far enough
+				&& (ahead < 0.02 && speed < 0.01 || behindGantry && ahead < GANTRY_TURN)) {
 			endWait = Haul.END_WAIT_TICKS;
 			why = "at the end of the track";
 		}

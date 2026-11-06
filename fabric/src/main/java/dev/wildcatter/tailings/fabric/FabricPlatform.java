@@ -42,7 +42,7 @@ public final class FabricPlatform implements Platform {
 
 			@Override
 			public Component getDisplayName() {
-				return Component.translatable("block.tailings.tunnel_drill");
+				return Component.translatable("container.tailings.tbm");
 			}
 
 			@Override

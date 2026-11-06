@@ -50,7 +50,7 @@ The overlay is a thin element just above the bed (about 0.25 pixels). The bed st
 - The switch cube under the overlay (`minecraft:block/gravel`).
 - Slope, stair, landing, and mine floor, on purpose: they use the mined stone (`minecraft:block/stone`, cobblestone, deepslate, granite, diorite, andesite, tuff, sandstone).
 - The mine light **item** (`textures/block/mine_light.png`). The placed block uses `mine_light_on` and `mine_light_off`.
-- The drill **entity** has no model. The drill **block** uses `tunnel_drill.png`.
+- The old `tunnel_drill` **block**, a legacy item, uses `tunnel_drill.png`. The machine and gantries that replaced it are models from `tools/models/tbm.py`, drawn cell by cell by `TbmRenderer` and `GantryRenderer` while they move.
 
 ## Regenerating
 

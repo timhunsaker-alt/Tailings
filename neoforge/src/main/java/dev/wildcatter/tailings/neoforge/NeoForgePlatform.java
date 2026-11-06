@@ -34,6 +34,6 @@ public final class NeoForgePlatform implements Platform {
 			return;
 		}
 		((IPlayerExtension) server).openMenu(new SimpleMenuProvider((id, inventory, opener) -> new DrillMenu(id, inventory, cab),
-				Component.translatable("block.tailings.tunnel_drill")), cab.menuPos());
+				Component.translatable("container.tailings.tbm")), cab.menuPos());
 	}
 }

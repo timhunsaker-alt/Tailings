@@ -4,6 +4,12 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R7 — Testing and art (2026-11-06)
+
+- **A train behind a moving machine now turns back.** It followed the conveyor forever with full cars, since it never came to rest behind a gantry on the move. Found by filming the whole mine; `tbm_train_turns` covers it at the real advance rate.
+- **The cab's screen:** slots are drawn, with ghosts of what each empty stock slot takes; the status names what is wrong ("NOT BUILT: needs the Pump Gantry coupled behind it"), which never reached the player before; nothing runs off the panel; the stop toggles show their state and say what they do; it is titled Tunnel Boring Machine.
+- **Filmed client scenes:** `crushing`, `flotation`, `dump`, `haul` (the whole mine) and `hand` (real input, then a save and reload in mid-drive). `tbm_decline` is filmed in section.
+
 ## R6c — The gantries (2026-11-06)
 
 - **Pump, reel and conveyor gantries:** placed on the twin track like a car, coupled in order with a sneak-click, and towed behind the machine, pitched to the floor under each.

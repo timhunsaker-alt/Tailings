@@ -125,10 +125,11 @@ R brings it in line, one wave at a time.
   - **R6b. The contraption — DONE (2026-11-06).** The parts lift into one gliding entity, pitched on the decline; they set down on
     the flat, or park on the decline; dismantling; the seat.
   - **R6c. The gantries — DONE (2026-11-06).** Pump, reel and conveyor on the twin track, coupled in order and towed along it; the conveyor's loading point, the cable end, a missing gantry stopping the machine.
-- **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
-  its fixes. Brought forward at Tim's request (2026-11-06): the client test rig and its filming are in, `TAILINGS_ONLY=parts,train,tbm
-  ./gradlew :fabric:runClientGameTest`, each scene filming the game window to `fabric/build/scene-videos`. New scenes get filmed from
-  R6b on.
+- **R7. Testing and art — DONE (2026-11-06):** Fabric client game tests with screenshots and film for every spec:
+  `TAILINGS_ONLY=parts,train,tbm,crushing,flotation,dump,haul,hand ./gradlew :fabric:runClientGameTest`, each scene filming the game
+  window to `fabric/build/scene-videos`. `haul` runs the whole mine: the machine on a decline with a real train taking its muck to the
+  dump. `hand` places, couples and breaks gantries and starts the machine with real input, then saves and quits in mid-drive and
+  checks it goes on after reopening. The in-game look found one thing to fix, the cab's screen; the models stay as they are.
 
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
@@ -189,7 +190,7 @@ These are in the current build on purpose, or because the art and tests have not
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).
-- **The plant running was not filmed yet.** The parts, a train and the machine as blocks were seen in a live client (2026-11-06); the crushing, flotation and dump scenes run only on the server so far.
+- **The filmed scenes are staged.** They run at test speed with the parts force-running, not wired to a real grid, and `crushing`'s cone has no belt off it (as its server scene). Survival play from scratch, crafting every part and powering it from Wildcatter, has not been run start to finish.
 
 Other stand-ins worth knowing:
 
@@ -209,4 +210,4 @@ Other stand-ins worth knowing:
 6. Chunk loading is a ticket on the drill and on each train. Decided 2026-11-03; since R1 (2026-11-05) it is one `tailings:runner` ticket that times out on its own.
 7. Packaging is its own jar that requires Wildcatter. Decided 2026-11-02.
 
-Still open, from the specs: whether Fortune and Silk Touch stay; which extra vanilla ores (redstone, lapis) join the ladder; whether the 1-in-1 steep grade stays in the GUI; whether broken lining leaks; whether gravel ballast belongs on the decline as well as the flat.
+Still open, from the specs: whether Fortune and Silk Touch stay; which extra vanilla ores (redstone, lapis) join the ladder.

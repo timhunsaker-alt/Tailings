@@ -232,6 +232,7 @@
   "block.tailings.mine_landing": "Mine Landing",
   "block.tailings.mine_floor": "Mine Floor",
   "block.tailings.mine_rail": "Mine Rail",
+  "container.tailings.tbm": "Tunnel Boring Machine",
   "block.tailings.tunnel_drill": "Tunnel Drill",
   "block.tailings.dewatering_pump": "Dewatering Pump",
   "block.tailings.block_signal": "Block Signal",

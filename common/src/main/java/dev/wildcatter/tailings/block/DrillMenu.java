@@ -18,6 +18,8 @@ import org.jspecify.annotations.Nullable;
 
 /** The cab screen: six stock slots (rail, gravel, cobble, lining, water, cable), the muck buffer, and the program buttons. */
 public class DrillMenu extends AbstractContainerMenu {
+	private static final int NUMBERS = 12;
+	private static final int STATUS_CHARS = 96;
 	private final Container container;
 	private final ContainerData data;
 	private final @Nullable TbmCab drill;
@@ -32,7 +34,7 @@ public class DrillMenu extends AbstractContainerMenu {
 		super(DrillMenus.DRILL, id);
 		this.drill = drill;
 		this.container = drill == null ? new SimpleContainer(DrillBlockEntity.SLOTS) : drill;
-		this.data = drill == null ? new SimpleContainerData(12) : new Live(drill.core());
+		this.data = drill == null ? new SimpleContainerData(NUMBERS + STATUS_CHARS) : new Live(drill.core());
 		for (int i = 0; i < DrillBlockEntity.INPUTS; i++) {
 			addSlot(new StockSlot(container, i, 8 + i * 18, 96));
 		}
@@ -51,17 +53,24 @@ public class DrillMenu extends AbstractContainerMenu {
 
 	public String readout() {
 		Heading heading = Heading.values()[Math.floorMod(data.get(1), Heading.values().length)];
-		int flags = data.get(4);
-		return "Y " + data.get(0) + "  " + heading.name().toLowerCase(java.util.Locale.ROOT) + "  flat " + data.get(2) + "  1 in 2"
-				+ "\n" + DrillCodes.phrase(data.get(8), data.get(11))
-				+ "\n" + data.get(5) + " blocks, floor Y " + data.get(6) + ", cable " + data.get(7)
-				+ ", pumped " + data.get(9) + " m3, quench " + data.get(10)
-				+ "\nore " + bit(flags, 0) + "  cable " + bit(flags, 1) + "  liquid " + bit(flags, 2) + "  empty " + bit(flags, 3)
-				+ (bit(flags, 4).equals("on") ? "  running" : "  stopped");
+		return "Y " + data.get(0) + "  " + heading.name().toLowerCase(java.util.Locale.ROOT) + "  flat " + data.get(2) + "  " + (on(4) ? "running" : "stopped")
+				+ "\n" + statusLine()
+				+ "\n" + data.get(5) + " blocks" + (data.get(5) > 0 ? ", floor Y " + data.get(6) : "") + ", cable " + data.get(7)
+				+ "\npumped " + data.get(9) + " m3, quench " + data.get(10);
 	}
 
-	private static String bit(int flags, int bit) {
-		return (flags & (1 << bit)) != 0 ? "on" : "off";
+	/** The status as the server words it, sent a character to a data slot, since that is what a menu syncs. */
+	private String statusLine() {
+		StringBuilder line = new StringBuilder();
+		for (int i = 0; i < STATUS_CHARS && data.get(NUMBERS + i) != 0; i++) {
+			line.append((char) data.get(NUMBERS + i));
+		}
+		return line.isEmpty() ? DrillCodes.phrase(data.get(8), data.get(11)) : line.toString();
+	}
+
+	/** One of the program's flags: 0 ore, 1 cable, 2 liquid, 3 empty, 4 running. */
+	public boolean on(int bit) {
+		return (data.get(4) & (1 << bit)) != 0;
 	}
 
 	@Override
@@ -159,7 +168,11 @@ public class DrillMenu extends AbstractContainerMenu {
 				case 9 -> drill.drill().pumped();
 				case 10 -> drill.tank();
 				case 11 -> drill.lack();
-				default -> 0;
+				default -> {
+					String line = drill.statusLine();
+					int at = index - NUMBERS;
+					yield at >= 0 && at < line.length() ? line.charAt(at) : 0;
+				}
 			};
 		}
 
@@ -189,7 +202,7 @@ public class DrillMenu extends AbstractContainerMenu {
 
 		@Override
 		public int getCount() {
-			return 12;
+			return NUMBERS + STATUS_CHARS;
 		}
 	}
 }

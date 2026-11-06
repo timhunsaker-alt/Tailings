@@ -467,8 +467,14 @@ public final class TbmCore {
 		};
 	}
 
+	/** The status in words: the fuller note where it has one, as "NOT BUILT: needs the Pump Gantry". */
+	public String statusLine() {
+		String phrase = DrillCodes.phrase(status, lack);
+		return note.isEmpty() ? phrase : note.startsWith(DrillCodes.phrase(status, DrillCodes.LACK_NONE)) ? note : phrase + " (" + note + ")";
+	}
+
 	public String readout() {
-		return DrillCodes.phrase(status, lack) + (note.isEmpty() || note.startsWith(DrillCodes.phrase(status, DrillCodes.LACK_NONE)) ? "" : " (" + note + ")")
+		return statusLine()
 				+ "; floor Y " + drill.floorY() + "; " + drill.advanceCount() + " blocks driven; cable left " + cableLeft() + " m";
 	}
 
