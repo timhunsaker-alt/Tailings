@@ -183,3 +183,7 @@ Tim chose real length. `Haul.carOffset` and `tailOffset` replace the one spacing
 ## R10: the playthrough, and G: the spiral bank (2026-11-06)
 
 `Playthrough.java` plays the mine in a real world; `spirals` films the new part. Tim saw the first attempts die: the scene dug the pit under the player, who fell in, and the locked test window sat on the death screen. The player now goes to spectator first, and the scene fails if they die. The mean tick was 12 ms with six generators and the whole plant running. Bill of materials in `playthrough-bill.txt`: about 3,700 copper ingots, 2,100 iron, 1,000 steel and 1,300 plastic sheet, mostly cable and busway. 51 NeoForge scenes pass.
+
+## Phase 4a to 4c (2026-11-06)
+
+Spec: docs/multiblocks/full-recovery.md. `FullRecoveryRates` holds the shares and is unit-tested to 95 % and 4 items for both routes. NeoForge scenes `full_recovery`, `leach_no_acid`, `byproducts`, `heap_leach`: 55 pass. The filmed `recovery` scene and 4d follow Wildcatter v0.4.0.

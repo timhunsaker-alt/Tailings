@@ -1,0 +1,2704 @@
+{
+ "variants": {
+  "facing=north,piece=0": {
+   "model": "tailings:block/scavenger_bank/p0"
+  },
+  "facing=north,piece=1": {
+   "model": "tailings:block/scavenger_bank/p1"
+  },
+  "facing=north,piece=2": {
+   "model": "tailings:block/scavenger_bank/p2"
+  },
+  "facing=north,piece=3": {
+   "model": "tailings:block/scavenger_bank/p3"
+  },
+  "facing=north,piece=4": {
+   "model": "tailings:block/scavenger_bank/p4"
+  },
+  "facing=north,piece=5": {
+   "model": "tailings:block/scavenger_bank/p5"
+  },
+  "facing=north,piece=6": {
+   "model": "tailings:block/scavenger_bank/p6"
+  },
+  "facing=north,piece=7": {
+   "model": "tailings:block/scavenger_bank/p7"
+  },
+  "facing=north,piece=8": {
+   "model": "tailings:block/scavenger_bank/p8"
+  },
+  "facing=north,piece=9": {
+   "model": "tailings:block/scavenger_bank/p9"
+  },
+  "facing=north,piece=10": {
+   "model": "tailings:block/scavenger_bank/p10"
+  },
+  "facing=north,piece=11": {
+   "model": "tailings:block/scavenger_bank/p11"
+  },
+  "facing=north,piece=12": {
+   "model": "tailings:block/scavenger_bank/p12"
+  },
+  "facing=north,piece=13": {
+   "model": "tailings:block/scavenger_bank/p13"
+  },
+  "facing=north,piece=14": {
+   "model": "tailings:block/scavenger_bank/p14"
+  },
+  "facing=north,piece=15": {
+   "model": "tailings:block/scavenger_bank/p15"
+  },
+  "facing=north,piece=16": {
+   "model": "tailings:block/scavenger_bank/p16"
+  },
+  "facing=north,piece=17": {
+   "model": "tailings:block/scavenger_bank/p17"
+  },
+  "facing=north,piece=18": {
+   "model": "tailings:block/scavenger_bank/p18"
+  },
+  "facing=north,piece=19": {
+   "model": "tailings:block/scavenger_bank/p19"
+  },
+  "facing=north,piece=20": {
+   "model": "tailings:block/scavenger_bank/p20"
+  },
+  "facing=north,piece=21": {
+   "model": "tailings:block/scavenger_bank/p21"
+  },
+  "facing=north,piece=22": {
+   "model": "tailings:block/scavenger_bank/p22"
+  },
+  "facing=north,piece=23": {
+   "model": "tailings:block/scavenger_bank/p23"
+  },
+  "facing=north,piece=24": {
+   "model": "tailings:block/scavenger_bank/p24"
+  },
+  "facing=north,piece=25": {
+   "model": "tailings:block/scavenger_bank/p25"
+  },
+  "facing=north,piece=26": {
+   "model": "tailings:block/scavenger_bank/p26"
+  },
+  "facing=north,piece=27": {
+   "model": "tailings:block/scavenger_bank/p27"
+  },
+  "facing=north,piece=28": {
+   "model": "tailings:block/scavenger_bank/p28"
+  },
+  "facing=north,piece=29": {
+   "model": "tailings:block/scavenger_bank/p29"
+  },
+  "facing=north,piece=30": {
+   "model": "tailings:block/scavenger_bank/p30"
+  },
+  "facing=north,piece=31": {
+   "model": "tailings:block/scavenger_bank/p31"
+  },
+  "facing=north,piece=32": {
+   "model": "tailings:block/scavenger_bank/p32"
+  },
+  "facing=north,piece=33": {
+   "model": "tailings:block/scavenger_bank/p33"
+  },
+  "facing=north,piece=34": {
+   "model": "tailings:block/scavenger_bank/p34"
+  },
+  "facing=north,piece=35": {
+   "model": "tailings:block/scavenger_bank/p35"
+  },
+  "facing=north,piece=36": {
+   "model": "tailings:block/scavenger_bank/p36"
+  },
+  "facing=north,piece=37": {
+   "model": "tailings:block/scavenger_bank/p37"
+  },
+  "facing=north,piece=38": {
+   "model": "tailings:block/scavenger_bank/p38"
+  },
+  "facing=north,piece=39": {
+   "model": "tailings:block/scavenger_bank/p39"
+  },
+  "facing=north,piece=40": {
+   "model": "tailings:block/scavenger_bank/p40"
+  },
+  "facing=north,piece=41": {
+   "model": "tailings:block/scavenger_bank/p41"
+  },
+  "facing=north,piece=42": {
+   "model": "tailings:block/scavenger_bank/p42"
+  },
+  "facing=north,piece=43": {
+   "model": "tailings:block/scavenger_bank/p43"
+  },
+  "facing=north,piece=44": {
+   "model": "tailings:block/scavenger_bank/p44"
+  },
+  "facing=north,piece=45": {
+   "model": "tailings:block/scavenger_bank/p45"
+  },
+  "facing=north,piece=46": {
+   "model": "tailings:block/scavenger_bank/p46"
+  },
+  "facing=north,piece=47": {
+   "model": "tailings:block/scavenger_bank/p47"
+  },
+  "facing=north,piece=48": {
+   "model": "tailings:block/scavenger_bank/p48"
+  },
+  "facing=north,piece=49": {
+   "model": "tailings:block/scavenger_bank/p49"
+  },
+  "facing=north,piece=50": {
+   "model": "tailings:block/scavenger_bank/p50"
+  },
+  "facing=north,piece=51": {
+   "model": "tailings:block/scavenger_bank/p51"
+  },
+  "facing=north,piece=52": {
+   "model": "tailings:block/scavenger_bank/p52"
+  },
+  "facing=north,piece=53": {
+   "model": "tailings:block/scavenger_bank/p53"
+  },
+  "facing=north,piece=54": {
+   "model": "tailings:block/scavenger_bank/p54"
+  },
+  "facing=north,piece=55": {
+   "model": "tailings:block/scavenger_bank/p55"
+  },
+  "facing=north,piece=56": {
+   "model": "tailings:block/scavenger_bank/p56"
+  },
+  "facing=north,piece=57": {
+   "model": "tailings:block/scavenger_bank/p57"
+  },
+  "facing=north,piece=58": {
+   "model": "tailings:block/scavenger_bank/p58"
+  },
+  "facing=north,piece=59": {
+   "model": "tailings:block/scavenger_bank/p59"
+  },
+  "facing=north,piece=60": {
+   "model": "tailings:block/scavenger_bank/p60"
+  },
+  "facing=north,piece=61": {
+   "model": "tailings:block/scavenger_bank/p61"
+  },
+  "facing=north,piece=62": {
+   "model": "tailings:block/scavenger_bank/p62"
+  },
+  "facing=north,piece=63": {
+   "model": "tailings:block/scavenger_bank/p63"
+  },
+  "facing=north,piece=64": {
+   "model": "tailings:block/scavenger_bank/p64"
+  },
+  "facing=north,piece=65": {
+   "model": "tailings:block/scavenger_bank/p65"
+  },
+  "facing=north,piece=66": {
+   "model": "tailings:block/scavenger_bank/p66"
+  },
+  "facing=north,piece=67": {
+   "model": "tailings:block/scavenger_bank/p67"
+  },
+  "facing=north,piece=68": {
+   "model": "tailings:block/scavenger_bank/p68"
+  },
+  "facing=north,piece=69": {
+   "model": "tailings:block/scavenger_bank/p69"
+  },
+  "facing=north,piece=70": {
+   "model": "tailings:block/scavenger_bank/p70"
+  },
+  "facing=north,piece=71": {
+   "model": "tailings:block/scavenger_bank/p71"
+  },
+  "facing=north,piece=72": {
+   "model": "tailings:block/scavenger_bank/p72"
+  },
+  "facing=north,piece=73": {
+   "model": "tailings:block/scavenger_bank/p73"
+  },
+  "facing=north,piece=74": {
+   "model": "tailings:block/scavenger_bank/p74"
+  },
+  "facing=north,piece=75": {
+   "model": "tailings:block/scavenger_bank/p75"
+  },
+  "facing=north,piece=76": {
+   "model": "tailings:block/scavenger_bank/p76"
+  },
+  "facing=north,piece=77": {
+   "model": "tailings:block/scavenger_bank/p77"
+  },
+  "facing=north,piece=78": {
+   "model": "tailings:block/scavenger_bank/p78"
+  },
+  "facing=north,piece=79": {
+   "model": "tailings:block/scavenger_bank/p79"
+  },
+  "facing=north,piece=80": {
+   "model": "tailings:block/scavenger_bank/p80"
+  },
+  "facing=north,piece=81": {
+   "model": "tailings:block/scavenger_bank/p81"
+  },
+  "facing=north,piece=82": {
+   "model": "tailings:block/scavenger_bank/p82"
+  },
+  "facing=north,piece=83": {
+   "model": "tailings:block/scavenger_bank/p83"
+  },
+  "facing=north,piece=84": {
+   "model": "tailings:block/scavenger_bank/p84"
+  },
+  "facing=north,piece=85": {
+   "model": "tailings:block/scavenger_bank/p85"
+  },
+  "facing=north,piece=86": {
+   "model": "tailings:block/scavenger_bank/p86"
+  },
+  "facing=north,piece=87": {
+   "model": "tailings:block/scavenger_bank/p87"
+  },
+  "facing=north,piece=88": {
+   "model": "tailings:block/scavenger_bank/p88"
+  },
+  "facing=north,piece=89": {
+   "model": "tailings:block/scavenger_bank/p89"
+  },
+  "facing=north,piece=90": {
+   "model": "tailings:block/scavenger_bank/p90"
+  },
+  "facing=north,piece=91": {
+   "model": "tailings:block/scavenger_bank/p91"
+  },
+  "facing=north,piece=92": {
+   "model": "tailings:block/scavenger_bank/p92"
+  },
+  "facing=north,piece=93": {
+   "model": "tailings:block/scavenger_bank/p93"
+  },
+  "facing=north,piece=94": {
+   "model": "tailings:block/scavenger_bank/p94"
+  },
+  "facing=north,piece=95": {
+   "model": "tailings:block/scavenger_bank/p95"
+  },
+  "facing=north,piece=96": {
+   "model": "tailings:block/scavenger_bank/p96"
+  },
+  "facing=north,piece=97": {
+   "model": "tailings:block/scavenger_bank/p97"
+  },
+  "facing=north,piece=98": {
+   "model": "tailings:block/scavenger_bank/p98"
+  },
+  "facing=north,piece=99": {
+   "model": "tailings:block/scavenger_bank/p99"
+  },
+  "facing=north,piece=100": {
+   "model": "tailings:block/scavenger_bank/p100"
+  },
+  "facing=north,piece=101": {
+   "model": "tailings:block/scavenger_bank/p101"
+  },
+  "facing=north,piece=102": {
+   "model": "tailings:block/scavenger_bank/p102"
+  },
+  "facing=north,piece=103": {
+   "model": "tailings:block/scavenger_bank/p103"
+  },
+  "facing=north,piece=104": {
+   "model": "tailings:block/scavenger_bank/p104"
+  },
+  "facing=north,piece=105": {
+   "model": "tailings:block/scavenger_bank/p105"
+  },
+  "facing=north,piece=106": {
+   "model": "tailings:block/scavenger_bank/p106"
+  },
+  "facing=north,piece=107": {
+   "model": "tailings:block/scavenger_bank/p107"
+  },
+  "facing=north,piece=108": {
+   "model": "tailings:block/scavenger_bank/p108"
+  },
+  "facing=north,piece=109": {
+   "model": "tailings:block/scavenger_bank/p109"
+  },
+  "facing=north,piece=110": {
+   "model": "tailings:block/scavenger_bank/p110"
+  },
+  "facing=north,piece=111": {
+   "model": "tailings:block/scavenger_bank/p111"
+  },
+  "facing=north,piece=112": {
+   "model": "tailings:block/scavenger_bank/p112"
+  },
+  "facing=north,piece=113": {
+   "model": "tailings:block/scavenger_bank/p113"
+  },
+  "facing=north,piece=114": {
+   "model": "tailings:block/scavenger_bank/p114"
+  },
+  "facing=north,piece=115": {
+   "model": "tailings:block/scavenger_bank/p115"
+  },
+  "facing=north,piece=116": {
+   "model": "tailings:block/scavenger_bank/p116"
+  },
+  "facing=north,piece=117": {
+   "model": "tailings:block/scavenger_bank/p117"
+  },
+  "facing=north,piece=118": {
+   "model": "tailings:block/scavenger_bank/p118"
+  },
+  "facing=north,piece=119": {
+   "model": "tailings:block/scavenger_bank/p119"
+  },
+  "facing=north,piece=120": {
+   "model": "tailings:block/scavenger_bank/p120"
+  },
+  "facing=north,piece=121": {
+   "model": "tailings:block/scavenger_bank/p121"
+  },
+  "facing=north,piece=122": {
+   "model": "tailings:block/scavenger_bank/p122"
+  },
+  "facing=north,piece=123": {
+   "model": "tailings:block/scavenger_bank/p123"
+  },
+  "facing=north,piece=124": {
+   "model": "tailings:block/scavenger_bank/p124"
+  },
+  "facing=north,piece=125": {
+   "model": "tailings:block/scavenger_bank/p125"
+  },
+  "facing=north,piece=126": {
+   "model": "tailings:block/scavenger_bank/p126"
+  },
+  "facing=north,piece=127": {
+   "model": "tailings:block/scavenger_bank/p127"
+  },
+  "facing=north,piece=128": {
+   "model": "tailings:block/scavenger_bank/p128"
+  },
+  "facing=north,piece=129": {
+   "model": "tailings:block/scavenger_bank/p129"
+  },
+  "facing=north,piece=130": {
+   "model": "tailings:block/scavenger_bank/p130"
+  },
+  "facing=north,piece=131": {
+   "model": "tailings:block/scavenger_bank/p131"
+  },
+  "facing=north,piece=132": {
+   "model": "tailings:block/scavenger_bank/p132"
+  },
+  "facing=north,piece=133": {
+   "model": "tailings:block/scavenger_bank/p133"
+  },
+  "facing=north,piece=134": {
+   "model": "tailings:block/scavenger_bank/p134"
+  },
+  "facing=north,piece=135": {
+   "model": "tailings:block/scavenger_bank/p135"
+  },
+  "facing=north,piece=136": {
+   "model": "tailings:block/scavenger_bank/p136"
+  },
+  "facing=north,piece=137": {
+   "model": "tailings:block/scavenger_bank/p137"
+  },
+  "facing=north,piece=138": {
+   "model": "tailings:block/scavenger_bank/p138"
+  },
+  "facing=north,piece=139": {
+   "model": "tailings:block/scavenger_bank/p139"
+  },
+  "facing=north,piece=140": {
+   "model": "tailings:block/scavenger_bank/p140"
+  },
+  "facing=north,piece=141": {
+   "model": "tailings:block/scavenger_bank/p141"
+  },
+  "facing=north,piece=142": {
+   "model": "tailings:block/scavenger_bank/p142"
+  },
+  "facing=north,piece=143": {
+   "model": "tailings:block/scavenger_bank/p143"
+  },
+  "facing=north,piece=144": {
+   "model": "tailings:block/scavenger_bank/p144"
+  },
+  "facing=north,piece=145": {
+   "model": "tailings:block/scavenger_bank/p145"
+  },
+  "facing=north,piece=146": {
+   "model": "tailings:block/scavenger_bank/p146"
+  },
+  "facing=north,piece=147": {
+   "model": "tailings:block/scavenger_bank/p147"
+  },
+  "facing=north,piece=148": {
+   "model": "tailings:block/scavenger_bank/p148"
+  },
+  "facing=north,piece=149": {
+   "model": "tailings:block/scavenger_bank/p149"
+  },
+  "facing=north,piece=150": {
+   "model": "tailings:block/scavenger_bank/p150"
+  },
+  "facing=north,piece=151": {
+   "model": "tailings:block/scavenger_bank/p151"
+  },
+  "facing=north,piece=152": {
+   "model": "tailings:block/scavenger_bank/p152"
+  },
+  "facing=north,piece=153": {
+   "model": "tailings:block/scavenger_bank/p153"
+  },
+  "facing=north,piece=154": {
+   "model": "tailings:block/scavenger_bank/p154"
+  },
+  "facing=north,piece=155": {
+   "model": "tailings:block/scavenger_bank/p155"
+  },
+  "facing=north,piece=156": {
+   "model": "tailings:block/scavenger_bank/p156"
+  },
+  "facing=north,piece=157": {
+   "model": "tailings:block/scavenger_bank/p157"
+  },
+  "facing=north,piece=158": {
+   "model": "tailings:block/scavenger_bank/p158"
+  },
+  "facing=north,piece=159": {
+   "model": "tailings:block/scavenger_bank/p159"
+  },
+  "facing=north,piece=160": {
+   "model": "tailings:block/scavenger_bank/p160"
+  },
+  "facing=north,piece=161": {
+   "model": "tailings:block/scavenger_bank/p161"
+  },
+  "facing=north,piece=162": {
+   "model": "tailings:block/scavenger_bank/p162"
+  },
+  "facing=north,piece=163": {
+   "model": "tailings:block/scavenger_bank/p163"
+  },
+  "facing=north,piece=164": {
+   "model": "tailings:block/scavenger_bank/p164"
+  },
+  "facing=north,piece=165": {
+   "model": "tailings:block/scavenger_bank/p165"
+  },
+  "facing=north,piece=166": {
+   "model": "tailings:block/scavenger_bank/p166"
+  },
+  "facing=north,piece=167": {
+   "model": "tailings:block/scavenger_bank/p167"
+  },
+  "facing=north,piece=168": {
+   "model": "tailings:block/scavenger_bank/p168"
+  },
+  "facing=north,piece=169": {
+   "model": "tailings:block/scavenger_bank/p169"
+  },
+  "facing=north,piece=170": {
+   "model": "tailings:block/scavenger_bank/p170"
+  },
+  "facing=north,piece=171": {
+   "model": "tailings:block/scavenger_bank/p171"
+  },
+  "facing=north,piece=172": {
+   "model": "tailings:block/scavenger_bank/p172"
+  },
+  "facing=north,piece=173": {
+   "model": "tailings:block/scavenger_bank/p173"
+  },
+  "facing=north,piece=174": {
+   "model": "tailings:block/scavenger_bank/p174"
+  },
+  "facing=north,piece=175": {
+   "model": "tailings:block/scavenger_bank/p175"
+  },
+  "facing=north,piece=176": {
+   "model": "tailings:block/scavenger_bank/p176"
+  },
+  "facing=north,piece=177": {
+   "model": "tailings:block/scavenger_bank/p177"
+  },
+  "facing=north,piece=178": {
+   "model": "tailings:block/scavenger_bank/p178"
+  },
+  "facing=north,piece=179": {
+   "model": "tailings:block/scavenger_bank/p179"
+  },
+  "facing=east,piece=0": {
+   "model": "tailings:block/scavenger_bank/p0",
+   "y": 90
+  },
+  "facing=east,piece=1": {
+   "model": "tailings:block/scavenger_bank/p1",
+   "y": 90
+  },
+  "facing=east,piece=2": {
+   "model": "tailings:block/scavenger_bank/p2",
+   "y": 90
+  },
+  "facing=east,piece=3": {
+   "model": "tailings:block/scavenger_bank/p3",
+   "y": 90
+  },
+  "facing=east,piece=4": {
+   "model": "tailings:block/scavenger_bank/p4",
+   "y": 90
+  },
+  "facing=east,piece=5": {
+   "model": "tailings:block/scavenger_bank/p5",
+   "y": 90
+  },
+  "facing=east,piece=6": {
+   "model": "tailings:block/scavenger_bank/p6",
+   "y": 90
+  },
+  "facing=east,piece=7": {
+   "model": "tailings:block/scavenger_bank/p7",
+   "y": 90
+  },
+  "facing=east,piece=8": {
+   "model": "tailings:block/scavenger_bank/p8",
+   "y": 90
+  },
+  "facing=east,piece=9": {
+   "model": "tailings:block/scavenger_bank/p9",
+   "y": 90
+  },
+  "facing=east,piece=10": {
+   "model": "tailings:block/scavenger_bank/p10",
+   "y": 90
+  },
+  "facing=east,piece=11": {
+   "model": "tailings:block/scavenger_bank/p11",
+   "y": 90
+  },
+  "facing=east,piece=12": {
+   "model": "tailings:block/scavenger_bank/p12",
+   "y": 90
+  },
+  "facing=east,piece=13": {
+   "model": "tailings:block/scavenger_bank/p13",
+   "y": 90
+  },
+  "facing=east,piece=14": {
+   "model": "tailings:block/scavenger_bank/p14",
+   "y": 90
+  },
+  "facing=east,piece=15": {
+   "model": "tailings:block/scavenger_bank/p15",
+   "y": 90
+  },
+  "facing=east,piece=16": {
+   "model": "tailings:block/scavenger_bank/p16",
+   "y": 90
+  },
+  "facing=east,piece=17": {
+   "model": "tailings:block/scavenger_bank/p17",
+   "y": 90
+  },
+  "facing=east,piece=18": {
+   "model": "tailings:block/scavenger_bank/p18",
+   "y": 90
+  },
+  "facing=east,piece=19": {
+   "model": "tailings:block/scavenger_bank/p19",
+   "y": 90
+  },
+  "facing=east,piece=20": {
+   "model": "tailings:block/scavenger_bank/p20",
+   "y": 90
+  },
+  "facing=east,piece=21": {
+   "model": "tailings:block/scavenger_bank/p21",
+   "y": 90
+  },
+  "facing=east,piece=22": {
+   "model": "tailings:block/scavenger_bank/p22",
+   "y": 90
+  },
+  "facing=east,piece=23": {
+   "model": "tailings:block/scavenger_bank/p23",
+   "y": 90
+  },
+  "facing=east,piece=24": {
+   "model": "tailings:block/scavenger_bank/p24",
+   "y": 90
+  },
+  "facing=east,piece=25": {
+   "model": "tailings:block/scavenger_bank/p25",
+   "y": 90
+  },
+  "facing=east,piece=26": {
+   "model": "tailings:block/scavenger_bank/p26",
+   "y": 90
+  },
+  "facing=east,piece=27": {
+   "model": "tailings:block/scavenger_bank/p27",
+   "y": 90
+  },
+  "facing=east,piece=28": {
+   "model": "tailings:block/scavenger_bank/p28",
+   "y": 90
+  },
+  "facing=east,piece=29": {
+   "model": "tailings:block/scavenger_bank/p29",
+   "y": 90
+  },
+  "facing=east,piece=30": {
+   "model": "tailings:block/scavenger_bank/p30",
+   "y": 90
+  },
+  "facing=east,piece=31": {
+   "model": "tailings:block/scavenger_bank/p31",
+   "y": 90
+  },
+  "facing=east,piece=32": {
+   "model": "tailings:block/scavenger_bank/p32",
+   "y": 90
+  },
+  "facing=east,piece=33": {
+   "model": "tailings:block/scavenger_bank/p33",
+   "y": 90
+  },
+  "facing=east,piece=34": {
+   "model": "tailings:block/scavenger_bank/p34",
+   "y": 90
+  },
+  "facing=east,piece=35": {
+   "model": "tailings:block/scavenger_bank/p35",
+   "y": 90
+  },
+  "facing=east,piece=36": {
+   "model": "tailings:block/scavenger_bank/p36",
+   "y": 90
+  },
+  "facing=east,piece=37": {
+   "model": "tailings:block/scavenger_bank/p37",
+   "y": 90
+  },
+  "facing=east,piece=38": {
+   "model": "tailings:block/scavenger_bank/p38",
+   "y": 90
+  },
+  "facing=east,piece=39": {
+   "model": "tailings:block/scavenger_bank/p39",
+   "y": 90
+  },
+  "facing=east,piece=40": {
+   "model": "tailings:block/scavenger_bank/p40",
+   "y": 90
+  },
+  "facing=east,piece=41": {
+   "model": "tailings:block/scavenger_bank/p41",
+   "y": 90
+  },
+  "facing=east,piece=42": {
+   "model": "tailings:block/scavenger_bank/p42",
+   "y": 90
+  },
+  "facing=east,piece=43": {
+   "model": "tailings:block/scavenger_bank/p43",
+   "y": 90
+  },
+  "facing=east,piece=44": {
+   "model": "tailings:block/scavenger_bank/p44",
+   "y": 90
+  },
+  "facing=east,piece=45": {
+   "model": "tailings:block/scavenger_bank/p45",
+   "y": 90
+  },
+  "facing=east,piece=46": {
+   "model": "tailings:block/scavenger_bank/p46",
+   "y": 90
+  },
+  "facing=east,piece=47": {
+   "model": "tailings:block/scavenger_bank/p47",
+   "y": 90
+  },
+  "facing=east,piece=48": {
+   "model": "tailings:block/scavenger_bank/p48",
+   "y": 90
+  },
+  "facing=east,piece=49": {
+   "model": "tailings:block/scavenger_bank/p49",
+   "y": 90
+  },
+  "facing=east,piece=50": {
+   "model": "tailings:block/scavenger_bank/p50",
+   "y": 90
+  },
+  "facing=east,piece=51": {
+   "model": "tailings:block/scavenger_bank/p51",
+   "y": 90
+  },
+  "facing=east,piece=52": {
+   "model": "tailings:block/scavenger_bank/p52",
+   "y": 90
+  },
+  "facing=east,piece=53": {
+   "model": "tailings:block/scavenger_bank/p53",
+   "y": 90
+  },
+  "facing=east,piece=54": {
+   "model": "tailings:block/scavenger_bank/p54",
+   "y": 90
+  },
+  "facing=east,piece=55": {
+   "model": "tailings:block/scavenger_bank/p55",
+   "y": 90
+  },
+  "facing=east,piece=56": {
+   "model": "tailings:block/scavenger_bank/p56",
+   "y": 90
+  },
+  "facing=east,piece=57": {
+   "model": "tailings:block/scavenger_bank/p57",
+   "y": 90
+  },
+  "facing=east,piece=58": {
+   "model": "tailings:block/scavenger_bank/p58",
+   "y": 90
+  },
+  "facing=east,piece=59": {
+   "model": "tailings:block/scavenger_bank/p59",
+   "y": 90
+  },
+  "facing=east,piece=60": {
+   "model": "tailings:block/scavenger_bank/p60",
+   "y": 90
+  },
+  "facing=east,piece=61": {
+   "model": "tailings:block/scavenger_bank/p61",
+   "y": 90
+  },
+  "facing=east,piece=62": {
+   "model": "tailings:block/scavenger_bank/p62",
+   "y": 90
+  },
+  "facing=east,piece=63": {
+   "model": "tailings:block/scavenger_bank/p63",
+   "y": 90
+  },
+  "facing=east,piece=64": {
+   "model": "tailings:block/scavenger_bank/p64",
+   "y": 90
+  },
+  "facing=east,piece=65": {
+   "model": "tailings:block/scavenger_bank/p65",
+   "y": 90
+  },
+  "facing=east,piece=66": {
+   "model": "tailings:block/scavenger_bank/p66",
+   "y": 90
+  },
+  "facing=east,piece=67": {
+   "model": "tailings:block/scavenger_bank/p67",
+   "y": 90
+  },
+  "facing=east,piece=68": {
+   "model": "tailings:block/scavenger_bank/p68",
+   "y": 90
+  },
+  "facing=east,piece=69": {
+   "model": "tailings:block/scavenger_bank/p69",
+   "y": 90
+  },
+  "facing=east,piece=70": {
+   "model": "tailings:block/scavenger_bank/p70",
+   "y": 90
+  },
+  "facing=east,piece=71": {
+   "model": "tailings:block/scavenger_bank/p71",
+   "y": 90
+  },
+  "facing=east,piece=72": {
+   "model": "tailings:block/scavenger_bank/p72",
+   "y": 90
+  },
+  "facing=east,piece=73": {
+   "model": "tailings:block/scavenger_bank/p73",
+   "y": 90
+  },
+  "facing=east,piece=74": {
+   "model": "tailings:block/scavenger_bank/p74",
+   "y": 90
+  },
+  "facing=east,piece=75": {
+   "model": "tailings:block/scavenger_bank/p75",
+   "y": 90
+  },
+  "facing=east,piece=76": {
+   "model": "tailings:block/scavenger_bank/p76",
+   "y": 90
+  },
+  "facing=east,piece=77": {
+   "model": "tailings:block/scavenger_bank/p77",
+   "y": 90
+  },
+  "facing=east,piece=78": {
+   "model": "tailings:block/scavenger_bank/p78",
+   "y": 90
+  },
+  "facing=east,piece=79": {
+   "model": "tailings:block/scavenger_bank/p79",
+   "y": 90
+  },
+  "facing=east,piece=80": {
+   "model": "tailings:block/scavenger_bank/p80",
+   "y": 90
+  },
+  "facing=east,piece=81": {
+   "model": "tailings:block/scavenger_bank/p81",
+   "y": 90
+  },
+  "facing=east,piece=82": {
+   "model": "tailings:block/scavenger_bank/p82",
+   "y": 90
+  },
+  "facing=east,piece=83": {
+   "model": "tailings:block/scavenger_bank/p83",
+   "y": 90
+  },
+  "facing=east,piece=84": {
+   "model": "tailings:block/scavenger_bank/p84",
+   "y": 90
+  },
+  "facing=east,piece=85": {
+   "model": "tailings:block/scavenger_bank/p85",
+   "y": 90
+  },
+  "facing=east,piece=86": {
+   "model": "tailings:block/scavenger_bank/p86",
+   "y": 90
+  },
+  "facing=east,piece=87": {
+   "model": "tailings:block/scavenger_bank/p87",
+   "y": 90
+  },
+  "facing=east,piece=88": {
+   "model": "tailings:block/scavenger_bank/p88",
+   "y": 90
+  },
+  "facing=east,piece=89": {
+   "model": "tailings:block/scavenger_bank/p89",
+   "y": 90
+  },
+  "facing=east,piece=90": {
+   "model": "tailings:block/scavenger_bank/p90",
+   "y": 90
+  },
+  "facing=east,piece=91": {
+   "model": "tailings:block/scavenger_bank/p91",
+   "y": 90
+  },
+  "facing=east,piece=92": {
+   "model": "tailings:block/scavenger_bank/p92",
+   "y": 90
+  },
+  "facing=east,piece=93": {
+   "model": "tailings:block/scavenger_bank/p93",
+   "y": 90
+  },
+  "facing=east,piece=94": {
+   "model": "tailings:block/scavenger_bank/p94",
+   "y": 90
+  },
+  "facing=east,piece=95": {
+   "model": "tailings:block/scavenger_bank/p95",
+   "y": 90
+  },
+  "facing=east,piece=96": {
+   "model": "tailings:block/scavenger_bank/p96",
+   "y": 90
+  },
+  "facing=east,piece=97": {
+   "model": "tailings:block/scavenger_bank/p97",
+   "y": 90
+  },
+  "facing=east,piece=98": {
+   "model": "tailings:block/scavenger_bank/p98",
+   "y": 90
+  },
+  "facing=east,piece=99": {
+   "model": "tailings:block/scavenger_bank/p99",
+   "y": 90
+  },
+  "facing=east,piece=100": {
+   "model": "tailings:block/scavenger_bank/p100",
+   "y": 90
+  },
+  "facing=east,piece=101": {
+   "model": "tailings:block/scavenger_bank/p101",
+   "y": 90
+  },
+  "facing=east,piece=102": {
+   "model": "tailings:block/scavenger_bank/p102",
+   "y": 90
+  },
+  "facing=east,piece=103": {
+   "model": "tailings:block/scavenger_bank/p103",
+   "y": 90
+  },
+  "facing=east,piece=104": {
+   "model": "tailings:block/scavenger_bank/p104",
+   "y": 90
+  },
+  "facing=east,piece=105": {
+   "model": "tailings:block/scavenger_bank/p105",
+   "y": 90
+  },
+  "facing=east,piece=106": {
+   "model": "tailings:block/scavenger_bank/p106",
+   "y": 90
+  },
+  "facing=east,piece=107": {
+   "model": "tailings:block/scavenger_bank/p107",
+   "y": 90
+  },
+  "facing=east,piece=108": {
+   "model": "tailings:block/scavenger_bank/p108",
+   "y": 90
+  },
+  "facing=east,piece=109": {
+   "model": "tailings:block/scavenger_bank/p109",
+   "y": 90
+  },
+  "facing=east,piece=110": {
+   "model": "tailings:block/scavenger_bank/p110",
+   "y": 90
+  },
+  "facing=east,piece=111": {
+   "model": "tailings:block/scavenger_bank/p111",
+   "y": 90
+  },
+  "facing=east,piece=112": {
+   "model": "tailings:block/scavenger_bank/p112",
+   "y": 90
+  },
+  "facing=east,piece=113": {
+   "model": "tailings:block/scavenger_bank/p113",
+   "y": 90
+  },
+  "facing=east,piece=114": {
+   "model": "tailings:block/scavenger_bank/p114",
+   "y": 90
+  },
+  "facing=east,piece=115": {
+   "model": "tailings:block/scavenger_bank/p115",
+   "y": 90
+  },
+  "facing=east,piece=116": {
+   "model": "tailings:block/scavenger_bank/p116",
+   "y": 90
+  },
+  "facing=east,piece=117": {
+   "model": "tailings:block/scavenger_bank/p117",
+   "y": 90
+  },
+  "facing=east,piece=118": {
+   "model": "tailings:block/scavenger_bank/p118",
+   "y": 90
+  },
+  "facing=east,piece=119": {
+   "model": "tailings:block/scavenger_bank/p119",
+   "y": 90
+  },
+  "facing=east,piece=120": {
+   "model": "tailings:block/scavenger_bank/p120",
+   "y": 90
+  },
+  "facing=east,piece=121": {
+   "model": "tailings:block/scavenger_bank/p121",
+   "y": 90
+  },
+  "facing=east,piece=122": {
+   "model": "tailings:block/scavenger_bank/p122",
+   "y": 90
+  },
+  "facing=east,piece=123": {
+   "model": "tailings:block/scavenger_bank/p123",
+   "y": 90
+  },
+  "facing=east,piece=124": {
+   "model": "tailings:block/scavenger_bank/p124",
+   "y": 90
+  },
+  "facing=east,piece=125": {
+   "model": "tailings:block/scavenger_bank/p125",
+   "y": 90
+  },
+  "facing=east,piece=126": {
+   "model": "tailings:block/scavenger_bank/p126",
+   "y": 90
+  },
+  "facing=east,piece=127": {
+   "model": "tailings:block/scavenger_bank/p127",
+   "y": 90
+  },
+  "facing=east,piece=128": {
+   "model": "tailings:block/scavenger_bank/p128",
+   "y": 90
+  },
+  "facing=east,piece=129": {
+   "model": "tailings:block/scavenger_bank/p129",
+   "y": 90
+  },
+  "facing=east,piece=130": {
+   "model": "tailings:block/scavenger_bank/p130",
+   "y": 90
+  },
+  "facing=east,piece=131": {
+   "model": "tailings:block/scavenger_bank/p131",
+   "y": 90
+  },
+  "facing=east,piece=132": {
+   "model": "tailings:block/scavenger_bank/p132",
+   "y": 90
+  },
+  "facing=east,piece=133": {
+   "model": "tailings:block/scavenger_bank/p133",
+   "y": 90
+  },
+  "facing=east,piece=134": {
+   "model": "tailings:block/scavenger_bank/p134",
+   "y": 90
+  },
+  "facing=east,piece=135": {
+   "model": "tailings:block/scavenger_bank/p135",
+   "y": 90
+  },
+  "facing=east,piece=136": {
+   "model": "tailings:block/scavenger_bank/p136",
+   "y": 90
+  },
+  "facing=east,piece=137": {
+   "model": "tailings:block/scavenger_bank/p137",
+   "y": 90
+  },
+  "facing=east,piece=138": {
+   "model": "tailings:block/scavenger_bank/p138",
+   "y": 90
+  },
+  "facing=east,piece=139": {
+   "model": "tailings:block/scavenger_bank/p139",
+   "y": 90
+  },
+  "facing=east,piece=140": {
+   "model": "tailings:block/scavenger_bank/p140",
+   "y": 90
+  },
+  "facing=east,piece=141": {
+   "model": "tailings:block/scavenger_bank/p141",
+   "y": 90
+  },
+  "facing=east,piece=142": {
+   "model": "tailings:block/scavenger_bank/p142",
+   "y": 90
+  },
+  "facing=east,piece=143": {
+   "model": "tailings:block/scavenger_bank/p143",
+   "y": 90
+  },
+  "facing=east,piece=144": {
+   "model": "tailings:block/scavenger_bank/p144",
+   "y": 90
+  },
+  "facing=east,piece=145": {
+   "model": "tailings:block/scavenger_bank/p145",
+   "y": 90
+  },
+  "facing=east,piece=146": {
+   "model": "tailings:block/scavenger_bank/p146",
+   "y": 90
+  },
+  "facing=east,piece=147": {
+   "model": "tailings:block/scavenger_bank/p147",
+   "y": 90
+  },
+  "facing=east,piece=148": {
+   "model": "tailings:block/scavenger_bank/p148",
+   "y": 90
+  },
+  "facing=east,piece=149": {
+   "model": "tailings:block/scavenger_bank/p149",
+   "y": 90
+  },
+  "facing=east,piece=150": {
+   "model": "tailings:block/scavenger_bank/p150",
+   "y": 90
+  },
+  "facing=east,piece=151": {
+   "model": "tailings:block/scavenger_bank/p151",
+   "y": 90
+  },
+  "facing=east,piece=152": {
+   "model": "tailings:block/scavenger_bank/p152",
+   "y": 90
+  },
+  "facing=east,piece=153": {
+   "model": "tailings:block/scavenger_bank/p153",
+   "y": 90
+  },
+  "facing=east,piece=154": {
+   "model": "tailings:block/scavenger_bank/p154",
+   "y": 90
+  },
+  "facing=east,piece=155": {
+   "model": "tailings:block/scavenger_bank/p155",
+   "y": 90
+  },
+  "facing=east,piece=156": {
+   "model": "tailings:block/scavenger_bank/p156",
+   "y": 90
+  },
+  "facing=east,piece=157": {
+   "model": "tailings:block/scavenger_bank/p157",
+   "y": 90
+  },
+  "facing=east,piece=158": {
+   "model": "tailings:block/scavenger_bank/p158",
+   "y": 90
+  },
+  "facing=east,piece=159": {
+   "model": "tailings:block/scavenger_bank/p159",
+   "y": 90
+  },
+  "facing=east,piece=160": {
+   "model": "tailings:block/scavenger_bank/p160",
+   "y": 90
+  },
+  "facing=east,piece=161": {
+   "model": "tailings:block/scavenger_bank/p161",
+   "y": 90
+  },
+  "facing=east,piece=162": {
+   "model": "tailings:block/scavenger_bank/p162",
+   "y": 90
+  },
+  "facing=east,piece=163": {
+   "model": "tailings:block/scavenger_bank/p163",
+   "y": 90
+  },
+  "facing=east,piece=164": {
+   "model": "tailings:block/scavenger_bank/p164",
+   "y": 90
+  },
+  "facing=east,piece=165": {
+   "model": "tailings:block/scavenger_bank/p165",
+   "y": 90
+  },
+  "facing=east,piece=166": {
+   "model": "tailings:block/scavenger_bank/p166",
+   "y": 90
+  },
+  "facing=east,piece=167": {
+   "model": "tailings:block/scavenger_bank/p167",
+   "y": 90
+  },
+  "facing=east,piece=168": {
+   "model": "tailings:block/scavenger_bank/p168",
+   "y": 90
+  },
+  "facing=east,piece=169": {
+   "model": "tailings:block/scavenger_bank/p169",
+   "y": 90
+  },
+  "facing=east,piece=170": {
+   "model": "tailings:block/scavenger_bank/p170",
+   "y": 90
+  },
+  "facing=east,piece=171": {
+   "model": "tailings:block/scavenger_bank/p171",
+   "y": 90
+  },
+  "facing=east,piece=172": {
+   "model": "tailings:block/scavenger_bank/p172",
+   "y": 90
+  },
+  "facing=east,piece=173": {
+   "model": "tailings:block/scavenger_bank/p173",
+   "y": 90
+  },
+  "facing=east,piece=174": {
+   "model": "tailings:block/scavenger_bank/p174",
+   "y": 90
+  },
+  "facing=east,piece=175": {
+   "model": "tailings:block/scavenger_bank/p175",
+   "y": 90
+  },
+  "facing=east,piece=176": {
+   "model": "tailings:block/scavenger_bank/p176",
+   "y": 90
+  },
+  "facing=east,piece=177": {
+   "model": "tailings:block/scavenger_bank/p177",
+   "y": 90
+  },
+  "facing=east,piece=178": {
+   "model": "tailings:block/scavenger_bank/p178",
+   "y": 90
+  },
+  "facing=east,piece=179": {
+   "model": "tailings:block/scavenger_bank/p179",
+   "y": 90
+  },
+  "facing=south,piece=0": {
+   "model": "tailings:block/scavenger_bank/p0",
+   "y": 180
+  },
+  "facing=south,piece=1": {
+   "model": "tailings:block/scavenger_bank/p1",
+   "y": 180
+  },
+  "facing=south,piece=2": {
+   "model": "tailings:block/scavenger_bank/p2",
+   "y": 180
+  },
+  "facing=south,piece=3": {
+   "model": "tailings:block/scavenger_bank/p3",
+   "y": 180
+  },
+  "facing=south,piece=4": {
+   "model": "tailings:block/scavenger_bank/p4",
+   "y": 180
+  },
+  "facing=south,piece=5": {
+   "model": "tailings:block/scavenger_bank/p5",
+   "y": 180
+  },
+  "facing=south,piece=6": {
+   "model": "tailings:block/scavenger_bank/p6",
+   "y": 180
+  },
+  "facing=south,piece=7": {
+   "model": "tailings:block/scavenger_bank/p7",
+   "y": 180
+  },
+  "facing=south,piece=8": {
+   "model": "tailings:block/scavenger_bank/p8",
+   "y": 180
+  },
+  "facing=south,piece=9": {
+   "model": "tailings:block/scavenger_bank/p9",
+   "y": 180
+  },
+  "facing=south,piece=10": {
+   "model": "tailings:block/scavenger_bank/p10",
+   "y": 180
+  },
+  "facing=south,piece=11": {
+   "model": "tailings:block/scavenger_bank/p11",
+   "y": 180
+  },
+  "facing=south,piece=12": {
+   "model": "tailings:block/scavenger_bank/p12",
+   "y": 180
+  },
+  "facing=south,piece=13": {
+   "model": "tailings:block/scavenger_bank/p13",
+   "y": 180
+  },
+  "facing=south,piece=14": {
+   "model": "tailings:block/scavenger_bank/p14",
+   "y": 180
+  },
+  "facing=south,piece=15": {
+   "model": "tailings:block/scavenger_bank/p15",
+   "y": 180
+  },
+  "facing=south,piece=16": {
+   "model": "tailings:block/scavenger_bank/p16",
+   "y": 180
+  },
+  "facing=south,piece=17": {
+   "model": "tailings:block/scavenger_bank/p17",
+   "y": 180
+  },
+  "facing=south,piece=18": {
+   "model": "tailings:block/scavenger_bank/p18",
+   "y": 180
+  },
+  "facing=south,piece=19": {
+   "model": "tailings:block/scavenger_bank/p19",
+   "y": 180
+  },
+  "facing=south,piece=20": {
+   "model": "tailings:block/scavenger_bank/p20",
+   "y": 180
+  },
+  "facing=south,piece=21": {
+   "model": "tailings:block/scavenger_bank/p21",
+   "y": 180
+  },
+  "facing=south,piece=22": {
+   "model": "tailings:block/scavenger_bank/p22",
+   "y": 180
+  },
+  "facing=south,piece=23": {
+   "model": "tailings:block/scavenger_bank/p23",
+   "y": 180
+  },
+  "facing=south,piece=24": {
+   "model": "tailings:block/scavenger_bank/p24",
+   "y": 180
+  },
+  "facing=south,piece=25": {
+   "model": "tailings:block/scavenger_bank/p25",
+   "y": 180
+  },
+  "facing=south,piece=26": {
+   "model": "tailings:block/scavenger_bank/p26",
+   "y": 180
+  },
+  "facing=south,piece=27": {
+   "model": "tailings:block/scavenger_bank/p27",
+   "y": 180
+  },
+  "facing=south,piece=28": {
+   "model": "tailings:block/scavenger_bank/p28",
+   "y": 180
+  },
+  "facing=south,piece=29": {
+   "model": "tailings:block/scavenger_bank/p29",
+   "y": 180
+  },
+  "facing=south,piece=30": {
+   "model": "tailings:block/scavenger_bank/p30",
+   "y": 180
+  },
+  "facing=south,piece=31": {
+   "model": "tailings:block/scavenger_bank/p31",
+   "y": 180
+  },
+  "facing=south,piece=32": {
+   "model": "tailings:block/scavenger_bank/p32",
+   "y": 180
+  },
+  "facing=south,piece=33": {
+   "model": "tailings:block/scavenger_bank/p33",
+   "y": 180
+  },
+  "facing=south,piece=34": {
+   "model": "tailings:block/scavenger_bank/p34",
+   "y": 180
+  },
+  "facing=south,piece=35": {
+   "model": "tailings:block/scavenger_bank/p35",
+   "y": 180
+  },
+  "facing=south,piece=36": {
+   "model": "tailings:block/scavenger_bank/p36",
+   "y": 180
+  },
+  "facing=south,piece=37": {
+   "model": "tailings:block/scavenger_bank/p37",
+   "y": 180
+  },
+  "facing=south,piece=38": {
+   "model": "tailings:block/scavenger_bank/p38",
+   "y": 180
+  },
+  "facing=south,piece=39": {
+   "model": "tailings:block/scavenger_bank/p39",
+   "y": 180
+  },
+  "facing=south,piece=40": {
+   "model": "tailings:block/scavenger_bank/p40",
+   "y": 180
+  },
+  "facing=south,piece=41": {
+   "model": "tailings:block/scavenger_bank/p41",
+   "y": 180
+  },
+  "facing=south,piece=42": {
+   "model": "tailings:block/scavenger_bank/p42",
+   "y": 180
+  },
+  "facing=south,piece=43": {
+   "model": "tailings:block/scavenger_bank/p43",
+   "y": 180
+  },
+  "facing=south,piece=44": {
+   "model": "tailings:block/scavenger_bank/p44",
+   "y": 180
+  },
+  "facing=south,piece=45": {
+   "model": "tailings:block/scavenger_bank/p45",
+   "y": 180
+  },
+  "facing=south,piece=46": {
+   "model": "tailings:block/scavenger_bank/p46",
+   "y": 180
+  },
+  "facing=south,piece=47": {
+   "model": "tailings:block/scavenger_bank/p47",
+   "y": 180
+  },
+  "facing=south,piece=48": {
+   "model": "tailings:block/scavenger_bank/p48",
+   "y": 180
+  },
+  "facing=south,piece=49": {
+   "model": "tailings:block/scavenger_bank/p49",
+   "y": 180
+  },
+  "facing=south,piece=50": {
+   "model": "tailings:block/scavenger_bank/p50",
+   "y": 180
+  },
+  "facing=south,piece=51": {
+   "model": "tailings:block/scavenger_bank/p51",
+   "y": 180
+  },
+  "facing=south,piece=52": {
+   "model": "tailings:block/scavenger_bank/p52",
+   "y": 180
+  },
+  "facing=south,piece=53": {
+   "model": "tailings:block/scavenger_bank/p53",
+   "y": 180
+  },
+  "facing=south,piece=54": {
+   "model": "tailings:block/scavenger_bank/p54",
+   "y": 180
+  },
+  "facing=south,piece=55": {
+   "model": "tailings:block/scavenger_bank/p55",
+   "y": 180
+  },
+  "facing=south,piece=56": {
+   "model": "tailings:block/scavenger_bank/p56",
+   "y": 180
+  },
+  "facing=south,piece=57": {
+   "model": "tailings:block/scavenger_bank/p57",
+   "y": 180
+  },
+  "facing=south,piece=58": {
+   "model": "tailings:block/scavenger_bank/p58",
+   "y": 180
+  },
+  "facing=south,piece=59": {
+   "model": "tailings:block/scavenger_bank/p59",
+   "y": 180
+  },
+  "facing=south,piece=60": {
+   "model": "tailings:block/scavenger_bank/p60",
+   "y": 180
+  },
+  "facing=south,piece=61": {
+   "model": "tailings:block/scavenger_bank/p61",
+   "y": 180
+  },
+  "facing=south,piece=62": {
+   "model": "tailings:block/scavenger_bank/p62",
+   "y": 180
+  },
+  "facing=south,piece=63": {
+   "model": "tailings:block/scavenger_bank/p63",
+   "y": 180
+  },
+  "facing=south,piece=64": {
+   "model": "tailings:block/scavenger_bank/p64",
+   "y": 180
+  },
+  "facing=south,piece=65": {
+   "model": "tailings:block/scavenger_bank/p65",
+   "y": 180
+  },
+  "facing=south,piece=66": {
+   "model": "tailings:block/scavenger_bank/p66",
+   "y": 180
+  },
+  "facing=south,piece=67": {
+   "model": "tailings:block/scavenger_bank/p67",
+   "y": 180
+  },
+  "facing=south,piece=68": {
+   "model": "tailings:block/scavenger_bank/p68",
+   "y": 180
+  },
+  "facing=south,piece=69": {
+   "model": "tailings:block/scavenger_bank/p69",
+   "y": 180
+  },
+  "facing=south,piece=70": {
+   "model": "tailings:block/scavenger_bank/p70",
+   "y": 180
+  },
+  "facing=south,piece=71": {
+   "model": "tailings:block/scavenger_bank/p71",
+   "y": 180
+  },
+  "facing=south,piece=72": {
+   "model": "tailings:block/scavenger_bank/p72",
+   "y": 180
+  },
+  "facing=south,piece=73": {
+   "model": "tailings:block/scavenger_bank/p73",
+   "y": 180
+  },
+  "facing=south,piece=74": {
+   "model": "tailings:block/scavenger_bank/p74",
+   "y": 180
+  },
+  "facing=south,piece=75": {
+   "model": "tailings:block/scavenger_bank/p75",
+   "y": 180
+  },
+  "facing=south,piece=76": {
+   "model": "tailings:block/scavenger_bank/p76",
+   "y": 180
+  },
+  "facing=south,piece=77": {
+   "model": "tailings:block/scavenger_bank/p77",
+   "y": 180
+  },
+  "facing=south,piece=78": {
+   "model": "tailings:block/scavenger_bank/p78",
+   "y": 180
+  },
+  "facing=south,piece=79": {
+   "model": "tailings:block/scavenger_bank/p79",
+   "y": 180
+  },
+  "facing=south,piece=80": {
+   "model": "tailings:block/scavenger_bank/p80",
+   "y": 180
+  },
+  "facing=south,piece=81": {
+   "model": "tailings:block/scavenger_bank/p81",
+   "y": 180
+  },
+  "facing=south,piece=82": {
+   "model": "tailings:block/scavenger_bank/p82",
+   "y": 180
+  },
+  "facing=south,piece=83": {
+   "model": "tailings:block/scavenger_bank/p83",
+   "y": 180
+  },
+  "facing=south,piece=84": {
+   "model": "tailings:block/scavenger_bank/p84",
+   "y": 180
+  },
+  "facing=south,piece=85": {
+   "model": "tailings:block/scavenger_bank/p85",
+   "y": 180
+  },
+  "facing=south,piece=86": {
+   "model": "tailings:block/scavenger_bank/p86",
+   "y": 180
+  },
+  "facing=south,piece=87": {
+   "model": "tailings:block/scavenger_bank/p87",
+   "y": 180
+  },
+  "facing=south,piece=88": {
+   "model": "tailings:block/scavenger_bank/p88",
+   "y": 180
+  },
+  "facing=south,piece=89": {
+   "model": "tailings:block/scavenger_bank/p89",
+   "y": 180
+  },
+  "facing=south,piece=90": {
+   "model": "tailings:block/scavenger_bank/p90",
+   "y": 180
+  },
+  "facing=south,piece=91": {
+   "model": "tailings:block/scavenger_bank/p91",
+   "y": 180
+  },
+  "facing=south,piece=92": {
+   "model": "tailings:block/scavenger_bank/p92",
+   "y": 180
+  },
+  "facing=south,piece=93": {
+   "model": "tailings:block/scavenger_bank/p93",
+   "y": 180
+  },
+  "facing=south,piece=94": {
+   "model": "tailings:block/scavenger_bank/p94",
+   "y": 180
+  },
+  "facing=south,piece=95": {
+   "model": "tailings:block/scavenger_bank/p95",
+   "y": 180
+  },
+  "facing=south,piece=96": {
+   "model": "tailings:block/scavenger_bank/p96",
+   "y": 180
+  },
+  "facing=south,piece=97": {
+   "model": "tailings:block/scavenger_bank/p97",
+   "y": 180
+  },
+  "facing=south,piece=98": {
+   "model": "tailings:block/scavenger_bank/p98",
+   "y": 180
+  },
+  "facing=south,piece=99": {
+   "model": "tailings:block/scavenger_bank/p99",
+   "y": 180
+  },
+  "facing=south,piece=100": {
+   "model": "tailings:block/scavenger_bank/p100",
+   "y": 180
+  },
+  "facing=south,piece=101": {
+   "model": "tailings:block/scavenger_bank/p101",
+   "y": 180
+  },
+  "facing=south,piece=102": {
+   "model": "tailings:block/scavenger_bank/p102",
+   "y": 180
+  },
+  "facing=south,piece=103": {
+   "model": "tailings:block/scavenger_bank/p103",
+   "y": 180
+  },
+  "facing=south,piece=104": {
+   "model": "tailings:block/scavenger_bank/p104",
+   "y": 180
+  },
+  "facing=south,piece=105": {
+   "model": "tailings:block/scavenger_bank/p105",
+   "y": 180
+  },
+  "facing=south,piece=106": {
+   "model": "tailings:block/scavenger_bank/p106",
+   "y": 180
+  },
+  "facing=south,piece=107": {
+   "model": "tailings:block/scavenger_bank/p107",
+   "y": 180
+  },
+  "facing=south,piece=108": {
+   "model": "tailings:block/scavenger_bank/p108",
+   "y": 180
+  },
+  "facing=south,piece=109": {
+   "model": "tailings:block/scavenger_bank/p109",
+   "y": 180
+  },
+  "facing=south,piece=110": {
+   "model": "tailings:block/scavenger_bank/p110",
+   "y": 180
+  },
+  "facing=south,piece=111": {
+   "model": "tailings:block/scavenger_bank/p111",
+   "y": 180
+  },
+  "facing=south,piece=112": {
+   "model": "tailings:block/scavenger_bank/p112",
+   "y": 180
+  },
+  "facing=south,piece=113": {
+   "model": "tailings:block/scavenger_bank/p113",
+   "y": 180
+  },
+  "facing=south,piece=114": {
+   "model": "tailings:block/scavenger_bank/p114",
+   "y": 180
+  },
+  "facing=south,piece=115": {
+   "model": "tailings:block/scavenger_bank/p115",
+   "y": 180
+  },
+  "facing=south,piece=116": {
+   "model": "tailings:block/scavenger_bank/p116",
+   "y": 180
+  },
+  "facing=south,piece=117": {
+   "model": "tailings:block/scavenger_bank/p117",
+   "y": 180
+  },
+  "facing=south,piece=118": {
+   "model": "tailings:block/scavenger_bank/p118",
+   "y": 180
+  },
+  "facing=south,piece=119": {
+   "model": "tailings:block/scavenger_bank/p119",
+   "y": 180
+  },
+  "facing=south,piece=120": {
+   "model": "tailings:block/scavenger_bank/p120",
+   "y": 180
+  },
+  "facing=south,piece=121": {
+   "model": "tailings:block/scavenger_bank/p121",
+   "y": 180
+  },
+  "facing=south,piece=122": {
+   "model": "tailings:block/scavenger_bank/p122",
+   "y": 180
+  },
+  "facing=south,piece=123": {
+   "model": "tailings:block/scavenger_bank/p123",
+   "y": 180
+  },
+  "facing=south,piece=124": {
+   "model": "tailings:block/scavenger_bank/p124",
+   "y": 180
+  },
+  "facing=south,piece=125": {
+   "model": "tailings:block/scavenger_bank/p125",
+   "y": 180
+  },
+  "facing=south,piece=126": {
+   "model": "tailings:block/scavenger_bank/p126",
+   "y": 180
+  },
+  "facing=south,piece=127": {
+   "model": "tailings:block/scavenger_bank/p127",
+   "y": 180
+  },
+  "facing=south,piece=128": {
+   "model": "tailings:block/scavenger_bank/p128",
+   "y": 180
+  },
+  "facing=south,piece=129": {
+   "model": "tailings:block/scavenger_bank/p129",
+   "y": 180
+  },
+  "facing=south,piece=130": {
+   "model": "tailings:block/scavenger_bank/p130",
+   "y": 180
+  },
+  "facing=south,piece=131": {
+   "model": "tailings:block/scavenger_bank/p131",
+   "y": 180
+  },
+  "facing=south,piece=132": {
+   "model": "tailings:block/scavenger_bank/p132",
+   "y": 180
+  },
+  "facing=south,piece=133": {
+   "model": "tailings:block/scavenger_bank/p133",
+   "y": 180
+  },
+  "facing=south,piece=134": {
+   "model": "tailings:block/scavenger_bank/p134",
+   "y": 180
+  },
+  "facing=south,piece=135": {
+   "model": "tailings:block/scavenger_bank/p135",
+   "y": 180
+  },
+  "facing=south,piece=136": {
+   "model": "tailings:block/scavenger_bank/p136",
+   "y": 180
+  },
+  "facing=south,piece=137": {
+   "model": "tailings:block/scavenger_bank/p137",
+   "y": 180
+  },
+  "facing=south,piece=138": {
+   "model": "tailings:block/scavenger_bank/p138",
+   "y": 180
+  },
+  "facing=south,piece=139": {
+   "model": "tailings:block/scavenger_bank/p139",
+   "y": 180
+  },
+  "facing=south,piece=140": {
+   "model": "tailings:block/scavenger_bank/p140",
+   "y": 180
+  },
+  "facing=south,piece=141": {
+   "model": "tailings:block/scavenger_bank/p141",
+   "y": 180
+  },
+  "facing=south,piece=142": {
+   "model": "tailings:block/scavenger_bank/p142",
+   "y": 180
+  },
+  "facing=south,piece=143": {
+   "model": "tailings:block/scavenger_bank/p143",
+   "y": 180
+  },
+  "facing=south,piece=144": {
+   "model": "tailings:block/scavenger_bank/p144",
+   "y": 180
+  },
+  "facing=south,piece=145": {
+   "model": "tailings:block/scavenger_bank/p145",
+   "y": 180
+  },
+  "facing=south,piece=146": {
+   "model": "tailings:block/scavenger_bank/p146",
+   "y": 180
+  },
+  "facing=south,piece=147": {
+   "model": "tailings:block/scavenger_bank/p147",
+   "y": 180
+  },
+  "facing=south,piece=148": {
+   "model": "tailings:block/scavenger_bank/p148",
+   "y": 180
+  },
+  "facing=south,piece=149": {
+   "model": "tailings:block/scavenger_bank/p149",
+   "y": 180
+  },
+  "facing=south,piece=150": {
+   "model": "tailings:block/scavenger_bank/p150",
+   "y": 180
+  },
+  "facing=south,piece=151": {
+   "model": "tailings:block/scavenger_bank/p151",
+   "y": 180
+  },
+  "facing=south,piece=152": {
+   "model": "tailings:block/scavenger_bank/p152",
+   "y": 180
+  },
+  "facing=south,piece=153": {
+   "model": "tailings:block/scavenger_bank/p153",
+   "y": 180
+  },
+  "facing=south,piece=154": {
+   "model": "tailings:block/scavenger_bank/p154",
+   "y": 180
+  },
+  "facing=south,piece=155": {
+   "model": "tailings:block/scavenger_bank/p155",
+   "y": 180
+  },
+  "facing=south,piece=156": {
+   "model": "tailings:block/scavenger_bank/p156",
+   "y": 180
+  },
+  "facing=south,piece=157": {
+   "model": "tailings:block/scavenger_bank/p157",
+   "y": 180
+  },
+  "facing=south,piece=158": {
+   "model": "tailings:block/scavenger_bank/p158",
+   "y": 180
+  },
+  "facing=south,piece=159": {
+   "model": "tailings:block/scavenger_bank/p159",
+   "y": 180
+  },
+  "facing=south,piece=160": {
+   "model": "tailings:block/scavenger_bank/p160",
+   "y": 180
+  },
+  "facing=south,piece=161": {
+   "model": "tailings:block/scavenger_bank/p161",
+   "y": 180
+  },
+  "facing=south,piece=162": {
+   "model": "tailings:block/scavenger_bank/p162",
+   "y": 180
+  },
+  "facing=south,piece=163": {
+   "model": "tailings:block/scavenger_bank/p163",
+   "y": 180
+  },
+  "facing=south,piece=164": {
+   "model": "tailings:block/scavenger_bank/p164",
+   "y": 180
+  },
+  "facing=south,piece=165": {
+   "model": "tailings:block/scavenger_bank/p165",
+   "y": 180
+  },
+  "facing=south,piece=166": {
+   "model": "tailings:block/scavenger_bank/p166",
+   "y": 180
+  },
+  "facing=south,piece=167": {
+   "model": "tailings:block/scavenger_bank/p167",
+   "y": 180
+  },
+  "facing=south,piece=168": {
+   "model": "tailings:block/scavenger_bank/p168",
+   "y": 180
+  },
+  "facing=south,piece=169": {
+   "model": "tailings:block/scavenger_bank/p169",
+   "y": 180
+  },
+  "facing=south,piece=170": {
+   "model": "tailings:block/scavenger_bank/p170",
+   "y": 180
+  },
+  "facing=south,piece=171": {
+   "model": "tailings:block/scavenger_bank/p171",
+   "y": 180
+  },
+  "facing=south,piece=172": {
+   "model": "tailings:block/scavenger_bank/p172",
+   "y": 180
+  },
+  "facing=south,piece=173": {
+   "model": "tailings:block/scavenger_bank/p173",
+   "y": 180
+  },
+  "facing=south,piece=174": {
+   "model": "tailings:block/scavenger_bank/p174",
+   "y": 180
+  },
+  "facing=south,piece=175": {
+   "model": "tailings:block/scavenger_bank/p175",
+   "y": 180
+  },
+  "facing=south,piece=176": {
+   "model": "tailings:block/scavenger_bank/p176",
+   "y": 180
+  },
+  "facing=south,piece=177": {
+   "model": "tailings:block/scavenger_bank/p177",
+   "y": 180
+  },
+  "facing=south,piece=178": {
+   "model": "tailings:block/scavenger_bank/p178",
+   "y": 180
+  },
+  "facing=south,piece=179": {
+   "model": "tailings:block/scavenger_bank/p179",
+   "y": 180
+  },
+  "facing=west,piece=0": {
+   "model": "tailings:block/scavenger_bank/p0",
+   "y": 270
+  },
+  "facing=west,piece=1": {
+   "model": "tailings:block/scavenger_bank/p1",
+   "y": 270
+  },
+  "facing=west,piece=2": {
+   "model": "tailings:block/scavenger_bank/p2",
+   "y": 270
+  },
+  "facing=west,piece=3": {
+   "model": "tailings:block/scavenger_bank/p3",
+   "y": 270
+  },
+  "facing=west,piece=4": {
+   "model": "tailings:block/scavenger_bank/p4",
+   "y": 270
+  },
+  "facing=west,piece=5": {
+   "model": "tailings:block/scavenger_bank/p5",
+   "y": 270
+  },
+  "facing=west,piece=6": {
+   "model": "tailings:block/scavenger_bank/p6",
+   "y": 270
+  },
+  "facing=west,piece=7": {
+   "model": "tailings:block/scavenger_bank/p7",
+   "y": 270
+  },
+  "facing=west,piece=8": {
+   "model": "tailings:block/scavenger_bank/p8",
+   "y": 270
+  },
+  "facing=west,piece=9": {
+   "model": "tailings:block/scavenger_bank/p9",
+   "y": 270
+  },
+  "facing=west,piece=10": {
+   "model": "tailings:block/scavenger_bank/p10",
+   "y": 270
+  },
+  "facing=west,piece=11": {
+   "model": "tailings:block/scavenger_bank/p11",
+   "y": 270
+  },
+  "facing=west,piece=12": {
+   "model": "tailings:block/scavenger_bank/p12",
+   "y": 270
+  },
+  "facing=west,piece=13": {
+   "model": "tailings:block/scavenger_bank/p13",
+   "y": 270
+  },
+  "facing=west,piece=14": {
+   "model": "tailings:block/scavenger_bank/p14",
+   "y": 270
+  },
+  "facing=west,piece=15": {
+   "model": "tailings:block/scavenger_bank/p15",
+   "y": 270
+  },
+  "facing=west,piece=16": {
+   "model": "tailings:block/scavenger_bank/p16",
+   "y": 270
+  },
+  "facing=west,piece=17": {
+   "model": "tailings:block/scavenger_bank/p17",
+   "y": 270
+  },
+  "facing=west,piece=18": {
+   "model": "tailings:block/scavenger_bank/p18",
+   "y": 270
+  },
+  "facing=west,piece=19": {
+   "model": "tailings:block/scavenger_bank/p19",
+   "y": 270
+  },
+  "facing=west,piece=20": {
+   "model": "tailings:block/scavenger_bank/p20",
+   "y": 270
+  },
+  "facing=west,piece=21": {
+   "model": "tailings:block/scavenger_bank/p21",
+   "y": 270
+  },
+  "facing=west,piece=22": {
+   "model": "tailings:block/scavenger_bank/p22",
+   "y": 270
+  },
+  "facing=west,piece=23": {
+   "model": "tailings:block/scavenger_bank/p23",
+   "y": 270
+  },
+  "facing=west,piece=24": {
+   "model": "tailings:block/scavenger_bank/p24",
+   "y": 270
+  },
+  "facing=west,piece=25": {
+   "model": "tailings:block/scavenger_bank/p25",
+   "y": 270
+  },
+  "facing=west,piece=26": {
+   "model": "tailings:block/scavenger_bank/p26",
+   "y": 270
+  },
+  "facing=west,piece=27": {
+   "model": "tailings:block/scavenger_bank/p27",
+   "y": 270
+  },
+  "facing=west,piece=28": {
+   "model": "tailings:block/scavenger_bank/p28",
+   "y": 270
+  },
+  "facing=west,piece=29": {
+   "model": "tailings:block/scavenger_bank/p29",
+   "y": 270
+  },
+  "facing=west,piece=30": {
+   "model": "tailings:block/scavenger_bank/p30",
+   "y": 270
+  },
+  "facing=west,piece=31": {
+   "model": "tailings:block/scavenger_bank/p31",
+   "y": 270
+  },
+  "facing=west,piece=32": {
+   "model": "tailings:block/scavenger_bank/p32",
+   "y": 270
+  },
+  "facing=west,piece=33": {
+   "model": "tailings:block/scavenger_bank/p33",
+   "y": 270
+  },
+  "facing=west,piece=34": {
+   "model": "tailings:block/scavenger_bank/p34",
+   "y": 270
+  },
+  "facing=west,piece=35": {
+   "model": "tailings:block/scavenger_bank/p35",
+   "y": 270
+  },
+  "facing=west,piece=36": {
+   "model": "tailings:block/scavenger_bank/p36",
+   "y": 270
+  },
+  "facing=west,piece=37": {
+   "model": "tailings:block/scavenger_bank/p37",
+   "y": 270
+  },
+  "facing=west,piece=38": {
+   "model": "tailings:block/scavenger_bank/p38",
+   "y": 270
+  },
+  "facing=west,piece=39": {
+   "model": "tailings:block/scavenger_bank/p39",
+   "y": 270
+  },
+  "facing=west,piece=40": {
+   "model": "tailings:block/scavenger_bank/p40",
+   "y": 270
+  },
+  "facing=west,piece=41": {
+   "model": "tailings:block/scavenger_bank/p41",
+   "y": 270
+  },
+  "facing=west,piece=42": {
+   "model": "tailings:block/scavenger_bank/p42",
+   "y": 270
+  },
+  "facing=west,piece=43": {
+   "model": "tailings:block/scavenger_bank/p43",
+   "y": 270
+  },
+  "facing=west,piece=44": {
+   "model": "tailings:block/scavenger_bank/p44",
+   "y": 270
+  },
+  "facing=west,piece=45": {
+   "model": "tailings:block/scavenger_bank/p45",
+   "y": 270
+  },
+  "facing=west,piece=46": {
+   "model": "tailings:block/scavenger_bank/p46",
+   "y": 270
+  },
+  "facing=west,piece=47": {
+   "model": "tailings:block/scavenger_bank/p47",
+   "y": 270
+  },
+  "facing=west,piece=48": {
+   "model": "tailings:block/scavenger_bank/p48",
+   "y": 270
+  },
+  "facing=west,piece=49": {
+   "model": "tailings:block/scavenger_bank/p49",
+   "y": 270
+  },
+  "facing=west,piece=50": {
+   "model": "tailings:block/scavenger_bank/p50",
+   "y": 270
+  },
+  "facing=west,piece=51": {
+   "model": "tailings:block/scavenger_bank/p51",
+   "y": 270
+  },
+  "facing=west,piece=52": {
+   "model": "tailings:block/scavenger_bank/p52",
+   "y": 270
+  },
+  "facing=west,piece=53": {
+   "model": "tailings:block/scavenger_bank/p53",
+   "y": 270
+  },
+  "facing=west,piece=54": {
+   "model": "tailings:block/scavenger_bank/p54",
+   "y": 270
+  },
+  "facing=west,piece=55": {
+   "model": "tailings:block/scavenger_bank/p55",
+   "y": 270
+  },
+  "facing=west,piece=56": {
+   "model": "tailings:block/scavenger_bank/p56",
+   "y": 270
+  },
+  "facing=west,piece=57": {
+   "model": "tailings:block/scavenger_bank/p57",
+   "y": 270
+  },
+  "facing=west,piece=58": {
+   "model": "tailings:block/scavenger_bank/p58",
+   "y": 270
+  },
+  "facing=west,piece=59": {
+   "model": "tailings:block/scavenger_bank/p59",
+   "y": 270
+  },
+  "facing=west,piece=60": {
+   "model": "tailings:block/scavenger_bank/p60",
+   "y": 270
+  },
+  "facing=west,piece=61": {
+   "model": "tailings:block/scavenger_bank/p61",
+   "y": 270
+  },
+  "facing=west,piece=62": {
+   "model": "tailings:block/scavenger_bank/p62",
+   "y": 270
+  },
+  "facing=west,piece=63": {
+   "model": "tailings:block/scavenger_bank/p63",
+   "y": 270
+  },
+  "facing=west,piece=64": {
+   "model": "tailings:block/scavenger_bank/p64",
+   "y": 270
+  },
+  "facing=west,piece=65": {
+   "model": "tailings:block/scavenger_bank/p65",
+   "y": 270
+  },
+  "facing=west,piece=66": {
+   "model": "tailings:block/scavenger_bank/p66",
+   "y": 270
+  },
+  "facing=west,piece=67": {
+   "model": "tailings:block/scavenger_bank/p67",
+   "y": 270
+  },
+  "facing=west,piece=68": {
+   "model": "tailings:block/scavenger_bank/p68",
+   "y": 270
+  },
+  "facing=west,piece=69": {
+   "model": "tailings:block/scavenger_bank/p69",
+   "y": 270
+  },
+  "facing=west,piece=70": {
+   "model": "tailings:block/scavenger_bank/p70",
+   "y": 270
+  },
+  "facing=west,piece=71": {
+   "model": "tailings:block/scavenger_bank/p71",
+   "y": 270
+  },
+  "facing=west,piece=72": {
+   "model": "tailings:block/scavenger_bank/p72",
+   "y": 270
+  },
+  "facing=west,piece=73": {
+   "model": "tailings:block/scavenger_bank/p73",
+   "y": 270
+  },
+  "facing=west,piece=74": {
+   "model": "tailings:block/scavenger_bank/p74",
+   "y": 270
+  },
+  "facing=west,piece=75": {
+   "model": "tailings:block/scavenger_bank/p75",
+   "y": 270
+  },
+  "facing=west,piece=76": {
+   "model": "tailings:block/scavenger_bank/p76",
+   "y": 270
+  },
+  "facing=west,piece=77": {
+   "model": "tailings:block/scavenger_bank/p77",
+   "y": 270
+  },
+  "facing=west,piece=78": {
+   "model": "tailings:block/scavenger_bank/p78",
+   "y": 270
+  },
+  "facing=west,piece=79": {
+   "model": "tailings:block/scavenger_bank/p79",
+   "y": 270
+  },
+  "facing=west,piece=80": {
+   "model": "tailings:block/scavenger_bank/p80",
+   "y": 270
+  },
+  "facing=west,piece=81": {
+   "model": "tailings:block/scavenger_bank/p81",
+   "y": 270
+  },
+  "facing=west,piece=82": {
+   "model": "tailings:block/scavenger_bank/p82",
+   "y": 270
+  },
+  "facing=west,piece=83": {
+   "model": "tailings:block/scavenger_bank/p83",
+   "y": 270
+  },
+  "facing=west,piece=84": {
+   "model": "tailings:block/scavenger_bank/p84",
+   "y": 270
+  },
+  "facing=west,piece=85": {
+   "model": "tailings:block/scavenger_bank/p85",
+   "y": 270
+  },
+  "facing=west,piece=86": {
+   "model": "tailings:block/scavenger_bank/p86",
+   "y": 270
+  },
+  "facing=west,piece=87": {
+   "model": "tailings:block/scavenger_bank/p87",
+   "y": 270
+  },
+  "facing=west,piece=88": {
+   "model": "tailings:block/scavenger_bank/p88",
+   "y": 270
+  },
+  "facing=west,piece=89": {
+   "model": "tailings:block/scavenger_bank/p89",
+   "y": 270
+  },
+  "facing=west,piece=90": {
+   "model": "tailings:block/scavenger_bank/p90",
+   "y": 270
+  },
+  "facing=west,piece=91": {
+   "model": "tailings:block/scavenger_bank/p91",
+   "y": 270
+  },
+  "facing=west,piece=92": {
+   "model": "tailings:block/scavenger_bank/p92",
+   "y": 270
+  },
+  "facing=west,piece=93": {
+   "model": "tailings:block/scavenger_bank/p93",
+   "y": 270
+  },
+  "facing=west,piece=94": {
+   "model": "tailings:block/scavenger_bank/p94",
+   "y": 270
+  },
+  "facing=west,piece=95": {
+   "model": "tailings:block/scavenger_bank/p95",
+   "y": 270
+  },
+  "facing=west,piece=96": {
+   "model": "tailings:block/scavenger_bank/p96",
+   "y": 270
+  },
+  "facing=west,piece=97": {
+   "model": "tailings:block/scavenger_bank/p97",
+   "y": 270
+  },
+  "facing=west,piece=98": {
+   "model": "tailings:block/scavenger_bank/p98",
+   "y": 270
+  },
+  "facing=west,piece=99": {
+   "model": "tailings:block/scavenger_bank/p99",
+   "y": 270
+  },
+  "facing=west,piece=100": {
+   "model": "tailings:block/scavenger_bank/p100",
+   "y": 270
+  },
+  "facing=west,piece=101": {
+   "model": "tailings:block/scavenger_bank/p101",
+   "y": 270
+  },
+  "facing=west,piece=102": {
+   "model": "tailings:block/scavenger_bank/p102",
+   "y": 270
+  },
+  "facing=west,piece=103": {
+   "model": "tailings:block/scavenger_bank/p103",
+   "y": 270
+  },
+  "facing=west,piece=104": {
+   "model": "tailings:block/scavenger_bank/p104",
+   "y": 270
+  },
+  "facing=west,piece=105": {
+   "model": "tailings:block/scavenger_bank/p105",
+   "y": 270
+  },
+  "facing=west,piece=106": {
+   "model": "tailings:block/scavenger_bank/p106",
+   "y": 270
+  },
+  "facing=west,piece=107": {
+   "model": "tailings:block/scavenger_bank/p107",
+   "y": 270
+  },
+  "facing=west,piece=108": {
+   "model": "tailings:block/scavenger_bank/p108",
+   "y": 270
+  },
+  "facing=west,piece=109": {
+   "model": "tailings:block/scavenger_bank/p109",
+   "y": 270
+  },
+  "facing=west,piece=110": {
+   "model": "tailings:block/scavenger_bank/p110",
+   "y": 270
+  },
+  "facing=west,piece=111": {
+   "model": "tailings:block/scavenger_bank/p111",
+   "y": 270
+  },
+  "facing=west,piece=112": {
+   "model": "tailings:block/scavenger_bank/p112",
+   "y": 270
+  },
+  "facing=west,piece=113": {
+   "model": "tailings:block/scavenger_bank/p113",
+   "y": 270
+  },
+  "facing=west,piece=114": {
+   "model": "tailings:block/scavenger_bank/p114",
+   "y": 270
+  },
+  "facing=west,piece=115": {
+   "model": "tailings:block/scavenger_bank/p115",
+   "y": 270
+  },
+  "facing=west,piece=116": {
+   "model": "tailings:block/scavenger_bank/p116",
+   "y": 270
+  },
+  "facing=west,piece=117": {
+   "model": "tailings:block/scavenger_bank/p117",
+   "y": 270
+  },
+  "facing=west,piece=118": {
+   "model": "tailings:block/scavenger_bank/p118",
+   "y": 270
+  },
+  "facing=west,piece=119": {
+   "model": "tailings:block/scavenger_bank/p119",
+   "y": 270
+  },
+  "facing=west,piece=120": {
+   "model": "tailings:block/scavenger_bank/p120",
+   "y": 270
+  },
+  "facing=west,piece=121": {
+   "model": "tailings:block/scavenger_bank/p121",
+   "y": 270
+  },
+  "facing=west,piece=122": {
+   "model": "tailings:block/scavenger_bank/p122",
+   "y": 270
+  },
+  "facing=west,piece=123": {
+   "model": "tailings:block/scavenger_bank/p123",
+   "y": 270
+  },
+  "facing=west,piece=124": {
+   "model": "tailings:block/scavenger_bank/p124",
+   "y": 270
+  },
+  "facing=west,piece=125": {
+   "model": "tailings:block/scavenger_bank/p125",
+   "y": 270
+  },
+  "facing=west,piece=126": {
+   "model": "tailings:block/scavenger_bank/p126",
+   "y": 270
+  },
+  "facing=west,piece=127": {
+   "model": "tailings:block/scavenger_bank/p127",
+   "y": 270
+  },
+  "facing=west,piece=128": {
+   "model": "tailings:block/scavenger_bank/p128",
+   "y": 270
+  },
+  "facing=west,piece=129": {
+   "model": "tailings:block/scavenger_bank/p129",
+   "y": 270
+  },
+  "facing=west,piece=130": {
+   "model": "tailings:block/scavenger_bank/p130",
+   "y": 270
+  },
+  "facing=west,piece=131": {
+   "model": "tailings:block/scavenger_bank/p131",
+   "y": 270
+  },
+  "facing=west,piece=132": {
+   "model": "tailings:block/scavenger_bank/p132",
+   "y": 270
+  },
+  "facing=west,piece=133": {
+   "model": "tailings:block/scavenger_bank/p133",
+   "y": 270
+  },
+  "facing=west,piece=134": {
+   "model": "tailings:block/scavenger_bank/p134",
+   "y": 270
+  },
+  "facing=west,piece=135": {
+   "model": "tailings:block/scavenger_bank/p135",
+   "y": 270
+  },
+  "facing=west,piece=136": {
+   "model": "tailings:block/scavenger_bank/p136",
+   "y": 270
+  },
+  "facing=west,piece=137": {
+   "model": "tailings:block/scavenger_bank/p137",
+   "y": 270
+  },
+  "facing=west,piece=138": {
+   "model": "tailings:block/scavenger_bank/p138",
+   "y": 270
+  },
+  "facing=west,piece=139": {
+   "model": "tailings:block/scavenger_bank/p139",
+   "y": 270
+  },
+  "facing=west,piece=140": {
+   "model": "tailings:block/scavenger_bank/p140",
+   "y": 270
+  },
+  "facing=west,piece=141": {
+   "model": "tailings:block/scavenger_bank/p141",
+   "y": 270
+  },
+  "facing=west,piece=142": {
+   "model": "tailings:block/scavenger_bank/p142",
+   "y": 270
+  },
+  "facing=west,piece=143": {
+   "model": "tailings:block/scavenger_bank/p143",
+   "y": 270
+  },
+  "facing=west,piece=144": {
+   "model": "tailings:block/scavenger_bank/p144",
+   "y": 270
+  },
+  "facing=west,piece=145": {
+   "model": "tailings:block/scavenger_bank/p145",
+   "y": 270
+  },
+  "facing=west,piece=146": {
+   "model": "tailings:block/scavenger_bank/p146",
+   "y": 270
+  },
+  "facing=west,piece=147": {
+   "model": "tailings:block/scavenger_bank/p147",
+   "y": 270
+  },
+  "facing=west,piece=148": {
+   "model": "tailings:block/scavenger_bank/p148",
+   "y": 270
+  },
+  "facing=west,piece=149": {
+   "model": "tailings:block/scavenger_bank/p149",
+   "y": 270
+  },
+  "facing=west,piece=150": {
+   "model": "tailings:block/scavenger_bank/p150",
+   "y": 270
+  },
+  "facing=west,piece=151": {
+   "model": "tailings:block/scavenger_bank/p151",
+   "y": 270
+  },
+  "facing=west,piece=152": {
+   "model": "tailings:block/scavenger_bank/p152",
+   "y": 270
+  },
+  "facing=west,piece=153": {
+   "model": "tailings:block/scavenger_bank/p153",
+   "y": 270
+  },
+  "facing=west,piece=154": {
+   "model": "tailings:block/scavenger_bank/p154",
+   "y": 270
+  },
+  "facing=west,piece=155": {
+   "model": "tailings:block/scavenger_bank/p155",
+   "y": 270
+  },
+  "facing=west,piece=156": {
+   "model": "tailings:block/scavenger_bank/p156",
+   "y": 270
+  },
+  "facing=west,piece=157": {
+   "model": "tailings:block/scavenger_bank/p157",
+   "y": 270
+  },
+  "facing=west,piece=158": {
+   "model": "tailings:block/scavenger_bank/p158",
+   "y": 270
+  },
+  "facing=west,piece=159": {
+   "model": "tailings:block/scavenger_bank/p159",
+   "y": 270
+  },
+  "facing=west,piece=160": {
+   "model": "tailings:block/scavenger_bank/p160",
+   "y": 270
+  },
+  "facing=west,piece=161": {
+   "model": "tailings:block/scavenger_bank/p161",
+   "y": 270
+  },
+  "facing=west,piece=162": {
+   "model": "tailings:block/scavenger_bank/p162",
+   "y": 270
+  },
+  "facing=west,piece=163": {
+   "model": "tailings:block/scavenger_bank/p163",
+   "y": 270
+  },
+  "facing=west,piece=164": {
+   "model": "tailings:block/scavenger_bank/p164",
+   "y": 270
+  },
+  "facing=west,piece=165": {
+   "model": "tailings:block/scavenger_bank/p165",
+   "y": 270
+  },
+  "facing=west,piece=166": {
+   "model": "tailings:block/scavenger_bank/p166",
+   "y": 270
+  },
+  "facing=west,piece=167": {
+   "model": "tailings:block/scavenger_bank/p167",
+   "y": 270
+  },
+  "facing=west,piece=168": {
+   "model": "tailings:block/scavenger_bank/p168",
+   "y": 270
+  },
+  "facing=west,piece=169": {
+   "model": "tailings:block/scavenger_bank/p169",
+   "y": 270
+  },
+  "facing=west,piece=170": {
+   "model": "tailings:block/scavenger_bank/p170",
+   "y": 270
+  },
+  "facing=west,piece=171": {
+   "model": "tailings:block/scavenger_bank/p171",
+   "y": 270
+  },
+  "facing=west,piece=172": {
+   "model": "tailings:block/scavenger_bank/p172",
+   "y": 270
+  },
+  "facing=west,piece=173": {
+   "model": "tailings:block/scavenger_bank/p173",
+   "y": 270
+  },
+  "facing=west,piece=174": {
+   "model": "tailings:block/scavenger_bank/p174",
+   "y": 270
+  },
+  "facing=west,piece=175": {
+   "model": "tailings:block/scavenger_bank/p175",
+   "y": 270
+  },
+  "facing=west,piece=176": {
+   "model": "tailings:block/scavenger_bank/p176",
+   "y": 270
+  },
+  "facing=west,piece=177": {
+   "model": "tailings:block/scavenger_bank/p177",
+   "y": 270
+  },
+  "facing=west,piece=178": {
+   "model": "tailings:block/scavenger_bank/p178",
+   "y": 270
+  },
+  "facing=west,piece=179": {
+   "model": "tailings:block/scavenger_bank/p179",
+   "y": 270
+  }
+ }
+}

@@ -48,6 +48,14 @@ public interface Stage {
 			case CONVEYOR_DRIVE -> Belts.DRIVE;
 			case ORE_BIN -> Belts.BIN;
 			case SPIRAL_BANK -> Gravity.SPIRALS;
+			case SCAVENGER_BANK -> FullRecovery.SCAVENGER;
+			case REGRIND_MILL -> FullRecovery.REGRIND;
+			case CLEANER_BANK -> FullRecovery.CLEANER;
+			case LEACH_TANK -> FullRecovery.LEACH;
+			case CCD_THICKENER -> FullRecovery.WASH;
+			case ELECTROWINNING_BANK -> FullRecovery.ELECTROWIN;
+			case BYPRODUCT_PLANT -> FullRecovery.BYPRODUCTS;
+			case HEAP_PAD -> FullRecovery.HEAP;
 			case CONDITIONER -> Flotation.CONDITIONER;
 			case FLOTATION_BANK -> Flotation.BANK;
 			case BLOWER -> Flotation.BLOWER;

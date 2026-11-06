@@ -81,11 +81,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -112,6 +112,10 @@ public class TailingsGameTests {
 			helper.register(id("tbm_seat"), loaded(TailingsGameTests::tbmSeat));
 			helper.register(id("tbm_gantries"), loaded(TailingsGameTests::tbmGantries));
 			helper.register(id("spiral_bank"), loaded(TailingsGameTests::spiralBank));
+			helper.register(id("full_recovery"), loaded(TailingsGameTests::fullRecovery));
+			helper.register(id("leach_no_acid"), loaded(TailingsGameTests::leachNoAcid));
+			helper.register(id("byproducts"), loaded(TailingsGameTests::byproducts));
+			helper.register(id("heap_leach"), loaded(TailingsGameTests::heapLeach));
 			helper.register(id("tbm_muck"), loaded(TailingsGameTests::tbmMuck));
 			helper.register(id("tbm_train_loads"), loaded(TailingsGameTests::tbmTrainLoads));
 			helper.register(id("tbm_cable_end"), loaded(TailingsGameTests::tbmCableEnd));
@@ -400,6 +404,89 @@ public class TailingsGameTests {
 			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 1e-3, Component.literal("the tails should carry the rest of the copper, got "
 					+ tailCopper + " (pond " + pond.status() + ")"));
 		});
+	}
+
+	/** Phase 4 (full-recovery.md): a block's last 25 % of copper through scavengers, regrind, cleaners, leach, wash and electrowinning. */
+	private static void fullRecovery(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(3, y, 0));
+		source.out().offer(Product.TAILS_SLURRY, 100, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 1.0 / 100)));
+		pipe(helper, new BlockPos(3, y, 13));
+		PlantBlockEntity scavenger = plant(helper, Machine.SCAVENGER_BANK, new BlockPos(3, y, 14));
+		PlantBlockEntity blower = plant(helper, Machine.BLOWER, new BlockPos(1, y, 15));
+		pipe(helper, new BlockPos(7, y, 23), new BlockPos(8, y, 23), new BlockPos(9, y, 23), new BlockPos(10, y, 23), new BlockPos(11, y, 23), new BlockPos(12, y, 23));
+		PlantBlockEntity regrind = plant(helper, Machine.REGRIND_MILL, new BlockPos(12, y, 24));
+		pipe(helper, new BlockPos(12, y, 29));
+		PlantBlockEntity cleaner = plant(helper, Machine.CLEANER_BANK, new BlockPos(12, y, 30));
+		pipe(helper, new BlockPos(12, y, 36));
+		PlantBlockEntity thickener = plant(helper, Machine.THICKENER, new BlockPos(12, y, 37));
+		pipe(helper, new BlockPos(12, y, 45));
+		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(12, y, 46));
+		pipe(helper, new BlockPos(3, y, 23));
+		PlantBlockEntity leach = plant(helper, Machine.LEACH_TANK, new BlockPos(1, y, 24));
+		var tankBlock = BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "stock_tank"));
+		var tank = part(helper, tankBlock, new BlockPos(7, y, 25), dev.wildcatter.block.StorageTankBlockEntity.class);
+		tank.testFill(Product.SULFURIC_ACID, 5000);
+		pipe(helper, new BlockPos(6, y, 26));
+		pipe(helper, new BlockPos(3, y, 29));
+		PlantBlockEntity ccd = plant(helper, Machine.CCD_THICKENER, new BlockPos(0, y, 30));
+		pipe(helper, new BlockPos(11, y, 42));
+		PlantBlockEntity ew = plant(helper, Machine.ELECTROWINNING_BANK, new BlockPos(7, y, 43));
+		pipe(helper, new BlockPos(0, y, 42));
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(0, y, 43));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {scavenger, blower, regrind, cleaner, thickener, filter, leach, ccd, ew}) {
+			part.forceRunning();
+		}
+		var nugget = Feeds.stack(dev.wildcatter.tailings.rock.Mineral.COPPER.nuggetId(), 1);
+		helper.succeedWhen(() -> {
+			int fromFilter = filter.countIn(new int[] {1, 2}, nugget), fromCells = ew.countIn(new int[] {1, 2}, nugget);
+			String all = scavenger.status() + " | " + regrind.status() + " | " + cleaner.status() + " | " + thickener.status() + " | " + filter.status() + " | " + leach.status() + " | " + ccd.status() + " | " + ew.status() + " | " + pond.status();
+			helper.assertTrue(fromFilter == 3, Component.literal("the scavengers' 0.4 of an ingot should pay 3 nuggets at the filter, got " + fromFilter + ": " + all));
+			helper.assertTrue(fromCells == 5, Component.literal("the leach's 0.6 of an ingot should pay 5 nuggets at the cells, got " + fromCells + ": " + all));
+		});
+	}
+
+	/** Phase 4c: lead goes in and comes back, with the silver it carried; the working time is 20 s an item. */
+	private static void byproducts(GameTestHelper helper) {
+		PlantBlockEntity plant = plant(helper, Machine.BYPRODUCT_PLANT, new BlockPos(0, 4, 0));
+		plant.forceRunning();
+		ItemStack lead = Feeds.stack("wildcatter:lead_ingot", 1);
+		for (int i = 0; i < 2; i++) {
+			helper.assertTrue(plant.offer(lead.copy()), Component.literal("it should take lead"));
+		}
+		helper.succeedWhen(() -> {
+			helper.assertTrue(plant.countIn(new int[] {1, 2}, lead) == 2, Component.literal("both ingots should come back: " + plant.status()));
+			helper.assertTrue(plant.byproducts().getOrDefault("wildcatter:silver_ingot", 0.0) > 0 || plant.countIn(new int[] {1, 2}, Feeds.stack("wildcatter:silver_ingot", 1)) > 0, Component.literal("and with silver"));
+		});
+	}
+
+	/** Phase 4b: a heap of granite under acid: pregnant liquor to the cells, which pay its traces in nuggets. */
+	private static void heapLeach(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity heap = plant(helper, Machine.HEAP_PAD, new BlockPos(0, y, 0));
+		var tank = part(helper, BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), new BlockPos(11, y, 3), dev.wildcatter.block.StorageTankBlockEntity.class);
+		tank.testFill(Product.SULFURIC_ACID, 5000);
+		pipe(helper, new BlockPos(10, y, 4));
+		pipe(helper, new BlockPos(0, y, 10));
+		PlantBlockEntity ew = plant(helper, Machine.ELECTROWINNING_BANK, new BlockPos(0, y, 11));
+		heap.forceRunning();
+		ew.forceRunning();
+		helper.assertTrue(heap.offer(new ItemStack(Blocks.GRANITE)), Component.literal("the heap should take granite"));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(heap.status().contains("leaching"), Component.literal("the heap should be leaching: " + heap.status()));
+			helper.assertTrue(ew.status().contains("plating"), Component.literal("and the cells plating: " + ew.status()));
+		});
+	}
+
+	/** With no acid on its pipe the leach tank stops and says so. */
+	private static void leachNoAcid(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
+		source.out().offer(Product.TAILS_SLURRY, 100, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 1.0 / 100)));
+		pipe(helper, new BlockPos(0, y, 13));
+		PlantBlockEntity leach = plant(helper, Machine.LEACH_TANK, new BlockPos(0, y, 14));
+		leach.forceRunning();
+		helper.succeedWhen(() -> helper.assertTrue(leach.status().contains("NO ACID"), Component.literal("it should read NO ACID, got " + leach.status())));
 	}
 
 	/** The spirals take half the cassiterite to concentrate and the filter pays it; the galena, which floats, goes on untouched (gravity-circuit.md). */

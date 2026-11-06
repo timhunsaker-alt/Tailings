@@ -98,6 +98,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("spirals")) {
 				spirals(context, world, server);
 			}
+			if (only("recovery")) {
+				recovery(context, world, server);
+			}
 			if (only("dump")) {
 				dump(context, world, server);
 			}
@@ -406,6 +409,58 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-flotation-end");
 		film.stop();
 		heard("flotation", "tailings:agitator", "wildcatter:fan", "wildcatter:motor_hum", "tailings:pressure_filter");
+	}
+
+	/** Phase 4: a block's last quarter of copper through the scavengers, regrind, cleaners, leach, wash and cells (full-recovery.md). */
+	private void recovery(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(120, y + 1, 400);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			PlantBlockEntity source = plant(level, Machine.FLOTATION_BANK, o.offset(3, 0, 0));
+			source.out().offer(Product.TAILS_SLURRY, 800, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 2.0 / 800)));
+			pipe(level, o.offset(3, 0, 13));
+			PlantBlockEntity scavenger = plant(level, Machine.SCAVENGER_BANK, o.offset(3, 0, 14));
+			PlantBlockEntity blower = plant(level, Machine.BLOWER, o.offset(1, 0, 15));
+			pipe(level, o.offset(7, 0, 23), o.offset(8, 0, 23), o.offset(9, 0, 23), o.offset(10, 0, 23), o.offset(11, 0, 23), o.offset(12, 0, 23));
+			PlantBlockEntity regrind = plant(level, Machine.REGRIND_MILL, o.offset(12, 0, 24));
+			pipe(level, o.offset(12, 0, 29));
+			PlantBlockEntity cleaner = plant(level, Machine.CLEANER_BANK, o.offset(12, 0, 30));
+			pipe(level, o.offset(12, 0, 36));
+			PlantBlockEntity thickener = plant(level, Machine.THICKENER, o.offset(12, 0, 37));
+			pipe(level, o.offset(12, 0, 45));
+			PlantBlockEntity filter = plant(level, Machine.FILTER, o.offset(12, 0, 46));
+			pipe(level, o.offset(3, 0, 23));
+			PlantBlockEntity leach = plant(level, Machine.LEACH_TANK, o.offset(1, 0, 24));
+			part(level, BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), o.offset(7, 0, 25));
+			((dev.wildcatter.block.StorageTankBlockEntity) level.getBlockEntity(o.offset(7, 0, 25))).testFill(Product.SULFURIC_ACID, 5000);
+			pipe(level, o.offset(6, 0, 26), o.offset(3, 0, 29));
+			PlantBlockEntity ccd = plant(level, Machine.CCD_THICKENER, o.offset(0, 0, 30));
+			pipe(level, o.offset(11, 0, 42));
+			PlantBlockEntity cells = plant(level, Machine.ELECTROWINNING_BANK, o.offset(7, 0, 43));
+			pipe(level, o.offset(0, 0, 42));
+			PlantBlockEntity pond = plant(level, Machine.TAILINGS_POND, o.offset(0, 0, 43));
+			for (PlantBlockEntity one : new PlantBlockEntity[] {scavenger, blower, regrind, cleaner, thickener, filter, leach, ccd, cells}) {
+				one.forceRunning();
+			}
+			parts[0] = new PlantBlockEntity[] {scavenger, leach, ccd, filter, cells, pond};
+		});
+		server.runCommand("tp @p " + (o.getX() + 34) + " " + (o.getY() + 24) + " " + (o.getZ() + 24) + " 90 35");
+		context.waitTicks(40);
+		Filming film = film(context, world, "recovery");
+		context.takeScreenshot("tailings-recovery-built");
+		for (int t = 0; t < 30; t++) {
+			context.waitTicks(20);
+			if (t % 5 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] recovery: scavenger " + parts[0][0].status() + "; leach " + parts[0][1].status() + "; wash " + parts[0][2].status() + "; filter " + parts[0][3].status() + "; cells " + parts[0][4].status()));
+			}
+		}
+		context.takeScreenshot("tailings-recovery-end");
+		film.stop();
+		var nugget = dev.wildcatter.tailings.block.Feeds.stack(Mineral.COPPER.nuggetId(), 1);
+		int cells = server.computeOnServer(srv -> parts[0][4].countIn(new int[] {1, 2}, nugget) + 9 * parts[0][4].countIn(new int[] {1, 2}, new ItemStack(Items.COPPER_INGOT)));
+		require(cells > 0, "the cells should plate copper");
+		heard("recovery", "tailings:agitator");
 	}
 
 	/** Tin slurry over the spiral bank: half its tin to the filter, the rest on (gravity-circuit.md). */

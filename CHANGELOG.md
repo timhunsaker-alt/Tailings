@@ -4,6 +4,13 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## Phase 4a, 4b, 4c — Full recovery (2026-11-06)
+
+- **Scavenger bank, regrind mill, cleaner bank:** 85 % of what floats.
+- **Leach tank, CCD thickener, electrowinning bank:** 95 % and the even 4x. What does not float reaches 4x here too (Tim). Acid off Wildcatter's pipe.
+- **Heap leach pad:** waste rock by belt, paying its traces at 50 %.
+- **By-product plant:** cadmium, indium, rhenium, cobalt, rare earth oxide, and Wildcatter's silver.
+
 ## G — The gravity circuit (2026-11-06)
 
 - **The spiral bank:** 4 x 5 x 6, 37 kW. On the cyclones' overflow it pays the 2x route at plant scale for everything that does not float, iron included. Copper, gold and the sulfides pass through to flotation.

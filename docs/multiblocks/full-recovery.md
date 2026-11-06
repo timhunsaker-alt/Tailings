@@ -47,7 +47,7 @@ Reagents are carried in the pulp from the conditioner *(a game choice, Left out 
 | `ccd_thickener` | Wildcatter's size, 12 x 4 x 12 | Counter-current washing; washed tails to the cell, pregnant liquor on |
 | `electrowinning_bank` | 5 x 3 x 9 | Cathode cells at about 2 kWh a kg of copper. **400 kW at 480 V through its own rectifier section** *(proposed)*. Pays through the filter's nugget rule |
 
-**Heap leach on a lined pad** *(ROADMAP 4b)*: `heap_pad`, player-built from liner, fed by belt from the waste bin, sprayed with acid, draining to the
+**Heap leach on a lined pad** *(ROADMAP 4b)*: `heap_pad`, one 10 x 3 x 10 part with its liner in it, 15 kW for its pump, at a tenth of the plant's rate *(proposed)*, fed by belt from the waste bin, sprayed with acid, draining to the
 electrowinning bank. It is the first use for the waste bin. **Tim, 2026-11-06:** its own wave after the tank route, paying country rock's nuggets at the 50 % rate.
 
 ## 4c. By-products
@@ -59,7 +59,7 @@ electrowinning bank. It is the first use for the waste bin. **Tim, 2026-11-06:**
 | Pentlandite | cobalt 3 % | Nickel matte refining |
 | Heavy mineral sand | monazite rare earths | Already a concentrate; a rare-earth oxide item |
 
-- A **`byproduct_plant`** (5 x 5 x 8, 250 kW at 480 V *(proposed)*) takes those concentrates as items and returns them with the by-product nuggets, as Wildcatter's refineries take items.
+- A **`byproduct_plant`** (5 x 5 x 8, 250 kW at 480 V *(proposed)*) takes the item the ladder pays for a mineral, 20 s an item *(proposed)*, and gives it back with what it carried. A by-product item is 10 kg *(proposed)*.
 - Real grades are too small to feel in play, so they are scaled ×10 as ores.md scales grades *(proposed)*.
 - **Tim, 2026-11-06:** new by-product items from one plant (cadmium, indium, rhenium, rare earth oxide), and Wildcatter's silver.
 
@@ -68,6 +68,12 @@ Replaces `tailings_pond_placeholder`. It belongs in **Wildcatter**, because the 
 - Player-built: a `cell_liner` floor and walls in any rectangle, one `decant_tower`. Holds about 2.2 t a block, so a plant's day needs about 1,500 blocks of volume.
 - Tails slurry settles; **the decant returns water on a pipe** *(closing the Known gap on overflow water)*.
 - **A breach or an overtopped cell (Tim, 2026-11-06):** a visible seep and the cell stops taking tails until it is repaired. No contaminated ground.
+
+## As built
+- **No new pipe products:** the scavengers send a poor concentrate on as `concentrate slurry`; the regrind mill's product is `conditioned slurry`, for the cleaners.
+- **The top rung's even 4x** is paid at the cells (`FullRecoveryRates.topRungPay`): 1.5 per kg won for what floats, 1.11 for what does not. The heap takes that back, so it pays a true 50 %.
+- **Pregnant liquor carries its mineral at up to 30 %** *(a game figure)*: the liquor's volume does not matter here.
+- **The cells have no rectifier section of their own to wire:** they are a 400 kW motor load at 480 V, and raffinate is not returned.
 
 ## Left out (ROADMAP)
 - Selective lead-then-zinc flotation (still Tim's open DECISION, flotation-bank.md).

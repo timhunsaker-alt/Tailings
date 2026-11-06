@@ -22,6 +22,17 @@ public enum Machine {
 	BLOWER("air_blower", "Air Blower", 2, 2, 3, 75_000, Supply.INDUSTRIAL),
 	THICKENER("concentrate_thickener", "Concentrate Thickener", 8, 3, 8, 5_500, Supply.INDUSTRIAL),
 	FILTER("pressure_filter", "Pressure Filter", 3, 3, 5, 15_000, Supply.INDUSTRIAL),
+	/** Phase 4 (full-recovery.md): four 20 m3 cells on the bank's tails, 4 x 45 kW. */
+	SCAVENGER_BANK("scavenger_bank", "Scavenger Bank", 5, 4, 9, 180_000, Supply.INDUSTRIAL),
+	REGRIND_MILL("regrind_mill", "Regrind Mill", 3, 3, 5, 150_000, Supply.INDUSTRIAL),
+	CLEANER_BANK("cleaner_bank", "Cleaner Bank", 4, 3, 6, 44_000, Supply.INDUSTRIAL),
+	LEACH_TANK("leach_tank", "Leach Tank", 5, 6, 5, 30_000, Supply.INDUSTRIAL),
+	CCD_THICKENER("ccd_thickener", "CCD Thickener", 12, 4, 12, 7_500, Supply.INDUSTRIAL),
+	ELECTROWINNING_BANK("electrowinning_bank", "Electrowinning Bank", 5, 3, 9, 400_000, Supply.INDUSTRIAL),
+	/** Phase 4c: roasting, leaching and cementing out what concentrates carry (proposed: 250 kW). */
+	BYPRODUCT_PLANT("byproduct_plant", "By-Product Plant", 5, 5, 8, 250_000, Supply.INDUSTRIAL),
+	/** Phase 4b: a lined heap of waste rock under acid sprays, at a tenth of the plant's rate. Its pump is 15 kW (proposed). */
+	HEAP_PAD("heap_pad", "Heap Leach Pad", 10, 3, 10, 15_000, Supply.INDUSTRIAL),
 	/** An earthen pond for the final tails until Phase 4d's lined cell (decided with Tim, 2026-11-05). A placeholder. */
 	TAILINGS_POND("tailings_pond_placeholder", "Tailings Pond (placeholder)", 6, 2, 6, 0, Supply.NONE),
 	DUMP_RAMP("dump_ramp", "Dump Ramp", 1, 1, 4, 0, Supply.NONE),

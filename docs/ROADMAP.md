@@ -143,7 +143,7 @@ R brings it in line, one wave at a time.
 
 ## Phase 4 — Full recovery — next after R
 
-Draft spec: [full-recovery.md](multiblocks/full-recovery.md), waiting on its DECISIONs. Wildcatter Phase 12 comes first.
+Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **4a, 4b, the heap and 4c are built** (2026-11-06, not yet filmed or played through); 4d waits on Wildcatter v0.4.0.
 
 - **4a.** Scavenger and cleaner flotation beyond the fixed bank, and a regrind.
 - **4b.** Leaching the flotation tails: tank leach with Wildcatter's sulfuric acid, and heap leach on a lined pad.
@@ -200,7 +200,8 @@ These are in the current build on purpose, or because the art and tests have not
 - **The locomotive and car skins are script-drawn placeholders (R9):** `mine_locomotive_placeholder`, `mine_car_placeholder`, from `tools/models/vehicles.py`, until they come from Ludo.
 - **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
 - **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10, not diagnosed).** Sized cable works, and one train needs only about 110 A.
-- **The waste bin has no outlet (R10).** 992 items in 11 game minutes against 8,192: about 90 minutes of driving before the pocket backs up. A belt off it to nowhere does not exist yet; Phase 4b's heap pad is its first use.
+- **The waste bin backs up in about 90 minutes of driving without a heap (R10).** 992 items in 11 game minutes against 8,192. A belt under it to a `heap_pad` is the way out, and the heap holds 100 blocks at a tenth of the plant's rate.
+- **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot. **By-product item icons are script-drawn placeholders.**
 
 Other stand-ins worth knowing:
 

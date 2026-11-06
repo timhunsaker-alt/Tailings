@@ -41,6 +41,9 @@ public final class TailingsItems {
 		for (Reagent reagent : Reagent.values()) {
 			REAGENTS.add(item(reagent.id()));
 		}
+		for (String byProduct : java.util.List.of("cadmium", "indium", "rhenium", "cobalt", "rare_earth_oxide")) {
+			item(byProduct);
+		}
 		LOCOMOTIVE = item("mine_locomotive");
 		CAR = item("mine_car");
 		for (TbmGantry gantry : TbmGantry.values()) {

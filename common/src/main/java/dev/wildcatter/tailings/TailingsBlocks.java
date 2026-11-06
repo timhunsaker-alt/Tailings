@@ -69,6 +69,14 @@ public final class TailingsBlocks {
 	public static final Block FLOTATION_BANK = plant(Machine.FLOTATION_BANK, MapColor.COLOR_LIGHT_BLUE);
 	public static final Block BLOWER = plant(Machine.BLOWER, MapColor.COLOR_BLUE);
 	public static final Block SPIRAL_BANK = plant(Machine.SPIRAL_BANK, MapColor.METAL);
+	public static final Block BYPRODUCT_PLANT = plant(Machine.BYPRODUCT_PLANT, MapColor.COLOR_GRAY);
+	public static final Block HEAP_PAD = plant(Machine.HEAP_PAD, MapColor.TERRACOTTA_BROWN);
+	public static final Block SCAVENGER_BANK = plant(Machine.SCAVENGER_BANK, MapColor.COLOR_GRAY);
+	public static final Block REGRIND_MILL = plant(Machine.REGRIND_MILL, MapColor.METAL);
+	public static final Block CLEANER_BANK = plant(Machine.CLEANER_BANK, MapColor.COLOR_GRAY);
+	public static final Block LEACH_TANK = plant(Machine.LEACH_TANK, MapColor.COLOR_GRAY);
+	public static final Block CCD_THICKENER = plant(Machine.CCD_THICKENER, MapColor.STONE);
+	public static final Block ELECTROWINNING_BANK = plant(Machine.ELECTROWINNING_BANK, MapColor.COLOR_ORANGE);
 	public static final Block THICKENER = plant(Machine.THICKENER, MapColor.TERRACOTTA_BROWN);
 	public static final Block FILTER = plant(Machine.FILTER, MapColor.TERRACOTTA_WHITE);
 	public static final Block TAILINGS_POND = plant(Machine.TAILINGS_POND, MapColor.CLAY);
@@ -79,7 +87,7 @@ public final class TailingsBlocks {
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
-			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
+			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
@@ -180,6 +188,14 @@ public final class TailingsBlocks {
 			case FLOTATION_BANK -> FLOTATION_BANK;
 			case BLOWER -> BLOWER;
 			case SPIRAL_BANK -> SPIRAL_BANK;
+			case BYPRODUCT_PLANT -> BYPRODUCT_PLANT;
+			case HEAP_PAD -> HEAP_PAD;
+			case SCAVENGER_BANK -> SCAVENGER_BANK;
+			case REGRIND_MILL -> REGRIND_MILL;
+			case CLEANER_BANK -> CLEANER_BANK;
+			case LEACH_TANK -> LEACH_TANK;
+			case CCD_THICKENER -> CCD_THICKENER;
+			case ELECTROWINNING_BANK -> ELECTROWINNING_BANK;
 			case THICKENER -> THICKENER;
 			case FILTER -> FILTER;
 			case TAILINGS_POND -> TAILINGS_POND;

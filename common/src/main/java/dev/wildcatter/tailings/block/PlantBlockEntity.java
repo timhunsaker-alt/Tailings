@@ -83,7 +83,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A conveyor drive's last scan of its run (not saved). */
 	public @Nullable Object run;
 
-	private static final List<Product> SLURRIES = List.of(Product.MILL_DISCHARGE, Product.FINES_SLURRY, Product.CONDITIONED_SLURRY,
+	private static final List<Product> SLURRIES = List.of(Product.LEACH_SLURRY, Product.PREGNANT_LIQUOR, Product.MILL_DISCHARGE, Product.FINES_SLURRY, Product.CONDITIONED_SLURRY,
 			Product.CONCENTRATE_SLURRY, Product.THICKENED_CONCENTRATE, Product.TAILS_SLURRY);
 
 	public PlantBlockEntity(BlockPos pos, BlockState state) {
@@ -403,6 +403,19 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			return false;
 		}
+		if (machine() == Machine.BYPRODUCT_PLANT) {
+			if (!canPlaceItem(0, stack) || !(slots.get(0).isEmpty() || ItemStack.isSameItemSameComponents(slots.get(0), stack) && slots.get(0).getCount() < 64)) {
+				return false;
+			}
+			if (slots.get(0).isEmpty()) {
+				slots.set(0, stack.split(1));
+			} else {
+				slots.get(0).grow(1);
+				stack.shrink(1);
+			}
+			setChanged();
+			return true;
+		}
 		Feeds.Charge charge = Feeds.parse(stack);
 		if (charge == null) {
 			return false;
@@ -426,9 +439,30 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return true;
 	}
 
+	/** The by-product plant's kg of each by-product made and not yet a whole item, and its work on the item at hand, in ticks. */
+	private final java.util.Map<String, Double> byproducts = new java.util.TreeMap<>();
+	private int working;
+
+	public java.util.Map<String, Double> byproducts() {
+		return byproducts;
+	}
+
+	public int working(int by) {
+		working += by;
+		if (by < 0) {
+			working = 0;
+		}
+		return working;
+	}
+
+	/** The parts that pay out by the nuggets rule, with two output stacks. */
+	private boolean pays() {
+		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT;
+	}
+
 	public boolean give(Player player) {
 		boolean gave = false;
-		for (int slot : machine() == Machine.FILTER ? new int[] {1, 2} : new int[] {1}) {
+		for (int slot : pays() ? new int[] {1, 2} : new int[] {1}) {
 			ItemStack stack = slots.get(slot);
 			if (!stack.isEmpty()) {
 				player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
@@ -699,6 +733,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("hold", hold.save());
 		output.putString("made", made.save());
 		output.putString("out", out.save());
+		StringBuilder made = new StringBuilder();
+		byproducts.forEach((id, kg) -> made.append(id).append('=').append(kg).append(';'));
+		output.putString("byproducts", made.toString());
 		output.putString("back", back.save());
 		output.putDouble("water", water);
 		output.putString("sort", sorter.save());
@@ -724,6 +761,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		hold.load(input.getStringOr("hold", ""));
 		made.load(input.getStringOr("made", ""));
 		out.load(input.getStringOr("out", ""));
+		byproducts.clear();
+		for (String one : input.getStringOr("byproducts", "").split(";")) {
+			String[] pair = one.split("=");
+			if (pair.length == 2) {
+				byproducts.put(pair[0], Double.parseDouble(pair[1]));
+			}
+		}
 		back.load(input.getStringOr("back", ""));
 		water = input.getDoubleOr("water", 0);
 		sorter.load(input.getStringOr("sort", ""));
@@ -810,7 +854,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public int[] getSlotsForFace(Direction side) {
-		if (machine() == Machine.FILTER) {
+		if (pays()) {
 			return side == Direction.UP ? new int[0] : new int[] {1, 2};
 		}
 		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5} : new int[] {1};
@@ -818,6 +862,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean canPlaceItem(int slot, ItemStack stack) {
+		if (slot == 0 && machine() == Machine.BYPRODUCT_PLANT) {
+			return dev.wildcatter.tailings.plant.ByProducts.byItem(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()) != null;
+		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);
 			if (charge == null) {
@@ -825,7 +872,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			return switch (machine()) {
 				case ORE_BIN -> binCount() < PlantRates.BIN_ITEMS;
-				case CONDITIONER, FILTER -> false;
+				case CONDITIONER, FILTER, ELECTROWINNING_BANK -> false;
 				default -> accepts(charge.rock(), charge.size());
 			};
 		}
@@ -839,6 +886,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return (slot == 1 || slot == 2 && machine() == Machine.FILTER) && side != Direction.UP;
+		return (slot == 1 || slot == 2 && pays()) && side != Direction.UP;
 	}
 }

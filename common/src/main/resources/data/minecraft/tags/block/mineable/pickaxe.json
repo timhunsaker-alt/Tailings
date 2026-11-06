@@ -43,6 +43,14 @@
     "tailings:apron_feeder",
     "tailings:ore_sorter",
     "tailings:ore_bin",
-    "tailings:spiral_bank"
+    "tailings:spiral_bank",
+    "tailings:scavenger_bank",
+    "tailings:regrind_mill",
+    "tailings:cleaner_bank",
+    "tailings:leach_tank",
+    "tailings:ccd_thickener",
+    "tailings:electrowinning_bank",
+    "tailings:byproduct_plant",
+    "tailings:heap_pad"
   ]
 }

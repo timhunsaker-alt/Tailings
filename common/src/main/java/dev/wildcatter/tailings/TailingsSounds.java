@@ -52,7 +52,11 @@ public final class TailingsSounds {
 			case FILTER -> PRESSURE_FILTER;
 			case ORE_SORTER -> ORE_SORTER;
 			case BLOWER -> WildcatterSounds.FAN;
-			case SPIRAL_BANK -> SLURRY_RUSH;
+			case SPIRAL_BANK, CLEANER_BANK, CCD_THICKENER -> SLURRY_RUSH;
+			case SCAVENGER_BANK, LEACH_TANK, BYPRODUCT_PLANT -> AGITATOR;
+			case HEAP_PAD -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
+			case REGRIND_MILL -> BALL_MILL;
+			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case THICKENER -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
