@@ -12,9 +12,9 @@ public enum TbmGantry {
 
 	public static final int WIDTH = 6;
 	public static final int HEIGHT = 4;
-	/** The first row behind the conveyor's tail, and how many rows the conveyor's chute reaches: a train's first few cars. */
+	/** The first row behind the conveyor's tail, and how many rows the chute reaches: a stopped train's 3 m locomotive and its first four cars. */
 	public static final int LOADING_ROW = 27;
-	public static final int LOADING_ROWS = 5;
+	public static final int LOADING_ROWS = 13;
 	/** Across the gantry's frame: where its wheels run on the twin track, columns 2 and 5 of the bore. */
 	public static final int LEFT_RAIL = 1;
 	public static final int RIGHT_RAIL = 4;

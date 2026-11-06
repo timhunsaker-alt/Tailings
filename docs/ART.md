@@ -10,7 +10,7 @@ All runtime art is under `common/src/main/resources/assets/tailings/`.
 |---|---|
 | `textures/block/*.png` | 16×16 block sprites, including the rail overlays, ballast, signal lamps, and mine light on/off |
 | `textures/item/mine_car.png`, `textures/item/mine_locomotive.png` | 16×16 inventory icons |
-| `textures/entity/mine_car.png`, `textures/entity/mine_locomotive.png` | 128×128 entity skins |
+| `textures/entity/mine_car.png`, `textures/entity/mine_locomotive.png` | 256×256 entity skins (tools/models/vehicles.py) |
 | `models/block/*.json` | Block models. Slopes and sloped rails are element models (eight slices). Flat rail and the switch are a full cube plus a thin overlay |
 | `models/item/mine_car.json`, `models/item/mine_locomotive.json` | `minecraft:item/generated` icons |
 | `blockstates/*.json` | Variants. `mine_rail` picks slope, look, and rack. `block_signal` picks the lamp. `mine_light` picks on/off. `mine_switch` picks thrown |
@@ -32,7 +32,7 @@ Fabric registers the layers in `TailingsFabricClient`. NeoForge registers them o
 
 **Entity textures** are the same pipeline at 128×128, painted to the UV layout of the Blockbench models (frame, cab, wheels, headlight, car body, load).
 
-**Entity models** were built by hand in Blockbench (one locomotive, one Granby-style car) and exported as `createBodyLayer()` Java, not as JSON entity models. The cubes are in pixel space. Positive Y in that export is Minecraft's model space (down from a root 24 pixels above the wheels), which is the usual entity-model flip of a Blockbench file whose Y is up. The wheel bottoms sit on the rail. The locomotive's front is −Z, which is the direction of travel after the renderer yaws.
+**Entity models** are at their real length since R9: `tools/models/vehicles.py` holds the boxes, paints the 256x256 skins and prints the `createBodyLayer()` lines, not JSON entity models. The cubes are in pixel space. Positive Y in that export is Minecraft's model space (down from a root 24 pixels above the wheels), which is the usual entity-model flip of a Blockbench file whose Y is up. The wheel bottoms sit on the rail. The locomotive's front is −Z, which is the direction of travel after the renderer yaws.
 
 The Blockbench `.bbmodel` files were the authoring source for that export. They are not in the repository. The Java in `MineLocomotiveModel` and `MineCarModel` is what the game loads. If you change a cube, change those methods and keep the texture size at 128×128.
 
@@ -81,7 +81,7 @@ There is no script in the repo that calls Ludo or Blockbench. To replace a textu
 
 Do **not** re-run `tools/phase2_assets.py` (it would write the old cube machines back) or `tools/phase3_assets.py` to refresh art. That script is an early generator. It still writes slab and cube parents with vanilla placeholder textures, and it would overwrite the eight-slice slope and rail models. The committed JSON is the source of truth for block models.
 
-To change the train's shape, edit `createBodyLayer()` in the model class (or re-export from Blockbench into that method). Keep part names the renderer looks up: `headlight` on the locomotive, `load` on the car. Register nothing new unless you add a layer. Both loaders already register `tailings:mine_locomotive` and `tailings:mine_car`, layer `main`.
+To change the train's shape, edit the boxes in `tools/models/vehicles.py`, run it, and paste what it prints into `createBodyLayer()`. Keep part names the renderer looks up: `headlight` on the locomotive, `load` on the car. Register nothing new unless you add a layer. Both loaders already register `tailings:mine_locomotive` and `tailings:mine_car`, layer `main`.
 
 After a model change, `./gradlew :common:test` runs the spacing tests, and `:neoforge:runGameTestServer` includes the `models` scene, which bakes both layers and checks that the headlight and load parts exist. That does not open a world view. Look at the train in a client before calling the art finished.
 

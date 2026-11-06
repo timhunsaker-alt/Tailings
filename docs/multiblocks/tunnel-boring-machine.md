@@ -255,7 +255,7 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 
 ## Added while building R6c
 - **Rows behind the cutterhead:** the track layer lays the last rail at row 11; the pump gantry stands on rows 12 to 14, the reel on 15 to 18, the conveyor on 19 to 26. So the player's twin rail must run at least 16 rows back from the track layer before starting.
-- **The loading point** is the five rows just behind the conveyor's tail, on both tracks. A train waits there while a car has room and the machine has muck.
+- **The loading point** is the 13 rows just behind the conveyor's tail, on both tracks: a stopped train's locomotive and its first four cars at real length (R9). A train waits there while a car has room and the machine has muck.
 - **A train stops short of a gantry** and turns back there, as at the end of the line.
 - **Coupling** is from within 8 blocks of the gantry's place, in order, and snaps it into place. It works on the machine as blocks, running or parked.
 - **Power:** 1 MW for the beam, 75 kW more while the pump pumps or quenches, 7.5 kW more while the conveyor moves muck, all through the junction.

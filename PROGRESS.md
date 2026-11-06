@@ -176,3 +176,6 @@ The plant keeps running on the old shortcut until R4 (Tim's choice). A line form
 
 `./gradlew build` and 18 NeoForge scenes pass.
 
+## R9: real vehicle length (2026-11-06)
+
+Tim chose real length. `Haul.carOffset` and `tailOffset` replace the one spacing; `tools/models/vehicles.py` makes the boxes and skins. The longer locomotive left the first car outside the old five-row chute, which only the filmed `haul` showed, so the chute is 13 rows and `tbm_train_loads` covers it on the server. 50 NeoForge scenes pass; `train`, `dump`, `haul` and `hand` were filmed.

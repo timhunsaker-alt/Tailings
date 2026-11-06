@@ -4,6 +4,13 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R9 — Real vehicle length (2026-11-06)
+
+- **The locomotive is 3 m and the cars are 2 m,** on 0.5 m couplings. New models and skins; a vehicle's hit box now runs its whole length along the track.
+- **Placing:** a car couples when placed or sneak-clicked within 3 m of its place behind the train.
+- **The conveyor's chute reaches 13 rows,** so a stopped train still loads its first four cars.
+- **Tests:** `tbm_train_loads`; the `haul` film found the first car standing past the old chute.
+
 ## R8 — Sound (2026-11-06)
 
 - **Machines now sound:** crushers, screen, ball mill, belts, apron feeder, cyclones, agitators, filter, sorter, blower and thickener while they run with work to do; the machine's cutters and its pump and conveyor gantries while it drives; the locomotive, its pitch following its speed.

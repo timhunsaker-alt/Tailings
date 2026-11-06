@@ -32,10 +32,12 @@ public final class Haul {
 	/** Rolling resistance, as a share of weight. */
 	public static final double ROLLING = 0.01;
 	public static final double GRAVITY = 9.81;
-	/** Vehicle centres along the track: the models' length, 20 px, until the art pass draws them at their real length. */
-	public static final double SPACING = 20.0 / 16.0;
-	/** Half a vehicle, from its centre to its end. */
-	public static final double HALF_LENGTH = SPACING / 2;
+	/** The real lengths, end to end (haulage.md): a 3 m locomotive and 2 m cars on 0.5 m couplings. */
+	public static final double LOCOMOTIVE_LENGTH = 3.0;
+	public static final double CAR_LENGTH = 2.0;
+	public static final double COUPLING = 0.5;
+	/** Width of both, for what they hit. */
+	public static final double WIDTH = 0.9;
 	/** A car couples to a train whose tail is this close behind it (proposed). */
 	public static final double COUPLE_REACH = 3.0;
 	/** At the end of the track a train waits this long, then reverses (proposed). */
@@ -61,5 +63,15 @@ public final class Haul {
 	public static final double FED_SHARE = 0.5;
 
 	private Haul() {
+	}
+
+	/** How far behind the locomotive's centre the centre of its car {@code index} (from 0) rides. */
+	public static double carOffset(int index) {
+		return LOCOMOTIVE_LENGTH / 2 + COUPLING + CAR_LENGTH / 2 + index * (CAR_LENGTH + COUPLING);
+	}
+
+	/** Centre of the locomotive to the tail end of a train of {@code cars} cars. */
+	public static double tailOffset(int cars) {
+		return cars == 0 ? LOCOMOTIVE_LENGTH / 2 : carOffset(cars - 1) + CAR_LENGTH / 2;
 	}
 }

@@ -168,7 +168,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			ServerLevel level = srv.overworld();
 			loco[0] = MineVehicleEntity.placeLocomotive(level, new BlockPos(x, y, z0 + 30), Heading.NORTH);
 			for (int i = 1; i <= 3; i++) {
-				MineVehicleEntity car = MineVehicleEntity.placeCar(level, new BlockPos(x, y, z0 + 30 + i), Heading.NORTH);
+				MineVehicleEntity car = MineVehicleEntity.placeCar(level, new BlockPos(x, y, z0 + 30 + 3 + (int) ((i - 1) * 2.5)), Heading.NORTH);
 				if (i == 1) {
 					car.load().add("minecraft:cobblestone", 64);
 					car.refreshLoad();
@@ -434,9 +434,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.waitTicks(30);
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
-			cars[0] = MineVehicleEntity.placeLocomotive(level, rail.offset(0, 0, 5), Heading.NORTH);
+			cars[0] = MineVehicleEntity.placeLocomotive(level, rail.offset(0, 0, 3), Heading.NORTH);
 			cars[1] = MineVehicleEntity.placeCar(level, rail.offset(0, 0, 6), Heading.NORTH);
-			cars[2] = MineVehicleEntity.placeCar(level, rail.offset(0, 0, 7), Heading.NORTH);
+			cars[2] = MineVehicleEntity.placeCar(level, rail.offset(0, 0, 8), Heading.NORTH);
 			cars[1].load().add("minecraft:copper_ore", 64);
 			cars[2].load().add("minecraft:cobblestone", 64);
 			cars[1].refreshLoad();
@@ -514,9 +514,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.waitTicks(40);
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
-			train[0] = MineVehicleEntity.placeLocomotive(level, c.offset(2, 1, 46), Heading.NORTH);
-			train[1] = MineVehicleEntity.placeCar(level, c.offset(2, 1, 47), Heading.NORTH);
-			train[2] = MineVehicleEntity.placeCar(level, c.offset(2, 1, 48), Heading.NORTH);
+			train[0] = MineVehicleEntity.placeLocomotive(level, c.offset(2, 1, 42), Heading.NORTH);
+			train[1] = MineVehicleEntity.placeCar(level, c.offset(2, 1, 45), Heading.NORTH);
+			train[2] = MineVehicleEntity.placeCar(level, c.offset(2, 1, 47), Heading.NORTH);
 		});
 		Filming film = film(context, world, "haul");
 		context.takeScreenshot("tailings-haul-built");

@@ -204,7 +204,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		if (locomotive() || locomotiveId != null || !(level() instanceof ServerLevel server)) {
 			return false;
 		}
-		for (MineVehicleEntity loco : server.getEntitiesOfClass(MineVehicleEntity.class, getBoundingBox().inflate(Haul.SPACING * (Haul.MAX_CARS + 2)),
+		for (MineVehicleEntity loco : server.getEntitiesOfClass(MineVehicleEntity.class, getBoundingBox().inflate(Haul.tailOffset(Haul.MAX_CARS) + 1),
 				e -> e.locomotive() && e.isAlive())) {
 			if (loco.take(this, Haul.COUPLE_REACH)) {
 				server.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.CAR_COUPLE, net.minecraft.sounds.SoundSource.BLOCKS, 1F, 1F);
@@ -219,9 +219,9 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		if (path == null || cars.size() >= Haul.MAX_CARS || car.locomotiveId != null) {
 			return false;
 		}
-		double slot = front - (cars.size() + 1) * Haul.SPACING;
+		double slot = front - Haul.carOffset(cars.size());
 		RailView view = new RailView(level());
-		for (int i = 0; i < 8 && slot - Haul.HALF_LENGTH < 0; i++) {
+		for (int i = 0; i < 8 && slot - Haul.CAR_LENGTH / 2 < 0; i++) {
 			double moved = path.extendBack(view);
 			if (moved == 0) {
 				break;
@@ -229,7 +229,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			front += moved;
 			slot += moved;
 		}
-		if (slot - Haul.HALF_LENGTH < 0) {
+		if (slot - Haul.CAR_LENGTH / 2 < 0) {
 			return false;
 		}
 		double[] at = path.point(slot);
@@ -309,7 +309,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		List<MineVehicleEntity> train = members(server);
 		if (++coupleScan >= 20) {
 			coupleScan = 0;
-			for (MineVehicleEntity car : server.getEntitiesOfClass(MineVehicleEntity.class, getBoundingBox().inflate(Haul.SPACING * (Haul.MAX_CARS + 2)),
+			for (MineVehicleEntity car : server.getEntitiesOfClass(MineVehicleEntity.class, getBoundingBox().inflate(Haul.tailOffset(Haul.MAX_CARS) + 1),
 					e -> !e.locomotive() && e.locomotiveId == null && e.isAlive())) {
 				if (take(car, 0.75)) {
 					train = members(server);
@@ -357,15 +357,15 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	}
 
 	private double carPlace(int index) {
-		return front - (index + 1) * Haul.SPACING;
+		return front - Haul.carOffset(index);
 	}
 
 	private double tailEnd() {
-		return front - cars.size() * Haul.SPACING - Haul.HALF_LENGTH;
+		return front - Haul.tailOffset(cars.size());
 	}
 
 	private double frontEnd() {
-		return front + Haul.HALF_LENGTH;
+		return front + Haul.LOCOMOTIVE_LENGTH / 2;
 	}
 
 	/** One tick of the train's run along the track. */
@@ -669,9 +669,28 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	}
 
 	private void setAt(double x, double y, double z, float yaw, float pitch) {
-		setPos(x, y, z);
 		setYRot(yaw);
 		setXRot(pitch);
+		setPos(x, y, z);
+	}
+
+	/** Its box runs along the track: it is drawn and hit at its real length. */
+	@Override
+	protected AABB makeBoundingBox(Vec3 at) {
+		double half = (locomotive() ? Haul.LOCOMOTIVE_LENGTH : Haul.CAR_LENGTH) / 2, side = Haul.WIDTH / 2;
+		double yaw = Math.toRadians(getYRot()), sin = Math.abs(Math.sin(yaw)), cos = Math.abs(Math.cos(yaw));
+		double x = sin * half + cos * side, z = cos * half + sin * side;
+		return new AABB(at.x - x, at.y, at.z - z, at.x + x, at.y + getBbHeight(), at.z + z);
+	}
+
+	/** The client hears the turn apart from the move, and the box follows either. */
+	@Override
+	public void setYRot(float yaw) {
+		boolean turned = yaw != getYRot();
+		super.setYRot(yaw);
+		if (turned) {
+			setBoundingBox(makeBoundingBox(position()));
+		}
 	}
 
 	/** The track went from under the train: it stops, and the cars at the gap drop their loads. */
@@ -681,7 +700,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		status = "DERAILED: put the track back under it";
 		for (int i = 1; i < train.size(); i++) {
 			double s = carPlace(i - 1);
-			if (s + Haul.HALF_LENGTH >= from - Haul.SPACING && s - Haul.HALF_LENGTH <= to + Haul.SPACING) {
+			if (s + Haul.CAR_LENGTH / 2 >= from - Haul.COUPLING && s - Haul.CAR_LENGTH / 2 <= to + Haul.COUPLING) {
 				train.get(i).dropLoad(server);
 			}
 		}

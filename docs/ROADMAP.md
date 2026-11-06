@@ -133,6 +133,8 @@ R brings it in line, one wave at a time.
 
 - **R8. Sound — DONE (2026-11-06, Tim's request):** a running loop for every powered plant part, the machine, the pump and conveyor gantries and the locomotive, and one-shots for tipping, loading, setting a ring and coupling ([sound.md](sound.md)). The client scenes fail if a machine's sound does not start.
 
+- **R9. Vehicles at their real length — DONE (2026-11-06, Tim's decision):** a 3 m locomotive and 2 m cars on 0.5 m couplings, new models and skins from `tools/models/vehicles.py`, boxes along the track. The conveyor's chute reaches 13 rows, so a stopped train still loads its first four cars.
+
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
@@ -163,7 +165,7 @@ Not started.
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 
 - **Gantries keep their place by the machine's course (R6c),** set along the straight bore behind it, not run along the rail by their own wheels. The machine checks the track under them before each advance and stops if it is gone.
-- **Only the cars within the conveyor's five rows load on a visit (R6c).** A long train leaves with its far cars empty.
+- **Only the first four cars load on a visit (R6c, R9).** A long train leaves with its far cars empty.
 - **The trailing cable is not drawn (R6c),** and the reel does not turn. The cab counts what is paid out.
 - **The transformer is a rating, not a circuit part (R6c).** The pump and conveyor add to what the junction draws at 4.16 kV.
 - **The quench tank stays with the cab (R6c).** Its water is kept when a pump gantry is broken.
@@ -191,7 +193,6 @@ These are in the current build on purpose, or because the art and tests have not
 - **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in. A line split by unloaded chunks loses its far end until they load.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
-- **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).
 - **Sound levels are not tuned by ear (R8).** The volumes in `sound.md` were set from the files' levels. The tests prove each sound starts, not how it sounds together. The films have no audio: `screencapture` can only record a microphone.
 - **Silent for now (R8).** The traction rectifier, the small phase 1 machines, the reel gantry, and the wheels of an unpowered car. A plant part's sound does not follow its load.
 - **The filmed scenes are staged.** They run at test speed with the parts force-running, not wired to a real grid, and `crushing`'s cone has no belt off it (as its server scene). Survival play from scratch, crafting every part and powering it from Wildcatter, has not been run start to finish.

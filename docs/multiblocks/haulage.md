@@ -115,7 +115,7 @@ first draft and is still to be checked.
   down, whose rail surface meets it, so the flat drive, the 1-in-2 decline and the joins between them run both ways.
 - **The end of track** is the end the locomotive sees within its braking distance: it stops, waits 5 s *(proposed)* and reverses.
   Track broken under a train, or ahead closer than it can stop, derails it.
-- **Spacing:** cars sit at the existing models' length until the art pass (R7) draws them at their real length.
+- **Spacing (R9, Tim 2026-11-06):** real length: centres 3 m from the locomotive to its first car, 2.5 m from car to car. A car couples within 3 m of its place behind the train; placed by hand it can stand anywhere near that.
 
 ## Added while building R5b
 - **The conductor rail on Wildcatter's solver:** each rail or switch is one node, joined to its neighbours at 0.02 ohm/km; rails a
