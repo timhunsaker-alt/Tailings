@@ -7,6 +7,8 @@ import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmMachine;
+import dev.wildcatter.tailings.entity.TbmEntity;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.MineRailBlock;
@@ -72,7 +74,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
@@ -95,6 +97,12 @@ public class TailingsGameTests {
 			helper.register(id("drill_pause"), loaded(TailingsGameTests::drillPause));
 			helper.register(id("tbm_built"), loaded(TailingsGameTests::tbmBuilt));
 			helper.register(id("drill_retired"), loaded(TailingsGameTests::drillRetired));
+			helper.register(id("tbm_lift"), loaded(TailingsGameTests::tbmLift));
+			helper.register(id("tbm_glide"), loaded(TailingsGameTests::tbmGlide));
+			helper.register(id("tbm_setdown"), loaded(TailingsGameTests::tbmSetDown));
+			helper.register(id("tbm_park"), loaded(TailingsGameTests::tbmPark));
+			helper.register(id("tbm_dismantle"), loaded(TailingsGameTests::tbmDismantle));
+			helper.register(id("tbm_seat"), loaded(TailingsGameTests::tbmSeat));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
 			helper.register(id("models"), loaded(TailingsGameTests::models));
 			helper.register(id("train_runs"), loaded(TailingsGameTests::trainRuns));
@@ -845,51 +853,220 @@ public class TailingsGameTests {
 		return cab;
 	}
 
-	/**
-	 * One advance as blocks: the face cut to muck, every part one block on, a ring of 28 segments behind the segment erector, and the
-	 * floor and twin track, on ballast, behind the track layer.
-	 */
-	private static void drill(GameTestHelper helper) {
-		BlockPos c = new BlockPos(4, 40, 20);
-		DrillBlockEntity cab = tbm(helper, c, 4, true);
-		Advance drove = cab.stepNow();
-		helper.assertTrue(drove.placed(), Component.literal("the machine should advance, got " + drove.stop() + " (" + cab.core().readout() + ")"));
-		helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD
-				&& helper.getBlockState(c.offset(3, 3, 2)).getBlock() == TailingsBlocks.MAIN_BEAM, Component.literal("every part should move one block on"));
-		helper.assertTrue(helper.getBlockState(c.offset(3, 3, 10)).getBlock() == TailingsBlocks.DEWATERING_PUMP && helper.getBlockState(c.offset(3, 3, 12)).isAir(),
-				Component.literal("the pump should follow the beam's tail and leave its last cell empty"));
+	/** The running machine near {@code c}, or null. */
+	private static TbmEntity machine(GameTestHelper helper, BlockPos c) {
+		List<TbmEntity> found = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(40));
+		return found.isEmpty() ? null : found.get(0);
+	}
+
+	/** Starts the built machine at {@code ticks} ticks a block. */
+	private static void go(DrillBlockEntity cab, int ticks) {
+		cab.core().setTestTicks(ticks);
+		cab.press(10, null);
+	}
+
+	/** Keeps the running machine's segments up: a ring is 28 of them, and a stack is 64. */
+	private static void feed(GameTestHelper helper, BlockPos c) {
+		helper.onEachTick(() -> {
+			TbmEntity machine = machine(helper, c);
+			if (machine != null) {
+				machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+			}
+		});
+	}
+
+	private static int ringAt(GameTestHelper helper, BlockPos c, int z) {
 		int lined = 0;
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
-				if (helper.getBlockState(c.offset(x, y, 2)).getBlock() == TailingsBlocks.LINING) {
+				if (helper.getBlockState(c.offset(x, y, z)).getBlock() == TailingsBlocks.LINING) {
 					lined++;
 				}
 			}
 		}
-		helper.assertTrue(lined == 28, Component.literal("a ring of 28 segments behind the erector, got " + lined));
-		BlockState rail = helper.getBlockState(c.offset(2, 1, 10));
-		helper.assertTrue(rail.getBlock() == TailingsBlocks.MINE_RAIL && rail.getValue(MineRailBlock.LOOK) == FloorLook.BALLAST,
-				Component.literal("track on ballast behind the track layer, got " + rail));
-		helper.assertTrue(helper.getBlockState(c.offset(5, 1, 10)).getBlock() == TailingsBlocks.MINE_RAIL, Component.literal("the second track"));
-		DrillBlockEntity now = cab.current();
-		int muck = 0;
-		for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
-			muck += now.getItem(slot).getCount();
-		}
-		helper.assertTrue(muck == 60, Component.literal("64 cut, 4 kept for the floor: 60 muck, got " + muck));
-		helper.assertTrue(now.getItem(DrillBlockEntity.SLOT_GRAVEL).getCount() == 62 && now.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 36,
-				Component.literal("ballast under both rails and a crafted ring spent"));
-		helper.succeed();
+		return lined;
 	}
 
-	/** A machine with no track layer reads NOT BUILT and names it. */
+	/**
+	 * One advance and stop: the machine lifts, cuts the face to muck, glides a block on and sets back down as blocks, a ring of 28
+	 * segments behind the segment erector and the floor and twin track, on ballast, behind the track layer.
+	 */
+	private static void drill(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 10);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			if (machine != null && machine.core().drill().advanceCount() >= 1) {
+				machine.core().setRunning(false);
+			}
+			helper.assertTrue(machine == null, Component.literal("it should set down"));
+			helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD
+					&& helper.getBlockState(c.offset(3, 3, 2)).getBlock() == TailingsBlocks.MAIN_BEAM, Component.literal("every part should be one block on"));
+			helper.assertTrue(helper.getBlockState(c.offset(3, 3, 10)).getBlock() == TailingsBlocks.DEWATERING_PUMP && helper.getBlockState(c.offset(3, 3, 12)).isAir(),
+					Component.literal("the pump should follow the beam's tail and leave its last cell empty"));
+			int lined = ringAt(helper, c, 2);
+			helper.assertTrue(lined == 28, Component.literal("a ring of 28 segments behind the erector, got " + lined));
+			BlockState rail = helper.getBlockState(c.offset(2, 1, 10));
+			helper.assertTrue(rail.getBlock() == TailingsBlocks.MINE_RAIL && rail.getValue(MineRailBlock.LOOK) == FloorLook.BALLAST,
+					Component.literal("track on ballast behind the track layer, got " + rail));
+			helper.assertTrue(helper.getBlockState(c.offset(5, 1, 10)).getBlock() == TailingsBlocks.MINE_RAIL, Component.literal("the second track"));
+			DrillBlockEntity now = helper.getBlockEntity(c.offset(3, 3, 2), DrillBlockEntity.class);
+			int muck = 0;
+			for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
+				muck += now.getItem(slot).getCount();
+			}
+			helper.assertTrue(muck == 60, Component.literal("64 cut, 4 kept for the floor: 60 muck, got " + muck));
+			helper.assertTrue(now.getItem(DrillBlockEntity.SLOT_GRAVEL).getCount() == 62 && now.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 36,
+					Component.literal("ballast under both rails and a crafted ring spent"));
+			helper.assertFalse(now.running(), Component.literal("and it stays stopped"));
+		});
+	}
+
+	/** Started, every cell of the machine becomes air and one entity carries its cab, slots and all. */
+	private static void tbmLift(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 200);
+		helper.succeedWhen(() -> {
+			for (TbmMachine.Cell cell : TbmMachine.cells(Direction.NORTH)) {
+				helper.assertTrue(helper.getBlockState(c.offset(cell.x(), cell.y(), cell.z())).isAir(), Component.literal("cell should be air: " + cell));
+			}
+			List<TbmEntity> machines = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(40));
+			helper.assertTrue(machines.size() == 1, Component.literal("one machine, got " + machines.size()));
+			helper.assertTrue(machines.get(0).getItem(DrillBlockEntity.SLOT_RAIL).getCount() > 0, Component.literal("the cab's slots go with it"));
+			helper.assertTrue(helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new AABB(helper.absolutePos(c)).inflate(40)).isEmpty(),
+					Component.literal("and nothing drops"));
+		});
+	}
+
+	/** It glides, not hops: part-way through an advance it stands between two blocks; four advances line four rings and lay four rows. */
+	private static void tbmGlide(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 6, true);
+		feed(helper, c);
+		go(cab, 10);
+		double start = helper.absolutePos(c).getZ();
+		boolean[] between = {false};
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null, Component.literal("it should be running"));
+			between[0] |= machine.getZ() != Math.floor(machine.getZ()) && machine.getZ() < start;
+			helper.assertTrue(machine.core().drill().advanceCount() > 4, Component.literal("four advances lined, at " + machine.core().readout()));
+			helper.assertTrue(between[0], Component.literal("it should pass between whole blocks"));
+			for (int i = 0; i < 4; i++) {
+				int lined = ringAt(helper, c, 2 - i);
+				helper.assertTrue(lined == 28, Component.literal("ring " + i + " should have 28 segments, got " + lined));
+				helper.assertTrue(helper.getBlockState(c.offset(2, 1, 10 - i)).getBlock() == TailingsBlocks.MINE_RAIL
+						&& helper.getBlockState(c.offset(5, 1, 10 - i)).getBlock() == TailingsBlocks.MINE_RAIL, Component.literal("both tracks at row " + i));
+			}
+		});
+	}
+
+	/** Stopped on the flat with something in its cells it says where and stays; cleared, it sets down. */
+	private static void tbmSetDown(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 40);
+		BlockPos wall = c.offset(3, 3, 5);
+		helper.runAfterDelay(10, () -> {
+			machine(helper, c).core().setRunning(false);
+			helper.setBlock(wall, Blocks.OBSIDIAN);
+		});
+		helper.runAfterDelay(90, () -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null && machine.core().note().contains("can't set down"), Component.literal("it should say why it stays"));
+			helper.assertTrue(machine.core().note().contains(String.valueOf(helper.absolutePos(wall).getZ())), Component.literal("and where: " + machine.core().note()));
+			helper.setBlock(wall, Blocks.AIR);
+		});
+		helper.runAfterDelay(92, () -> helper.succeedWhen(() -> {
+			helper.assertTrue(machine(helper, c) == null, Component.literal("cleared, it sets down"));
+			helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("the parts are blocks again"));
+		}));
+	}
+
+	/** Stopped on the decline it parks as it is, pitched, its cab still working, and goes on when started. */
+	private static void tbmPark(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 8, true);
+		for (int z = 1; z <= 8; z++) {
+			for (int x = 0; x < 8; x++) {
+				for (int y = -8; y < -1; y++) {
+					helper.setBlock(c.offset(x, y, -z), Blocks.STONE);
+				}
+			}
+		}
+		cab.program().setTargetY(helper.absolutePos(c).getY() - 6);
+		feed(helper, c);
+		go(cab, 5);
+		int[] phase = {0};
+		int[] at = {0};
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null, Component.literal("it should stay an entity on the decline"));
+			if (phase[0] == 0) {
+				helper.assertTrue(machine.core().drill().advanceCount() >= 5, Component.literal("driving down"));
+				machine.core().setRunning(false);
+				at[0] = machine.core().drill().advanceCount();
+				phase[0] = 1;
+			}
+			if (phase[0] == 1) {
+				helper.assertTrue(machine.core().waitTicks() == 0 && !machine.core().note().isEmpty(), Component.literal("parked, saying so"));
+				helper.assertTrue(machine.pitch() > 5, Component.literal("pitched down the grade, got " + machine.pitch()));
+				var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+				player.setPos(machine.position());
+				helper.assertTrue(machine.getItem(DrillBlockEntity.SLOT_RAIL).getCount() > 0 && machine.stillValid(player), Component.literal("the cab still works"));
+				machine.press(10, null);
+				phase[0] = 2;
+			}
+			helper.assertTrue(machine.core().running() && machine.core().drill().advanceCount() > at[0], Component.literal("started, it goes on"));
+		});
+	}
+
+	/** A sneaking click on the stopped machine drops every part and every slot. */
+	private static void tbmDismantle(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 200);
+		helper.runAfterDelay(5, () -> {
+			TbmEntity machine = machine(helper, c);
+			machine.core().setRunning(false);
+			machine.dismantle(helper.getLevel());
+			helper.assertTrue(machine.isRemoved(), Component.literal("the machine should go"));
+			BlockPos at = helper.relativePos(machine.blockPosition());
+			for (var item : List.of(TailingsBlocks.CUTTERHEAD.asItem(), TailingsBlocks.SEGMENT_ERECTOR.asItem(), TailingsBlocks.MAIN_BEAM.asItem(),
+					TailingsBlocks.TRACK_LAYER.asItem(), TailingsBlocks.DEWATERING_PUMP.asItem(), TailingsBlocks.MINE_RAIL.asItem(), Items.GRAVEL)) {
+				helper.assertItemEntityPresent(item, at, 4);
+			}
+			helper.succeed();
+		});
+	}
+
+	/** The Ride button seats a player in the cab, where it rides with the machine, up on the main beam's tail. */
+	private static void tbmSeat(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 200);
+		helper.runAfterDelay(5, () -> {
+			TbmEntity machine = machine(helper, c);
+			var rider = helper.spawn(net.minecraft.world.entity.EntityTypes.PIG, c.offset(3, 8, 10));
+			rider.startRiding(machine, true, false);
+			helper.assertTrue(rider.getVehicle() == machine, Component.literal("it should take a rider"));
+			helper.succeedWhen(() -> helper.assertTrue(Math.abs(rider.getY() - (machine.getY() + 5)) < 0.01 && Math.abs(rider.getZ() - (machine.getZ() + 10.5)) < 0.01
+					&& Math.abs(rider.getX() - (machine.getX() + 4)) < 0.01, Component.literal("at the seat, got " + rider.position() + " from " + machine.position())));
+		});
+	}
+
+	/** A machine with no track layer stays blocks, reads NOT BUILT and names it. */
 	private static void tbmBuilt(GameTestHelper helper) {
 		BlockPos c = new BlockPos(4, 40, 20);
 		DrillBlockEntity cab = tbm(helper, c, 2, false);
-		cab.stepNow();
-		helper.assertTrue(cab.status() == DrillCodes.NOT_BUILT && cab.core().note().contains("Track Layer"),
-				Component.literal("it should name the missing track layer, got " + cab.core().readout()));
-		helper.succeed();
+		cab.press(10, null);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(cab.status() == DrillCodes.NOT_BUILT && cab.core().note().contains("Track Layer"),
+					Component.literal("it should name the missing track layer, got " + cab.core().readout()));
+			helper.assertTrue(machine(helper, c) == null && helper.getBlockState(c).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("and it should not lift"));
+		});
 	}
 
 	/** With its muck buffer full the machine pauses, and goes on once a car takes the muck. */
@@ -899,35 +1076,39 @@ public class TailingsGameTests {
 		for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
 			cab.setItem(slot, new ItemStack(Items.COBBLESTONE, 64));
 		}
-		Advance paused = cab.stepNow();
-		helper.assertTrue(paused.stop() == Advance.Stop.BUFFER_FULL && cab.status() == DrillCodes.STOP_BUFFER,
-				Component.literal("a full buffer should pause it, got " + paused.stop()));
-		helper.assertTrue(helper.getBlockState(c).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("and it should not move"));
-		for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
-			cab.setItem(slot, ItemStack.EMPTY);
-		}
-		helper.assertTrue(cab.stepNow().placed(), Component.literal("with room it goes on"));
-		helper.succeed();
+		go(cab, 10);
+		helper.runAfterDelay(10, () -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine.core().status() == DrillCodes.STOP_BUFFER, Component.literal("a full buffer should pause it, got " + machine.core().readout()));
+			helper.assertTrue(machine.core().drill().advanceCount() == 0 && machine.core().running(), Component.literal("waiting, not cutting"));
+			for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
+				machine.setItem(slot, ItemStack.EMPTY);
+			}
+			helper.succeedWhen(() -> helper.assertTrue(machine.core().drill().advanceCount() >= 1, Component.literal("with room it goes on")));
+		});
 	}
 
-	/** Something solid in the machine's way stops it as blocked and nothing moves; cleared, it catches up and lines behind. */
+	/** Something solid in the machine's way stops it as blocked, uncut; cleared and started, it goes on. */
 	private static void drillBlocked(GameTestHelper helper) {
 		BlockPos c = new BlockPos(4, 40, 20);
 		DrillBlockEntity cab = tbm(helper, c, 4, true);
 		BlockPos wall = c.offset(1, 2, 7);   // just ahead of the track layer, inside the bore
 		helper.setBlock(wall, Blocks.OBSIDIAN);
-		Advance stopped = cab.stepNow();
-		helper.assertTrue(stopped.stop() == Advance.Stop.BLOCKED && cab.status() == DrillCodes.STOP_BLOCKED,
-				Component.literal("a solid block in the way should stop it as blocked, got " + stopped.stop()));
-		helper.assertTrue(helper.getBlockState(c).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("nothing should move"));
-		helper.assertTrue(helper.getBlockState(wall).getBlock() == Blocks.OBSIDIAN, Component.literal("the obsidian should not be overwritten"));
-		helper.setBlock(wall, Blocks.AIR);
-		cab.stepNow();
-		helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("cleared, the machine follows its cut"));
-		DrillBlockEntity moved = helper.getBlockEntity(c.offset(3, 3, 2), DrillBlockEntity.class);
-		helper.assertTrue(moved.stepNow().placed(), Component.literal("and the moved cab cuts the next face, got " + moved.core().readout()));
-		helper.assertTrue(helper.getBlockState(c.offset(0, 0, -2)).getBlock() == TailingsBlocks.CUTTERHEAD, Component.literal("one block further on"));
-		helper.succeed();
+		go(cab, 10);
+		helper.runAfterDelay(30, () -> {
+			helper.assertTrue(machine(helper, c) == null, Component.literal("on the flat it sets back down"));
+			DrillBlockEntity now = helper.getBlockEntity(c.offset(3, 3, 3), DrillBlockEntity.class);
+			helper.assertTrue(now.status() == DrillCodes.STOP_BLOCKED && now.drill().advanceCount() == 0,
+					Component.literal("a solid block in the way should stop it as blocked, got " + now.core().readout()));
+			helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == Blocks.STONE, Component.literal("uncut"));
+			helper.assertTrue(helper.getBlockState(wall).getBlock() == Blocks.OBSIDIAN, Component.literal("the obsidian should not be overwritten"));
+			helper.setBlock(wall, Blocks.AIR);
+			now.press(10, null);
+			helper.succeedWhen(() -> {
+				TbmEntity machine = machine(helper, c);
+				helper.assertTrue(machine != null && machine.core().drill().advanceCount() >= 1, Component.literal("cleared, it cuts"));
+			});
+		});
 	}
 
 	/** The one-block cab of a world saved before R6 drops its stock and a main beam item, and goes. */

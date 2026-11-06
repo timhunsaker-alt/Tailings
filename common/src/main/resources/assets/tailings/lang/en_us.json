@@ -210,6 +210,7 @@
   "block.tailings.pressure_filter": "Pressure Filter",
   "entity.tailings.mine_locomotive": "Mine Locomotive",
   "entity.tailings.mine_car": "Mine Car",
+  "entity.tailings.tunnel_boring_machine": "Tunnel Boring Machine",
   "entity.tailings.mine_train": "Mine Train (old)",
   "block.tailings.tailings_pond_placeholder": "Tailings Pond (placeholder)",
   "item.tailings.lime": "Quicklime",

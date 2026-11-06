@@ -3,7 +3,6 @@ package dev.wildcatter.tailings.entity;
 import dev.wildcatter.tailings.TailingsEntities;
 import dev.wildcatter.tailings.TailingsItems;
 import dev.wildcatter.tailings.block.ChunkRunner;
-import dev.wildcatter.tailings.block.DrillBlockEntity;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.Feeds;
 import dev.wildcatter.tailings.block.RailBlockEntity;
@@ -505,7 +504,7 @@ public class MineVehicleEntity extends Entity {
 			if (pocket != null && car.load.total() > 0 && pocket.pocket() + car.load.total() > Haul.POCKET_ITEMS) {
 				return "waiting at the dump: the pocket is full";
 			}
-			DrillBlockEntity drill = DrillBlockEntity.loadingAt(server, rail);
+			dev.wildcatter.tailings.block.TbmCore drill = dev.wildcatter.tailings.block.TbmCore.loadingAt(server, rail);
 			if (drill != null && car.load.room() > 0 && drill.hasMuck()) {
 				return "loading at the drill";
 			}

@@ -20,18 +20,19 @@ import org.jspecify.annotations.Nullable;
 public class DrillMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final ContainerData data;
-	private final @Nullable DrillBlockEntity drill;
+	private final @Nullable TbmCab drill;
 
+	/** The client's copy: the server sends it the slots and data. */
 	public DrillMenu(int id, Inventory player, BlockPos pos) {
-		this(id, player, find(player, pos));
+		this(id, player, (TbmCab) null);
 	}
 
-	private DrillMenu(int id, Inventory player, @Nullable DrillBlockEntity drill) {
+	/** The server's, on the cab, wherever the machine is. */
+	public DrillMenu(int id, Inventory player, @Nullable TbmCab drill) {
 		super(DrillMenus.DRILL, id);
 		this.drill = drill;
 		this.container = drill == null ? new SimpleContainer(DrillBlockEntity.SLOTS) : drill;
-		boolean client = player.player.level().isClientSide();
-		this.data = client || drill == null ? new SimpleContainerData(12) : new Live(drill);
+		this.data = drill == null ? new SimpleContainerData(12) : new Live(drill.core());
 		for (int i = 0; i < DrillBlockEntity.INPUTS; i++) {
 			addSlot(new StockSlot(container, i, 8 + i * 18, 96));
 		}
@@ -46,13 +47,6 @@ public class DrillMenu extends AbstractContainerMenu {
 		}
 		addStandardInventorySlots(player, 8, 158);
 		addDataSlots(data);
-	}
-
-	private static @Nullable DrillBlockEntity find(Inventory player, BlockPos pos) {
-		if (pos != null && player.player.level().getBlockEntity(pos) instanceof DrillBlockEntity drill) {
-			return drill;
-		}
-		return null;
 	}
 
 	public String readout() {
@@ -73,7 +67,7 @@ public class DrillMenu extends AbstractContainerMenu {
 	@Override
 	public boolean clickMenuButton(Player player, int id) {
 		if (drill != null) {
-			drill.press(id);
+			drill.press(id, player);
 		}
 		return true;
 	}
@@ -138,15 +132,15 @@ public class DrillMenu extends AbstractContainerMenu {
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return container instanceof DrillBlockEntity drill ? drill.canPlaceItem(index, stack) : true;
+			return TbmCore.canPlace(index, stack);
 		}
 	}
 
 	/** Server-side view of the cab. The client keeps a {@link SimpleContainerData} copy. */
 	private static final class Live implements ContainerData {
-		private final DrillBlockEntity drill;
+		private final TbmCore drill;
 
-		private Live(DrillBlockEntity drill) {
+		private Live(TbmCore drill) {
 			this.drill = drill;
 		}
 
@@ -160,7 +154,7 @@ public class DrillMenu extends AbstractContainerMenu {
 				case 4 -> flags();
 				case 5 -> drill.drill().advanceCount();
 				case 6 -> drill.drill().floorY();
-				case 7 -> drill.core().cableLeft();
+				case 7 -> drill.cableLeft();
 				case 8 -> drill.status();
 				case 9 -> drill.drill().pumped();
 				case 10 -> drill.tank();

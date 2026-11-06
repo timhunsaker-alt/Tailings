@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R6b — The contraption (2026-11-06)
+
+- **The machine now moves as one.** Started, the TBM's parts lift into a single entity that cuts the face, glides into the cut at the advance rate, and lines and lays track behind itself.
+- **On the decline** it follows the 1-in-2 grade, pitched. Stopped there it parks and its cab still works; stopped on the flat it sets back down as blocks, or says where it is blocked.
+- **Dismantling:** sneak-click the stopped machine with an empty hand; every part and slot drops.
+- **Riding:** the Ride button on the cab's screen seats you on the running machine.
+- **Tests:** `tbm_lift`, `tbm_glide`, `tbm_setdown`, `tbm_park`, `tbm_dismantle`, `tbm_seat`; `drill`, `drill_pause`, `drill_blocked` and `tbm_built` rewritten; filmed client scenes `tbm` and `tbm_decline`.
+
 ## Live client tests and fixes (2026-11-06)
 
 - **Fixed: mining rules.** A stale tag entry since R3 stopped the pickaxe and stone-tool tags loading, breaking mining rules for the whole game. All parts are now tagged.

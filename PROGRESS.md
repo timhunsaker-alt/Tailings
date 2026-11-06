@@ -53,6 +53,10 @@ A Fabric client game test now builds scenes in a real game and films the game wi
 - unfed track could not be solved (its joints are too stiff for the solver's tiny leak): each rail now has its insulators' 1 Mohm leak to
   earth. `traction_unfed` covers it.
 
+## R6b: the contraption (2026-11-06)
+
+The TBM's parts lift into one entity when it starts, glide into each cut, and line behind themselves, pitched on the decline. It sets down on the flat or parks on the decline; it can be dismantled and ridden. 40 game test scenes pass; the flat and decline drives are filmed. R6c, the gantries, is next.
+
 ## R6a: the TBM's real parts, as blocks (2026-11-06)
 
 The one-block cab is gone; the machine is what tunnel-boring-machine.md draws:

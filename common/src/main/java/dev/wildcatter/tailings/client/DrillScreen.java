@@ -22,6 +22,7 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 		add(x + 24, y, 22, "Y+", 1);
 		add(x + 52, y, 24, "L-", 3);
 		add(x + 78, y, 24, "L+", 4);
+		add(x + 112, y, 32, "Ride", dev.wildcatter.tailings.block.TbmCore.BUTTON_RIDE);
 		add(x + 148, y, 20, "Go", 10);
 		int y2 = topPos + 58;
 		add(x, y2, 28, "ore", 6);

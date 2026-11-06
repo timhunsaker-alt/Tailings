@@ -5,6 +5,7 @@ import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.entity.TbmEntity;
 import dev.wildcatter.tailings.block.MineRailBlock;
 import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.entity.MineVehicleEntity;
@@ -21,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -139,16 +141,21 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	}
 
 	/** The machine as blocks drives flat into a stone hill: the rings and track go down behind it. */
+	/** Filmed from the side as the machine lifts and glides into the rock; on the flat it then stops and sets down. */
 	private void tbm(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
-		int cx = 0;
+		drive(context, world, server, "tbm", 0, 0, 8);
+		drive(context, world, server, "tbm_decline", 60, 8, 12);
+	}
+
+	private void drive(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server, String scene, int cx, int drop, int advances) {
 		int cz = 220;
-		BlockPos c = new BlockPos(cx, y, cz);
+		BlockPos c = new BlockPos(cx, y + drop, cz);
 		BlockPos beam = c.offset(3, 3, 3);
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			for (int z = 1; z <= 30; z++) {
 				for (int x = -2; x < 10; x++) {
-					for (int yy = 0; yy < 10; yy++) {
+					for (int yy = -drop - 2; yy < 10; yy++) {
 						level.setBlock(c.offset(x, yy, -z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
 					}
 				}
@@ -162,32 +169,42 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			level.setBlock(c.offset(3, 0, 14), TailingsBlocks.CABLE_JUNCTION.defaultBlockState(), Block.UPDATE_ALL);
 			DrillBlockEntity cab = (DrillBlockEntity) level.getBlockEntity(beam);
 			cab.forceRunning();
-			cab.program().setTargetY(y + 1);
+			cab.program().setTargetY(c.getY() + 1 - drop);
 			cab.program().setFlatLength(32);
 			cab.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
 			cab.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
 			cab.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
 			cab.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+			cab.core().setTestTicks(40);
 		});
-		server.runCommand("tp @p " + (cx + 16) + " " + (y + 10) + " " + (cz + 12) + " 110 25");
+		server.runCommand("tp @p " + (cx + 20) + " " + (c.getY() + 8) + " " + (cz + 8) + " 90 15");
 		context.waitTicks(40);
-		Filming film = film(context, world, "tbm");
-		context.takeScreenshot("tailings-tbm-built");
-		for (int advance = 0; advance < 8; advance++) {
-			int a = advance;
+		Filming film = film(context, world, scene);
+		context.takeScreenshot("tailings-" + scene + "-built");
+		server.runOnServer(srv -> ((DrillBlockEntity) srv.overworld().getBlockEntity(beam)).press(10, null));
+		for (int t = 0; t < advances * 2; t++) {
+			context.waitTicks(20);
 			server.runOnServer(srv -> {
-				ServerLevel level = srv.overworld();
-				if (level.getBlockEntity(beam.offset(0, 0, -a)) instanceof DrillBlockEntity cab) {
-					cab.stepNow();
-					System.out.println("[tailings-test] tbm advance " + a + ": " + cab.current().core().readout());
+				for (TbmEntity machine : srv.overworld().getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(40))) {
+					machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+					System.out.println("[tailings-test] " + scene + " " + machine.position() + " pitch " + machine.pitch() + ": " + machine.core().readout());
 				}
 			});
-			context.waitTicks(30);
+			if (t == advances) {
+				context.takeScreenshot("tailings-" + scene + "-gliding");
+			}
 		}
-		context.takeScreenshot("tailings-tbm-driven");
-		server.runCommand("tp @p " + cx + " " + (y + 12) + " " + (cz + 24) + " 180 25");
+		context.takeScreenshot("tailings-" + scene + "-driven");
+		server.runOnServer(srv -> {
+			for (TbmEntity machine : srv.overworld().getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(40))) {
+				machine.core().setRunning(false);
+			}
+		});
+		context.waitTicks(80);
+		context.takeScreenshot("tailings-" + scene + "-stopped");
+		server.runCommand("tp @p " + (cx + 4) + " " + (c.getY() + 4) + " " + (cz + 26) + " 180 10");
 		context.waitTicks(40);
-		context.takeScreenshot("tailings-tbm-track");
+		context.takeScreenshot("tailings-" + scene + "-behind");
 		film.stop();
 	}
 }

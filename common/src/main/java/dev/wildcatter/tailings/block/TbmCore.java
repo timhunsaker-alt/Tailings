@@ -1,7 +1,9 @@
 package dev.wildcatter.tailings.block;
 
 import dev.wildcatter.tailings.TailingsBlocks;
+import dev.wildcatter.tailings.entity.MineVehicleEntity;
 import dev.wildcatter.tailings.haul.CarLoad;
+import dev.wildcatter.tailings.haul.Haul;
 import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.mine.DrillProgram;
@@ -12,7 +14,10 @@ import dev.wildcatter.tailings.mine.Ground;
 import dev.wildcatter.tailings.mine.Heading;
 import dev.wildcatter.tailings.mine.TunnelDrill;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,13 +29,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
  * The tunnel boring machine's cab (docs/multiblocks/tunnel-boring-machine.md): its slots, program, stock, muck buffer and
  * progress, and the advance cycle, apart from where the machine stands. The cab's block entity carries it while the machine is
- * blocks; the contraption carries it while it runs (R6b). The {@link Body} does what depends on that: whether the machine is whole
- * and fed, and moving it on.
+ * blocks; the contraption carries it while it runs and on the decline.
  */
 public final class TbmCore {
 	/** 1 MW at 4.16 kV through the trailing cable (unverified, small TBM class). */
@@ -50,24 +55,21 @@ public final class TbmCore {
 	/** The Wildcatter 4.16 kV cable, which the reel pays out. */
 	public static final String CABLE_ID = "wildcatter:cable_mv";
 
-	/** What the advance cycle needs from wherever the machine stands. */
-	public interface Body {
-		/** The part missing or out of place, or null when the machine is whole. */
-		@Nullable String missing();
+	/** A button on the cab's screen: seats the player, on the running machine. */
+	public static final int BUTTON_RIDE = 13;
+	/** The rails each machine is loading cars at, per level, with the tick it last said so: the trains wait there. */
+	private static final Map<Level, Map<Long, Loading>> LOADING = new WeakHashMap<>();
 
+	private record Loading(TbmCore core, long tick) {
+	}
+
+	/** What the advance cycle needs from the machine. */
+	public interface Body {
 		/** True while its power comes in. */
 		boolean powered();
 
-		/**
-		 * Moves the machine one block on into the cut, and returns the core that carries on there (a cab of blocks is a new block
-		 * entity after it moves); null, with nothing moved, when something is in its way.
-		 */
-		@Nullable TbmCore move();
-
-		/** True if it can drive the decline: the contraption can; a rigid machine of blocks cannot sit on a 1-in-2 grade. */
-		default boolean canDecline() {
-			return false;
-		}
+		/** True if nothing solid stands in the bore it moves through next. */
+		boolean clearAhead();
 	}
 
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
@@ -75,8 +77,6 @@ public final class TbmCore {
 	private final DrillStock stock = new DrillStock();
 	private final TunnelDrill drill = new TunnelDrill(program, stock, 0, 0, 0);
 	private final List<String> pending = new ArrayList<>();
-	/** The face is cut but the machine could not follow: it moves first when it starts again. */
-	private boolean stuck;
 	private boolean running;
 	private int wait;
 	private int tank;
@@ -84,6 +84,28 @@ public final class TbmCore {
 	private int lack = DrillCodes.LACK_NONE;
 	private String note = "";
 	private @Nullable BlockPos junction;
+	private boolean forced;
+	/** For the tests and films: this many ticks a block, not the real 20 s; 0 is real. */
+	private int testTicks;
+
+	public boolean forced() {
+		return forced;
+	}
+
+	/** The game test runs it without building a grid. */
+	public void setForced(boolean forced) {
+		this.forced = forced;
+	}
+
+	public void setTestTicks(int ticks) {
+		testTicks = ticks;
+	}
+
+	/** Says why it stands as it does. */
+	public void report(int code, String why) {
+		status = code;
+		note = why;
+	}
 
 	public NonNullList<ItemStack> slots() {
 		return slots;
@@ -180,36 +202,18 @@ public final class TbmCore {
 		running = true;
 		status = DrillCodes.DRIVING;
 		note = "";
-		if (level != null) {
-			wait = drill.ticksFor(new WorldGround(level, program.heading()));
-		}
 	}
 
 	/**
-	 * One advance, when its wait is over: checks the machine is whole and fed, cuts the face, moves the machine on, then lines and
-	 * floors behind it.
+	 * One advance, when its wait is over: cuts the face. The machine then glides into the cut for the time that sets ({@link
+	 * #waitTicks}), and lines and floors behind itself when it arrives ({@link TunnelDrill#line}).
 	 */
 	public Advance advance(Level level, Body body) {
-		String missing = body.missing();
-		if (missing != null) {
-			return soft(DrillCodes.NOT_BUILT, "NOT BUILT: needs the " + missing);
-		}
 		if (!body.powered()) {
-			return soft(DrillCodes.NEED_POWER, "waiting for power at the cable junction");
+			report(DrillCodes.NEED_POWER, "waiting for power at the cable junction");
+			return Advance.stopped(Advance.Stop.NONE, "power");
 		}
-		acceptBuckets();
 		WorldGround ground = new WorldGround(level, program.heading());
-		if (stuck) {
-			stuck = false;
-			TbmCore here = body.move();
-			if (here == null) {
-				stuck = true;
-				return blocked();
-			}
-			here.drill.line(ground);
-			// it has caught up: the cab that stands there now cuts the next face on its own tick
-			return Advance.stopped(Advance.Stop.NONE, "caught up");
-		}
 		pullStock();
 		flushPending();
 		if (!pending.isEmpty() || !roomForFace(ground)) {
@@ -217,11 +221,14 @@ public final class TbmCore {
 			lack = DrillCodes.LACK_NONE;
 			return Advance.stopped(Advance.Stop.BUFFER_FULL, "muck buffer full");
 		}
-		if (drill.declining() && !body.canDecline()) {
+		if (!body.clearAhead()) {
 			running = false;
-			return soft(DrillCodes.IDLE, "a decline needs the machine to run as a contraption (R6b); set a target Y at or above its floor to drive flat");
+			lack = DrillCodes.LACK_NONE;
+			report(DrillCodes.STOP_BLOCKED, "blocked: something solid is in the machine's way");
+			return Advance.stopped(Advance.Stop.BLOCKED, "blocked");
 		}
 		program.setCableBlocks(cableMetres());
+		int ticks = testTicks > 0 ? testTicks : drill.ticksFor(ground);
 		Advance drove = drill.step(ground);
 		for (var load : drove.loads().entrySet()) {
 			if (!push(load.getKey(), load.getValue())) {
@@ -238,30 +245,36 @@ public final class TbmCore {
 			status = DrillCodes.DRIVING;
 			lack = DrillCodes.LACK_NONE;
 			note = "";
-			wait = drill.ticksFor(ground);
-			TbmCore moved = body.move();
-			if (moved == null) {
-				stuck = true;
-				blocked();
-				return Advance.stopped(Advance.Stop.BLOCKED, "blocked");
-			}
-			moved.drill.line(ground);
+			wait = ticks;
 		}
 		return drove;
 	}
 
-	private Advance soft(int code, String why) {
-		status = code;
-		note = why;
-		return Advance.stopped(Advance.Stop.NONE, why);
+	/** The two rails just behind the track layer, on columns 2 and 5: a car there takes the machine's muck, and a train waits for it. */
+	public void tickLoading(Level level) {
+		if (drill.advanceCount() == 0) {
+			return;
+		}
+		Map<Long, Loading> here = LOADING.computeIfAbsent(level, l -> new HashMap<>());
+		int ahead = -DriveCourse.FLOOR_BEHIND;
+		for (int across : new int[] {2, 5}) {
+			BlockPos rail = new BlockPos(drill.worldX(across, ahead), drill.worldY(1, ahead), drill.worldZ(across, ahead));
+			here.put(rail.asLong(), new Loading(this, level.getGameTime()));
+			for (MineVehicleEntity car : level.getEntitiesOfClass(MineVehicleEntity.class, new AABB(rail).inflate(0, 1, 0),
+					e -> !e.locomotive() && e.load().room() > 0 && BlockPos.containing(e.getX(), e.getY() - 0.5, e.getZ()).equals(rail))) {
+				if (giveMuck(car.load(), Haul.TRANSFER) > 0) {
+					car.refreshLoad();
+				}
+				return;
+			}
+		}
 	}
 
-	private Advance blocked() {
-		running = false;
-		status = DrillCodes.STOP_BLOCKED;
-		lack = DrillCodes.LACK_NONE;
-		note = "blocked: something solid is in the machine's way";
-		return Advance.stopped(Advance.Stop.BLOCKED, "blocked");
+	/** The machine whose loading point is the rail at {@code rail}, or null. */
+	public static @Nullable TbmCore loadingAt(Level level, BlockPos rail) {
+		Map<Long, Loading> here = LOADING.get(level);
+		Loading loading = here == null ? null : here.get(rail.asLong());
+		return loading != null && level.getGameTime() - loading.tick() <= 2 ? loading.core() : null;
 	}
 
 	public void acceptBuckets() {
@@ -389,7 +402,7 @@ public final class TbmCore {
 		return moved;
 	}
 
-	public boolean canPlace(int slot, ItemStack stack) {
+	public static boolean canPlace(int slot, ItemStack stack) {
 		return switch (slot) {
 			case SLOT_RAIL -> stack.getItem() == TailingsBlocks.MINE_RAIL.asItem();
 			case SLOT_GRAVEL -> stack.getItem() == Items.GRAVEL;
@@ -432,7 +445,8 @@ public final class TbmCore {
 		output.putInt("lack", lack);
 		output.putString("note", note);
 		output.putString("pending", String.join("|", pending));
-		output.putBoolean("stuck", stuck);
+		output.putBoolean("forced", forced);
+		output.putInt("testTicks", testTicks);
 		output.putLong("junction", junction == null ? Long.MIN_VALUE : junction.asLong());
 	}
 
@@ -468,7 +482,8 @@ public final class TbmCore {
 				}
 			}
 		}
-		stuck = input.getBooleanOr("stuck", false);
+		forced = input.getBooleanOr("forced", false);
+		testTicks = input.getIntOr("testTicks", 0);
 		long at = input.getLongOr("junction", Long.MIN_VALUE);
 		junction = at == Long.MIN_VALUE ? null : BlockPos.of(at);
 	}

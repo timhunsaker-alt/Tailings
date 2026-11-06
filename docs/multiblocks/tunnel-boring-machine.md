@@ -254,7 +254,14 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 - **Until the reel gantry (R6c):** the `cable_junction` is the machine's power point, and the cab counts the cable paid out against
   300 m plus cable items.
 - **The loading point** is the track (columns 2 and 5) just behind the track layer until the conveyor gantry (R6c) takes it over.
-- **Until the contraption (R6b):** the machine built as blocks moves its parts one block on after each advance.
+
+## Added while building R6b
+- **Only the contraption drives.** Started and whole, with its junction live, the machine lifts before it cuts anything: the blocks never step.
+- **Each advance cuts first, then glides** into the cut for the advance time (20 s a block in stone, 30 s in deepslate), and lines and floors behind itself when it arrives.
+- **Pitch** comes from the floor's height under the cutterhead and 11 blocks behind it, so the machine eases onto the grade and off it.
+- **The bore it moves through** must be clear of anything solid (columns 1 to 6, 2 to 6 up, along the beam and the track layer). If not it stops as blocked before cutting.
+- **On the flat** means the floor is level under its whole length; until then it parks and its cab says so.
+- **The seat** is on the cab's roof at the main beam's tail. The Ride button only works on the running or parked machine; setting down puts the rider off.
 
 ## Game test
 `tbm` (Fabric client game test):

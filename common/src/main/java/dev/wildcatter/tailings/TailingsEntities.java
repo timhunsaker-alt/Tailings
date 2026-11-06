@@ -2,6 +2,7 @@ package dev.wildcatter.tailings;
 
 import dev.wildcatter.tailings.entity.MineTrainEntity;
 import dev.wildcatter.tailings.entity.MineVehicleEntity;
+import dev.wildcatter.tailings.entity.TbmEntity;
 import dev.wildcatter.tailings.entity.TunnelDrillEntity;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,6 +33,13 @@ public final class TailingsEntities {
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("mine_car")));
 
+	/** The tunnel boring machine as a contraption: its bounding box is its own (TbmEntity), so these sizes do not matter. */
+	public static final EntityType<TbmEntity> TBM = EntityType.Builder.<TbmEntity>of(TbmEntity::new, MobCategory.MISC)
+			.sized(8F, 8F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine")));
+
 	private TailingsEntities() {
 	}
 
@@ -40,5 +48,6 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_train"), TRAIN);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_locomotive"), LOCOMOTIVE);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_car"), CAR);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine"), TBM);
 	}
 }

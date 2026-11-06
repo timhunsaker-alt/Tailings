@@ -1,6 +1,6 @@
 package dev.wildcatter.tailings.platform;
 
-import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmCab;
 import java.nio.file.Path;
 import java.util.ServiceLoader;
 import net.minecraft.world.entity.player.Player;
@@ -19,5 +19,5 @@ public interface Platform {
 	boolean isModLoaded(String modId);
 
 	/** Opens the tunnel drill's cab. Each loader sends the block position to its own menu type. */
-	void openDrill(Player player, DrillBlockEntity drill);
+	void openDrill(Player player, TbmCab cab);
 }

@@ -1,6 +1,6 @@
 package dev.wildcatter.tailings.fabric;
 
-import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmCab;
 import dev.wildcatter.tailings.block.DrillMenu;
 import dev.wildcatter.tailings.platform.Platform;
 import java.nio.file.Path;
@@ -30,14 +30,14 @@ public final class FabricPlatform implements Platform {
 	}
 
 	@Override
-	public void openDrill(Player player, DrillBlockEntity drill) {
+	public void openDrill(Player player, TbmCab cab) {
 		if (!(player instanceof ServerPlayer)) {
 			return;
 		}
 		player.openMenu(new ExtendedMenuProvider<BlockPos>() {
 			@Override
 			public BlockPos getScreenOpeningData(ServerPlayer server) {
-				return drill.getBlockPos();
+				return cab.menuPos();
 			}
 
 			@Override
@@ -47,7 +47,7 @@ public final class FabricPlatform implements Platform {
 
 			@Override
 			public AbstractContainerMenu createMenu(int id, Inventory inventory, Player opener) {
-				return new DrillMenu(id, inventory, drill.getBlockPos());
+				return new DrillMenu(id, inventory, cab);
 			}
 		});
 	}

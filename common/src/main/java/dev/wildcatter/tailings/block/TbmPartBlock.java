@@ -52,7 +52,11 @@ public class TbmPartBlock extends TailingsPartBlock {
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
 		if (part == TbmPart.MAIN_BEAM && level.getBlockEntity(main(pos, state)) instanceof DrillBlockEntity cab) {
 			if (!level.isClientSide()) {
-				Platform.INSTANCE.openDrill(player, cab);
+				if (player.isShiftKeyDown()) {
+					cab.dismantle();
+				} else {
+					Platform.INSTANCE.openDrill(player, cab);
+				}
 			}
 			return InteractionResult.SUCCESS;
 		}

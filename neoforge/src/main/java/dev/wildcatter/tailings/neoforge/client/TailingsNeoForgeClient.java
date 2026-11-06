@@ -29,6 +29,7 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.TRAIN, NoopRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CAR, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.TBM, dev.wildcatter.tailings.client.TbmRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));

@@ -122,8 +122,8 @@ R brings it in line, one wave at a time.
   - **R6a. The real parts, as blocks — DONE (2026-11-06).** Cutterhead, segment erector, main beam with its cab, track layer and
     cable junction as true-size parts with models; the ring behind the erector, the floor and twin track on ballast behind the track
     layer; the cab's logic in `TbmCore`.
-  - **R6b. The contraption.** The parts lift into one gliding entity, pitched on the decline; they set down on the flat, or park on
-    the decline; dismantling; the seat.
+  - **R6b. The contraption — DONE (2026-11-06).** The parts lift into one gliding entity, pitched on the decline; they set down on
+    the flat, or park on the decline; dismantling; the seat.
   - **R6c. The gantries.** Pump, reel and conveyor on the twin track.
 - **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
   its fixes. Brought forward at Tim's request (2026-11-06): the client test rig and its filming are in, `TAILINGS_ONLY=parts,train,tbm
@@ -159,8 +159,9 @@ Not started.
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 
-- **The machine drives flat only until R6b (R6a).** A rigid machine of blocks cannot sit on a 1-in-2 grade; a decline program stops and says so.
-- **The old pump stands behind the beam until R6c (R6a),** and the cab counts the cable; the reel comes with its gantry.
+- **The old pump rides along behind the beam until R6c (R6a, R6b),** drawn with the machine and doing nothing of its own; the cab counts the cable until the reel comes with its gantry. Lifting it loses what its own block entity held.
+- **The running machine collides as one box (R6b),** not the parts' exact shapes, and it does not turn on the grade: the box is its outline, raised at the rear when pitched.
+- **The cab's screen closes when the machine lifts (R6b).** Open it again on the running machine.
 - **TBM recipes are placeholders (R6a).** Eight iron around a copper ingot, as the plant's.
 - **Standing on the moving machine waits (decided with Tim, R6).** Riding is a seat in the cab.
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.

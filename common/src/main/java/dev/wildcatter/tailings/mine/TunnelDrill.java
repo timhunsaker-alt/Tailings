@@ -90,6 +90,19 @@ public final class TunnelDrill {
 		return floorAt(advance);
 	}
 
+	/** The floor's Y at a slice, for the block it stands on. */
+	public int floorY(int slice) {
+		return floorAt(slice);
+	}
+
+	/**
+	 * The floor's height at a place along the bore, in slices, smooth down the grade: half a block a slice to the target Y, then flat.
+	 * What the machine glides along.
+	 */
+	public double floorExact(double slice) {
+		return Math.max(startFloorY - Math.max(0, slice) / 2, Math.min(program.targetY(), startFloorY));
+	}
+
 	/** The floor's Y at a slice: down the grade to the target Y, then flat. */
 	private int floorAt(int slice) {
 		return Math.max(DriveCourse.floorY(startFloorY, slice, program.grade()), Math.min(program.targetY(), startFloorY));

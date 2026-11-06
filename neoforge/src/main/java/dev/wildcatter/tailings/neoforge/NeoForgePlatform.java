@@ -1,6 +1,6 @@
 package dev.wildcatter.tailings.neoforge;
 
-import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmCab;
 import dev.wildcatter.tailings.block.DrillMenu;
 import dev.wildcatter.tailings.platform.Platform;
 import java.nio.file.Path;
@@ -29,11 +29,11 @@ public final class NeoForgePlatform implements Platform {
 	}
 
 	@Override
-	public void openDrill(Player player, DrillBlockEntity drill) {
+	public void openDrill(Player player, TbmCab cab) {
 		if (!(player instanceof ServerPlayer server)) {
 			return;
 		}
-		((IPlayerExtension) server).openMenu(new SimpleMenuProvider((id, inventory, opener) -> new DrillMenu(id, inventory, drill.getBlockPos()),
-				Component.translatable("block.tailings.tunnel_drill")), drill.getBlockPos());
+		((IPlayerExtension) server).openMenu(new SimpleMenuProvider((id, inventory, opener) -> new DrillMenu(id, inventory, cab),
+				Component.translatable("block.tailings.tunnel_drill")), cab.menuPos());
 	}
 }
