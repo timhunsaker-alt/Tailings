@@ -50,9 +50,25 @@ import net.minecraft.world.level.levelgen.Heightmap;
  */
 public class TailingsClientGameTest implements FabricClientGameTest {
 	private int y;
+	/** Every sound the client started: what the scenes check the machines' sounds against, since nobody can listen in a test. */
+	/** Counted by sound instance, since the game re-announces a playing loop to its listeners many times. */
+	private static final java.util.Map<String, java.util.Set<Integer>> HEARD = new java.util.concurrent.ConcurrentHashMap<>();
+
+	private static void heard(String scene, String... sounds) {
+		java.util.List<String> missing = new java.util.ArrayList<>();
+		for (String sound : sounds) {
+			if (!HEARD.containsKey(sound)) {
+				missing.add(sound);
+			}
+		}
+		System.out.println("[tailings-test] " + scene + " heard " + new java.util.TreeMap<>(HEARD).entrySet().stream().filter(h -> h.getKey().startsWith("tailings:") || h.getKey().startsWith("wildcatter:")).map(h -> h.getKey() + "=" + h.getValue().size()).toList());
+		require(missing.isEmpty(), scene + " should have sounded " + missing);
+		HEARD.clear();
+	}
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		context.runOnClient(client -> client.getSoundManager().addListener((sound, accessor, range) -> HEARD.computeIfAbsent(sound.getIdentifier().toString(), id -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(System.identityHashCode(sound))));
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			TestServerContext server = world.getServer();
 			context.waitTicks(40);
@@ -255,6 +271,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.waitTicks(40);
 		context.takeScreenshot("tailings-" + scene + "-behind");
 		film.stop();
+		if (section) {   // the camera stands off further than the one-shots carry
+			heard(scene, "tailings:tbm_cutter", "tailings:belt_conveyor", "wildcatter:motor_hum");
+		} else {
+			heard(scene, "tailings:tbm_cutter", "tailings:ring_set", "tailings:muck_load", "tailings:belt_conveyor", "wildcatter:motor_hum", "wildcatter:structure_formed");
+		}
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
@@ -325,6 +346,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		}
 		context.takeScreenshot("tailings-crushing-end");
 		film.stop();
+		heard("crushing", "tailings:jaw_crusher", "tailings:vibrating_screen", "tailings:ball_mill", "tailings:belt_conveyor", "tailings:slurry_rush");
 	}
 
 	/** Fines slurry through the conditioner, the bank with its blower, thickener and filter to ingots, and the tails to the pond. */
@@ -375,6 +397,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		}
 		context.takeScreenshot("tailings-flotation-end");
 		film.stop();
+		heard("flotation", "tailings:agitator", "wildcatter:fan", "wildcatter:motor_hum", "tailings:pressure_filter");
 	}
 
 	/** The pocket, its feeder, the sorter and bins under one rail. Returns the parts: feeder, sorter, ore bin, waste bin. */
@@ -437,6 +460,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		}
 		context.takeScreenshot("tailings-dump-end");
 		film.stop();
+		heard("dump", "tailings:mine_locomotive", "tailings:muck_tip", "tailings:apron_feeder", "tailings:ore_sorter", "tailings:car_couple");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */
@@ -518,6 +542,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			}
 		}
 		film.stop();
+		heard("haul", "tailings:tbm_cutter", "tailings:mine_locomotive");
 	}
 
 	/** Stands the creative player, flying, at the point and aims the crosshair at the block. */

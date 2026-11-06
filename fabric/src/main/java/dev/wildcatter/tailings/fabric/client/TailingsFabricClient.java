@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.entity.NoopRenderer;
 public final class TailingsFabricClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		dev.wildcatter.tailings.entity.SoundingEntity.Hook.start = dev.wildcatter.tailings.client.EntitySound::start;
 		MenuScreens.register(DrillMenus.DRILL, DrillScreen::new);
 		ModelLayerRegistry.registerModelLayer(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(MineCarModel.LAYER, MineCarModel::createBodyLayer);

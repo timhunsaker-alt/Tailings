@@ -50,7 +50,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	@Override
 	protected <T extends BlockEntity> @Nullable BlockEntityTicker<T> mainTicker(Level level, BlockState state, BlockEntityType<T> type) {
 		if (level.isClientSide()) {
-			return null;
+			return dev.wildcatter.tailings.TailingsSounds.loop(machine) == null ? null : (at, pos, cell, entity) -> dev.wildcatter.kinetic.Sounding.Hook.start.accept(entity);
 		}
 		return machine == Machine.DUMP_POCKET ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);

@@ -52,6 +52,29 @@ The overlay is a thin element just above the bed (about 0.25 pixels). The bed st
 - The mine light **item** (`textures/block/mine_light.png`). The placed block uses `mine_light_on` and `mine_light_off`.
 - The old `tunnel_drill` **block**, a legacy item, uses `tunnel_drill.png`. The machine and gantries that replaced it are models from `tools/models/tbm.py`, drawn cell by cell by `TbmRenderer` and `GantryRenderer` while they move.
 
+## Sounds
+
+Rules and which machine makes which: [sound.md](sound.md). Sources are in `art/sound_source/`, made with Ludo `createSoundEffect`, one take each; `tools/process_sounds.py` makes the mono `.ogg`s and `sounds.json` (it needs `soundfile` and `numpy`). Do not edit `sounds.json` by hand.
+
+| File | Loop | Duration | Prompt |
+|---|---|---|---|
+| jaw_crusher.wav | yes | 6 s | a large jaw rock crusher running, a slow heavy rhythmic steel crunch breaking rock, about two strokes a second, constant, industrial, no music |
+| cone_crusher.wav | yes | 6 s | a cone rock crusher running, a deep continuous grinding rumble of rock being squeezed between steel, constant, industrial, no music |
+| vibrating_screen.wav | yes | 5 s | a large vibrating double-deck mining screen, fast steel rattle and gravel dancing and sifting over wire mesh, constant, industrial, no music |
+| ball_mill.wav | yes | 6 s | a huge ball mill rotating, steel balls and wet ore tumbling and cascading inside a turning steel drum, a deep constant roar with heavy thuds, industrial, no music |
+| belt_conveyor.wav | yes | 5 s | a long rubber belt conveyor running with rock on it, rollers humming and squeaking softly, gravel shifting, constant steady rumble, industrial, no music |
+| apron_feeder.wav | yes | 5 s | a steel apron pan feeder moving slowly, heavy overlapping steel pans clanking on chain and rollers with rock on top, constant slow rhythmic clank, industrial, no music |
+| slurry_rush.wav | yes | 5 s | gritty mineral slurry rushing under pressure through steel hydrocyclones and pipes, a constant wet hissing swirl and rush, industrial, no music |
+| agitator.wav | yes | 6 s | large flotation tank agitators turning in thick slurry, low motor drone with churning sloshing liquid and rising air bubbles, constant, industrial, no music |
+| pressure_filter.wav | yes | 5 s | an industrial pressure filter running, steady hydraulic pump whine with wet hissing air and water being squeezed out, constant, no music |
+| ore_sorter.wav | yes | 5 s | an ore sorting machine, rock clattering down steel chutes with quick sharp puffs of compressed air, constant busy, industrial, no music |
+| tbm_cutter.wav | yes | 8 s | a tunnel boring machine cutting hard rock underground, disc cutters grinding and cracking stone in a huge deep continuous roar with a powerful electric motor drone, reverberant, constant, no music |
+| mine_locomotive.wav | yes | 5 s | a small electric mine locomotive running on rail, steady traction motor whine and gear hum with soft steel wheels clacking on rail joints, constant, no music, no horn |
+| muck_tip.mp3 | no | 3 s | a mine car tipping its load, a heavy rush of broken rock sliding out and crashing down into a steel pocket, ending in a few settling stones |
+| muck_load.mp3 | no | 2 s | broken rock pouring off a conveyor into a steel mine car, a short rattling clatter of stones hitting steel |
+| ring_set.mp3 | no | 2 s | a heavy concrete tunnel lining segment seated by a hydraulic erector, a short hydraulic hiss then a deep solid thud with a low underground echo |
+| car_couple.mp3 | no | 1 s | heavy steel rail car coupling engaging, one sharp loud metallic clank with a short ringing rattle of the link and pin |
+
 ## Regenerating
 
 There is no script in the repo that calls Ludo or Blockbench. To replace a texture, export a PNG at the same size, quantize overlay alpha as above, and overwrite the file at the same path. Block models that already reference `tailings:block/<name>` pick the new sprite up. If you add a texture, point a model or blockstate at it. Unused PNGs are not loaded.

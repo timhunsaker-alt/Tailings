@@ -52,7 +52,11 @@ import org.jspecify.annotations.Nullable;
  * player hands rock in or takes a product out.
  */
 public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
-		WaterUser {
+		WaterUser, dev.wildcatter.kinetic.Sounding {
+	/** How long a part keeps sounding after its last work, so a stage that works in bursts does not flutter. */
+	private static final int SOUND_HOLD_TICKS = 20;
+	private boolean sounding;
+	private int soundHold;
 	private boolean grown;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(6, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
@@ -107,6 +111,40 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		demand = false;
 		intake();
 		stage().tick(this);
+		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
+		boolean now = soundHold > 0;
+		if (now != sounding) {
+			sounding = now;
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		}
+	}
+
+	@Override
+	public net.minecraft.sounds.SoundEvent loop() {
+		return sounding ? dev.wildcatter.tailings.TailingsSounds.loop(machine()) : null;
+	}
+
+	@Override
+	public float soundPitch() {
+		return 1F;
+	}
+
+	@Override
+	public float soundVolume() {
+		return sounding ? dev.wildcatter.tailings.TailingsSounds.volume(machine()) : 0;
+	}
+
+	@Override
+	public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
+		return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+	}
+
+	/** All the client needs of a part: whether to sound. */
+	@Override
+	public net.minecraft.nbt.CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+		net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+		tag.putBoolean("sounding", sounding);
+		return tag;
 	}
 
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
@@ -672,6 +710,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
+		sounding = input.getBooleanOr("sounding", false);
 		grown = input.getBooleanOr("grown", false);
 		slots.clear();
 		loading = true;

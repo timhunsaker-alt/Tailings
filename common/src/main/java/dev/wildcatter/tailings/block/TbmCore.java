@@ -91,6 +91,9 @@ public final class TbmCore {
 	private int status = DrillCodes.IDLE;
 	private int lack = DrillCodes.LACK_NONE;
 	private String note = "";
+	/** Muck moves in bursts of a few ticks: its pour sounds once in this many at most. */
+	private static final int POUR_TICKS = 30;
+	private long lastPour;
 	private @Nullable BlockPos junction;
 	private boolean forced;
 	/** For the tests and films: this many ticks a block, not the real 20 s; 0 is real. */
@@ -316,6 +319,10 @@ public final class TbmCore {
 					if (giveMuck(car.load(), Haul.TRANSFER) > 0) {
 						car.refreshLoad();
 						conveying = true;
+						if (level.getGameTime() - lastPour >= POUR_TICKS) {
+							lastPour = level.getGameTime();
+							level.playSound(null, rail, dev.wildcatter.tailings.TailingsSounds.MUCK_LOAD, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
+						}
 					}
 					return;
 				}

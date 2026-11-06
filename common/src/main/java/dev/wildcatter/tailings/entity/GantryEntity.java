@@ -41,8 +41,11 @@ import org.jspecify.annotations.Nullable;
  * sneaking click, and from then on the machine sets it at its place behind itself each tick. Its position is its main cell's corner,
  * like the machine's. A train stops short of it, at the end of the way.
  */
-public class GantryEntity extends Entity {
+public class GantryEntity extends Entity implements SoundingEntity {
 	private static final EntityDataAccessor<Integer> DATA_FACING = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Boolean> DATA_WORKING = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.BOOLEAN);
+	private static final int WORK_HOLD_TICKS = 20;
+	private int workHold;
 	private static final EntityDataAccessor<Float> DATA_PITCH = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.FLOAT);
 	/** How far a gantry may stand from its place behind the machine and still couple. */
 	private static final double COUPLE_REACH = 8;
@@ -70,6 +73,33 @@ public class GantryEntity extends Entity {
 
 	public float pitch() {
 		return entityData.get(DATA_PITCH);
+	}
+
+	/** The machine it serves is driving. */
+	public void working() {
+		workHold = WORK_HOLD_TICKS;
+	}
+
+	@Override
+	public net.minecraft.sounds.@Nullable SoundEvent loop() {
+		if (!entityData.get(DATA_WORKING)) {
+			return null;
+		}
+		return switch (kind()) {
+			case PUMP -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
+			case CONVEYOR -> dev.wildcatter.tailings.TailingsSounds.BELT_CONVEYOR;
+			case REEL -> null;
+		};
+	}
+
+	@Override
+	public float soundPitch() {
+		return 1F;
+	}
+
+	@Override
+	public float soundVolume() {
+		return entityData.get(DATA_WORKING) ? 0.6F : 0;
 	}
 
 	public boolean coupled() {
@@ -125,6 +155,7 @@ public class GantryEntity extends Entity {
 			}
 			cab.core().couple(kind(), getUUID());
 			coupled = true;
+			level().playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.CAR_COUPLE, net.minecraft.sounds.SoundSource.BLOCKS, 1F, 1F);
 			TbmBackup.place(server, cab);
 			return "coupled";
 		}
@@ -159,8 +190,11 @@ public class GantryEntity extends Entity {
 	public void tick() {
 		super.tick();
 		if (!(level() instanceof ServerLevel server)) {
+			SoundingEntity.Hook.start.accept(this);
 			return;
 		}
+		workHold = Math.max(0, workHold - 1);
+		entityData.set(DATA_WORKING, workHold > 0);
 		Map<Long, Stand> here = STANDING.computeIfAbsent(server, l -> new HashMap<>());
 		long now = server.getGameTime();
 		if (now % 200 == 0) {
@@ -227,6 +261,7 @@ public class GantryEntity extends Entity {
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_FACING, Direction.NORTH.get3DDataValue());
 		builder.define(DATA_PITCH, 0F);
+		builder.define(DATA_WORKING, false);
 	}
 
 	@Override

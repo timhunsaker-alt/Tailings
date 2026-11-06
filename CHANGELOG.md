@@ -4,6 +4,12 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R8 — Sound (2026-11-06)
+
+- **Machines now sound:** crushers, screen, ball mill, belts, apron feeder, cyclones, agitators, filter, sorter, blower and thickener while they run with work to do; the machine's cutters and its pump and conveyor gantries while it drives; the locomotive, its pitch following its speed.
+- **Events:** a car tipping, muck pouring into a car, each ring set, a coupling, the machine lifting and setting down.
+- **Tests:** `plant_sound`; the client scenes check each machine's sound starts.
+
 ## R7 — Testing and art (2026-11-06)
 
 - **A train behind a moving machine now turns back.** It followed the conveyor forever with full cars, since it never came to rest behind a gantry on the move. Found by filming the whole mine; `tbm_train_turns` covers it at the real advance rate.

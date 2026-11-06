@@ -1,5 +1,11 @@
 package dev.wildcatter.tailings.entity;
 
+import dev.wildcatter.tailings.TailingsSounds;
+import dev.wildcatter.tailings.mine.DrillCodes;
+import org.jspecify.annotations.Nullable;
+import dev.wildcatter.tailings.mine.TbmGantry;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.TailingsEntities;
@@ -50,8 +56,10 @@ import net.minecraft.world.phys.Vec3;
  * and floors behind itself. On the decline it follows the grade, pitched by the floor's height under its front and rear. Stopped on
  * the flat it sets its parts back down as blocks; on the decline it parks as it is.
  */
-public class TbmEntity extends Entity implements TbmCab {
+public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 	private static final EntityDataAccessor<Integer> DATA_FACING = SynchedEntityData.defineId(TbmEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Boolean> DATA_CUTTING = SynchedEntityData.defineId(TbmEntity.class, EntityDataSerializers.BOOLEAN);
+	private int lastAdvance = -1;
 	private static final EntityDataAccessor<Float> DATA_PITCH = SynchedEntityData.defineId(TbmEntity.class, EntityDataSerializers.FLOAT);
 	/** The machine from the cutterhead to the track layer's tail. */
 	private static final int LENGTH = 11;
@@ -76,7 +84,23 @@ public class TbmEntity extends Entity implements TbmCab {
 	}
 
 	/** Lifts a whole, fed machine standing as blocks: its cells become air, and this carries on from its cab. */
+	@Override
+	public @Nullable SoundEvent loop() {
+		return entityData.get(DATA_CUTTING) ? TailingsSounds.TBM_CUTTER : null;
+	}
+
+	@Override
+	public float soundPitch() {
+		return 1F;
+	}
+
+	@Override
+	public float soundVolume() {
+		return entityData.get(DATA_CUTTING) ? 2.5F : 0;
+	}
+
 	public static TbmEntity lift(ServerLevel level, DrillBlockEntity cab, BlockPos cutter, Direction facing) {
+		level.playSound(null, cutter, dev.wildcatter.WildcatterSounds.STRUCTURE_FORMED, SoundSource.BLOCKS, 2F, 1F);
 		TbmEntity machine = new TbmEntity(TailingsEntities.TBM, level);
 		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
 		cab.core().save(output);
@@ -232,10 +256,26 @@ public class TbmEntity extends Entity implements TbmCab {
 	public void tick() {
 		super.tick();
 		if (!(level() instanceof ServerLevel server)) {
+			SoundingEntity.Hook.start.accept(this);
 			return;
 		}
 		core.acceptBuckets();
 		core.tickLoading(server);
+		boolean cutting = core.running() && core.status() == DrillCodes.DRIVING;
+		entityData.set(DATA_CUTTING, cutting);
+		if (cutting) {
+			for (TbmGantry kind : TbmGantry.values()) {
+				if (core.gantry(kind) != null && server.getEntity(core.gantry(kind)) instanceof GantryEntity gantry) {
+					gantry.working();
+				}
+			}
+		}
+		if (core.drill().advanceCount() != lastAdvance) {
+			if (lastAdvance >= 0) {
+				server.playSound(null, getX(), getY(), getZ(), TailingsSounds.RING_SET, SoundSource.BLOCKS, 2F, 1F);
+			}
+			lastAdvance = core.drill().advanceCount();
+		}
 		if (core.running() && core.junction() != null && server.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity junction) {
 			junction.draw(core.drawWatts());
 		}
@@ -395,6 +435,7 @@ public class TbmEntity extends Entity implements TbmCab {
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_FACING, Direction.NORTH.get3DDataValue());
 		builder.define(DATA_PITCH, 0F);
+		builder.define(DATA_CUTTING, false);
 	}
 
 	@Override

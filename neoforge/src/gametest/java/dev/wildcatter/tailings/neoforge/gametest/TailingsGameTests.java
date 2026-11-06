@@ -80,7 +80,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
@@ -117,6 +117,7 @@ public class TailingsGameTests {
 			helper.register(id("tbm_gantries_decline"), loaded(TailingsGameTests::tbmGantriesDecline));
 			helper.register(id("tbm_train_stops"), loaded(TailingsGameTests::tbmTrainStops));
 			helper.register(id("tbm_train_turns"), loaded(TailingsGameTests::tbmTrainTurns));
+			helper.register(id("plant_sound"), loaded(TailingsGameTests::plantSound));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
 			helper.register(id("models"), loaded(TailingsGameTests::models));
 			helper.register(id("train_runs"), loaded(TailingsGameTests::trainRuns));
@@ -168,6 +169,10 @@ public class TailingsGameTests {
 	}
 
 	private static void registers(GameTestHelper helper) {
+		for (String sound : new String[] {"jaw_crusher", "cone_crusher", "vibrating_screen", "ball_mill", "belt_conveyor", "apron_feeder", "slurry_rush", "agitator", "pressure_filter",
+				"ore_sorter", "tbm_cutter", "mine_locomotive", "muck_tip", "muck_load", "ring_set", "car_couple"}) {
+			helper.assertTrue(BuiltInRegistries.SOUND_EVENT.containsKey(Tailings.id(sound)), Component.literal("the sound " + sound + " should be registered"));
+		}
 		helper.assertTrue(BuiltInRegistries.BLOCK.containsKey(Tailings.id("stamp_mill")), Component.literal("stamp mill missing"));
 		helper.assertTrue(BuiltInRegistries.ITEM.containsKey(Tailings.id("crushed_granite")), Component.literal("crushed granite missing"));
 		helper.assertTrue(BuiltInRegistries.ITEM.containsKey(Tailings.id("sand_iron")), Component.literal("iron sand missing"));
@@ -1219,6 +1224,20 @@ public class TailingsGameTests {
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(loco.direction() < 0 && relZ(helper, loco) > 13,
 						Component.literal("it should turn back from the gantry, at z " + relZ(helper, loco) + " (" + loco.status() + ")")))
+				.thenSucceed();
+	}
+
+	/** A plant part sounds only with its motor running and work to do: a forced jaw with no rock is quiet, and sounds once fed. */
+	private static void plantSound(GameTestHelper helper) {
+		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, 4, 0));
+		jaw.forceRunning();
+		helper.startSequence()
+				.thenIdle(5)
+				.thenExecute(() -> {
+					helper.assertTrue(jaw.loop() == null, Component.literal("a part with no work should be quiet"));
+					helper.assertTrue(jaw.offer(new ItemStack(Blocks.COPPER_ORE)), Component.literal("the jaw should take ore"));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(jaw.loop() == dev.wildcatter.tailings.TailingsSounds.JAW_CRUSHER, Component.literal("a working jaw should sound (" + jaw.status() + ")")))
 				.thenSucceed();
 	}
 

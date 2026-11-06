@@ -23,6 +23,7 @@ public final class Tailings {
 
 	/** {@code requiredMod} is Wildcatter's mod id, read off the Wildcatter jar on the compile classpath. */
 	public static void register(String requiredMod) {
+		TailingsSounds.register();
 		TailingsBlocks.register();
 		TailingsItems.register();
 		TailingsEntities.register();

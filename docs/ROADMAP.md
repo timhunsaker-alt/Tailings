@@ -131,6 +131,8 @@ R brings it in line, one wave at a time.
   dump. `hand` places, couples and breaks gantries and starts the machine with real input, then saves and quits in mid-drive and
   checks it goes on after reopening. The in-game look found one thing to fix, the cab's screen; the models stay as they are.
 
+- **R8. Sound — DONE (2026-11-06, Tim's request):** a running loop for every powered plant part, the machine, the pump and conveyor gantries and the locomotive, and one-shots for tipping, loading, setting a ring and coupling ([sound.md](sound.md)). The client scenes fail if a machine's sound does not start.
+
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
 - Selective lead-then-zinc circuits (flotation-bank.md).
@@ -190,6 +192,8 @@ These are in the current build on purpose, or because the art and tests have not
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).
+- **Sound levels are not tuned by ear (R8).** The volumes in `sound.md` were set from the files' levels. The tests prove each sound starts, not how it sounds together. The films have no audio: `screencapture` can only record a microphone.
+- **Silent for now (R8).** The traction rectifier, the small phase 1 machines, the reel gantry, and the wheels of an unpowered car. A plant part's sound does not follow its load.
 - **The filmed scenes are staged.** They run at test speed with the parts force-running, not wired to a real grid, and `crushing`'s cone has no belt off it (as its server scene). Survival play from scratch, crafting every part and powering it from Wildcatter, has not been run start to finish.
 
 Other stand-ins worth knowing:

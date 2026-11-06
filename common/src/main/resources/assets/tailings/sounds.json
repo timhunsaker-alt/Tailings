@@ -1,0 +1,98 @@
+{
+  "muck_tip": {
+    "sounds": [
+      "tailings:muck_tip"
+    ],
+    "subtitle": "subtitles.tailings.muck_tip"
+  },
+  "muck_load": {
+    "sounds": [
+      "tailings:muck_load"
+    ],
+    "subtitle": "subtitles.tailings.muck_load"
+  },
+  "ring_set": {
+    "sounds": [
+      "tailings:ring_set"
+    ],
+    "subtitle": "subtitles.tailings.ring_set"
+  },
+  "car_couple": {
+    "sounds": [
+      "tailings:car_couple"
+    ],
+    "subtitle": "subtitles.tailings.car_couple"
+  },
+  "jaw_crusher": {
+    "sounds": [
+      "tailings:jaw_crusher"
+    ],
+    "subtitle": "subtitles.tailings.jaw_crusher"
+  },
+  "cone_crusher": {
+    "sounds": [
+      "tailings:cone_crusher"
+    ],
+    "subtitle": "subtitles.tailings.cone_crusher"
+  },
+  "vibrating_screen": {
+    "sounds": [
+      "tailings:vibrating_screen"
+    ],
+    "subtitle": "subtitles.tailings.vibrating_screen"
+  },
+  "ball_mill": {
+    "sounds": [
+      "tailings:ball_mill"
+    ],
+    "subtitle": "subtitles.tailings.ball_mill"
+  },
+  "belt_conveyor": {
+    "sounds": [
+      "tailings:belt_conveyor"
+    ],
+    "subtitle": "subtitles.tailings.belt_conveyor"
+  },
+  "apron_feeder": {
+    "sounds": [
+      "tailings:apron_feeder"
+    ],
+    "subtitle": "subtitles.tailings.apron_feeder"
+  },
+  "slurry_rush": {
+    "sounds": [
+      "tailings:slurry_rush"
+    ],
+    "subtitle": "subtitles.tailings.slurry_rush"
+  },
+  "agitator": {
+    "sounds": [
+      "tailings:agitator"
+    ],
+    "subtitle": "subtitles.tailings.agitator"
+  },
+  "pressure_filter": {
+    "sounds": [
+      "tailings:pressure_filter"
+    ],
+    "subtitle": "subtitles.tailings.pressure_filter"
+  },
+  "ore_sorter": {
+    "sounds": [
+      "tailings:ore_sorter"
+    ],
+    "subtitle": "subtitles.tailings.ore_sorter"
+  },
+  "tbm_cutter": {
+    "sounds": [
+      "tailings:tbm_cutter"
+    ],
+    "subtitle": "subtitles.tailings.tbm_cutter"
+  },
+  "mine_locomotive": {
+    "sounds": [
+      "tailings:mine_locomotive"
+    ],
+    "subtitle": "subtitles.tailings.mine_locomotive"
+  }
+}

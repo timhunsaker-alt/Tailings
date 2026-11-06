@@ -53,7 +53,8 @@ import org.jspecify.annotations.Nullable;
  * The locomotive drives: it holds the train's path ({@link TrainPath}), its speed and direction, and its cars by UUID, and each
  * tick it runs the train along the track and sets every car at its place behind it. Nothing of the train is stored on the rails.
  */
-public class MineVehicleEntity extends Entity {
+public class MineVehicleEntity extends Entity implements SoundingEntity {
+	private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.FLOAT);
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final double TICK = 1.0 / 20;
 	/** How close behind a gantry a train turns back, in metres. */
@@ -140,6 +141,7 @@ public class MineVehicleEntity extends Entity {
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_LOADED, false);
+		builder.define(DATA_SPEED, 0F);
 	}
 
 	// ---- placing ---------------------------------------------------------------------------------------------------------------
@@ -182,6 +184,22 @@ public class MineVehicleEntity extends Entity {
 	}
 
 	/** A standalone car couples to the nearest train whose next car place is within reach. */
+	@Override
+	public net.minecraft.sounds.@Nullable SoundEvent loop() {
+		return locomotive() && entityData.get(DATA_SPEED) > 0.05F ? dev.wildcatter.tailings.TailingsSounds.MINE_LOCOMOTIVE : null;
+	}
+
+	/** The traction motors climb with the train's speed. */
+	@Override
+	public float soundPitch() {
+		return 0.7F + 0.17F * entityData.get(DATA_SPEED);
+	}
+
+	@Override
+	public float soundVolume() {
+		return Math.min(1F, 0.4F + 0.2F * entityData.get(DATA_SPEED));
+	}
+
 	public boolean coupleToNearest() {
 		if (locomotive() || locomotiveId != null || !(level() instanceof ServerLevel server)) {
 			return false;
@@ -189,6 +207,7 @@ public class MineVehicleEntity extends Entity {
 		for (MineVehicleEntity loco : server.getEntitiesOfClass(MineVehicleEntity.class, getBoundingBox().inflate(Haul.SPACING * (Haul.MAX_CARS + 2)),
 				e -> e.locomotive() && e.isAlive())) {
 			if (loco.take(this, Haul.COUPLE_REACH)) {
+				server.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.CAR_COUPLE, net.minecraft.sounds.SoundSource.BLOCKS, 1F, 1F);
 				return true;
 			}
 		}
@@ -272,6 +291,9 @@ public class MineVehicleEntity extends Entity {
 	public void tick() {
 		super.tick();
 		if (!(level() instanceof ServerLevel server)) {
+			if (locomotive()) {
+				SoundingEntity.Hook.start.accept(this);
+			}
 			return;
 		}
 		if (!locomotive()) {
@@ -474,6 +496,11 @@ public class MineVehicleEntity extends Entity {
 			// what it draws through its shoe: holding the grade and rolling, and speeding up
 			double force = mass * Haul.GRAVITY * Math.max(0, sine + Haul.ROLLING) + (speeding ? mass * Haul.ACCELERATION : 0);
 			rail.draw(Math.min(available, force * speed));
+		}
+		if (Math.abs(entityData.get(DATA_SPEED) - speed) > 0.05) {
+			entityData.set(DATA_SPEED, (float) speed);
+		} else if (speed == 0 && entityData.get(DATA_SPEED) != 0F) {
+			entityData.set(DATA_SPEED, 0F);
 		}
 		enterSections(server);
 		// drop the track well behind
@@ -678,6 +705,7 @@ public class MineVehicleEntity extends Entity {
 		if (pocket != null && car.load.total() > 0 && pocket.offer(car.load.contents())) {
 			car.load.clear();
 			car.refreshLoad();
+			server.playSound(null, car.getX(), car.getY(), car.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
 		}
 	}
 
