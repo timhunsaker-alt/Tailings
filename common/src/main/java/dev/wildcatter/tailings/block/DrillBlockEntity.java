@@ -304,30 +304,56 @@ public class DrillBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return behind instanceof PumpBlockEntity pump ? pump : null;
 	}
 
+	/** Hands its muck to a car standing on the rail behind it, the loading point (docs/multiblocks/haulage.md). */
 	private void loadCars() {
 		if (level == null || !getBlockState().hasProperty(TunnelDrillBlock.FACING)) {
 			return;
 		}
 		Direction facing = getBlockState().getValue(TunnelDrillBlock.FACING);
-		if (!(level.getBlockEntity(worldPosition.relative(facing.getOpposite())) instanceof RailBlockEntity rail)
-				|| rail.kind() != RailBlockEntity.Kind.CAR || rail.load().room() <= 0) {
+		BlockPos rail = worldPosition.relative(facing.getOpposite());
+		for (dev.wildcatter.tailings.entity.MineVehicleEntity car : level.getEntitiesOfClass(dev.wildcatter.tailings.entity.MineVehicleEntity.class,
+				new net.minecraft.world.phys.AABB(rail).inflate(0, 1, 0), e -> !e.locomotive() && e.load().room() > 0
+						&& net.minecraft.core.BlockPos.containing(e.getX(), e.getY() - 0.5, e.getZ()).equals(rail))) {
+			int moved = 0;
+			for (int slot = INPUTS; slot < SLOTS && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER; slot++) {
+				ItemStack stack = slots.get(slot);
+				while (!stack.isEmpty() && car.load().room() > 0 && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER) {
+					String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+					if (car.load().add(id, 1) != 0) {
+						break;
+					}
+					stack.shrink(1);
+					moved++;
+				}
+			}
+			if (moved > 0) {
+				car.refreshLoad();
+				setChanged();
+			}
 			return;
 		}
-		int moved = 0;
-		for (int slot = INPUTS; slot < SLOTS && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER; slot++) {
-			ItemStack stack = slots.get(slot);
-			while (!stack.isEmpty() && rail.load().room() > 0 && moved < dev.wildcatter.tailings.haul.Haul.TRANSFER) {
-				String id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-				if (rail.load().add(id, 1) != 0) {
-					return;
-				}
-				stack.shrink(1);
-				moved++;
+	}
+
+	/** True while it has muck waiting for a car. */
+	public boolean hasMuck() {
+		for (int slot = INPUTS; slot < SLOTS; slot++) {
+			if (!slots.get(slot).isEmpty()) {
+				return true;
 			}
 		}
-		if (moved > 0) {
-			setChanged();
+		return false;
+	}
+
+	/** The drill whose loading point is the rail at {@code rail}: the cell behind its cab. */
+	public static @org.jspecify.annotations.Nullable DrillBlockEntity loadingAt(net.minecraft.world.level.Level level, BlockPos rail) {
+		for (Direction side : Direction.Plane.HORIZONTAL) {
+			BlockPos cab = rail.relative(side);
+			if (level.getBlockEntity(cab) instanceof DrillBlockEntity drill && drill.getBlockState().hasProperty(TunnelDrillBlock.FACING)
+					&& drill.getBlockState().getValue(TunnelDrillBlock.FACING) == side) {
+				return drill;
+			}
 		}
+		return null;
 	}
 
 	private void acceptBuckets() {

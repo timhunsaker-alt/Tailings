@@ -27,7 +27,10 @@ track and empty trains come back on the other. The track carries its own power a
 - **2026-11-05:**
   - **every car is an entity:** trains glide smoothly as linked entities, like Create's trains, and are no longer data on the
     rail blocks;
-  - the rectifier on Wildcatter's DC tier (R5, with the open DECISION below).
+  - the rectifier on Wildcatter's DC tier (R5): **a Tailings DC source on Wildcatter's DC solver** (decided with Tim, R5 plan);
+  - **couplings never break in R5** (a loaded 10-car train needs about 215 kN at its first coupling to climb the 1-in-2 rack
+    decline, more than a real mine-car coupling); breaking couplings wait, listed in ROADMAP Known gaps;
+  - **trains placed before R5** (stored on the rail blocks) become their entities, with their loads, where they stand.
 
 A figure marked *(proposed)* is a textbook value, a scaled value, or a proposal. A figure marked *(unverified)* came from the
 first draft and is still to be checked.
@@ -80,8 +83,8 @@ first draft and is still to be checked.
   - At the end of the track it waits, then reverses. Right-clicking the locomotive sets its direction and starts or holds it.
 - **Signals:** a block system keeps trains one section apart. A section runs from one `block_signal` to the next.
 - **Power off:** past the last fed section a train brakes to a stop and holds on the rack.
-- **Couplings:** one breaks if the train pulls past its rating. The cut cars roll back down the decline unless their brakes are
-  set.
+- **Couplings:** they do not break in R5 (decided with Tim). Later: one breaks if the train pulls past its rating, and the cut
+  cars roll back down the decline unless their brakes are set.
 - **Chunks:** a running locomotive refreshes the `tailings:runner` ticket on the chunks its train covers and the one ahead (R1).
 
 ## Power: the traction rectifier on Wildcatter's DC tier (R5)
@@ -97,14 +100,22 @@ first draft and is still to be checked.
   - a fed section is live along its whole length, so lights and signals can draw from it;
   - the conductor is shrouded and flush, and a player, mob or item on the track never gets a shock;
   - a train hurts a player or mob it hits, 8 damage by default (`config/tailings-train.properties`).
-- **Open DECISION:** Wildcatter's rectifier holds a **current setpoint** (it was built for electrolysis), while traction needs a
-  **voltage source**. Either Wildcatter adds a voltage-regulated rectifier, or Tailings builds its own DC source on Wildcatter's DC
-  solver. Listed, not chosen.
+- **Decided with Tim (R5):** Wildcatter's rectifier holds a current setpoint (it was built for electrolysis), so Tailings builds its
+  own **250 V voltage source** on Wildcatter's DC solver: an EMF behind its internal resistance, its minus on the running rails
+  (earth), with its own DC breaker. Its AC side is a Wildcatter variable load whose draw follows the DC watts, at 97 %
+  efficiency *(proposed)*.
 
 ## Nozzles and faces
 - **Motor box (the rectifier's AC side):** on the west face of its main cell, at **480 V**.
 - **The rectifier's DC side:** feeds every mine rail or switch touching any of its cells, and the track joined to it.
 - **Lights and signals:** draw from a neighbouring fed rail.
+
+## Added while planning R5
+- **Where a train runs** is worked out from the rails themselves: from a rail, the next is the one beside it, level or a block up or
+  down, whose rail surface meets it, so the flat drive, the 1-in-2 decline and the joins between them run both ways.
+- **The end of track** is the end the locomotive sees within its braking distance: it stops, waits 5 s *(proposed)* and reverses.
+  Track broken under a train, or ahead closer than it can stop, derails it.
+- **Spacing:** cars sit at the existing models' length until the art pass (R7) draws them at their real length.
 
 ## Breaking and removing
 - **Breaking a track piece** leaves the rest. A train reaching the gap derails: the cars at the gap stop and drop their loads as

@@ -137,7 +137,7 @@ Speed: one block every 7 ticks on the flat, every 14 ticks on a grade (`Motion`)
 
 `mine_rail` is one block, with facing, grade (`flat`, `lower`, `upper`, `steep`), look (the mined stone), and rack. Rack is set on declines. The conductor is part of the block. `Conductor.live` is true for the whole section a rectifier is feeding, not only under the locomotive. Walking it does not shock. `MineLightBlock` and `BlockSignalBlock` refresh from a neighboring fed rail. A lit mine light is level 15. A lit signal is level 12.
 
-`mine_switch` is its own block, not a subclass of the rail (a subclass could not add `thrown` in time for the default state). Thrown, travel leaves clockwise: north turns east, matching `Heading.turn()`. The signal `enter` check still applies. There is no crafting recipe for the switch or the light.
+`mine_switch` is its own block, not a subclass of the rail (a subclass could not add `thrown` in time for the default state). Thrown, travel leaves clockwise: north turns east, matching `Heading.turn()`. A train claims a block signal's section when it runs into it and leaves it when its last car is out. There is no crafting recipe for the switch or the light.
 
 Rail recipe: shaped, iron and one copper ingot, two rails.
 
@@ -151,13 +151,19 @@ I I
 
 ### Locomotive and cars
 
-`mine_locomotive` and `mine_car` are items. Right-click a rail with the locomotive item to call `placeLoco`. That spawns `MineTrainEntity` with the locomotive flag set, and marks the rail `Kind.LOCO`. A car item marks the rail `Kind.CAR` and joins the train on the rail ahead, up to 10 cars. Sneak-use couples a car that was placed alone. Cars are not entities. The load is `CarLoad` on `RailBlockEntity`.
-
-The entity flag is synced (`DATA_LOCOMOTIVE`). The renderer uses it. A locomotive draws itself, then each trailing car 20 pixels (1.25 blocks) back along the rail path, pitched with the slope (`ConsistSpacing`, `RailSurface`). The car's `load` cube is visible only when `CarLoad.total() > 0`. The headlight part is submitted again with `RenderTypes.eyes` at full brightness. The entity also places a vanilla light block (level 15) on the air block above the rail and removes it when the train moves on. That block is the tunnel light. The eyes pass is the glowing lamp on the model.
-
-The entity hurtbox is the consist's rails, inflated. `TrainHarm` reads `config/tailings-train.properties` once, when the server starts. `damage=false` turns hits off. `amount=` sets the damage. A missing file means damage is on and the amount is 8. The hit is `hurtServer` generic damage. There is no gamerule.
-
-Chunk tickets: the locomotive refreshes `tailings:runner` on the rail chunk and the chunk ahead about once a second; they time out on their own once it stops (see the drill above). The light block moves only when the locomotive does. `TrainHarm` settings are read once at server start.
+Since R5a every vehicle is an entity (`entity.MineVehicleEntity`, types `mine_locomotive` and `mine_car`), and trains glide (docs/multiblocks/haulage.md). Nothing of a train is stored on the rails.
+- **Placing:** a locomotive or car item on a mine rail or switch puts it there, facing along the rail the way the player looks. A car couples to the train whose next car place is within 3 m of it (`Haul.COUPLE_REACH`); sneak-right-click a car with an empty hand to couple it later. A train has up to 10 cars.
+- **The track:** `haul.Track` reads the rails (through `block.RailView`): from a cell, the next is the rail beside it, level or a block up or down, whose surface meets it, so trains run the flat, the 1-in-2 decline and the joins both ways; a thrown switch sends a train from its toe out of its clockwise side, and back out of its toe from the branch. Each cell's centreline runs entry edge, centre, exit edge at the `RailSurface` heights.
+- **The train:** the locomotive keeps the train's `haul.TrainPath` (the steps it covers, laid ahead and behind as it runs), its speed, direction and cars by UUID. Each tick it moves along the path and sets every car `Haul.SPACING` (the models' 20 px) behind the one ahead; positions, yaw and pitch sync as entity motion, so the client glides them.
+- **Speed** (`haul.Traction`): power over F = m g (sin θ + 0.01), capped at 3 m/s; held to 1 m/s down the rack, slowing for the decline before it reaches it; 0.3 m/s² either way. It stops for: an unfed rail (NO POWER), a grade without rack, a signal section held by another train, a cell another train is on, a car over a full dump pocket, a car with room at the drill's loading point while the drill has muck. At the end of the track it stops, waits 5 s and reverses.
+- **Hands:** right-click the locomotive to run or hold it; sneak-right-click to reverse it. Sneak-attack a vehicle with an empty hand to break it into its item and load.
+- **Derail:** track broken under the train, or ahead closer than it can stop, derails it: it stops, reads DERAILED, and the cars at the gap drop their loads. It runs again once the track under it is whole.
+- **Dump and drill:** a car over a dump pocket beside a ramp tips on the move (`DumpBlockEntity.under`); the drill loads the car standing on the rail behind its cab (`DrillBlockEntity.loadingAt`).
+- **Drawing:** `client.MineVehicleRenderer` draws one vehicle per entity, turned and pitched as the track runs; a car's `load` cube shows while it is loaded (synced). The headlight part is submitted again with `RenderTypes.eyes` at full brightness, and the locomotive places a vanilla light block (level 15) in the air above it, moving it when it moves a block.
+- **Harm:** a moving vehicle hurts what it hits. `TrainHarm` reads `config/tailings-train.properties` once, when the server starts: `damage=false` turns hits off, `amount=` sets the damage, 8 by default. There is no gamerule.
+- **Chunks:** the locomotive refreshes `tailings:runner` on every chunk its train covers and the one ahead, about once a second; they time out on their own once it stops.
+- **Old worlds:** a rail saved holding an old train turns it into its entities on its first tick (`RailBlockEntity.migrate`); an old `mine_train` entity discards itself.
+- **Tuning:** every rating and proposed figure is in `haul.Haul`.
 
 Locomotive recipe:
 
@@ -306,6 +312,8 @@ Block items exist for every block above, including the ones with no crafting rec
 | Id | Class | Renderer | Role |
 |---|---|---|---|
 | `tunnel_drill` | `TunnelDrillEntity` | `NoopRenderer` on both loaders | Not spawned since R1; an old one discards itself. Kept registered for the contraption wave |
-| `mine_train` | `MineTrainEntity` | `MineTrainRenderer` | The locomotive. Flag `loco` is synced. Cars are rail data, drawn behind it |
+| `mine_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` | Drives its train: path, speed, direction, cars |
+| `mine_car` | `MineVehicleEntity` | `MineVehicleRenderer` | A car; its load, and whether it is loaded (synced) |
+| `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 
-The train entity does not take damage (`hurtServer` returns false). It does deal damage, when the config allows it.
+Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

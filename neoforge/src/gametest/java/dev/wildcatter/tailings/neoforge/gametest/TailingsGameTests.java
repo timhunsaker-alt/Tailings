@@ -27,6 +27,13 @@ import dev.wildcatter.tailings.mine.Advance;
 import dev.wildcatter.tailings.mine.DriveCourse;
 import dev.wildcatter.tailings.mine.DrillCodes;
 import dev.wildcatter.tailings.plant.Machine;
+import java.util.List;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Entity;
+import dev.wildcatter.tailings.mine.Heading;
+import dev.wildcatter.tailings.haul.Haul;
+import dev.wildcatter.tailings.entity.MineVehicleEntity;
 import dev.wildcatter.tailings.rock.SizeClass;
 import dev.wildcatter.tailings.rock.Rock;
 import dev.wildcatter.tailings.plant.RockLoad;
@@ -64,7 +71,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+
+	/** Scenes where trains run the length of a track at their real speed. */
+	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
+			"dump_station", "dump_waits");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -83,7 +94,12 @@ public class TailingsGameTests {
 			helper.register(id("drill_pause"), loaded(TailingsGameTests::drillPause));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
 			helper.register(id("models"), loaded(TailingsGameTests::models));
-			helper.register(id("haul_turnout"), loaded(TailingsGameTests::haulTurnout));
+			helper.register(id("train_runs"), loaded(TailingsGameTests::trainRuns));
+			helper.register(id("train_turnout"), loaded(TailingsGameTests::trainTurnout));
+			helper.register(id("train_decline"), loaded(TailingsGameTests::trainDecline));
+			helper.register(id("train_derail"), loaded(TailingsGameTests::trainDerail));
+			helper.register(id("train_harm"), loaded(TailingsGameTests::trainHarm));
+			helper.register(id("train_migrate"), loaded(TailingsGameTests::trainMigrate));
 			helper.register(id("train_tickets"), loaded(TailingsGameTests::trainTickets));
 			helper.register(id("drill_blocked"), loaded(TailingsGameTests::drillBlocked));
 			helper.register(id("plant_drops"), loaded(TailingsGameTests::plantDrops));
@@ -96,7 +112,7 @@ public class TailingsGameTests {
 			for (String scene : SCENES) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), 400, 1, true,
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), LONG.contains(scene) ? 1600 : 400, 1, true,
 								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, 40)));
 			}
 		});
@@ -523,38 +539,12 @@ public class TailingsGameTests {
 		helper.succeed();
 	}
 
-	/** The rectifier feeds the rail, the train moves one block, and the car tips into the pocket. */
-	private static void haul(GameTestHelper helper) {
-		BlockPos rectifier = new BlockPos(1, 60, 2);
-		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, rectifier, RectifierBlockEntity.class);
-		box.forceRunning();
-		BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
-		for (int z = 0; z <= 3; z++) {
-			helper.setBlock(new BlockPos(3, 60, z), rail);
-		}
-		box.spread();
-		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
-		RailBlockEntity car = helper.getBlockEntity(new BlockPos(3, 60, 3), RailBlockEntity.class);
-		helper.assertTrue(loco.powered() && car.powered(), Component.literal("the rectifier should feed the rails it touches"));
-		helper.assertTrue(loco.placeLoco(), Component.literal("the rail should take a locomotive"));
-		helper.assertTrue(car.placeCar(), Component.literal("the car should couple to the locomotive ahead"));
-		helper.assertTrue(loco.conductorLive(), Component.literal("the conductor is live under the locomotive"));
-		car.load().add("minecraft:cobblestone", 2);
-		helper.assertTrue(loco.stepOnce(), Component.literal("the train should take the next powered rail"));
-		RailBlockEntity moved = helper.getBlockEntity(new BlockPos(3, 60, 1), RailBlockEntity.class);
-		RailBlockEntity followed = helper.getBlockEntity(new BlockPos(3, 60, 2), RailBlockEntity.class);
-		helper.assertTrue(moved.kind() == RailBlockEntity.Kind.LOCO && moved.conductorLive(), Component.literal("the locomotive should have moved and stayed live"));
-		helper.assertTrue(followed.kind() == RailBlockEntity.Kind.CAR && followed.load().total() == 2, Component.literal("the car should follow with its load"));
-		// a dump pocket under the track and a dump ramp beside it: the car tips as it passes over
-		DumpBlockEntity dump = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, 57, 0), DumpBlockEntity.class);
-		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, 60, 0), PlantBlockEntity.class);
-		helper.assertTrue(moved.stepOnce(), Component.literal("the train should go on over the pocket"));
-		helper.assertTrue(dump.held("minecraft:cobblestone") == 2, Component.literal("the pocket should hold the car's 2 cobble, got " + dump.pocket()));
-		helper.assertTrue(followed.load().total() == 0, Component.literal("the car should be empty after the tip"));
-		helper.succeed();
-	}
 
-	/** A train over a loaded track: the rectifier, rails north to south at x 3 from z 0 to {@code last}, and the rails fed. */
+
+
+
+
+	/** The rectifier (forced on) beside a north-running track at x 3 from z 0 to {@code last}, and the track fed. */
 	private static void track(GameTestHelper helper, int y, int last) {
 		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, new BlockPos(1, y, 2), RectifierBlockEntity.class);
 		box.forceRunning();
@@ -563,6 +553,178 @@ public class TailingsGameTests {
 			helper.setBlock(new BlockPos(3, y, z), rail);
 		}
 		box.spread();
+	}
+
+	private static MineVehicleEntity loco(GameTestHelper helper, BlockPos at, Heading heading) {
+		MineVehicleEntity loco = MineVehicleEntity.placeLocomotive(helper.getLevel(), helper.absolutePos(at), heading);
+		helper.assertTrue(loco != null, Component.literal("a locomotive should go on the rail at " + at));
+		return loco;
+	}
+
+	private static MineVehicleEntity car(GameTestHelper helper, BlockPos at, Heading heading) {
+		MineVehicleEntity car = MineVehicleEntity.placeCar(helper.getLevel(), helper.absolutePos(at), heading);
+		helper.assertTrue(car != null, Component.literal("a car should go on the rail at " + at));
+		return car;
+	}
+
+	/** Relative z of an entity in the test. */
+	private static double relZ(GameTestHelper helper, Entity e) {
+		return e.getZ() - helper.absolutePos(BlockPos.ZERO).getZ();
+	}
+
+	private static double relX(GameTestHelper helper, Entity e) {
+		return e.getX() - helper.absolutePos(BlockPos.ZERO).getX();
+	}
+
+	/** The rectifier feeds the rail, and a locomotive with a loaded car glides along it, the car keeping its place. */
+	private static void haul(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 12);
+		RailBlockEntity fed = helper.getBlockEntity(new BlockPos(3, y, 9), RailBlockEntity.class);
+		helper.assertTrue(fed.powered() && fed.conductorLive(), Component.literal("the rectifier should feed the track joined to it"));
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 8), Heading.NORTH);
+		MineVehicleEntity car = car(helper, new BlockPos(3, y, 9), Heading.NORTH);
+		helper.assertTrue(car.locomotiveId() != null && loco.carIds().size() == 1, Component.literal("the car should couple to the locomotive ahead"));
+		car.load().add("minecraft:cobblestone", 2);
+		car.refreshLoad();
+		helper.succeedWhen(() -> {
+			helper.assertTrue(relZ(helper, loco) < 4, Component.literal("the locomotive should glide north, at z " + relZ(helper, loco) + " (" + loco.status() + ")"));
+			helper.assertTrue(Math.abs(relZ(helper, car) - relZ(helper, loco) - Haul.SPACING) < 0.05, Component.literal("the car should keep its place behind"));
+			helper.assertTrue(car.load().total() == 2, Component.literal("the car keeps its load"));
+		});
+	}
+
+	/** A locomotive and three cars run as four entities to the end of the track, wait, and come back. */
+	private static void trainRuns(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 20);
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 12), Heading.NORTH);
+		List<MineVehicleEntity> cars = List.of(car(helper, new BlockPos(3, y, 13), Heading.NORTH), car(helper, new BlockPos(3, y, 14), Heading.NORTH),
+				car(helper, new BlockPos(3, y, 15), Heading.NORTH));
+		helper.assertTrue(loco.carIds().size() == 3, Component.literal("three cars should couple, got " + loco.carIds().size()));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, loco) < 1.0 && loco.speed() < 0.01,
+						Component.literal("the train should run to the end of the track, at z " + relZ(helper, loco) + " (" + loco.status() + ")")))
+				.thenExecute(() -> {
+					int count = helper.getLevel().getEntitiesOfClass(MineVehicleEntity.class, new AABB(helper.absolutePos(new BlockPos(3, y, 0))).inflate(2, 2, 25)).size();
+					helper.assertTrue(count == 4, Component.literal("four vehicle entities, got " + count));
+					for (int i = 0; i < cars.size(); i++) {
+						double gap = relZ(helper, cars.get(i)) - (i == 0 ? relZ(helper, loco) : relZ(helper, cars.get(i - 1)));
+						helper.assertTrue(Math.abs(gap - Haul.SPACING) < 0.05, Component.literal("car " + i + " should keep its spacing, gap " + gap));
+					}
+				})
+				.thenWaitUntil(() -> helper.assertTrue(loco.direction() < 0 && relZ(helper, loco) > 3,
+						Component.literal("after its wait the train should come back, at z " + relZ(helper, loco) + " (" + loco.status() + ")")))
+				.thenSucceed();
+	}
+
+	/** Through a thrown switch the locomotive turns east, and its cars follow it round. */
+	private static void trainTurnout(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 9);
+		helper.setBlock(new BlockPos(3, y, 1), TailingsBlocks.MINE_SWITCH.defaultBlockState().setValue(MineSwitchBlock.FACING, Direction.NORTH)
+				.setValue(MineSwitchBlock.THROWN, true));
+		for (int x = 4; x <= 12; x++) {
+			helper.setBlock(new BlockPos(x, y, 1), TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST));
+		}
+		helper.getBlockEntity(new BlockPos(1, y, 2), RectifierBlockEntity.class).spread();
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 5), Heading.NORTH);
+		MineVehicleEntity first = car(helper, new BlockPos(3, y, 6), Heading.NORTH);
+		MineVehicleEntity second = car(helper, new BlockPos(3, y, 7), Heading.NORTH);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(relX(helper, loco) > 7, Component.literal("the locomotive should take the branch east, at " + loco.position() + " (" + loco.status() + ")"));
+			helper.assertTrue(relX(helper, second) > 4 && Math.abs(relZ(helper, second) - 1.5) < 0.05,
+					Component.literal("the cars should follow it round, the second at " + relX(helper, second) + ", " + relZ(helper, second)));
+			helper.assertTrue(Math.abs(relX(helper, loco) - relX(helper, first) - Haul.SPACING) < 0.05, Component.literal("and keep their spacing"));
+		});
+	}
+
+	/** Down the 1-in-2 rack decline at the rack brake's 1 m/s, and back up it at power over force. */
+	private static void trainDecline(GameTestHelper helper) {
+		int top = 64;
+		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, new BlockPos(1, top, 12), RectifierBlockEntity.class);
+		box.forceRunning();
+		BlockState flat = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 11; z <= 14; z++) {
+			helper.setBlock(new BlockPos(3, top, z), flat);
+		}
+		for (int k = 0; k < 3; k++) {
+			helper.setBlock(new BlockPos(3, top - k, 10 - 2 * k), flat.setValue(MineRailBlock.GRADE, RailGrade.UPPER).setValue(MineRailBlock.RACK, true));
+			helper.setBlock(new BlockPos(3, top - k, 9 - 2 * k), flat.setValue(MineRailBlock.GRADE, RailGrade.LOWER).setValue(MineRailBlock.RACK, true));
+		}
+		for (int z = 0; z <= 4; z++) {
+			helper.setBlock(new BlockPos(3, top - 3, z), flat);
+		}
+		box.spread();
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, top, 13), Heading.NORTH);
+		double[] most = {0, 0};   // fastest down the grade, fastest up it
+		helper.onEachTick(() -> {
+			double z = relZ(helper, loco);
+			if (z > 5.2 && z < 10.5) {   // the locomotive on the grade, not the flat at either end
+				int way = loco.direction() > 0 ? 0 : 1;
+				most[way] = Math.max(most[way], loco.speed());
+			}
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(loco.getY() < helper.absolutePos(BlockPos.ZERO).getY() + top - 1.9 && relZ(helper, loco) < 3,
+						Component.literal("the locomotive should run down to the bottom, at " + loco.position() + " (" + loco.status() + ")")))
+				.thenWaitUntil(() -> helper.assertTrue(loco.direction() < 0 && relZ(helper, loco) > 11.5,
+						Component.literal("and back up to the top, at " + loco.position() + " (" + loco.status() + ")")))
+				.thenExecute(() -> {
+					helper.assertTrue(most[0] <= Haul.DOWNHILL_SPEED + 1e-6, Component.literal("down the grade at most 1 m/s, got " + most[0]));
+					helper.assertTrue(most[1] > 1 && most[1] <= 2.07, Component.literal("up the grade at power over force (2.06 m/s alone), got " + most[1]));
+				})
+				.thenSucceed();
+	}
+
+	/** Track broken under a running train derails it, and the car on the gap drops its load. */
+	private static void trainDerail(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 20);
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 15), Heading.NORTH);
+		MineVehicleEntity car = car(helper, new BlockPos(3, y, 16), Heading.NORTH);
+		car.load().add("minecraft:cobblestone", 30);
+		car.refreshLoad();
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, loco) < 10, Component.literal("the train should run")))
+				.thenExecute(() -> helper.setBlock(BlockPos.containing(relX(helper, car), y, relZ(helper, car)), Blocks.AIR))
+				.thenExecuteAfter(2, () -> {
+					helper.assertTrue(loco.derailed() && loco.status().startsWith("DERAILED"), Component.literal("the train should derail, got " + loco.status()));
+					helper.assertTrue(car.load().total() == 0, Component.literal("the car on the gap should drop its load"));
+					int dropped = 0;
+					for (var item : helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, car.getBoundingBox().inflate(4),
+							e -> e.getItem().is(Items.COBBLESTONE))) {
+						dropped += item.getItem().getCount();
+					}
+					helper.assertTrue(dropped == 30, Component.literal("its 30 cobble should lie by the track, got " + dropped));
+				})
+				.thenSucceed();
+	}
+
+	/** A running train hurts a mob on the track. */
+	private static void trainHarm(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 20);
+		loco(helper, new BlockPos(3, y, 18), Heading.NORTH);
+		net.minecraft.world.entity.animal.pig.Pig pig = helper.spawn(net.minecraft.world.entity.EntityTypes.PIG, new BlockPos(3, y + 1, 10));
+		pig.setNoAi(true);
+		float health = pig.getHealth();
+		helper.succeedWhen(() -> helper.assertTrue(pig.getHealth() < health || !pig.isAlive(), Component.literal("the train should hurt the pig")));
+	}
+
+	/** A world saved before R5 kept its train on the rails: it comes back as a locomotive and a coupled car, load and all. */
+	private static void trainMigrate(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 10);
+		helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class).setOldTrain("LOCO", 0, "");
+		helper.getBlockEntity(new BlockPos(3, y, 6), RailBlockEntity.class).setOldTrain("CAR", 1, "7=minecraft:iron_ore");
+		helper.succeedWhen(() -> {
+			List<MineVehicleEntity> found = helper.getLevel().getEntitiesOfClass(MineVehicleEntity.class, new AABB(helper.absolutePos(new BlockPos(3, y, 5))).inflate(2, 2, 12));
+			MineVehicleEntity loco = found.stream().filter(MineVehicleEntity::locomotive).findFirst().orElse(null);
+			MineVehicleEntity car = found.stream().filter(e -> !e.locomotive()).findFirst().orElse(null);
+			helper.assertTrue(loco != null && car != null, Component.literal("the old train should become a locomotive and a car, got " + found.size()));
+			helper.assertTrue(car.locomotiveId() != null && car.load().total() == 7, Component.literal("the car should couple and keep its 7 iron ore"));
+		});
 	}
 
 	/**
@@ -583,24 +745,14 @@ public class TailingsGameTests {
 		sorter.forceRunning();
 		helper.assertTrue(sorter.setSide(Direction.EAST, new ItemStack(Blocks.COPPER_ORE)), Component.literal("the sorter's east side should take copper ore"));
 		helper.assertTrue(sorter.setWasteSide(Direction.SOUTH), Component.literal("the sorter's south side should take the waste"));
-		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 12), RailBlockEntity.class);
-		RailBlockEntity first = helper.getBlockEntity(new BlockPos(3, y, 13), RailBlockEntity.class);
-		RailBlockEntity second = helper.getBlockEntity(new BlockPos(3, y, 14), RailBlockEntity.class);
-		helper.assertTrue(loco.placeLoco() && first.placeCar() && second.placeCar(), Component.literal("a locomotive and two cars"));
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 11), Heading.NORTH);
+		MineVehicleEntity first = car(helper, new BlockPos(3, y, 12), Heading.NORTH);
+		MineVehicleEntity second = car(helper, new BlockPos(3, y, 13), Heading.NORTH);
 		first.load().add("minecraft:copper_ore", 64);
 		second.load().add("minecraft:cobblestone", 64);
-		for (int step = 0; step < 9; step++) {
-			RailBlockEntity head = null;
-			for (int z = 0; z <= 15; z++) {
-				RailBlockEntity there = helper.getBlockEntity(new BlockPos(3, y, z), RailBlockEntity.class);
-				if (there.kind() == RailBlockEntity.Kind.LOCO) {
-					head = there;
-				}
-			}
-			helper.assertTrue(head != null && head.stepOnce(), Component.literal("the train should run on over the pocket, step " + step));
-		}
-		helper.assertTrue(pocket.pocket() + feederTaken(sorter, copperBin, wasteBin) == 128, Component.literal("both cars should tip on the move, pocket " + pocket.pocket()));
 		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(first.load().total() == 0 && second.load().total() == 0,
+						Component.literal("both cars should tip on the move (" + loco.status() + ", locomotive at z " + relZ(helper, loco) + ")")))
 				.thenWaitUntil(() -> helper.assertTrue(copperBin.binned().getOrDefault("minecraft:copper_ore", 0) == 64
 						&& wasteBin.binned().getOrDefault("minecraft:cobblestone", 0) == 64,
 						Component.literal("copper ore to its bin and cobble to waste (feeder " + feeder.status() + "; sorter " + sorter.status() + ")")))
@@ -613,31 +765,27 @@ public class TailingsGameTests {
 				.thenSucceed();
 	}
 
-	private static int feederTaken(PlantBlockEntity sorter, PlantBlockEntity... bins) {
-		int n = sorter.binCount();
-		for (PlantBlockEntity bin : bins) {
-			n += bin.binCount();
-		}
-		return n;
-	}
-
 	/** A loaded car over a full pocket does not tip, and the train waits until the pocket has room. */
 	private static void dumpWaits(GameTestHelper helper) {
 		int y = 60;
-		track(helper, y, 3);
+		track(helper, y, 4);
 		DumpBlockEntity pocket = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, y - 3, 0), DumpBlockEntity.class);
 		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, y, 0), PlantBlockEntity.class);
-		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 1), RailBlockEntity.class);
-		RailBlockEntity car = helper.getBlockEntity(new BlockPos(3, y, 2), RailBlockEntity.class);
-		helper.assertTrue(loco.placeLoco() && car.placeCar(), Component.literal("a locomotive and a car"));
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 1), Heading.NORTH);
+		MineVehicleEntity car = car(helper, new BlockPos(3, y, 2), Heading.NORTH);
 		car.load().add("minecraft:cobblestone", 64);
-		helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", dev.wildcatter.tailings.haul.Haul.POCKET_ITEMS)), Component.literal("fill the pocket"));
-		helper.assertFalse(loco.stepOnce(), Component.literal("the train should wait at a full pocket"));
-		helper.assertTrue(car.load().total() == 64, Component.literal("the car should not tip into a full pocket"));
-		pocket.draw(64);
-		helper.assertTrue(loco.stepOnce(), Component.literal("with room, the car tips and the train goes on"));
-		helper.assertTrue(pocket.pocket() == dev.wildcatter.tailings.haul.Haul.POCKET_ITEMS, Component.literal("the car's 64 went into the pocket"));
-		helper.succeed();
+		helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", Haul.POCKET_ITEMS)), Component.literal("fill the pocket"));
+		double start = relZ(helper, loco);
+		helper.startSequence()
+				.thenExecuteAfter(40, () -> {
+					helper.assertTrue(Math.abs(relZ(helper, loco) - start) < 0.01 && loco.status().contains("dump"),
+							Component.literal("the train should wait at a full pocket, got " + loco.status()));
+					helper.assertTrue(car.load().total() == 64, Component.literal("the car should not tip into a full pocket"));
+					pocket.draw(64);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0 && pocket.pocket() == Haul.POCKET_ITEMS,
+						Component.literal("with room, the car tips")))
+				.thenSucceed();
 	}
 
 	/** The entity layers bake, and the rail surface meets across a 1-in-2 pair. */
@@ -655,48 +803,6 @@ public class TailingsGameTests {
 		helper.succeed();
 	}
 
-	/** A locomotive and two cars run through a thrown switch onto a branch; the consist stays whole and the track behind clears. */
-	private static void haulTurnout(GameTestHelper helper) {
-		int y = 60;
-		BlockPos rectifier = new BlockPos(2, y, 3);
-		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, rectifier, RectifierBlockEntity.class);
-		box.forceRunning();
-		BlockState north = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
-		BlockState east = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST);
-		for (int z = 2; z <= 5; z++) {
-			helper.setBlock(new BlockPos(3, y, z), north);
-		}
-		helper.setBlock(new BlockPos(3, y, 1), TailingsBlocks.MINE_SWITCH.defaultBlockState().setValue(MineSwitchBlock.FACING, Direction.NORTH)
-				.setValue(MineSwitchBlock.THROWN, true));
-		for (int x = 4; x <= 6; x++) {
-			helper.setBlock(new BlockPos(x, y, 1), east);
-		}
-		box.spread();
-		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 3), RailBlockEntity.class);
-		helper.assertTrue(loco.placeLoco(), Component.literal("the rail should take a locomotive"));
-		helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, 4), RailBlockEntity.class).placeCar(), Component.literal("first car should couple"));
-		helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class).placeCar(), Component.literal("second car should couple"));
-		BlockPos at = new BlockPos(3, y, 3);
-		BlockPos[] path = {new BlockPos(3, y, 2), new BlockPos(3, y, 1), new BlockPos(4, y, 1), new BlockPos(5, y, 1)};
-		for (BlockPos next : path) {
-			RailBlockEntity head = helper.getBlockEntity(at, RailBlockEntity.class);
-			var dest = helper.getLevel().getBlockEntity(helper.absolutePos(next));
-			helper.assertTrue(head.stepOnce(), Component.literal("the train should step from " + at + " to " + dest + " (powered "
-					+ head.powered() + "/" + (dest instanceof RailBlockEntity r ? r.powered() + " " + r.kind() : "-") + ")"));
-			at = next;
-			RailBlockEntity now = helper.getBlockEntity(at, RailBlockEntity.class);
-			helper.assertTrue(now.kind() == RailBlockEntity.Kind.LOCO, Component.literal("the locomotive should be at " + at));
-			helper.assertTrue(now.consist().size() == 3, Component.literal("the consist should stay three long at " + at + ", got " + now.consist().size()));
-		}
-		helper.assertTrue(helper.getBlockEntity(new BlockPos(4, y, 1), RailBlockEntity.class).kind() == RailBlockEntity.Kind.CAR
-				&& helper.getBlockEntity(new BlockPos(3, y, 1), RailBlockEntity.class).kind() == RailBlockEntity.Kind.CAR,
-				Component.literal("both cars should follow the locomotive through the turnout"));
-		for (int z = 2; z <= 5; z++) {
-			helper.assertTrue(helper.getBlockEntity(new BlockPos(3, y, z), RailBlockEntity.class).kind() == RailBlockEntity.Kind.NONE,
-					Component.literal("the main line behind the switch should be clear at z " + z));
-		}
-		helper.succeed();
-	}
 
 	private static boolean hasTicket(ServerLevel level, BlockPos pos, TicketType type) {
 		TicketStorage tickets = level.getDataStorage().computeIfAbsent(TicketStorage.TYPE);
@@ -718,12 +824,13 @@ public class TailingsGameTests {
 		BlockPos rail = new BlockPos(3, y, 2);
 		BlockPos abs = helper.absolutePos(rail);
 		ServerLevel level = helper.getLevel();
+		MineVehicleEntity[] trainLoco = new MineVehicleEntity[1];
 		helper.startSequence()
-				.thenExecute(() -> helper.assertTrue(helper.getBlockEntity(rail, RailBlockEntity.class).placeLoco(), Component.literal("the rail should take a locomotive")))
+				.thenExecute(() -> trainLoco[0] = loco(helper, rail, Heading.NORTH))
 				.thenExecuteAfter(5, () -> {
 					helper.assertTrue(hasTicket(level, abs, ChunkRunner.RUNNER), Component.literal("a running train should hold a runner ticket"));
-					// take the locomotive off: its entity goes on its next tick
-					helper.setBlock(rail, Blocks.AIR);
+					// take the locomotive off
+					trainLoco[0].discard();
 				})
 				// wait out the timeout, then allow until the end of the test: a slow server purges stale tickets a little late
 				.thenIdle((int) ChunkRunner.TIMEOUT_TICKS)

@@ -8,7 +8,7 @@ import dev.wildcatter.tailings.client.BeltRenderer;
 import dev.wildcatter.tailings.client.DrillScreen;
 import dev.wildcatter.tailings.client.MineCarModel;
 import dev.wildcatter.tailings.client.MineLocomotiveModel;
-import dev.wildcatter.tailings.client.MineTrainRenderer;
+import dev.wildcatter.tailings.client.MineVehicleRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
@@ -24,7 +24,9 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		ModelLayerRegistry.registerModelLayer(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(MineCarModel.LAYER, MineCarModel::createBodyLayer);
 		EntityRendererRegistry.register(TailingsEntities.DRILL, NoopRenderer::new);
-		EntityRendererRegistry.register(TailingsEntities.TRAIN, MineTrainRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.TRAIN, NoopRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.CAR, MineVehicleRenderer::new);
 		BlockEntityRenderers.register(TailingsBlocks.BELT, context -> new BeltRenderer());
 		Tailings.LOGGER.info("Tailings client ready");
 	}

@@ -43,6 +43,21 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R5a: trains as entities (2026-11-05)
+
+Every locomotive and car is an entity, and trains glide along the rails as haulage.md says:
+- the track is read from the rails themselves, so trains run the flat, through thrown switches, and down and up the 1-in-2 decline;
+- speed follows power over force (2.06 m/s for a locomotive alone up the decline, 0.34 m/s loaded), 1 m/s down the rack, 3 m/s on
+  the flat, 0.3 m/s² either way;
+- place vehicles on the rail; cars couple within reach; run, hold and reverse the locomotive by hand; at the end of the track a
+  train waits and reverses;
+- signals, the dump station and the drill's loading point hold it; track broken under it derails it;
+- old worlds' trains, stored on the rails, become entities;
+- every rating is in `haul.Haul`.
+
+**Tests:** `TrackTest`, `TractionTest`; game tests `haul`, `train_runs`, `train_turnout`, `train_decline`, `train_derail`,
+`train_harm`, `train_migrate`, and `dump_station`, `dump_waits`, `train_tickets` rewritten for entities.
+
 ## R4c: the dump station (2026-11-05); R4 done
 
 The dump station runs as dump-station.md says:

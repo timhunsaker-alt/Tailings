@@ -242,7 +242,7 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 ## Open questions (carried from the first draft; listed, not chosen)
 - Keep the 1-in-1 steep option in the screen (it brings back the rack exception), or 1 in 2 only?
 - Whether broken lining leaks.
-- Gravel ballast on the decline too, or only on the flat?
+- Gravel ballast on the decline too, or only on the flat? **Decided with Tim (2026-11-05): on the decline too, if it can be done (R6).**
 
 ## Game test
 `tbm` (Fabric client game test):

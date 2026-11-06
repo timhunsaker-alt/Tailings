@@ -4,6 +4,17 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R5a — Trains as entities (2026-11-05)
+
+- **Every vehicle is an entity,** and trains glide along the track instead of jumping a block at a time.
+- **Trains run the decline** both ways now, and follow thrown switches; cars follow the locomotive's path.
+- **Speed follows power:** slow up the 1-in-2 decline when loaded, 1 m/s down it on the rack brake, 3 m/s on the flat.
+- **Controls:** right-click the locomotive to run or hold it; sneak-right-click to reverse. Sneak-hit a vehicle with an empty hand to pick it up with its load.
+- **End of track:** the train stops, waits 5 s and reverses.
+- **Derailing:** track broken under a running train derails it and spills the loads at the gap.
+- **Old worlds:** trains stored on the rails come back as entities.
+- **Tests:** `TrackTest`, `TractionTest`; game tests `train_runs`, `train_turnout`, `train_decline`, `train_derail`, `train_harm`, `train_migrate`.
+
 ## R4c — The dump station (2026-11-05)
 
 - **The pocket** takes each car's whole load, up to one train. When it is full, the car over it does not tip and the train waits.

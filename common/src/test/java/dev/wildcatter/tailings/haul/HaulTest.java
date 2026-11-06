@@ -22,16 +22,6 @@ class HaulTest {
 	}
 
 	@Test
-	void theEleventhCarDoesNotCouple() {
-		Train train = new Train("t1");
-		for (int i = 0; i < Haul.MAX_CARS; i++) {
-			assertTrue(train.couple(new CarLoad()));
-		}
-		assertFalse(train.couple(new CarLoad()));
-		assertEquals(10, train.cars());
-	}
-
-	@Test
 	void aFedSectionIsLiveAlongItsLength() {
 		assertTrue(Conductor.live(true));
 		assertFalse(Conductor.live(false));
@@ -53,18 +43,6 @@ class HaulTest {
 		section.leave("north-1", "alpha");
 		assertTrue(section.enter("north-1", "beta"));
 		assertTrue(section.enter("", "beta"));
-	}
-
-	@Test
-	void declineNeedsTheRackAndADeadRailStopsTheTrain() {
-		assertEquals(Motion.Halt.NONE, Motion.halt(true, false, false, true, true));
-		assertEquals(Motion.Halt.UNPOWERED, Motion.halt(false, false, false, true, true));
-		assertEquals(Motion.Halt.NO_RACK, Motion.halt(true, true, false, true, true));
-		assertEquals(Motion.Halt.NONE, Motion.halt(true, true, true, true, true));
-		assertEquals(Motion.Halt.SIGNAL, Motion.halt(true, false, false, false, true));
-		assertEquals(Motion.Halt.POCKET, Motion.halt(true, false, false, true, false));
-		assertEquals(Haul.FLAT_TICKS, Motion.ticks(false));
-		assertEquals(Haul.DECLINE_TICKS, Motion.ticks(true));
 	}
 
 	@Test

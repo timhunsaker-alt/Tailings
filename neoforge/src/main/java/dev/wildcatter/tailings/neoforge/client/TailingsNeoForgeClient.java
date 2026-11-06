@@ -6,7 +6,7 @@ import dev.wildcatter.tailings.block.DrillMenus;
 import dev.wildcatter.tailings.client.DrillScreen;
 import dev.wildcatter.tailings.client.MineCarModel;
 import dev.wildcatter.tailings.client.MineLocomotiveModel;
-import dev.wildcatter.tailings.client.MineTrainRenderer;
+import dev.wildcatter.tailings.client.MineVehicleRenderer;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -26,7 +26,9 @@ public final class TailingsNeoForgeClient {
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
 			event.registerEntityRenderer(TailingsEntities.DRILL, NoopRenderer::new);
-			event.registerEntityRenderer(TailingsEntities.TRAIN, MineTrainRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.TRAIN, NoopRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.CAR, MineVehicleRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));

@@ -92,29 +92,30 @@ public class MineRailBlock extends BaseEntityBlock {
 
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		if (!(level.getBlockEntity(pos) instanceof RailBlockEntity rail)) {
+		return placeVehicle(stack, level, pos, player);
+	}
+
+	/**
+	 * A locomotive or car item on a mine rail or switch puts that vehicle on it, facing along the rail the way the player looks
+	 * (docs/multiblocks/haulage.md); a car couples to a train whose tail is within reach behind it.
+	 */
+	static InteractionResult placeVehicle(ItemStack stack, Level level, BlockPos pos, Player player) {
+		boolean loco = stack.getItem() == TailingsItems.LOCOMOTIVE;
+		if (!loco && stack.getItem() != TailingsItems.CAR) {
 			return InteractionResult.PASS;
 		}
-		boolean placed = false;
-		if (stack.getItem() == TailingsItems.LOCOMOTIVE) {
-			placed = rail.placeLoco();
-		} else if (stack.getItem() == TailingsItems.CAR) {
-			placed = rail.placeCar();
+		if (!(level instanceof net.minecraft.server.level.ServerLevel server)) {
+			return InteractionResult.SUCCESS;
 		}
-		if (!placed) {
+		dev.wildcatter.tailings.mine.Heading heading = RailView.heading(player.getDirection());
+		Object placed = loco ? dev.wildcatter.tailings.entity.MineVehicleEntity.placeLocomotive(server, pos, heading)
+				: dev.wildcatter.tailings.entity.MineVehicleEntity.placeCar(server, pos, heading);
+		if (placed == null) {
 			return InteractionResult.PASS;
 		}
 		if (!player.hasInfiniteMaterials()) {
 			stack.shrink(1);
 		}
 		return InteractionResult.SUCCESS;
-	}
-
-	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-		if (player.isShiftKeyDown() && level.getBlockEntity(pos) instanceof RailBlockEntity rail && rail.joinAhead()) {
-			return InteractionResult.SUCCESS;
-		}
-		return InteractionResult.PASS;
 	}
 }

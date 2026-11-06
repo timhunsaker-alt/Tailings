@@ -43,6 +43,29 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		setChanged();
 	}
 
+	/**
+	 * The pocket a car on the rail at {@code rail} tips into: a dump pocket under the rail, with a dump ramp beside it
+	 * (docs/multiblocks/dump-station.md). Null when there is none.
+	 */
+	public static @org.jspecify.annotations.Nullable DumpBlockEntity under(net.minecraft.world.level.Level level, BlockPos rail) {
+		boolean ramp = false;
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			if (level.getBlockState(rail.relative(side)).getBlock() instanceof PlantMachineBlock block
+					&& block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_RAMP) {
+				ramp = true;
+			}
+		}
+		if (!ramp) {
+			return null;
+		}
+		BlockState below = level.getBlockState(rail.below());
+		if (below.getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_POCKET
+				&& level.getBlockEntity(PlantMachineBlock.mainOf(rail.below(), below)) instanceof DumpBlockEntity pocket) {
+			return pocket;
+		}
+		return null;
+	}
+
 	/** The items the pocket holds. */
 	public int pocket() {
 		int n = 0;

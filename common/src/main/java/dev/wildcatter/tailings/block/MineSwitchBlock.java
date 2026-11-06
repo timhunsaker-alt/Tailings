@@ -49,4 +49,11 @@ public class MineSwitchBlock extends BaseEntityBlock {
 		}
 		return createTickerHelper(type, TailingsBlocks.RAIL, RailBlockEntity::tick);
 	}
+
+	@Override
+	protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, net.minecraft.world.level.Level level,
+			net.minecraft.core.BlockPos pos, net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand,
+			net.minecraft.world.phys.BlockHitResult hit) {
+		return MineRailBlock.placeVehicle(stack, level, pos, player);
+	}
 }
