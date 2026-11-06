@@ -87,7 +87,12 @@ public final class TunnelDrill {
 	}
 
 	public int floorY() {
-		return DriveCourse.floorY(startFloorY, advance, program.grade());
+		return floorAt(advance);
+	}
+
+	/** The floor's Y at a slice: down the grade to the target Y, then flat. */
+	private int floorAt(int slice) {
+		return Math.max(DriveCourse.floorY(startFloorY, slice, program.grade()), Math.min(program.targetY(), startFloorY));
 	}
 
 	public Advance.Stop stopped() {
@@ -119,7 +124,7 @@ public final class TunnelDrill {
 
 	/** Voxel Y of local row {@code up}. The probe uses the grade at {@code advance + ahead}, not the face's Y. */
 	public int worldY(int up, int ahead) {
-		return DriveCourse.floorY(startFloorY, advance + ahead, program.grade()) - 1 + up;
+		return floorAt(advance + ahead) - 1 + up;
 	}
 
 	/** Stone is one block per 20 s. Any deepslate in the face about to be cut slows that advance. */
@@ -151,7 +156,7 @@ public final class TunnelDrill {
 		// the floor this cut pays for goes down behind the track layer, FLOOR_BEHIND slices back once the machine has moved
 		int floorSlice = advance + 1 - DriveCourse.FLOOR_BEHIND;
 		// the slices behind the first face are where the machine was built, on the level
-		boolean floorDecline = floorSlice >= 0 && DriveCourse.declining(DriveCourse.floorY(startFloorY, floorSlice, program.grade()), program.targetY());
+		boolean floorDecline = floorSlice >= 0 && DriveCourse.declining(floorAt(floorSlice), program.targetY());
 		FloorPiece[] floor = DriveCourse.floor(floorSlice, program.grade(), floorDecline);
 		int rockNeed = DriveCourse.rockPieces(floor);
 		int liningStone = stock.segments() >= DriveCourse.SEGMENTS_PER_RING ? 0 : DriveCourse.SEGMENTS_PER_RING;

@@ -43,6 +43,16 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## Live client scenes, and what they found (2026-11-06)
+
+A Fabric client game test now builds scenes in a real game and films the game window (Tim's request; part of R7 brought forward):
+`parts`, `train` and `tbm`. The first run found four bugs the server scenes had missed, all fixed:
+- `flotation_cell` and `dump_station` were still in the pickaxe and stone-tool tags, so since R3 those tags failed to load, taking vanilla's
+  mining rules with them; R3's newer parts were not in them at all. `registers` now checks the tags load and every part is in them.
+- on the flat the floor kept dropping past the target Y, a staircase of flat pieces (an old bug: the tests drove only a block or two).
+- unfed track could not be solved (its joints are too stiff for the solver's tiny leak): each rail now has its insulators' 1 Mohm leak to
+  earth. `traction_unfed` covers it.
+
 ## R6a: the TBM's real parts, as blocks (2026-11-06)
 
 The one-block cab is gone; the machine is what tunnel-boring-machine.md draws:

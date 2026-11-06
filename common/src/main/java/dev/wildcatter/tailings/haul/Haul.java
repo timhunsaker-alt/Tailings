@@ -55,6 +55,8 @@ public final class Haul {
 	public static final double RECTIFIER_EFFICIENCY = 0.97;
 	/** The conductor rail with its return, 0.02 ohm/km (proposed; steel conductor rail is 0.007-0.02). */
 	public static final double CONDUCTOR_OHMS_PER_METRE = 0.02 / 1000;
+	/** A metre of conductor rail's leak to earth through its insulators, 1 Mohm (proposed): 0.25 mA a metre at 250 V. */
+	public static final double INSULATOR_OHMS = 1_000_000;
 	/** A rail is fed while its volts are over this share of the rating (proposed). */
 	public static final double FED_SHARE = 0.5;
 

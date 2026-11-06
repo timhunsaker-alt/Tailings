@@ -4,6 +4,13 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## Live client tests and fixes (2026-11-06)
+
+- **Fixed: mining rules.** A stale tag entry since R3 stopped the pickaxe and stone-tool tags loading, breaking mining rules for the whole game. All parts are now tagged.
+- **Fixed: flat drives** no longer sink past the target Y.
+- **Fixed: unfed track** no longer spams "could not solve the circuit".
+- **Tests:** a Fabric client game test that films its scenes; `traction_unfed`.
+
 ## R6a — The TBM's real parts (2026-11-06)
 
 - **The real machine:** cutterhead, segment erector, main beam with its cab, and track layer, each one item at true size with a real model, replace the one-block cab. Build them in order; the cab names anything missing.

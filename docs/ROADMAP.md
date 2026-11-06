@@ -126,7 +126,9 @@ R brings it in line, one wave at a time.
     the decline; dismantling; the seat.
   - **R6c. The gantries.** Pump, reel and conveyor on the twin track.
 - **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
-  its fixes.
+  its fixes. Brought forward at Tim's request (2026-11-06): the client test rig and its filming are in, `TAILINGS_ONLY=parts,train,tbm
+  ./gradlew :fabric:runClientGameTest`, each scene filming the game window to `fabric/build/scene-videos`. New scenes get filmed from
+  R6b on.
 
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - A plant-scale gravity circuit (spirals, jigs) for the 2x route (crushing-circuit.md).
@@ -177,13 +179,11 @@ These are in the current build on purpose, or because the art and tests have not
 - **Ingots in the assay (R4a).** The vanilla metals are counted in ingots, so an ingot's worth of metal counts as 1 kg in the slurry assay.
 - **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel.
 - **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron.
-- **R3 models were not seen in a live client.** They were checked as previews (`build/model-previews/`) and by ModelLint. Screenshots come with R7.
 - **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in. A line split by unloaded chunks loses its far end until they load.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Vehicles at the models' length (R5a).** Cars sit 1.25 m apart, the models' 20 px, not the real 2 m car and 3 m locomotive, until the art pass (R7).
-- **Trains were not seen in a live client (R5a).** The game tests run the server; how the gliding looks waits for R7's screenshots.
-- **Entity and block models were not checked in a live client.** Unit tests check the 20-pixel spacing. A game test bakes the entity layers and checks that the headlight and load parts exist. There is no headed-client pass.
+- **The plant running was not filmed yet.** The parts, a train and the machine as blocks were seen in a live client (2026-11-06); the crushing, flotation and dump scenes run only on the server so far.
 
 Other stand-ins worth knowing:
 

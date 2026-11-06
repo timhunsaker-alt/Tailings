@@ -3,12 +3,25 @@ plugins {
 	id 'net.fabricmc.fabric-loom'
 }
 
+// A real game client: ./gradlew :fabric:runClientGameTest builds each scene in a world, films it, and takes its screenshots.
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "tailings-gametest"
+		enableGameTests = false
+		enableClientGameTests = true
+	}
+}
+
 dependencies {
 	minecraft("com.mojang:minecraft:${minecraft_version}")
 	implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
 	implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
 	// Official names, same as Loom's compile classpath, so common can call the motor. Not bundled.
 	compileOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
+	// The client game test runs with the real Fabric Wildcatter jar.
+	runtimeOnly("dev.wildcatter:wildcatter-fabric:${wildcatter_version}")
+	gametestCompileOnly("dev.wildcatter:wildcatter-neoforge:${wildcatter_version}")
 }
 
 // Implement mcgradleconventions loader attribute

@@ -33,6 +33,7 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 	private double volts;
 	private double demand;
 	private long demandUntil;
+	private boolean solved;
 	private BlockPos signal = BlockPos.ZERO;
 	/** A train saved on the rail before R5: "LOCO" or "CAR", its id, its place and its load. Cleared once it is an entity. */
 	private String oldKind = "NONE";
@@ -77,6 +78,11 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 		return volts;
 	}
 
+	/** True once a solve has reached this rail. */
+	public boolean solved() {
+		return solved;
+	}
+
 	/** A locomotive on this rail draws {@code watts} through its shoe, for the next half second. */
 	public void draw(double watts) {
 		demand = Math.max(0, watts);
@@ -116,6 +122,8 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 			// shrouded and flush: the track never shocks
 			circuit.dcPort(worldPosition, face, node, half, false);
 		}
+		// its insulators leak a little to earth: and a stretch of unfed track, its joints far stiffer than the solver's own tiny leak, still solves
+		circuit.resistor(node, 0, Haul.INSULATOR_OHMS);
 		circuit.publish(worldPosition, node);
 		for (BlockPos there : links()) {
 			if (there.asLong() > worldPosition.asLong()) {
@@ -132,6 +140,7 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 	@Override
 	public void apply(Circuit circuit, int ticks) {
 		volts = node < 0 ? 0 : circuit.dcVolts(node);
+		solved = true;
 		boolean fed = volts > Haul.TRACTION_VOLTS * Haul.FED_SHARE;
 		if (fed != powered) {
 			setPowered(fed);

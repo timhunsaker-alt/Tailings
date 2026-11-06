@@ -74,6 +74,27 @@ class TunnelDrillTest {
 	}
 
 	@Test
+	void theFloorStopsDroppingAtTheTargetAndRunsFlat() {
+		TableGround ground = new TableGround();
+		TunnelDrill drill = ready(12, 10, Grade.ONE_IN_TWO);
+		drill.program().setFlatLength(40);
+		drill.stock().setCobble(1000);
+		drill.stock().setRail(1000);
+		drill.stock().setGravel(1000);
+		drill.stock().setSegments(1000);
+		for (int cut = 0; cut < 30; cut++) {
+			fillAt(ground, drill, 0);
+			assertEquals(Advance.Stop.NONE, drill.step(ground).stop(), "cut " + cut);
+			drill.line(ground);
+		}
+		assertEquals(10, drill.floorY(), "flat at the target Y, however far it drives");
+		assertEquals(FloorPiece.RAIL_UPPER, ground.floorPiece(2, 12, 0));
+		assertEquals(FloorPiece.RAIL_LOWER, ground.floorPiece(2, 11, -3));
+		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, -4), "the flat meets the decline's foot");
+		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, -15));
+	}
+
+	@Test
 	void aWaitingRingAndFloorSurviveASave() {
 		TableGround ground = stoneBox();
 		TunnelDrill drill = ready(10, 6, Grade.ONE_IN_TWO);

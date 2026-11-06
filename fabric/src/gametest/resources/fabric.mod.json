@@ -1,0 +1,17 @@
+{
+	"schemaVersion": 1,
+	"id": "tailings-gametest",
+	"version": "1.0.0",
+	"name": "Tailings client game tests",
+	"environment": "client",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"dev.wildcatter.tailings.fabric.gametest.TailingsClientGameTest"
+		]
+	},
+	"depends": {
+		"tailings": "*",
+		"wildcatter": "*",
+		"fabric-api": "*"
+	}
+}

@@ -72,7 +72,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
@@ -106,6 +106,7 @@ public class TailingsGameTests {
 			helper.register(id("traction_dc"), loaded(TailingsGameTests::tractionDc));
 			helper.register(id("traction_trip"), loaded(TailingsGameTests::tractionTrip));
 			helper.register(id("traction_far"), loaded(TailingsGameTests::tractionFar));
+			helper.register(id("traction_unfed"), loaded(TailingsGameTests::tractionUnfed));
 			helper.register(id("train_tickets"), loaded(TailingsGameTests::trainTickets));
 			helper.register(id("drill_blocked"), loaded(TailingsGameTests::drillBlocked));
 			helper.register(id("plant_drops"), loaded(TailingsGameTests::plantDrops));
@@ -152,6 +153,15 @@ public class TailingsGameTests {
 		helper.assertTrue(BuiltInRegistries.BLOCK.containsKey(Tailings.id("tunnel_drill")), Component.literal("tunnel drill missing"));
 		helper.assertTrue(BuiltInRegistries.BLOCK.containsKey(Tailings.id("mine_rail")), Component.literal("mine rail missing"));
 		helper.assertTrue(BuiltInRegistries.MENU.containsKey(Tailings.id("tunnel_drill")), Component.literal("drill menu missing"));
+		// a tag naming a block that does not exist fails to load, and takes vanilla's mining rules with it
+		helper.assertTrue(Blocks.STONE.defaultBlockState().is(net.minecraft.tags.BlockTags.MINEABLE_WITH_PICKAXE), Component.literal("the pickaxe tag should load"));
+		helper.assertTrue(Blocks.IRON_ORE.defaultBlockState().is(net.minecraft.tags.BlockTags.NEEDS_STONE_TOOL), Component.literal("the stone tool tag should load"));
+		for (Block block : BuiltInRegistries.BLOCK) {
+			if (BuiltInRegistries.BLOCK.getKey(block).getNamespace().equals(Tailings.MOD_ID) && block.defaultBlockState().requiresCorrectToolForDrops()) {
+				helper.assertTrue(block.defaultBlockState().is(net.minecraft.tags.BlockTags.MINEABLE_WITH_PICKAXE),
+						Component.literal(block + " needs the right tool, so it must be in the pickaxe tag"));
+			}
+		}
 		helper.succeed();
 	}
 
@@ -761,6 +771,24 @@ public class TailingsGameTests {
 				.thenWaitUntil(() -> helper.assertFalse(rail.powered(), Component.literal("the track should go dead")))
 				.thenExecute(() -> helper.assertTrue(box.reset(), Component.literal("a click resets it")))
 				.thenWaitUntil(() -> helper.assertTrue(rail.powered() && rail.volts() > 240, Component.literal("the track is fed again")))
+				.thenSucceed();
+	}
+
+	/** Track with no rectifier solves, dead (its insulators' leak keeps it from floating), and a rectifier placed on it feeds it. */
+	private static void tractionUnfed(GameTestHelper helper) {
+		int y = 60;
+		BlockState north = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 0; z <= 6; z++) {
+			helper.setBlock(new BlockPos(3, y, z), north);
+		}
+		RailBlockEntity rail = helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class);
+		helper.startSequence()
+				.thenExecuteAfter(30, () -> {
+					helper.assertFalse(rail.powered(), Component.literal("unfed track is dead"));
+					helper.assertTrue(rail.volts() == 0 && rail.solved(), Component.literal("and it solves at 0 V, got " + rail.volts() + " V, solved " + rail.solved()));
+					part(helper, TailingsBlocks.TRACTION_RECTIFIER, new BlockPos(1, y, 2), RectifierBlockEntity.class).forceRunning();
+				})
+				.thenWaitUntil(() -> helper.assertTrue(rail.powered() && rail.volts() > 240, Component.literal("fed once a rectifier stands on it")))
 				.thenSucceed();
 	}
 

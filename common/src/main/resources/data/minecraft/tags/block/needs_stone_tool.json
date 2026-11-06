@@ -12,7 +12,6 @@
     "tailings:ball_mill",
     "tailings:cyclone_cluster",
     "tailings:conditioning_tank",
-    "tailings:flotation_cell",
     "tailings:air_blower",
     "tailings:concentrate_thickener",
     "tailings:pressure_filter",
@@ -24,10 +23,22 @@
     "tailings:mine_rail",
     "tailings:tunnel_drill",
     "tailings:dewatering_pump",
-    "tailings:dump_station",
     "tailings:block_signal",
     "tailings:traction_rectifier",
     "tailings:mine_switch",
-    "tailings:mine_light"
+    "tailings:mine_light",
+    "tailings:tailings_pond_placeholder",
+    "tailings:cutterhead",
+    "tailings:segment_erector",
+    "tailings:main_beam",
+    "tailings:track_layer",
+    "tailings:cable_junction",
+    "tailings:conveyor_drive",
+    "tailings:flotation_bank",
+    "tailings:dump_ramp",
+    "tailings:dump_pocket",
+    "tailings:apron_feeder",
+    "tailings:ore_sorter",
+    "tailings:ore_bin"
   ]
 }
