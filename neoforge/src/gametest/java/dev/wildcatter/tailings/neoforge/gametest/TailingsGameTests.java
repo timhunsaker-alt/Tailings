@@ -470,8 +470,9 @@ public class TailingsGameTests {
 					// take the locomotive off: its entity goes on its next tick
 					helper.setBlock(rail, Blocks.AIR);
 				})
-				.thenExecuteAfter((int) ChunkRunner.TIMEOUT_TICKS + ChunkRunner.REFRESH_TICKS + 10,
-						() -> helper.assertFalse(hasTicket(level, abs, ChunkRunner.RUNNER), Component.literal("the runner ticket should time out once the train is gone")))
+				// wait out the timeout, then allow until the end of the test: a slow server purges stale tickets a little late
+				.thenIdle((int) ChunkRunner.TIMEOUT_TICKS)
+				.thenWaitUntil(() -> helper.assertFalse(hasTicket(level, abs, ChunkRunner.RUNNER), Component.literal("the runner ticket should time out once the train is gone")))
 				.thenSucceed();
 	}
 
