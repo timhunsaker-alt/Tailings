@@ -1,6 +1,6 @@
 # Tailings
 
-Tailings is a Minecraft **26.3** add-on (Java **25**) for [Wildcatter](https://github.com/timhunsaker-alt/Wildcatter). It is **its own jar** on **Fabric and NeoForge**, and it **requires Wildcatter 0.2.0 or newer** on the same loader. It will not load without it. Tailings has no grid, ores, or pipes of its own. Machines draw power from Wildcatter, and Wildcatter's ore blocks are the feed.
+Tailings is a Minecraft **26.3** add-on (Java **25**) for [Wildcatter](https://github.com/timhunsaker-alt/Wildcatter). It is **its own jar** on **Fabric and NeoForge**, and it **requires Wildcatter 0.3.0 or newer** on the same loader. It will not load without it. Tailings has no grid, ores, or pipes of its own. Machines draw power from Wildcatter, and Wildcatter's ore blocks are the feed.
 
 The mod is about getting rock out of the ground and the mineral out of the rock. A plain mine-and-smelt is **1x (25%)** of the mineral a block holds. Gravity or magnetic concentration is **2x (50%)**. Flotation is **3x (75%)**. The full line, not built yet, is **4x**, which pays **95%** of what the block holds (a written exception: 95/25 is 3.8). Nothing is created that was not already in the rock. Why that is allowed is in [docs/VISION.md](docs/VISION.md). How the current systems work is in [docs/DESIGN.md](docs/DESIGN.md).
 
@@ -8,18 +8,18 @@ Version **0.1.0**. License [CC0](LICENSE).
 
 ## Install
 
-You need Minecraft 26.3, Java 25, and Wildcatter 0.2.0 or newer built for the same loader.
+You need Minecraft 26.3, Java 25, and Wildcatter 0.3.0 or newer built for the same loader.
 
 **Fabric:** Fabric Loader 0.20.1 or newer, Fabric API `0.165.0+26.3`, the Wildcatter Fabric jar, and `tailings-fabric-0.1.0.jar`.
 
 **NeoForge:** NeoForge 26.3.0.101 or newer, the Wildcatter NeoForge jar, and `tailings-neoforge-0.1.0.jar`.
 
-Put the Tailings jar and the Wildcatter jar in the instance `mods` folder. `fabric.mod.json` and `neoforge.mods.toml` both require `wildcatter` at `[0.2.0,)`.
+Put the Tailings jar and the Wildcatter jar in the instance `mods` folder. `fabric.mod.json` and `neoforge.mods.toml` both require `wildcatter` at `[0.3.0,)`.
 
-Wildcatter 0.2.0 is not on Maven. The release jars are:
+Wildcatter 0.3.0 is not on Maven. The release jars are:
 
-- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-fabric-0.2.0.jar
-- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.2.0/wildcatter-neoforge-0.2.0.jar
+- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.3.0/wildcatter-fabric-0.3.0.jar
+- https://github.com/timhunsaker-alt/Wildcatter/releases/download/v0.3.0/wildcatter-neoforge-0.3.0.jar
 
 ## What you can do now
 

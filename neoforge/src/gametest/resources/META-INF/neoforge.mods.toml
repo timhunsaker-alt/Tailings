@@ -25,6 +25,6 @@ side = "BOTH"
 [[dependencies.tailings_gametest]]
 modId = "wildcatter"
 type = "required"
-versionRange = "[0.2.0,)"
+versionRange = "[0.3.0,)"
 ordering = "AFTER"
 side = "BOTH"

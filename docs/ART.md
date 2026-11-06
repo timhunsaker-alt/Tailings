@@ -71,7 +71,7 @@ How they are made:
 - **The tool:** they come from Python scripts in `tools/models/` (`crushing.py`, `flotation.py`, `dump.py`, `rectifier.py`, `belt.py`), built with **Wildcatter's** model tool (`mlib`, `plantlib`), as Wildcatter's own parts are.
 - **The dimensions:** each part is drawn in metres from its spec's real dimensions, facing north from its main cell, with its motor box on the west face.
 - **Running it:** `python3 tools/models/build.py [module ...]` from the repo root, with Wildcatter checked out beside Tailings (`../wildcatter`). It writes per-piece block models, blockstates, item models and collision shapes into Tailings' assets, and three-view previews into `build/model-previews/`.
-- **Textures:** the models use Wildcatter's material textures (`wildcatter:block/mat/...`), which ship in the Wildcatter jar. The driver renames each texture Tailings does not have itself into that namespace. Only materials in the Wildcatter 0.2.0 jar are used.
+- **Textures:** the models use Wildcatter's material textures (`wildcatter:block/mat/...`), which ship in the Wildcatter jar. The driver renames each texture Tailings does not have itself into that namespace. Only materials in the Wildcatter 0.3.0 jar are used.
 - **Checks:** `ModelLintTest` (`:common:test`) re-checks the boxes, finds every texture (Tailings' on disk, Wildcatter's in its jar), and checks every part's shape file.
 
 The committed JSON is what the game loads. CI does not run the tool.

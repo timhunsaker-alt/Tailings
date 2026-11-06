@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/** Every part is the size its approved spec gives (docs/multiblocks), and none is a one-cell part, which the 0.2.0 Wildcatter jar cannot hold. */
+/** Every part is the size its approved spec gives (docs/multiblocks), and none is a one-cell part, which Wildcatter jars before 0.3.0 cannot hold. */
 class MachineTest {
 	/** W x H x L from the specs' parts tables. */
 	private static final Map<Machine, int[]> SPEC = Map.ofEntries(
