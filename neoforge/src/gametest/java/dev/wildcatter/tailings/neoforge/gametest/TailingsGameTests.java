@@ -7,7 +7,12 @@ import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmBackup;
+import dev.wildcatter.tailings.block.TbmCab;
+import dev.wildcatter.tailings.block.TbmCore;
 import dev.wildcatter.tailings.block.TbmMachine;
+import dev.wildcatter.tailings.entity.GantryEntity;
+import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.entity.TbmEntity;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.ChunkRunner;
@@ -32,6 +37,7 @@ import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.block.FloorLook;
 import java.util.List;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Entity;
 import dev.wildcatter.tailings.mine.Heading;
@@ -74,11 +80,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -103,6 +109,13 @@ public class TailingsGameTests {
 			helper.register(id("tbm_park"), loaded(TailingsGameTests::tbmPark));
 			helper.register(id("tbm_dismantle"), loaded(TailingsGameTests::tbmDismantle));
 			helper.register(id("tbm_seat"), loaded(TailingsGameTests::tbmSeat));
+			helper.register(id("tbm_gantries"), loaded(TailingsGameTests::tbmGantries));
+			helper.register(id("tbm_muck"), loaded(TailingsGameTests::tbmMuck));
+			helper.register(id("tbm_cable_end"), loaded(TailingsGameTests::tbmCableEnd));
+			helper.register(id("tbm_gantry_missing"), loaded(TailingsGameTests::tbmGantryMissing));
+			helper.register(id("tbm_uncoupled"), loaded(TailingsGameTests::tbmUncoupled));
+			helper.register(id("tbm_gantries_decline"), loaded(TailingsGameTests::tbmGantriesDecline));
+			helper.register(id("tbm_train_stops"), loaded(TailingsGameTests::tbmTrainStops));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
 			helper.register(id("models"), loaded(TailingsGameTests::models));
 			helper.register(id("train_runs"), loaded(TailingsGameTests::trainRuns));
@@ -840,9 +853,7 @@ public class TailingsGameTests {
 		if (withTrackLayer) {
 			part(helper, TailingsBlocks.TRACK_LAYER, c.offset(1, 2, 8), null);
 		}
-		helper.setBlock(c.offset(3, 3, 11), TailingsBlocks.DEWATERING_PUMP.defaultBlockState().setValue(DewateringPumpBlock.FACING, Direction.NORTH)
-				.setValue(DewateringPumpBlock.PIECE, 0));
-		helper.setBlock(c.offset(3, 0, 14), TailingsBlocks.CABLE_JUNCTION);
+		helper.setBlock(c.offset(-2, 0, 14), TailingsBlocks.CABLE_JUNCTION);
 		cab.forceRunning();
 		cab.program().setTargetY(helper.absolutePos(c).getY() + 1);
 		cab.program().setFlatLength(32);
@@ -850,12 +861,27 @@ public class TailingsGameTests {
 		cab.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
 		cab.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
 		cab.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+		BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 11; z <= 36; z++) {
+			helper.setBlock(c.offset(2, 1, z), rail);
+			helper.setBlock(c.offset(5, 1, z), rail);
+		}
+		for (TbmGantry kind : TbmGantry.values()) {
+			GantryEntity gantry = GantryEntity.place(helper.getLevel(), helper.absolutePos(c.offset(2, 1, kind.row())), kind, Direction.NORTH);
+			helper.assertTrue(gantry != null, Component.literal("a gantry should go on the rail"));
+			String said = gantry.couple();
+			helper.assertTrue(said.equals("coupled"), Component.literal(kind.displayName() + " should couple, said: " + said));
+		}
 		return cab;
+	}
+
+	private static GantryEntity gantry(GameTestHelper helper, TbmCab cab, TbmGantry kind) {
+		return (GantryEntity) helper.getLevel().getEntity(cab.core().gantry(kind));
 	}
 
 	/** The running machine near {@code c}, or null. */
 	private static TbmEntity machine(GameTestHelper helper, BlockPos c) {
-		List<TbmEntity> found = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(40));
+		List<TbmEntity> found = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(20));
 		return found.isEmpty() ? null : found.get(0);
 	}
 
@@ -903,8 +929,6 @@ public class TailingsGameTests {
 			helper.assertTrue(machine == null, Component.literal("it should set down"));
 			helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD
 					&& helper.getBlockState(c.offset(3, 3, 2)).getBlock() == TailingsBlocks.MAIN_BEAM, Component.literal("every part should be one block on"));
-			helper.assertTrue(helper.getBlockState(c.offset(3, 3, 10)).getBlock() == TailingsBlocks.DEWATERING_PUMP && helper.getBlockState(c.offset(3, 3, 12)).isAir(),
-					Component.literal("the pump should follow the beam's tail and leave its last cell empty"));
 			int lined = ringAt(helper, c, 2);
 			helper.assertTrue(lined == 28, Component.literal("a ring of 28 segments behind the erector, got " + lined));
 			BlockState rail = helper.getBlockState(c.offset(2, 1, 10));
@@ -932,10 +956,10 @@ public class TailingsGameTests {
 			for (TbmMachine.Cell cell : TbmMachine.cells(Direction.NORTH)) {
 				helper.assertTrue(helper.getBlockState(c.offset(cell.x(), cell.y(), cell.z())).isAir(), Component.literal("cell should be air: " + cell));
 			}
-			List<TbmEntity> machines = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(40));
+			List<TbmEntity> machines = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(20));
 			helper.assertTrue(machines.size() == 1, Component.literal("one machine, got " + machines.size()));
 			helper.assertTrue(machines.get(0).getItem(DrillBlockEntity.SLOT_RAIL).getCount() > 0, Component.literal("the cab's slots go with it"));
-			helper.assertTrue(helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new AABB(helper.absolutePos(c)).inflate(40)).isEmpty(),
+			helper.assertTrue(helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new AABB(helper.absolutePos(c)).inflate(20)).isEmpty(),
 					Component.literal("and nothing drops"));
 		});
 	}
@@ -1035,7 +1059,7 @@ public class TailingsGameTests {
 			helper.assertTrue(machine.isRemoved(), Component.literal("the machine should go"));
 			BlockPos at = helper.relativePos(machine.blockPosition());
 			for (var item : List.of(TailingsBlocks.CUTTERHEAD.asItem(), TailingsBlocks.SEGMENT_ERECTOR.asItem(), TailingsBlocks.MAIN_BEAM.asItem(),
-					TailingsBlocks.TRACK_LAYER.asItem(), TailingsBlocks.DEWATERING_PUMP.asItem(), TailingsBlocks.MINE_RAIL.asItem(), Items.GRAVEL)) {
+					TailingsBlocks.TRACK_LAYER.asItem(), TailingsBlocks.MINE_RAIL.asItem(), Items.GRAVEL)) {
 				helper.assertItemEntityPresent(item, at, 4);
 			}
 			helper.succeed();
@@ -1055,6 +1079,146 @@ public class TailingsGameTests {
 			helper.succeedWhen(() -> helper.assertTrue(Math.abs(rider.getY() - (machine.getY() + 5)) < 0.01 && Math.abs(rider.getZ() - (machine.getZ() + 10.5)) < 0.01
 					&& Math.abs(rider.getX() - (machine.getX() + 4)) < 0.01, Component.literal("at the seat, got " + rider.position() + " from " + machine.position())));
 		});
+	}
+
+	/** Each gantry is set at its place behind the running machine, in order, on the track it lays; a train stops short of the last. */
+	private static void tbmGantries(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 6, true);
+		feed(helper, c);
+		go(cab, 10);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null && machine.core().drill().advanceCount() > 4, Component.literal("four advances on"));
+			for (TbmGantry kind : TbmGantry.values()) {
+				GantryEntity gantry = gantry(helper, machine, kind);
+				helper.assertTrue(gantry.coupled() && Math.abs(gantry.getZ() - (machine.getZ() + kind.row())) < 1e-6 && gantry.getX() == machine.getX() + 1
+						&& gantry.getY() == machine.getY() + 1, Component.literal(kind.displayName() + " should keep its place, at " + gantry.position() + " from " + machine.position()));
+			}
+			BlockPos under = helper.absolutePos(c.offset(2, 1, 20));
+			helper.assertTrue(GantryEntity.standingAt(helper.getLevel(), under), Component.literal("a train should find a gantry over the track"));
+		});
+	}
+
+	/** A car standing just behind the conveyor's tail takes the machine's muck, and the conveyor draws its power. */
+	private static void tbmMuck(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		go(cab, 200);
+		helper.runAfterDelay(20, () -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine.core().drill().advanceCount() == 1 && machine.core().hasMuck(), Component.literal("it should have cut a face: " + machine.core().readout()));
+			// the machine has moved a block: its loading point with it
+			var car = MineVehicleEntity.placeCar(helper.getLevel(), helper.absolutePos(c.offset(2, 1, 27)), dev.wildcatter.tailings.mine.Heading.NORTH);
+			helper.succeedWhen(() -> {
+				helper.assertTrue(car.load().total() > 0, Component.literal("the car should take muck"));
+				helper.assertTrue(machine.core().drawWatts() == TbmCore.BEAM_WATTS + TbmCore.CONVEYOR_WATTS, Component.literal("the conveyor draws while it moves muck, got " + machine.core().drawWatts()));
+			});
+		});
+	}
+
+	/** The cable all paid out, it stops and says so. */
+	private static void tbmCableEnd(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 4, true);
+		feed(helper, c);
+		cab.core().setTestCable(2);
+		go(cab, 5);
+		helper.succeedWhen(() -> {
+			helper.assertTrue(machine(helper, c) == null, Component.literal("on the flat it sets down"));
+			DrillBlockEntity now = helper.getBlockEntity(c.offset(3, 3, 1), DrillBlockEntity.class);
+			helper.assertTrue(now.status() == DrillCodes.STOP_CABLE && now.drill().advanceCount() == 2 && now.core().note().contains("cable"),
+					Component.literal("it should read cable end, got " + now.core().readout() + " / " + now.core().note()));
+		});
+	}
+
+	/** A gantry broken stops the machine, naming it; put back and coupled, the machine goes on. */
+	private static void tbmGantryMissing(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 6, true);
+		feed(helper, c);
+		go(cab, 5);
+		helper.runAfterDelay(10, () -> {
+			TbmEntity machine = machine(helper, c);
+			gantry(helper, machine, TbmGantry.REEL).discard();
+		});
+		int[] at = {0};
+		helper.runAfterDelay(30, () -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine.core().status() == DrillCodes.NOT_BUILT && machine.core().note().contains("Reel Gantry"),
+					Component.literal("it should name the reel gantry, got " + machine.core().note()));
+			at[0] = machine.core().drill().advanceCount();
+		});
+		helper.runAfterDelay(50, () -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine.core().drill().advanceCount() == at[0], Component.literal("and it should not cut"));
+			Vec3 slot = TbmBackup.slot(machine, TbmGantry.REEL);
+			GantryEntity reel = GantryEntity.place(helper.getLevel(), BlockPos.containing(slot.x + 1, slot.y, slot.z), TbmGantry.REEL, Direction.NORTH);
+			helper.assertTrue(reel != null && reel.couple().equals("coupled"), Component.literal("a new reel gantry should couple"));
+			helper.succeedWhen(() -> helper.assertTrue(machine.core().drill().advanceCount() > at[0] && machine.core().status() == DrillCodes.DRIVING, Component.literal("and it goes on")));
+		});
+	}
+
+	/** The machine will not start without its gantries, in order. */
+	private static void tbmUncoupled(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 2, true);
+		helper.runAfterDelay(5, () -> {
+			GantryEntity reel = gantry2(helper, c, TbmGantry.REEL);
+			TbmBackup.release(helper.getLevel(), cab.core());
+			helper.assertTrue(reel.couple().contains("Pump Gantry"), Component.literal("gantries couple in order"));
+			cab.press(10, null);
+			helper.succeedWhen(() -> {
+				helper.assertTrue(cab.status() == DrillCodes.NOT_BUILT && cab.core().note().contains("Pump Gantry"), Component.literal("it should ask for the pump gantry, got " + cab.core().note()));
+				helper.assertTrue(machine(helper, c) == null, Component.literal("and not lift"));
+			});
+		});
+	}
+
+	private static GantryEntity gantry2(GameTestHelper helper, BlockPos c, TbmGantry kind) {
+		return helper.getLevel().getEntitiesOfClass(GantryEntity.class, new AABB(helper.absolutePos(c)).inflate(20), e -> e.kind() == kind).get(0);
+	}
+
+	/** Far enough down the decline that the gantries are on the grade too: pitched, at the floor's height, and the machine still driving. */
+	private static void tbmGantriesDecline(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 19, true);
+		for (int z = 1; z <= 19; z++) {
+			for (int x = 0; x < 8; x++) {
+				for (int y = -12; y < -1; y++) {
+					helper.setBlock(c.offset(x, y, -z), Blocks.STONE);
+				}
+			}
+		}
+		cab.program().setTargetY(helper.absolutePos(c).getY() - 10);
+		feed(helper, c);
+		go(cab, 2);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null, Component.literal("it should be driving"));
+			helper.assertTrue(machine.core().status() == DrillCodes.DRIVING, Component.literal("it should keep driving, got " + machine.core().readout() + " / " + machine.core().note()));
+			helper.assertTrue(machine.core().drill().advanceCount() >= 18, Component.literal("eighteen blocks down, at " + machine.core().readout()));
+			GantryEntity pump = gantry(helper, machine, TbmGantry.PUMP);
+			helper.assertTrue(pump.pitch() > 5, Component.literal("the pump gantry should be on the grade, pitch " + pump.pitch()));
+			double floor = machine.core().drill().floorExact(machine.machineSlice() - TbmGantry.PUMP.row());
+			helper.assertTrue(Math.abs(pump.getY() - floor) < 0.01, Component.literal("and on the floor: " + pump.getY() + " against " + floor));
+			helper.assertTrue(pump.getY() > machine.getY() + 1, Component.literal("and above the machine's nose"));
+		});
+	}
+
+	/** A train stops short of a gantry over the track, and turns back there as at the end of the line. */
+	private static void tbmTrainStops(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 24);
+		GantryEntity gantry = GantryEntity.place(helper.getLevel(), helper.absolutePos(new BlockPos(3, y, 2)), TbmGantry.CONVEYOR, Direction.NORTH);
+		helper.assertTrue(gantry != null, Component.literal("the gantry should go on the rail"));
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 18), Heading.NORTH);
+		car(helper, new BlockPos(3, y, 19), Heading.NORTH);
+		helper.onEachTick(() -> helper.assertTrue(relZ(helper, loco) > 10, Component.literal("it should not run under the gantry, at z " + relZ(helper, loco))));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(loco.direction() < 0 && relZ(helper, loco) > 13,
+						Component.literal("it should turn back from the gantry, at z " + relZ(helper, loco) + " (" + loco.status() + ")")))
+				.thenSucceed();
 	}
 
 	/** A machine with no track layer stays blocks, reads NOT BUILT and names it. */

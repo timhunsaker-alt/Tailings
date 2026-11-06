@@ -124,7 +124,7 @@ R brings it in line, one wave at a time.
     layer; the cab's logic in `TbmCore`.
   - **R6b. The contraption — DONE (2026-11-06).** The parts lift into one gliding entity, pitched on the decline; they set down on
     the flat, or park on the decline; dismantling; the seat.
-  - **R6c. The gantries.** Pump, reel and conveyor on the twin track.
+  - **R6c. The gantries — DONE (2026-11-06).** Pump, reel and conveyor on the twin track, coupled in order and towed along it; the conveyor's loading point, the cable end, a missing gantry stopping the machine.
 - **R7. Testing and art:** Fabric client game tests with screenshots for every spec's game test, then the in-game art look and
   its fixes. Brought forward at Tim's request (2026-11-06): the client test rig and its filming are in, `TAILINGS_ONLY=parts,train,tbm
   ./gradlew :fabric:runClientGameTest`, each scene filming the game window to `fabric/build/scene-videos`. New scenes get filmed from
@@ -159,7 +159,12 @@ Not started.
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 
-- **The old pump rides along behind the beam until R6c (R6a, R6b),** drawn with the machine and doing nothing of its own; the cab counts the cable until the reel comes with its gantry. Lifting it loses what its own block entity held.
+- **Gantries keep their place by the machine's course (R6c),** set along the straight bore behind it, not run along the rail by their own wheels. The machine checks the track under them before each advance and stops if it is gone.
+- **Only the cars within the conveyor's five rows load on a visit (R6c).** A long train leaves with its far cars empty.
+- **The trailing cable is not drawn (R6c),** and the reel does not turn. The cab counts what is paid out.
+- **The transformer is a rating, not a circuit part (R6c).** The pump and conveyor add to what the junction draws at 4.16 kV.
+- **The quench tank stays with the cab (R6c).** Its water is kept when a pump gantry is broken.
+- **The old `dewatering_pump` is a legacy block (R6c):** no recipe, out of the creative tab, doing nothing.
 - **The running machine collides as one box (R6b),** not the parts' exact shapes, and it does not turn on the grade: the box is its outline, raised at the rear when pitched.
 - **The cab's screen closes when the machine lifts (R6b).** Open it again on the running machine.
 - **TBM recipes are placeholders (R6a).** Eight iron around a copper ingot, as the plant's.

@@ -6,6 +6,7 @@ import dev.wildcatter.tailings.TailingsEntities;
 import dev.wildcatter.tailings.block.CableJunctionBlockEntity;
 import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.block.TbmBackup;
 import dev.wildcatter.tailings.block.TbmCab;
 import dev.wildcatter.tailings.block.TbmCore;
 import dev.wildcatter.tailings.block.TbmMachine;
@@ -52,8 +53,8 @@ import net.minecraft.world.phys.Vec3;
 public class TbmEntity extends Entity implements TbmCab {
 	private static final EntityDataAccessor<Integer> DATA_FACING = SynchedEntityData.defineId(TbmEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Float> DATA_PITCH = SynchedEntityData.defineId(TbmEntity.class, EntityDataSerializers.FLOAT);
-	/** The machine from the cutterhead to the pump's tail. */
-	private static final int LENGTH = 13;
+	/** The machine from the cutterhead to the track layer's tail. */
+	private static final int LENGTH = 11;
 	/** The rear of the rigid machine, for its pitch: the track layer's tail. */
 	private static final int PITCH_BASE = 11;
 	/** The seat, on the cab's roof at the main beam's tail: from the cutterhead's main cell along the machine, and up. */
@@ -114,6 +115,16 @@ public class TbmEntity extends Entity implements TbmCab {
 	}
 
 	@Override
+	public Vec3 cutterCorner() {
+		return position();
+	}
+
+	@Override
+	public Direction machineFacing() {
+		return facing();
+	}
+
+	@Override
 	public void setChanged() {
 	}
 
@@ -138,7 +149,8 @@ public class TbmEntity extends Entity implements TbmCab {
 	// ---- where it is ---------------------------------------------------------------------------------------------------------------
 
 	/** The slice under the cutterhead, between whole slices while it glides. */
-	private double slice() {
+	@Override
+	public double machineSlice() {
 		double progress = glide <= 0 ? 1 : 1 - (double) core.waitTicks() / glide;
 		return core.drill().advanceCount() - 2 + progress;
 	}
@@ -151,7 +163,7 @@ public class TbmEntity extends Entity implements TbmCab {
 
 	private void place() {
 		TunnelDrill drill = core.drill();
-		double slice = slice();
+		double slice = machineSlice();
 		Heading heading = core.program().heading();
 		double back = drill.advanceCount() - 1 - slice;
 		double x = drill.originX() + dx - heading.forwardX() * back;
@@ -160,6 +172,9 @@ public class TbmEntity extends Entity implements TbmCab {
 		double rise = drill.floorExact(slice - PITCH_BASE) - drill.floorExact(slice);
 		entityData.set(DATA_PITCH, (float) Math.toDegrees(Math.atan2(rise, PITCH_BASE)));
 		setBoundingBox(makeBoundingBox(position()));
+		if (level() instanceof ServerLevel server) {
+			TbmBackup.place(server, this);
+		}
 	}
 
 	/** The whole machine's outline: 8 x 8 by its length, its rear up when pitched. */
@@ -206,6 +221,11 @@ public class TbmEntity extends Entity implements TbmCab {
 			}
 			return true;
 		}
+
+		@Override
+		public String backupFault() {
+			return TbmBackup.fault((ServerLevel) level(), core);
+		}
 	};
 
 	@Override
@@ -217,7 +237,7 @@ public class TbmEntity extends Entity implements TbmCab {
 		core.acceptBuckets();
 		core.tickLoading(server);
 		if (core.running() && core.junction() != null && server.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity junction) {
-			junction.draw(TbmCore.BEAM_WATTS);
+			junction.draw(core.drawWatts());
 		}
 		lockChunks(server);
 		if (core.waitTicks() > 0) {
@@ -245,6 +265,8 @@ public class TbmEntity extends Entity implements TbmCab {
 		refresh = ChunkRunner.REFRESH_TICKS;
 		TunnelDrill drill = core.drill();
 		ChunkRunner.refresh(server, blockPosition());
+		int tail = -(dev.wildcatter.tailings.mine.TbmGantry.LOADING_ROW + dev.wildcatter.tailings.mine.TbmGantry.LOADING_ROWS);
+		ChunkRunner.refresh(server, BlockPos.containing(drill.worldX(0, tail), drill.worldY(0, tail), drill.worldZ(0, tail)));
 		ChunkRunner.refresh(server, BlockPos.containing(drill.worldX(0, -DriveCourse.FLOOR_BEHIND), drill.worldY(0, -DriveCourse.FLOOR_BEHIND), drill.worldZ(0, -DriveCourse.FLOOR_BEHIND)));
 		ChunkRunner.refresh(server, BlockPos.containing(drill.worldX(0, DriveCourse.PROBE_BLOCKS), drill.worldY(0, DriveCourse.PROBE_BLOCKS), drill.worldZ(0, DriveCourse.PROBE_BLOCKS)));
 		if (core.junction() != null) {
@@ -301,11 +323,11 @@ public class TbmEntity extends Entity implements TbmCab {
 	/** Every part drops as its item and every slot's contents drop. */
 	public void dismantle(ServerLevel server) {
 		ejectPassengers();
+		TbmBackup.release(server, core);
 		List<ItemStack> drops = new ArrayList<>(core.slots());
 		for (TbmPart part : TbmPart.values()) {
 			drops.add(new ItemStack(TailingsBlocks.tbmBlock(part)));
 		}
-		drops.add(new ItemStack(TailingsBlocks.DEWATERING_PUMP));
 		for (ItemStack stack : drops) {
 			if (!stack.isEmpty()) {
 				Containers.dropItemStack(server, getX(), getY() + 1, getZ(), stack);

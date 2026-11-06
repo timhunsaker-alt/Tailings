@@ -5,7 +5,10 @@ import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.entity.GantryEntity;
+import dev.wildcatter.tailings.entity.MineVehicleEntity;
 import dev.wildcatter.tailings.entity.TbmEntity;
+import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.block.MineRailBlock;
 import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.entity.MineVehicleEntity;
@@ -144,7 +147,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	/** Filmed from the side as the machine lifts and glides into the rock; on the flat it then stops and sets down. */
 	private void tbm(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
 		drive(context, world, server, "tbm", 0, 0, 8);
-		drive(context, world, server, "tbm_decline", 60, 8, 12);
+		drive(context, world, server, "tbm_decline", 60, 14, 30);
 	}
 
 	private void drive(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server, String scene, int cx, int drop, int advances) {
@@ -153,7 +156,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		BlockPos beam = c.offset(3, 3, 3);
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
-			for (int z = 1; z <= 30; z++) {
+			for (int z = 1; z <= 36; z++) {
 				for (int x = -2; x < 10; x++) {
 					for (int yy = -drop - 2; yy < 10; yy++) {
 						level.setBlock(c.offset(x, yy, -z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
@@ -164,9 +167,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			part(level, TailingsBlocks.SEGMENT_ERECTOR, c.offset(0, 0, 1));
 			part(level, TailingsBlocks.MAIN_BEAM, beam);
 			part(level, TailingsBlocks.TRACK_LAYER, c.offset(1, 2, 8));
-			level.setBlock(c.offset(3, 3, 11), TailingsBlocks.DEWATERING_PUMP.defaultBlockState().setValue(DewateringPumpBlock.FACING, Direction.NORTH)
-					.setValue(DewateringPumpBlock.PIECE, 0), Block.UPDATE_ALL);
-			level.setBlock(c.offset(3, 0, 14), TailingsBlocks.CABLE_JUNCTION.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlock(c.offset(-2, 0, 14), TailingsBlocks.CABLE_JUNCTION.defaultBlockState(), Block.UPDATE_ALL);
+			BlockState track = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+			for (int z = 11; z <= 40; z++) {
+				level.setBlock(c.offset(2, 1, z), track, Block.UPDATE_ALL);
+				level.setBlock(c.offset(5, 1, z), track, Block.UPDATE_ALL);
+			}
 			DrillBlockEntity cab = (DrillBlockEntity) level.getBlockEntity(beam);
 			cab.forceRunning();
 			cab.program().setTargetY(c.getY() + 1 - drop);
@@ -176,8 +182,20 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			cab.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
 			cab.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
 			cab.core().setTestTicks(40);
+			for (TbmGantry kind : TbmGantry.values()) {
+				GantryEntity gantry = GantryEntity.place(level, c.offset(2, 1, kind.row()), kind, Direction.NORTH);
+				System.out.println("[tailings-test] " + kind.displayName() + ": " + gantry.couple());
+			}
+			MineVehicleEntity.placeCar(level, c.offset(2, 1, 28), dev.wildcatter.tailings.mine.Heading.NORTH);
 		});
-		server.runCommand("tp @p " + (cx + 20) + " " + (c.getY() + 8) + " " + (cz + 8) + " 90 15");
+		// the decline is filmed in section: no rock or lining on the camera's side, so the train can be seen going over the crest
+		boolean section = drop > 0;
+		if (section) {
+			server.runOnServer(srv -> cutAway(srv.overworld(), c, drop));
+			server.runCommand("tp @p " + (cx + 34) + " " + (c.getY() - 3) + " " + (cz - 4) + " 90 0");
+		} else {
+			server.runCommand("tp @p " + (cx + 24) + " " + (c.getY() + 8) + " " + (cz + 14) + " 90 15");
+		}
 		context.waitTicks(40);
 		Filming film = film(context, world, scene);
 		context.takeScreenshot("tailings-" + scene + "-built");
@@ -185,6 +203,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		for (int t = 0; t < advances * 2; t++) {
 			context.waitTicks(20);
 			server.runOnServer(srv -> {
+				if (section) {
+					cutAway(srv.overworld(), c, drop);
+				}
 				for (TbmEntity machine : srv.overworld().getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(40))) {
 					machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
 					System.out.println("[tailings-test] " + scene + " " + machine.position() + " pitch " + machine.pitch() + ": " + machine.core().readout());
@@ -202,9 +223,24 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		});
 		context.waitTicks(80);
 		context.takeScreenshot("tailings-" + scene + "-stopped");
-		server.runCommand("tp @p " + (cx + 4) + " " + (c.getY() + 4) + " " + (cz + 26) + " 180 10");
+		server.runCommand("tp @p " + (cx + 4) + " " + (c.getY() + 4) + " " + (cz + 46) + " 180 10");
 		context.waitTicks(40);
 		context.takeScreenshot("tailings-" + scene + "-behind");
 		film.stop();
+	}
+
+	/** Clears the bore's camera-side wall (column 7) and the rock outside it, the length of the mountain and back to the start. */
+	private static void cutAway(ServerLevel level, BlockPos c, int drop) {
+		for (int z = -36; z <= 12; z++) {
+			for (int x = 7; x < 10; x++) {
+				for (int yy = -drop - 2; yy < 10; yy++) {
+					BlockPos at = c.offset(x, yy, z);
+					BlockState there = level.getBlockState(at);
+					if (there.is(Blocks.STONE) || there.is(TailingsBlocks.LINING)) {
+						level.setBlock(at, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+		}
 	}
 }

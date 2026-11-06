@@ -51,7 +51,9 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.MAIN_BEAM));
 		output.accept(new ItemStack(TailingsBlocks.TRACK_LAYER));
 		output.accept(new ItemStack(TailingsBlocks.CABLE_JUNCTION));
-		output.accept(new ItemStack(TailingsBlocks.DEWATERING_PUMP));
+		for (var gantry : TailingsItems.GANTRIES.values()) {
+			output.accept(new ItemStack(gantry));
+		}
 		output.accept(new ItemStack(TailingsBlocks.LINING));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));
 		output.accept(new ItemStack(TailingsBlocks.TRACTION_RECTIFIER));

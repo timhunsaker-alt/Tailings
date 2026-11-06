@@ -12,11 +12,13 @@ import dev.wildcatter.tailings.mine.DriveCourse;
 import dev.wildcatter.tailings.mine.Grade;
 import dev.wildcatter.tailings.mine.Ground;
 import dev.wildcatter.tailings.mine.Heading;
+import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.mine.TunnelDrill;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -55,6 +57,9 @@ public final class TbmCore {
 	/** The Wildcatter 4.16 kV cable, which the reel pays out. */
 	public static final String CABLE_ID = "wildcatter:cable_mv";
 
+	/** The pump on its gantry, while it pumps or quenches, and the conveyor, while it moves muck: through the gantry transformer. */
+	public static final int PUMP_WATTS = 75_000;
+	public static final int CONVEYOR_WATTS = 7_500;
 	/** A button on the cab's screen: seats the player, on the running machine. */
 	public static final int BUTTON_RIDE = 13;
 	/** The rails each machine is loading cars at, per level, with the tick it last said so: the trains wait there. */
@@ -70,6 +75,9 @@ public final class TbmCore {
 
 		/** True if nothing solid stands in the bore it moves through next. */
 		boolean clearAhead();
+
+		/** What is wrong with the gantries behind it, or null. */
+		@Nullable String backupFault();
 	}
 
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
@@ -87,6 +95,11 @@ public final class TbmCore {
 	private boolean forced;
 	/** For the tests and films: this many ticks a block, not the real 20 s; 0 is real. */
 	private int testTicks;
+	/** For the tests: this many metres of cable, not the reel's; 0 is real. */
+	private int testCable;
+	private final UUID[] gantries = new UUID[TbmGantry.values().length];
+	private boolean pumping;
+	private boolean conveying;
 
 	public boolean forced() {
 		return forced;
@@ -99,6 +112,27 @@ public final class TbmCore {
 
 	public void setTestTicks(int ticks) {
 		testTicks = ticks;
+	}
+
+	public void setTestCable(int metres) {
+		testCable = metres;
+	}
+
+	public @Nullable UUID gantry(TbmGantry kind) {
+		return gantries[kind.ordinal()];
+	}
+
+	public void couple(TbmGantry kind, UUID id) {
+		gantries[kind.ordinal()] = id;
+	}
+
+	public void uncouple(TbmGantry kind) {
+		gantries[kind.ordinal()] = null;
+	}
+
+	/** What it draws through the reel's cable now. */
+	public int drawWatts() {
+		return BEAM_WATTS + (pumping ? PUMP_WATTS : 0) + (conveying ? CONVEYOR_WATTS : 0);
 	}
 
 	/** Says why it stands as it does. */
@@ -167,6 +201,9 @@ public final class TbmCore {
 
 	/** The cable it has: the reel's 300 m and a metre for each cable item. */
 	public int cableMetres() {
+		if (testCable > 0) {
+			return testCable;
+		}
 		ItemStack cable = slots.get(SLOT_CABLE);
 		return REEL_METRES + (cable.isEmpty() ? 0 : cable.getCount());
 	}
@@ -213,6 +250,12 @@ public final class TbmCore {
 			report(DrillCodes.NEED_POWER, "waiting for power at the cable junction");
 			return Advance.stopped(Advance.Stop.NONE, "power");
 		}
+		String fault = body.backupFault();
+		if (fault != null) {
+			report(DrillCodes.NOT_BUILT, "NOT BUILT: needs the " + fault);
+			return Advance.stopped(Advance.Stop.NONE, "gantry");
+		}
+		pumping = false;
 		WorldGround ground = new WorldGround(level, program.heading());
 		pullStock();
 		flushPending();
@@ -230,6 +273,7 @@ public final class TbmCore {
 		program.setCableBlocks(cableMetres());
 		int ticks = testTicks > 0 ? testTicks : drill.ticksFor(ground);
 		Advance drove = drill.step(ground);
+		pumping = drove.pumpedWater() > 0 || drove.quenchedLava() > 0;
 		for (var load : drove.loads().entrySet()) {
 			if (!push(load.getKey(), load.getValue())) {
 				pending.add(load.getKey() + " " + load.getValue());
@@ -250,22 +294,31 @@ public final class TbmCore {
 		return drove;
 	}
 
-	/** The two rails just behind the track layer, on columns 2 and 5: a car there takes the machine's muck, and a train waits for it. */
+	/** The rails just behind the conveyor's tail, on columns 2 and 5: a car there takes the machine's muck, and a train waits for it. */
 	public void tickLoading(Level level) {
-		if (drill.advanceCount() == 0) {
+		conveying = false;
+		if (drill.advanceCount() == 0 || gantry(TbmGantry.CONVEYOR) == null) {
 			return;
 		}
 		Map<Long, Loading> here = LOADING.computeIfAbsent(level, l -> new HashMap<>());
-		int ahead = -DriveCourse.FLOOR_BEHIND;
-		for (int across : new int[] {2, 5}) {
-			BlockPos rail = new BlockPos(drill.worldX(across, ahead), drill.worldY(1, ahead), drill.worldZ(across, ahead));
-			here.put(rail.asLong(), new Loading(this, level.getGameTime()));
-			for (MineVehicleEntity car : level.getEntitiesOfClass(MineVehicleEntity.class, new AABB(rail).inflate(0, 1, 0),
-					e -> !e.locomotive() && e.load().room() > 0 && BlockPos.containing(e.getX(), e.getY() - 0.5, e.getZ()).equals(rail))) {
-				if (giveMuck(car.load(), Haul.TRANSFER) > 0) {
-					car.refreshLoad();
+		for (int row = TbmGantry.LOADING_ROW; row < TbmGantry.LOADING_ROW + TbmGantry.LOADING_ROWS; row++) {
+			int ahead = -(row + 1);
+			for (int across : new int[] {TbmGantry.LEFT_RAIL + 1, TbmGantry.RIGHT_RAIL + 1}) {
+				here.put(new BlockPos(drill.worldX(across, ahead), drill.worldY(1, ahead), drill.worldZ(across, ahead)).asLong(), new Loading(this, level.getGameTime()));
+			}
+		}
+		for (int row = TbmGantry.LOADING_ROW; row < TbmGantry.LOADING_ROW + TbmGantry.LOADING_ROWS; row++) {
+			int ahead = -(row + 1);
+			for (int across : new int[] {TbmGantry.LEFT_RAIL + 1, TbmGantry.RIGHT_RAIL + 1}) {
+				BlockPos rail = new BlockPos(drill.worldX(across, ahead), drill.worldY(1, ahead), drill.worldZ(across, ahead));
+				for (MineVehicleEntity car : level.getEntitiesOfClass(MineVehicleEntity.class, new AABB(rail).inflate(0, 1, 0),
+						e -> !e.locomotive() && e.load().room() > 0 && BlockPos.containing(e.getX(), e.getY() - 0.5, e.getZ()).equals(rail))) {
+					if (giveMuck(car.load(), Haul.TRANSFER) > 0) {
+						car.refreshLoad();
+						conveying = true;
+					}
+					return;
 				}
-				return;
 			}
 		}
 	}
@@ -447,6 +500,10 @@ public final class TbmCore {
 		output.putString("pending", String.join("|", pending));
 		output.putBoolean("forced", forced);
 		output.putInt("testTicks", testTicks);
+		output.putInt("testCable", testCable);
+		for (TbmGantry kind : TbmGantry.values()) {
+			output.putString("gantry_" + kind.id(), gantries[kind.ordinal()] == null ? "" : gantries[kind.ordinal()].toString());
+		}
 		output.putLong("junction", junction == null ? Long.MIN_VALUE : junction.asLong());
 	}
 
@@ -484,6 +541,11 @@ public final class TbmCore {
 		}
 		forced = input.getBooleanOr("forced", false);
 		testTicks = input.getIntOr("testTicks", 0);
+		testCable = input.getIntOr("testCable", 0);
+		for (TbmGantry kind : TbmGantry.values()) {
+			String id = input.getStringOr("gantry_" + kind.id(), "");
+			gantries[kind.ordinal()] = id.isEmpty() ? null : UUID.fromString(id);
+		}
 		long at = input.getLongOr("junction", Long.MIN_VALUE);
 		junction = at == Long.MIN_VALUE ? null : BlockPos.of(at);
 	}

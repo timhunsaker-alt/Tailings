@@ -395,6 +395,10 @@ public class MineVehicleEntity extends Entity {
 			return;
 		}
 		reachedAhead = ahead;
+		double gantry = gantryAhead(server);
+		if (gantry >= 0 && gantry < ahead) {
+			ahead = gantry;   // a gantry over the track is the end of the way: the train turns back there
+		}
 
 		Track.Step under = path.stepAt(front);
 		RailBlockEntity rail = server.getBlockEntity(RailView.pos(under.cell())) instanceof RailBlockEntity r ? r : null;
@@ -579,6 +583,22 @@ public class MineVehicleEntity extends Entity {
 			boolean beyond = direction > 0 ? start >= end - 1e-6 : stop <= end + 1e-6;
 			Claim claim = claims.get(RailView.pos(steps.get(i).cell()).asLong());
 			if (beyond && claim != null && !claim.train().equals(getUUID()) && server.getGameTime() - claim.tick() <= 2) {
+				double d = direction > 0 ? start - end : end - stop;
+				best = best < 0 ? d : Math.min(best, d);
+			}
+		}
+		return best;
+	}
+
+	/** The distance to the first gantry standing over the track ahead, or -1. */
+	private double gantryAhead(ServerLevel server) {
+		double end = direction > 0 ? frontEnd() : tailEnd();
+		List<Track.Step> steps = path.steps();
+		double best = -1;
+		for (int i = 0; i < steps.size(); i++) {
+			double start = path.start(i), stop = start + steps.get(i).length();
+			boolean beyond = direction > 0 ? start >= end - 1e-6 : stop <= end + 1e-6;
+			if (beyond && GantryEntity.standingAt(server, RailView.pos(steps.get(i).cell()))) {
 				double d = direction > 0 ? start - end : end - stop;
 				best = best < 0 ? d : Math.min(best, d);
 			}

@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
@@ -68,6 +69,27 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 	@Override
 	public BlockPos menuPos() {
 		return worldPosition;
+	}
+
+	/** False for an old one-block cab. */
+	public boolean standing() {
+		return getBlockState().getBlock() instanceof TbmPartBlock && !isRemoved();
+	}
+
+	@Override
+	public Vec3 cutterCorner() {
+		BlockPos cutter = cutter();
+		return new Vec3(cutter.getX(), cutter.getY(), cutter.getZ());
+	}
+
+	@Override
+	public Direction machineFacing() {
+		return facing();
+	}
+
+	@Override
+	public double machineSlice() {
+		return core.drill().advanceCount() - 1;
 	}
 
 	public DrillProgram program() {
@@ -134,13 +156,10 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 				return part.displayName() + " (" + where(part) + ")";
 			}
 		}
-		if (!(level.getBlockState(TbmMachine.pump(cutter, facing())).getBlock() instanceof DewateringPumpBlock)) {
-			return "Dewatering Pump against the main beam's tail";
-		}
 		if (core.junction() == null || !(level.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity)) {
 			return "Cable Junction within " + JUNCTION_REACH + " blocks, wired to 4.16 kV";
 		}
-		return null;
+		return level instanceof ServerLevel server ? TbmBackup.fault(server, core) : null;
 	}
 
 	private static String where(TbmPart part) {
@@ -203,10 +222,6 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 				level.destroyBlock(at, true);
 			}
 		}
-		BlockPos pump = TbmMachine.pump(cutter, facing);
-		if (level.getBlockState(pump).getBlock() instanceof DewateringPumpBlock) {
-			level.destroyBlock(pump, true);
-		}
 		level.destroyBlock(worldPosition, true);
 	}
 
@@ -268,6 +283,9 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 	@Override
 	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
 		super.preRemoveSideEffects(pos, state);
+		if (level instanceof ServerLevel server && !moving) {
+			TbmBackup.release(server, core);
+		}
 		if (level != null && !moving) {
 			Containers.dropContents(level, pos, this);
 		}

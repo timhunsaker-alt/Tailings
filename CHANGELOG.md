@@ -4,6 +4,15 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R6c — The gantries (2026-11-06)
+
+- **Pump, reel and conveyor gantries:** placed on the twin track like a car, coupled in order with a sneak-click, and towed behind the machine, pitched to the floor under each.
+- **The machine needs them:** a missing gantry, or missing track under one, reads NOT BUILT and names it. "Cable end" stops it.
+- **Muck** now loads into cars just behind the conveyor's tail; a train waits there, and stops and turns back at the gantry.
+- **Power:** the pump and conveyor add their draw at the cable junction.
+- **The old dewatering pump is retired:** no recipe, out of the creative tab.
+- **Tests:** `tbm_gantries`, `tbm_muck`, `tbm_cable_end`, `tbm_gantry_missing`, `tbm_uncoupled`, `tbm_gantries_decline`, `tbm_train_stops`.
+
 ## R6b — The contraption (2026-11-06)
 
 - **The machine now moves as one.** Started, the TBM's parts lift into a single entity that cuts the face, glides into the cut at the advance rate, and lines and lays track behind itself.

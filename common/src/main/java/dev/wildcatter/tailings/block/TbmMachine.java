@@ -2,6 +2,7 @@ package dev.wildcatter.tailings.block;
 
 import dev.wildcatter.block.BigPartBlock;
 import dev.wildcatter.tailings.TailingsBlocks;
+import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.mine.TbmPart;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -20,9 +21,8 @@ public final class TbmMachine {
 	public record Cell(BlockState state, int x, int y, int z) {
 	}
 
-	/** The old dewatering pump's main cell, against the main beam's tail, in the cutterhead's frame. */
-	private static final int[] PUMP = {3, 3, 11};
 	private static final Map<Direction, List<Cell>> CELLS = new EnumMap<>(Direction.class);
+	private static final Map<TbmGantry, Map<Direction, List<Cell>>> GANTRY_CELLS = new EnumMap<>(TbmGantry.class);
 
 	private TbmMachine() {
 	}
@@ -48,33 +48,34 @@ public final class TbmMachine {
 		return beam.subtract(from);
 	}
 
-	public static BlockPos pump(BlockPos cutter, Direction facing) {
-		return cutter.offset(offset(facing, PUMP[0], PUMP[1], PUMP[2]));
-	}
-
-	/** Every cell of the machine facing {@code facing}: its four parts and the old pump. */
+	/** Every cell of the machine facing {@code facing}: its four parts. */
 	public static synchronized List<Cell> cells(Direction facing) {
 		return CELLS.computeIfAbsent(facing, TbmMachine::build);
+	}
+
+	/** Every cell of a gantry facing {@code facing}, from its own main cell. */
+	public static synchronized List<Cell> gantryCells(TbmGantry gantry, Direction facing) {
+		return GANTRY_CELLS.computeIfAbsent(gantry, g -> new EnumMap<>(Direction.class))
+				.computeIfAbsent(facing, f -> {
+					List<Cell> out = new ArrayList<>();
+					add(out, (BigPartBlock) TailingsBlocks.gantryBlock(gantry), BlockPos.ZERO, f);
+					return out;
+				});
 	}
 
 	private static List<Cell> build(Direction facing) {
 		List<Cell> out = new ArrayList<>();
 		for (TbmPart part : TbmPart.values()) {
-			BigPartBlock block = (BigPartBlock) TailingsBlocks.tbmBlock(part);
-			BlockPos main = main(part, BlockPos.ZERO, facing);
-			BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, facing);
-			for (int piece = 0; piece < block.footprint().pieces(); piece++) {
-				int[] at = block.footprint().offset(piece, DewateringPumpBlock.turns(facing));
-				out.add(new Cell(state.setValue(block.piece(), piece), main.getX() + at[0], main.getY() + at[1], main.getZ() + at[2]));
-			}
-		}
-		DewateringPumpBlock pump = (DewateringPumpBlock) TailingsBlocks.DEWATERING_PUMP;
-		BlockPos main = pump(BlockPos.ZERO, facing);
-		for (int piece = 0; piece < 8; piece++) {
-			int[] at = dev.wildcatter.multiblock.Footprint.box(2, 2, 2, 0, 0).offset(piece, DewateringPumpBlock.turns(facing));
-			out.add(new Cell(pump.defaultBlockState().setValue(DewateringPumpBlock.FACING, facing).setValue(DewateringPumpBlock.PIECE, piece),
-					main.getX() + at[0], main.getY() + at[1], main.getZ() + at[2]));
+			add(out, (BigPartBlock) TailingsBlocks.tbmBlock(part), main(part, BlockPos.ZERO, facing), facing);
 		}
 		return out;
+	}
+
+	private static void add(List<Cell> out, BigPartBlock block, BlockPos main, Direction facing) {
+		BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, facing);
+		for (int piece = 0; piece < block.footprint().pieces(); piece++) {
+			int[] at = block.footprint().offset(piece, DewateringPumpBlock.turns(facing));
+			out.add(new Cell(state.setValue(block.piece(), piece), main.getX() + at[0], main.getY() + at[1], main.getZ() + at[2]));
+		}
 	}
 }

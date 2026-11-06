@@ -100,6 +100,20 @@ public class MineRailBlock extends BaseEntityBlock {
 	 * (docs/multiblocks/haulage.md); a car couples to a train whose tail is within reach behind it.
 	 */
 	static InteractionResult placeVehicle(ItemStack stack, Level level, BlockPos pos, Player player) {
+		for (dev.wildcatter.tailings.mine.TbmGantry gantry : dev.wildcatter.tailings.mine.TbmGantry.values()) {
+			if (stack.getItem() == TailingsItems.gantry(gantry)) {
+				if (!(level instanceof net.minecraft.server.level.ServerLevel server)) {
+					return InteractionResult.SUCCESS;
+				}
+				if (dev.wildcatter.tailings.entity.GantryEntity.place(server, pos, gantry, player.getDirection()) == null) {
+					return InteractionResult.PASS;
+				}
+				if (!player.hasInfiniteMaterials()) {
+					stack.shrink(1);
+				}
+				return InteractionResult.SUCCESS;
+			}
+		}
 		boolean loco = stack.getItem() == TailingsItems.LOCOMOTIVE;
 		if (!loco && stack.getItem() != TailingsItems.CAR) {
 			return InteractionResult.PASS;

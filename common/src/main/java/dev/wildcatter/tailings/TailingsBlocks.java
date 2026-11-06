@@ -1,11 +1,13 @@
 package dev.wildcatter.tailings;
 
+import dev.wildcatter.tailings.block.GantryPartBlock;
 import dev.wildcatter.tailings.block.BlockSignalBlock;
 import dev.wildcatter.tailings.block.DewateringPumpBlock;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.BeltBlockEntity;
 import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.block.DrillBlockEntity;
+import dev.wildcatter.tailings.mine.TbmGantry;
 import dev.wildcatter.tailings.mine.TbmPart;
 import dev.wildcatter.tailings.block.CableJunctionBlockEntity;
 import dev.wildcatter.tailings.block.CableJunctionBlock;
@@ -95,6 +97,9 @@ public final class TailingsBlocks {
 	public static final Block SEGMENT_ERECTOR = tbm(TbmPart.SEGMENT_ERECTOR, MapColor.COLOR_YELLOW);
 	public static final Block MAIN_BEAM = tbm(TbmPart.MAIN_BEAM, MapColor.COLOR_YELLOW);
 	public static final Block TRACK_LAYER = tbm(TbmPart.TRACK_LAYER, MapColor.COLOR_GRAY);
+	public static final Block PUMP_GANTRY = gantry(TbmGantry.PUMP);
+	public static final Block REEL_GANTRY = gantry(TbmGantry.REEL);
+	public static final Block CONVEYOR_GANTRY = gantry(TbmGantry.CONVEYOR);
 	public static final Block CABLE_JUNCTION = block("cable_junction", props -> new CableJunctionBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 6.0F)
 			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	/** The cab: at the main beam's tail; the one-block cab of a world saved before R6 too, which retires itself. */
@@ -138,6 +143,9 @@ public final class TailingsBlocks {
 		add("dewatering_pump", DEWATERING_PUMP);
 		for (TbmPart part : TbmPart.values()) {
 			add(part.id(), tbmBlock(part));
+		}
+		for (TbmGantry gantry : TbmGantry.values()) {
+			Registry.register(BuiltInRegistries.BLOCK, Tailings.id(gantry.id()), gantryBlock(gantry));
 		}
 		add("cable_junction", CABLE_JUNCTION);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tbm_part"), TBM_PART);
@@ -198,6 +206,20 @@ public final class TailingsBlocks {
 	private static Block tbm(TbmPart part, MapColor color) {
 		return block(part.id(), props -> new TbmPartBlock(props.mapColor(color).strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
 				.noOcclusion(), part));
+	}
+
+	/** A gantry's looks, drawn by its entity: the block itself has no item and is never placed. */
+	private static Block gantry(TbmGantry gantry) {
+		return block(gantry.id(), props -> new GantryPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+				.noOcclusion().noLootTable(), gantry));
+	}
+
+	public static Block gantryBlock(TbmGantry gantry) {
+		return switch (gantry) {
+			case PUMP -> PUMP_GANTRY;
+			case REEL -> REEL_GANTRY;
+			case CONVEYOR -> CONVEYOR_GANTRY;
+		};
 	}
 
 	public static Block tbmBlock(TbmPart part) {

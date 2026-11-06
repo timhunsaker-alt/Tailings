@@ -1,0 +1,1444 @@
+{
+ "variants": {
+  "facing=north,piece=0": {
+   "model": "tailings:block/reel_gantry/p0"
+  },
+  "facing=north,piece=1": {
+   "model": "tailings:block/reel_gantry/p1"
+  },
+  "facing=north,piece=2": {
+   "model": "tailings:block/reel_gantry/p2"
+  },
+  "facing=north,piece=3": {
+   "model": "tailings:block/reel_gantry/p3"
+  },
+  "facing=north,piece=4": {
+   "model": "tailings:block/reel_gantry/p4"
+  },
+  "facing=north,piece=5": {
+   "model": "tailings:block/reel_gantry/p5"
+  },
+  "facing=north,piece=6": {
+   "model": "tailings:block/reel_gantry/p6"
+  },
+  "facing=north,piece=7": {
+   "model": "tailings:block/reel_gantry/p7"
+  },
+  "facing=north,piece=8": {
+   "model": "tailings:block/reel_gantry/p8"
+  },
+  "facing=north,piece=9": {
+   "model": "tailings:block/reel_gantry/p9"
+  },
+  "facing=north,piece=10": {
+   "model": "tailings:block/reel_gantry/p10"
+  },
+  "facing=north,piece=11": {
+   "model": "tailings:block/reel_gantry/p11"
+  },
+  "facing=north,piece=12": {
+   "model": "tailings:block/reel_gantry/p12"
+  },
+  "facing=north,piece=13": {
+   "model": "tailings:block/reel_gantry/p13"
+  },
+  "facing=north,piece=14": {
+   "model": "tailings:block/reel_gantry/p14"
+  },
+  "facing=north,piece=15": {
+   "model": "tailings:block/reel_gantry/p15"
+  },
+  "facing=north,piece=16": {
+   "model": "tailings:block/reel_gantry/p16"
+  },
+  "facing=north,piece=17": {
+   "model": "tailings:block/reel_gantry/p17"
+  },
+  "facing=north,piece=18": {
+   "model": "tailings:block/reel_gantry/p18"
+  },
+  "facing=north,piece=19": {
+   "model": "tailings:block/reel_gantry/p19"
+  },
+  "facing=north,piece=20": {
+   "model": "tailings:block/reel_gantry/p20"
+  },
+  "facing=north,piece=21": {
+   "model": "tailings:block/reel_gantry/p21"
+  },
+  "facing=north,piece=22": {
+   "model": "tailings:block/reel_gantry/p22"
+  },
+  "facing=north,piece=23": {
+   "model": "tailings:block/reel_gantry/p23"
+  },
+  "facing=north,piece=24": {
+   "model": "tailings:block/reel_gantry/p24"
+  },
+  "facing=north,piece=25": {
+   "model": "tailings:block/reel_gantry/p25"
+  },
+  "facing=north,piece=26": {
+   "model": "tailings:block/reel_gantry/p26"
+  },
+  "facing=north,piece=27": {
+   "model": "tailings:block/reel_gantry/p27"
+  },
+  "facing=north,piece=28": {
+   "model": "tailings:block/reel_gantry/p28"
+  },
+  "facing=north,piece=29": {
+   "model": "tailings:block/reel_gantry/p29"
+  },
+  "facing=north,piece=30": {
+   "model": "tailings:block/reel_gantry/p30"
+  },
+  "facing=north,piece=31": {
+   "model": "tailings:block/reel_gantry/p31"
+  },
+  "facing=north,piece=32": {
+   "model": "tailings:block/reel_gantry/p32"
+  },
+  "facing=north,piece=33": {
+   "model": "tailings:block/reel_gantry/p33"
+  },
+  "facing=north,piece=34": {
+   "model": "tailings:block/reel_gantry/p34"
+  },
+  "facing=north,piece=35": {
+   "model": "tailings:block/reel_gantry/p35"
+  },
+  "facing=north,piece=36": {
+   "model": "tailings:block/reel_gantry/p36"
+  },
+  "facing=north,piece=37": {
+   "model": "tailings:block/reel_gantry/p37"
+  },
+  "facing=north,piece=38": {
+   "model": "tailings:block/reel_gantry/p38"
+  },
+  "facing=north,piece=39": {
+   "model": "tailings:block/reel_gantry/p39"
+  },
+  "facing=north,piece=40": {
+   "model": "tailings:block/reel_gantry/p40"
+  },
+  "facing=north,piece=41": {
+   "model": "tailings:block/reel_gantry/p41"
+  },
+  "facing=north,piece=42": {
+   "model": "tailings:block/reel_gantry/p42"
+  },
+  "facing=north,piece=43": {
+   "model": "tailings:block/reel_gantry/p43"
+  },
+  "facing=north,piece=44": {
+   "model": "tailings:block/reel_gantry/p44"
+  },
+  "facing=north,piece=45": {
+   "model": "tailings:block/reel_gantry/p45"
+  },
+  "facing=north,piece=46": {
+   "model": "tailings:block/reel_gantry/p46"
+  },
+  "facing=north,piece=47": {
+   "model": "tailings:block/reel_gantry/p47"
+  },
+  "facing=north,piece=48": {
+   "model": "tailings:block/reel_gantry/p48"
+  },
+  "facing=north,piece=49": {
+   "model": "tailings:block/reel_gantry/p49"
+  },
+  "facing=north,piece=50": {
+   "model": "tailings:block/reel_gantry/p50"
+  },
+  "facing=north,piece=51": {
+   "model": "tailings:block/reel_gantry/p51"
+  },
+  "facing=north,piece=52": {
+   "model": "tailings:block/reel_gantry/p52"
+  },
+  "facing=north,piece=53": {
+   "model": "tailings:block/reel_gantry/p53"
+  },
+  "facing=north,piece=54": {
+   "model": "tailings:block/reel_gantry/p54"
+  },
+  "facing=north,piece=55": {
+   "model": "tailings:block/reel_gantry/p55"
+  },
+  "facing=north,piece=56": {
+   "model": "tailings:block/reel_gantry/p56"
+  },
+  "facing=north,piece=57": {
+   "model": "tailings:block/reel_gantry/p57"
+  },
+  "facing=north,piece=58": {
+   "model": "tailings:block/reel_gantry/p58"
+  },
+  "facing=north,piece=59": {
+   "model": "tailings:block/reel_gantry/p59"
+  },
+  "facing=north,piece=60": {
+   "model": "tailings:block/reel_gantry/p60"
+  },
+  "facing=north,piece=61": {
+   "model": "tailings:block/reel_gantry/p61"
+  },
+  "facing=north,piece=62": {
+   "model": "tailings:block/reel_gantry/p62"
+  },
+  "facing=north,piece=63": {
+   "model": "tailings:block/reel_gantry/p63"
+  },
+  "facing=north,piece=64": {
+   "model": "tailings:block/reel_gantry/p64"
+  },
+  "facing=north,piece=65": {
+   "model": "tailings:block/reel_gantry/p65"
+  },
+  "facing=north,piece=66": {
+   "model": "tailings:block/reel_gantry/p66"
+  },
+  "facing=north,piece=67": {
+   "model": "tailings:block/reel_gantry/p67"
+  },
+  "facing=north,piece=68": {
+   "model": "tailings:block/reel_gantry/p68"
+  },
+  "facing=north,piece=69": {
+   "model": "tailings:block/reel_gantry/p69"
+  },
+  "facing=north,piece=70": {
+   "model": "tailings:block/reel_gantry/p70"
+  },
+  "facing=north,piece=71": {
+   "model": "tailings:block/reel_gantry/p71"
+  },
+  "facing=north,piece=72": {
+   "model": "tailings:block/reel_gantry/p72"
+  },
+  "facing=north,piece=73": {
+   "model": "tailings:block/reel_gantry/p73"
+  },
+  "facing=north,piece=74": {
+   "model": "tailings:block/reel_gantry/p74"
+  },
+  "facing=north,piece=75": {
+   "model": "tailings:block/reel_gantry/p75"
+  },
+  "facing=north,piece=76": {
+   "model": "tailings:block/reel_gantry/p76"
+  },
+  "facing=north,piece=77": {
+   "model": "tailings:block/reel_gantry/p77"
+  },
+  "facing=north,piece=78": {
+   "model": "tailings:block/reel_gantry/p78"
+  },
+  "facing=north,piece=79": {
+   "model": "tailings:block/reel_gantry/p79"
+  },
+  "facing=north,piece=80": {
+   "model": "tailings:block/reel_gantry/p80"
+  },
+  "facing=north,piece=81": {
+   "model": "tailings:block/reel_gantry/p81"
+  },
+  "facing=north,piece=82": {
+   "model": "tailings:block/reel_gantry/p82"
+  },
+  "facing=north,piece=83": {
+   "model": "tailings:block/reel_gantry/p83"
+  },
+  "facing=north,piece=84": {
+   "model": "tailings:block/reel_gantry/p84"
+  },
+  "facing=north,piece=85": {
+   "model": "tailings:block/reel_gantry/p85"
+  },
+  "facing=north,piece=86": {
+   "model": "tailings:block/reel_gantry/p86"
+  },
+  "facing=north,piece=87": {
+   "model": "tailings:block/reel_gantry/p87"
+  },
+  "facing=north,piece=88": {
+   "model": "tailings:block/reel_gantry/p88"
+  },
+  "facing=north,piece=89": {
+   "model": "tailings:block/reel_gantry/p89"
+  },
+  "facing=north,piece=90": {
+   "model": "tailings:block/reel_gantry/p90"
+  },
+  "facing=north,piece=91": {
+   "model": "tailings:block/reel_gantry/p91"
+  },
+  "facing=north,piece=92": {
+   "model": "tailings:block/reel_gantry/p92"
+  },
+  "facing=north,piece=93": {
+   "model": "tailings:block/reel_gantry/p93"
+  },
+  "facing=north,piece=94": {
+   "model": "tailings:block/reel_gantry/p94"
+  },
+  "facing=north,piece=95": {
+   "model": "tailings:block/reel_gantry/p95"
+  },
+  "facing=east,piece=0": {
+   "model": "tailings:block/reel_gantry/p0",
+   "y": 90
+  },
+  "facing=east,piece=1": {
+   "model": "tailings:block/reel_gantry/p1",
+   "y": 90
+  },
+  "facing=east,piece=2": {
+   "model": "tailings:block/reel_gantry/p2",
+   "y": 90
+  },
+  "facing=east,piece=3": {
+   "model": "tailings:block/reel_gantry/p3",
+   "y": 90
+  },
+  "facing=east,piece=4": {
+   "model": "tailings:block/reel_gantry/p4",
+   "y": 90
+  },
+  "facing=east,piece=5": {
+   "model": "tailings:block/reel_gantry/p5",
+   "y": 90
+  },
+  "facing=east,piece=6": {
+   "model": "tailings:block/reel_gantry/p6",
+   "y": 90
+  },
+  "facing=east,piece=7": {
+   "model": "tailings:block/reel_gantry/p7",
+   "y": 90
+  },
+  "facing=east,piece=8": {
+   "model": "tailings:block/reel_gantry/p8",
+   "y": 90
+  },
+  "facing=east,piece=9": {
+   "model": "tailings:block/reel_gantry/p9",
+   "y": 90
+  },
+  "facing=east,piece=10": {
+   "model": "tailings:block/reel_gantry/p10",
+   "y": 90
+  },
+  "facing=east,piece=11": {
+   "model": "tailings:block/reel_gantry/p11",
+   "y": 90
+  },
+  "facing=east,piece=12": {
+   "model": "tailings:block/reel_gantry/p12",
+   "y": 90
+  },
+  "facing=east,piece=13": {
+   "model": "tailings:block/reel_gantry/p13",
+   "y": 90
+  },
+  "facing=east,piece=14": {
+   "model": "tailings:block/reel_gantry/p14",
+   "y": 90
+  },
+  "facing=east,piece=15": {
+   "model": "tailings:block/reel_gantry/p15",
+   "y": 90
+  },
+  "facing=east,piece=16": {
+   "model": "tailings:block/reel_gantry/p16",
+   "y": 90
+  },
+  "facing=east,piece=17": {
+   "model": "tailings:block/reel_gantry/p17",
+   "y": 90
+  },
+  "facing=east,piece=18": {
+   "model": "tailings:block/reel_gantry/p18",
+   "y": 90
+  },
+  "facing=east,piece=19": {
+   "model": "tailings:block/reel_gantry/p19",
+   "y": 90
+  },
+  "facing=east,piece=20": {
+   "model": "tailings:block/reel_gantry/p20",
+   "y": 90
+  },
+  "facing=east,piece=21": {
+   "model": "tailings:block/reel_gantry/p21",
+   "y": 90
+  },
+  "facing=east,piece=22": {
+   "model": "tailings:block/reel_gantry/p22",
+   "y": 90
+  },
+  "facing=east,piece=23": {
+   "model": "tailings:block/reel_gantry/p23",
+   "y": 90
+  },
+  "facing=east,piece=24": {
+   "model": "tailings:block/reel_gantry/p24",
+   "y": 90
+  },
+  "facing=east,piece=25": {
+   "model": "tailings:block/reel_gantry/p25",
+   "y": 90
+  },
+  "facing=east,piece=26": {
+   "model": "tailings:block/reel_gantry/p26",
+   "y": 90
+  },
+  "facing=east,piece=27": {
+   "model": "tailings:block/reel_gantry/p27",
+   "y": 90
+  },
+  "facing=east,piece=28": {
+   "model": "tailings:block/reel_gantry/p28",
+   "y": 90
+  },
+  "facing=east,piece=29": {
+   "model": "tailings:block/reel_gantry/p29",
+   "y": 90
+  },
+  "facing=east,piece=30": {
+   "model": "tailings:block/reel_gantry/p30",
+   "y": 90
+  },
+  "facing=east,piece=31": {
+   "model": "tailings:block/reel_gantry/p31",
+   "y": 90
+  },
+  "facing=east,piece=32": {
+   "model": "tailings:block/reel_gantry/p32",
+   "y": 90
+  },
+  "facing=east,piece=33": {
+   "model": "tailings:block/reel_gantry/p33",
+   "y": 90
+  },
+  "facing=east,piece=34": {
+   "model": "tailings:block/reel_gantry/p34",
+   "y": 90
+  },
+  "facing=east,piece=35": {
+   "model": "tailings:block/reel_gantry/p35",
+   "y": 90
+  },
+  "facing=east,piece=36": {
+   "model": "tailings:block/reel_gantry/p36",
+   "y": 90
+  },
+  "facing=east,piece=37": {
+   "model": "tailings:block/reel_gantry/p37",
+   "y": 90
+  },
+  "facing=east,piece=38": {
+   "model": "tailings:block/reel_gantry/p38",
+   "y": 90
+  },
+  "facing=east,piece=39": {
+   "model": "tailings:block/reel_gantry/p39",
+   "y": 90
+  },
+  "facing=east,piece=40": {
+   "model": "tailings:block/reel_gantry/p40",
+   "y": 90
+  },
+  "facing=east,piece=41": {
+   "model": "tailings:block/reel_gantry/p41",
+   "y": 90
+  },
+  "facing=east,piece=42": {
+   "model": "tailings:block/reel_gantry/p42",
+   "y": 90
+  },
+  "facing=east,piece=43": {
+   "model": "tailings:block/reel_gantry/p43",
+   "y": 90
+  },
+  "facing=east,piece=44": {
+   "model": "tailings:block/reel_gantry/p44",
+   "y": 90
+  },
+  "facing=east,piece=45": {
+   "model": "tailings:block/reel_gantry/p45",
+   "y": 90
+  },
+  "facing=east,piece=46": {
+   "model": "tailings:block/reel_gantry/p46",
+   "y": 90
+  },
+  "facing=east,piece=47": {
+   "model": "tailings:block/reel_gantry/p47",
+   "y": 90
+  },
+  "facing=east,piece=48": {
+   "model": "tailings:block/reel_gantry/p48",
+   "y": 90
+  },
+  "facing=east,piece=49": {
+   "model": "tailings:block/reel_gantry/p49",
+   "y": 90
+  },
+  "facing=east,piece=50": {
+   "model": "tailings:block/reel_gantry/p50",
+   "y": 90
+  },
+  "facing=east,piece=51": {
+   "model": "tailings:block/reel_gantry/p51",
+   "y": 90
+  },
+  "facing=east,piece=52": {
+   "model": "tailings:block/reel_gantry/p52",
+   "y": 90
+  },
+  "facing=east,piece=53": {
+   "model": "tailings:block/reel_gantry/p53",
+   "y": 90
+  },
+  "facing=east,piece=54": {
+   "model": "tailings:block/reel_gantry/p54",
+   "y": 90
+  },
+  "facing=east,piece=55": {
+   "model": "tailings:block/reel_gantry/p55",
+   "y": 90
+  },
+  "facing=east,piece=56": {
+   "model": "tailings:block/reel_gantry/p56",
+   "y": 90
+  },
+  "facing=east,piece=57": {
+   "model": "tailings:block/reel_gantry/p57",
+   "y": 90
+  },
+  "facing=east,piece=58": {
+   "model": "tailings:block/reel_gantry/p58",
+   "y": 90
+  },
+  "facing=east,piece=59": {
+   "model": "tailings:block/reel_gantry/p59",
+   "y": 90
+  },
+  "facing=east,piece=60": {
+   "model": "tailings:block/reel_gantry/p60",
+   "y": 90
+  },
+  "facing=east,piece=61": {
+   "model": "tailings:block/reel_gantry/p61",
+   "y": 90
+  },
+  "facing=east,piece=62": {
+   "model": "tailings:block/reel_gantry/p62",
+   "y": 90
+  },
+  "facing=east,piece=63": {
+   "model": "tailings:block/reel_gantry/p63",
+   "y": 90
+  },
+  "facing=east,piece=64": {
+   "model": "tailings:block/reel_gantry/p64",
+   "y": 90
+  },
+  "facing=east,piece=65": {
+   "model": "tailings:block/reel_gantry/p65",
+   "y": 90
+  },
+  "facing=east,piece=66": {
+   "model": "tailings:block/reel_gantry/p66",
+   "y": 90
+  },
+  "facing=east,piece=67": {
+   "model": "tailings:block/reel_gantry/p67",
+   "y": 90
+  },
+  "facing=east,piece=68": {
+   "model": "tailings:block/reel_gantry/p68",
+   "y": 90
+  },
+  "facing=east,piece=69": {
+   "model": "tailings:block/reel_gantry/p69",
+   "y": 90
+  },
+  "facing=east,piece=70": {
+   "model": "tailings:block/reel_gantry/p70",
+   "y": 90
+  },
+  "facing=east,piece=71": {
+   "model": "tailings:block/reel_gantry/p71",
+   "y": 90
+  },
+  "facing=east,piece=72": {
+   "model": "tailings:block/reel_gantry/p72",
+   "y": 90
+  },
+  "facing=east,piece=73": {
+   "model": "tailings:block/reel_gantry/p73",
+   "y": 90
+  },
+  "facing=east,piece=74": {
+   "model": "tailings:block/reel_gantry/p74",
+   "y": 90
+  },
+  "facing=east,piece=75": {
+   "model": "tailings:block/reel_gantry/p75",
+   "y": 90
+  },
+  "facing=east,piece=76": {
+   "model": "tailings:block/reel_gantry/p76",
+   "y": 90
+  },
+  "facing=east,piece=77": {
+   "model": "tailings:block/reel_gantry/p77",
+   "y": 90
+  },
+  "facing=east,piece=78": {
+   "model": "tailings:block/reel_gantry/p78",
+   "y": 90
+  },
+  "facing=east,piece=79": {
+   "model": "tailings:block/reel_gantry/p79",
+   "y": 90
+  },
+  "facing=east,piece=80": {
+   "model": "tailings:block/reel_gantry/p80",
+   "y": 90
+  },
+  "facing=east,piece=81": {
+   "model": "tailings:block/reel_gantry/p81",
+   "y": 90
+  },
+  "facing=east,piece=82": {
+   "model": "tailings:block/reel_gantry/p82",
+   "y": 90
+  },
+  "facing=east,piece=83": {
+   "model": "tailings:block/reel_gantry/p83",
+   "y": 90
+  },
+  "facing=east,piece=84": {
+   "model": "tailings:block/reel_gantry/p84",
+   "y": 90
+  },
+  "facing=east,piece=85": {
+   "model": "tailings:block/reel_gantry/p85",
+   "y": 90
+  },
+  "facing=east,piece=86": {
+   "model": "tailings:block/reel_gantry/p86",
+   "y": 90
+  },
+  "facing=east,piece=87": {
+   "model": "tailings:block/reel_gantry/p87",
+   "y": 90
+  },
+  "facing=east,piece=88": {
+   "model": "tailings:block/reel_gantry/p88",
+   "y": 90
+  },
+  "facing=east,piece=89": {
+   "model": "tailings:block/reel_gantry/p89",
+   "y": 90
+  },
+  "facing=east,piece=90": {
+   "model": "tailings:block/reel_gantry/p90",
+   "y": 90
+  },
+  "facing=east,piece=91": {
+   "model": "tailings:block/reel_gantry/p91",
+   "y": 90
+  },
+  "facing=east,piece=92": {
+   "model": "tailings:block/reel_gantry/p92",
+   "y": 90
+  },
+  "facing=east,piece=93": {
+   "model": "tailings:block/reel_gantry/p93",
+   "y": 90
+  },
+  "facing=east,piece=94": {
+   "model": "tailings:block/reel_gantry/p94",
+   "y": 90
+  },
+  "facing=east,piece=95": {
+   "model": "tailings:block/reel_gantry/p95",
+   "y": 90
+  },
+  "facing=south,piece=0": {
+   "model": "tailings:block/reel_gantry/p0",
+   "y": 180
+  },
+  "facing=south,piece=1": {
+   "model": "tailings:block/reel_gantry/p1",
+   "y": 180
+  },
+  "facing=south,piece=2": {
+   "model": "tailings:block/reel_gantry/p2",
+   "y": 180
+  },
+  "facing=south,piece=3": {
+   "model": "tailings:block/reel_gantry/p3",
+   "y": 180
+  },
+  "facing=south,piece=4": {
+   "model": "tailings:block/reel_gantry/p4",
+   "y": 180
+  },
+  "facing=south,piece=5": {
+   "model": "tailings:block/reel_gantry/p5",
+   "y": 180
+  },
+  "facing=south,piece=6": {
+   "model": "tailings:block/reel_gantry/p6",
+   "y": 180
+  },
+  "facing=south,piece=7": {
+   "model": "tailings:block/reel_gantry/p7",
+   "y": 180
+  },
+  "facing=south,piece=8": {
+   "model": "tailings:block/reel_gantry/p8",
+   "y": 180
+  },
+  "facing=south,piece=9": {
+   "model": "tailings:block/reel_gantry/p9",
+   "y": 180
+  },
+  "facing=south,piece=10": {
+   "model": "tailings:block/reel_gantry/p10",
+   "y": 180
+  },
+  "facing=south,piece=11": {
+   "model": "tailings:block/reel_gantry/p11",
+   "y": 180
+  },
+  "facing=south,piece=12": {
+   "model": "tailings:block/reel_gantry/p12",
+   "y": 180
+  },
+  "facing=south,piece=13": {
+   "model": "tailings:block/reel_gantry/p13",
+   "y": 180
+  },
+  "facing=south,piece=14": {
+   "model": "tailings:block/reel_gantry/p14",
+   "y": 180
+  },
+  "facing=south,piece=15": {
+   "model": "tailings:block/reel_gantry/p15",
+   "y": 180
+  },
+  "facing=south,piece=16": {
+   "model": "tailings:block/reel_gantry/p16",
+   "y": 180
+  },
+  "facing=south,piece=17": {
+   "model": "tailings:block/reel_gantry/p17",
+   "y": 180
+  },
+  "facing=south,piece=18": {
+   "model": "tailings:block/reel_gantry/p18",
+   "y": 180
+  },
+  "facing=south,piece=19": {
+   "model": "tailings:block/reel_gantry/p19",
+   "y": 180
+  },
+  "facing=south,piece=20": {
+   "model": "tailings:block/reel_gantry/p20",
+   "y": 180
+  },
+  "facing=south,piece=21": {
+   "model": "tailings:block/reel_gantry/p21",
+   "y": 180
+  },
+  "facing=south,piece=22": {
+   "model": "tailings:block/reel_gantry/p22",
+   "y": 180
+  },
+  "facing=south,piece=23": {
+   "model": "tailings:block/reel_gantry/p23",
+   "y": 180
+  },
+  "facing=south,piece=24": {
+   "model": "tailings:block/reel_gantry/p24",
+   "y": 180
+  },
+  "facing=south,piece=25": {
+   "model": "tailings:block/reel_gantry/p25",
+   "y": 180
+  },
+  "facing=south,piece=26": {
+   "model": "tailings:block/reel_gantry/p26",
+   "y": 180
+  },
+  "facing=south,piece=27": {
+   "model": "tailings:block/reel_gantry/p27",
+   "y": 180
+  },
+  "facing=south,piece=28": {
+   "model": "tailings:block/reel_gantry/p28",
+   "y": 180
+  },
+  "facing=south,piece=29": {
+   "model": "tailings:block/reel_gantry/p29",
+   "y": 180
+  },
+  "facing=south,piece=30": {
+   "model": "tailings:block/reel_gantry/p30",
+   "y": 180
+  },
+  "facing=south,piece=31": {
+   "model": "tailings:block/reel_gantry/p31",
+   "y": 180
+  },
+  "facing=south,piece=32": {
+   "model": "tailings:block/reel_gantry/p32",
+   "y": 180
+  },
+  "facing=south,piece=33": {
+   "model": "tailings:block/reel_gantry/p33",
+   "y": 180
+  },
+  "facing=south,piece=34": {
+   "model": "tailings:block/reel_gantry/p34",
+   "y": 180
+  },
+  "facing=south,piece=35": {
+   "model": "tailings:block/reel_gantry/p35",
+   "y": 180
+  },
+  "facing=south,piece=36": {
+   "model": "tailings:block/reel_gantry/p36",
+   "y": 180
+  },
+  "facing=south,piece=37": {
+   "model": "tailings:block/reel_gantry/p37",
+   "y": 180
+  },
+  "facing=south,piece=38": {
+   "model": "tailings:block/reel_gantry/p38",
+   "y": 180
+  },
+  "facing=south,piece=39": {
+   "model": "tailings:block/reel_gantry/p39",
+   "y": 180
+  },
+  "facing=south,piece=40": {
+   "model": "tailings:block/reel_gantry/p40",
+   "y": 180
+  },
+  "facing=south,piece=41": {
+   "model": "tailings:block/reel_gantry/p41",
+   "y": 180
+  },
+  "facing=south,piece=42": {
+   "model": "tailings:block/reel_gantry/p42",
+   "y": 180
+  },
+  "facing=south,piece=43": {
+   "model": "tailings:block/reel_gantry/p43",
+   "y": 180
+  },
+  "facing=south,piece=44": {
+   "model": "tailings:block/reel_gantry/p44",
+   "y": 180
+  },
+  "facing=south,piece=45": {
+   "model": "tailings:block/reel_gantry/p45",
+   "y": 180
+  },
+  "facing=south,piece=46": {
+   "model": "tailings:block/reel_gantry/p46",
+   "y": 180
+  },
+  "facing=south,piece=47": {
+   "model": "tailings:block/reel_gantry/p47",
+   "y": 180
+  },
+  "facing=south,piece=48": {
+   "model": "tailings:block/reel_gantry/p48",
+   "y": 180
+  },
+  "facing=south,piece=49": {
+   "model": "tailings:block/reel_gantry/p49",
+   "y": 180
+  },
+  "facing=south,piece=50": {
+   "model": "tailings:block/reel_gantry/p50",
+   "y": 180
+  },
+  "facing=south,piece=51": {
+   "model": "tailings:block/reel_gantry/p51",
+   "y": 180
+  },
+  "facing=south,piece=52": {
+   "model": "tailings:block/reel_gantry/p52",
+   "y": 180
+  },
+  "facing=south,piece=53": {
+   "model": "tailings:block/reel_gantry/p53",
+   "y": 180
+  },
+  "facing=south,piece=54": {
+   "model": "tailings:block/reel_gantry/p54",
+   "y": 180
+  },
+  "facing=south,piece=55": {
+   "model": "tailings:block/reel_gantry/p55",
+   "y": 180
+  },
+  "facing=south,piece=56": {
+   "model": "tailings:block/reel_gantry/p56",
+   "y": 180
+  },
+  "facing=south,piece=57": {
+   "model": "tailings:block/reel_gantry/p57",
+   "y": 180
+  },
+  "facing=south,piece=58": {
+   "model": "tailings:block/reel_gantry/p58",
+   "y": 180
+  },
+  "facing=south,piece=59": {
+   "model": "tailings:block/reel_gantry/p59",
+   "y": 180
+  },
+  "facing=south,piece=60": {
+   "model": "tailings:block/reel_gantry/p60",
+   "y": 180
+  },
+  "facing=south,piece=61": {
+   "model": "tailings:block/reel_gantry/p61",
+   "y": 180
+  },
+  "facing=south,piece=62": {
+   "model": "tailings:block/reel_gantry/p62",
+   "y": 180
+  },
+  "facing=south,piece=63": {
+   "model": "tailings:block/reel_gantry/p63",
+   "y": 180
+  },
+  "facing=south,piece=64": {
+   "model": "tailings:block/reel_gantry/p64",
+   "y": 180
+  },
+  "facing=south,piece=65": {
+   "model": "tailings:block/reel_gantry/p65",
+   "y": 180
+  },
+  "facing=south,piece=66": {
+   "model": "tailings:block/reel_gantry/p66",
+   "y": 180
+  },
+  "facing=south,piece=67": {
+   "model": "tailings:block/reel_gantry/p67",
+   "y": 180
+  },
+  "facing=south,piece=68": {
+   "model": "tailings:block/reel_gantry/p68",
+   "y": 180
+  },
+  "facing=south,piece=69": {
+   "model": "tailings:block/reel_gantry/p69",
+   "y": 180
+  },
+  "facing=south,piece=70": {
+   "model": "tailings:block/reel_gantry/p70",
+   "y": 180
+  },
+  "facing=south,piece=71": {
+   "model": "tailings:block/reel_gantry/p71",
+   "y": 180
+  },
+  "facing=south,piece=72": {
+   "model": "tailings:block/reel_gantry/p72",
+   "y": 180
+  },
+  "facing=south,piece=73": {
+   "model": "tailings:block/reel_gantry/p73",
+   "y": 180
+  },
+  "facing=south,piece=74": {
+   "model": "tailings:block/reel_gantry/p74",
+   "y": 180
+  },
+  "facing=south,piece=75": {
+   "model": "tailings:block/reel_gantry/p75",
+   "y": 180
+  },
+  "facing=south,piece=76": {
+   "model": "tailings:block/reel_gantry/p76",
+   "y": 180
+  },
+  "facing=south,piece=77": {
+   "model": "tailings:block/reel_gantry/p77",
+   "y": 180
+  },
+  "facing=south,piece=78": {
+   "model": "tailings:block/reel_gantry/p78",
+   "y": 180
+  },
+  "facing=south,piece=79": {
+   "model": "tailings:block/reel_gantry/p79",
+   "y": 180
+  },
+  "facing=south,piece=80": {
+   "model": "tailings:block/reel_gantry/p80",
+   "y": 180
+  },
+  "facing=south,piece=81": {
+   "model": "tailings:block/reel_gantry/p81",
+   "y": 180
+  },
+  "facing=south,piece=82": {
+   "model": "tailings:block/reel_gantry/p82",
+   "y": 180
+  },
+  "facing=south,piece=83": {
+   "model": "tailings:block/reel_gantry/p83",
+   "y": 180
+  },
+  "facing=south,piece=84": {
+   "model": "tailings:block/reel_gantry/p84",
+   "y": 180
+  },
+  "facing=south,piece=85": {
+   "model": "tailings:block/reel_gantry/p85",
+   "y": 180
+  },
+  "facing=south,piece=86": {
+   "model": "tailings:block/reel_gantry/p86",
+   "y": 180
+  },
+  "facing=south,piece=87": {
+   "model": "tailings:block/reel_gantry/p87",
+   "y": 180
+  },
+  "facing=south,piece=88": {
+   "model": "tailings:block/reel_gantry/p88",
+   "y": 180
+  },
+  "facing=south,piece=89": {
+   "model": "tailings:block/reel_gantry/p89",
+   "y": 180
+  },
+  "facing=south,piece=90": {
+   "model": "tailings:block/reel_gantry/p90",
+   "y": 180
+  },
+  "facing=south,piece=91": {
+   "model": "tailings:block/reel_gantry/p91",
+   "y": 180
+  },
+  "facing=south,piece=92": {
+   "model": "tailings:block/reel_gantry/p92",
+   "y": 180
+  },
+  "facing=south,piece=93": {
+   "model": "tailings:block/reel_gantry/p93",
+   "y": 180
+  },
+  "facing=south,piece=94": {
+   "model": "tailings:block/reel_gantry/p94",
+   "y": 180
+  },
+  "facing=south,piece=95": {
+   "model": "tailings:block/reel_gantry/p95",
+   "y": 180
+  },
+  "facing=west,piece=0": {
+   "model": "tailings:block/reel_gantry/p0",
+   "y": 270
+  },
+  "facing=west,piece=1": {
+   "model": "tailings:block/reel_gantry/p1",
+   "y": 270
+  },
+  "facing=west,piece=2": {
+   "model": "tailings:block/reel_gantry/p2",
+   "y": 270
+  },
+  "facing=west,piece=3": {
+   "model": "tailings:block/reel_gantry/p3",
+   "y": 270
+  },
+  "facing=west,piece=4": {
+   "model": "tailings:block/reel_gantry/p4",
+   "y": 270
+  },
+  "facing=west,piece=5": {
+   "model": "tailings:block/reel_gantry/p5",
+   "y": 270
+  },
+  "facing=west,piece=6": {
+   "model": "tailings:block/reel_gantry/p6",
+   "y": 270
+  },
+  "facing=west,piece=7": {
+   "model": "tailings:block/reel_gantry/p7",
+   "y": 270
+  },
+  "facing=west,piece=8": {
+   "model": "tailings:block/reel_gantry/p8",
+   "y": 270
+  },
+  "facing=west,piece=9": {
+   "model": "tailings:block/reel_gantry/p9",
+   "y": 270
+  },
+  "facing=west,piece=10": {
+   "model": "tailings:block/reel_gantry/p10",
+   "y": 270
+  },
+  "facing=west,piece=11": {
+   "model": "tailings:block/reel_gantry/p11",
+   "y": 270
+  },
+  "facing=west,piece=12": {
+   "model": "tailings:block/reel_gantry/p12",
+   "y": 270
+  },
+  "facing=west,piece=13": {
+   "model": "tailings:block/reel_gantry/p13",
+   "y": 270
+  },
+  "facing=west,piece=14": {
+   "model": "tailings:block/reel_gantry/p14",
+   "y": 270
+  },
+  "facing=west,piece=15": {
+   "model": "tailings:block/reel_gantry/p15",
+   "y": 270
+  },
+  "facing=west,piece=16": {
+   "model": "tailings:block/reel_gantry/p16",
+   "y": 270
+  },
+  "facing=west,piece=17": {
+   "model": "tailings:block/reel_gantry/p17",
+   "y": 270
+  },
+  "facing=west,piece=18": {
+   "model": "tailings:block/reel_gantry/p18",
+   "y": 270
+  },
+  "facing=west,piece=19": {
+   "model": "tailings:block/reel_gantry/p19",
+   "y": 270
+  },
+  "facing=west,piece=20": {
+   "model": "tailings:block/reel_gantry/p20",
+   "y": 270
+  },
+  "facing=west,piece=21": {
+   "model": "tailings:block/reel_gantry/p21",
+   "y": 270
+  },
+  "facing=west,piece=22": {
+   "model": "tailings:block/reel_gantry/p22",
+   "y": 270
+  },
+  "facing=west,piece=23": {
+   "model": "tailings:block/reel_gantry/p23",
+   "y": 270
+  },
+  "facing=west,piece=24": {
+   "model": "tailings:block/reel_gantry/p24",
+   "y": 270
+  },
+  "facing=west,piece=25": {
+   "model": "tailings:block/reel_gantry/p25",
+   "y": 270
+  },
+  "facing=west,piece=26": {
+   "model": "tailings:block/reel_gantry/p26",
+   "y": 270
+  },
+  "facing=west,piece=27": {
+   "model": "tailings:block/reel_gantry/p27",
+   "y": 270
+  },
+  "facing=west,piece=28": {
+   "model": "tailings:block/reel_gantry/p28",
+   "y": 270
+  },
+  "facing=west,piece=29": {
+   "model": "tailings:block/reel_gantry/p29",
+   "y": 270
+  },
+  "facing=west,piece=30": {
+   "model": "tailings:block/reel_gantry/p30",
+   "y": 270
+  },
+  "facing=west,piece=31": {
+   "model": "tailings:block/reel_gantry/p31",
+   "y": 270
+  },
+  "facing=west,piece=32": {
+   "model": "tailings:block/reel_gantry/p32",
+   "y": 270
+  },
+  "facing=west,piece=33": {
+   "model": "tailings:block/reel_gantry/p33",
+   "y": 270
+  },
+  "facing=west,piece=34": {
+   "model": "tailings:block/reel_gantry/p34",
+   "y": 270
+  },
+  "facing=west,piece=35": {
+   "model": "tailings:block/reel_gantry/p35",
+   "y": 270
+  },
+  "facing=west,piece=36": {
+   "model": "tailings:block/reel_gantry/p36",
+   "y": 270
+  },
+  "facing=west,piece=37": {
+   "model": "tailings:block/reel_gantry/p37",
+   "y": 270
+  },
+  "facing=west,piece=38": {
+   "model": "tailings:block/reel_gantry/p38",
+   "y": 270
+  },
+  "facing=west,piece=39": {
+   "model": "tailings:block/reel_gantry/p39",
+   "y": 270
+  },
+  "facing=west,piece=40": {
+   "model": "tailings:block/reel_gantry/p40",
+   "y": 270
+  },
+  "facing=west,piece=41": {
+   "model": "tailings:block/reel_gantry/p41",
+   "y": 270
+  },
+  "facing=west,piece=42": {
+   "model": "tailings:block/reel_gantry/p42",
+   "y": 270
+  },
+  "facing=west,piece=43": {
+   "model": "tailings:block/reel_gantry/p43",
+   "y": 270
+  },
+  "facing=west,piece=44": {
+   "model": "tailings:block/reel_gantry/p44",
+   "y": 270
+  },
+  "facing=west,piece=45": {
+   "model": "tailings:block/reel_gantry/p45",
+   "y": 270
+  },
+  "facing=west,piece=46": {
+   "model": "tailings:block/reel_gantry/p46",
+   "y": 270
+  },
+  "facing=west,piece=47": {
+   "model": "tailings:block/reel_gantry/p47",
+   "y": 270
+  },
+  "facing=west,piece=48": {
+   "model": "tailings:block/reel_gantry/p48",
+   "y": 270
+  },
+  "facing=west,piece=49": {
+   "model": "tailings:block/reel_gantry/p49",
+   "y": 270
+  },
+  "facing=west,piece=50": {
+   "model": "tailings:block/reel_gantry/p50",
+   "y": 270
+  },
+  "facing=west,piece=51": {
+   "model": "tailings:block/reel_gantry/p51",
+   "y": 270
+  },
+  "facing=west,piece=52": {
+   "model": "tailings:block/reel_gantry/p52",
+   "y": 270
+  },
+  "facing=west,piece=53": {
+   "model": "tailings:block/reel_gantry/p53",
+   "y": 270
+  },
+  "facing=west,piece=54": {
+   "model": "tailings:block/reel_gantry/p54",
+   "y": 270
+  },
+  "facing=west,piece=55": {
+   "model": "tailings:block/reel_gantry/p55",
+   "y": 270
+  },
+  "facing=west,piece=56": {
+   "model": "tailings:block/reel_gantry/p56",
+   "y": 270
+  },
+  "facing=west,piece=57": {
+   "model": "tailings:block/reel_gantry/p57",
+   "y": 270
+  },
+  "facing=west,piece=58": {
+   "model": "tailings:block/reel_gantry/p58",
+   "y": 270
+  },
+  "facing=west,piece=59": {
+   "model": "tailings:block/reel_gantry/p59",
+   "y": 270
+  },
+  "facing=west,piece=60": {
+   "model": "tailings:block/reel_gantry/p60",
+   "y": 270
+  },
+  "facing=west,piece=61": {
+   "model": "tailings:block/reel_gantry/p61",
+   "y": 270
+  },
+  "facing=west,piece=62": {
+   "model": "tailings:block/reel_gantry/p62",
+   "y": 270
+  },
+  "facing=west,piece=63": {
+   "model": "tailings:block/reel_gantry/p63",
+   "y": 270
+  },
+  "facing=west,piece=64": {
+   "model": "tailings:block/reel_gantry/p64",
+   "y": 270
+  },
+  "facing=west,piece=65": {
+   "model": "tailings:block/reel_gantry/p65",
+   "y": 270
+  },
+  "facing=west,piece=66": {
+   "model": "tailings:block/reel_gantry/p66",
+   "y": 270
+  },
+  "facing=west,piece=67": {
+   "model": "tailings:block/reel_gantry/p67",
+   "y": 270
+  },
+  "facing=west,piece=68": {
+   "model": "tailings:block/reel_gantry/p68",
+   "y": 270
+  },
+  "facing=west,piece=69": {
+   "model": "tailings:block/reel_gantry/p69",
+   "y": 270
+  },
+  "facing=west,piece=70": {
+   "model": "tailings:block/reel_gantry/p70",
+   "y": 270
+  },
+  "facing=west,piece=71": {
+   "model": "tailings:block/reel_gantry/p71",
+   "y": 270
+  },
+  "facing=west,piece=72": {
+   "model": "tailings:block/reel_gantry/p72",
+   "y": 270
+  },
+  "facing=west,piece=73": {
+   "model": "tailings:block/reel_gantry/p73",
+   "y": 270
+  },
+  "facing=west,piece=74": {
+   "model": "tailings:block/reel_gantry/p74",
+   "y": 270
+  },
+  "facing=west,piece=75": {
+   "model": "tailings:block/reel_gantry/p75",
+   "y": 270
+  },
+  "facing=west,piece=76": {
+   "model": "tailings:block/reel_gantry/p76",
+   "y": 270
+  },
+  "facing=west,piece=77": {
+   "model": "tailings:block/reel_gantry/p77",
+   "y": 270
+  },
+  "facing=west,piece=78": {
+   "model": "tailings:block/reel_gantry/p78",
+   "y": 270
+  },
+  "facing=west,piece=79": {
+   "model": "tailings:block/reel_gantry/p79",
+   "y": 270
+  },
+  "facing=west,piece=80": {
+   "model": "tailings:block/reel_gantry/p80",
+   "y": 270
+  },
+  "facing=west,piece=81": {
+   "model": "tailings:block/reel_gantry/p81",
+   "y": 270
+  },
+  "facing=west,piece=82": {
+   "model": "tailings:block/reel_gantry/p82",
+   "y": 270
+  },
+  "facing=west,piece=83": {
+   "model": "tailings:block/reel_gantry/p83",
+   "y": 270
+  },
+  "facing=west,piece=84": {
+   "model": "tailings:block/reel_gantry/p84",
+   "y": 270
+  },
+  "facing=west,piece=85": {
+   "model": "tailings:block/reel_gantry/p85",
+   "y": 270
+  },
+  "facing=west,piece=86": {
+   "model": "tailings:block/reel_gantry/p86",
+   "y": 270
+  },
+  "facing=west,piece=87": {
+   "model": "tailings:block/reel_gantry/p87",
+   "y": 270
+  },
+  "facing=west,piece=88": {
+   "model": "tailings:block/reel_gantry/p88",
+   "y": 270
+  },
+  "facing=west,piece=89": {
+   "model": "tailings:block/reel_gantry/p89",
+   "y": 270
+  },
+  "facing=west,piece=90": {
+   "model": "tailings:block/reel_gantry/p90",
+   "y": 270
+  },
+  "facing=west,piece=91": {
+   "model": "tailings:block/reel_gantry/p91",
+   "y": 270
+  },
+  "facing=west,piece=92": {
+   "model": "tailings:block/reel_gantry/p92",
+   "y": 270
+  },
+  "facing=west,piece=93": {
+   "model": "tailings:block/reel_gantry/p93",
+   "y": 270
+  },
+  "facing=west,piece=94": {
+   "model": "tailings:block/reel_gantry/p94",
+   "y": 270
+  },
+  "facing=west,piece=95": {
+   "model": "tailings:block/reel_gantry/p95",
+   "y": 270
+  }
+ }
+}

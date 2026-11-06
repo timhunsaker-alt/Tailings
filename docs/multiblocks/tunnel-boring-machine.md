@@ -251,9 +251,15 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
   Standing on the moving machine (Create-style collision) is left for later (ROADMAP Known gaps).
 
 ## Added while planning R6
-- **Until the reel gantry (R6c):** the `cable_junction` is the machine's power point, and the cab counts the cable paid out against
-  300 m plus cable items.
-- **The loading point** is the track (columns 2 and 5) just behind the track layer until the conveyor gantry (R6c) takes it over.
+- **The `cable_junction`** is the machine's power point, and the cab counts the cable paid out against 300 m plus cable items.
+
+## Added while building R6c
+- **Rows behind the cutterhead:** the track layer lays the last rail at row 11; the pump gantry stands on rows 12 to 14, the reel on 15 to 18, the conveyor on 19 to 26. So the player's twin rail must run at least 16 rows back from the track layer before starting.
+- **The loading point** is the five rows just behind the conveyor's tail, on both tracks. A train waits there while a car has room and the machine has muck.
+- **A train stops short of a gantry** and turns back there, as at the end of the line.
+- **Coupling** is from within 8 blocks of the gantry's place, in order, and snaps it into place. It works on the machine as blocks, running or parked.
+- **Power:** 1 MW for the beam, 75 kW more while the pump pumps or quenches, 7.5 kW more while the conveyor moves muck, all through the junction.
+- **A gantry gone, or the track under one,** reads NOT BUILT and names it. The machine keeps its Go and carries on once it is put right.
 
 ## Added while building R6b
 - **Only the contraption drives.** Started and whole, with its junction live, the machine lifts before it cuts anything: the blocks never step.

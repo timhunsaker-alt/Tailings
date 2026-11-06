@@ -2,15 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "III",
-    "IWI",
+    "ICI",
     "III"
   ],
   "key": {
     "I": "minecraft:iron_ingot",
-    "W": "minecraft:water_bucket"
+    "C": "minecraft:copper_ingot"
   },
   "result": {
-    "id": "tailings:dewatering_pump",
+    "id": "tailings:reel_gantry",
     "count": 1
   }
 }

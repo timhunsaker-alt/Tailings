@@ -53,9 +53,13 @@ A Fabric client game test now builds scenes in a real game and films the game wi
 - unfed track could not be solved (its joints are too stiff for the solver's tiny leak): each rail now has its insulators' 1 Mohm leak to
   earth. `traction_unfed` covers it.
 
+## R6c: the gantries (2026-11-06)
+
+Pump, reel and conveyor gantries ride the twin track behind the machine, coupled in order. The conveyor loads the cars behind its tail, trains stop short of it, and a missing gantry or the cable's end stops the machine. 47 game test scenes pass; both drives are filmed with the gantries. R6 is complete; R7 is next.
+
 ## R6b: the contraption (2026-11-06)
 
-The TBM's parts lift into one entity when it starts, glide into each cut, and line behind themselves, pitched on the decline. It sets down on the flat or parks on the decline; it can be dismantled and ridden. 40 game test scenes pass; the flat and decline drives are filmed. R6c, the gantries, is next.
+The TBM's parts lift into one entity when it starts, glide into each cut, and line behind themselves, pitched on the decline. It sets down on the flat or parks on the decline; it can be dismantled and ridden. 40 game test scenes pass; the flat and decline drives are filmed.
 
 ## R6a: the TBM's real parts, as blocks (2026-11-06)
 

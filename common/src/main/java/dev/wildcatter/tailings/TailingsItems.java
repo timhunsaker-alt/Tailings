@@ -4,6 +4,9 @@ import dev.wildcatter.tailings.plant.Reagent;
 import dev.wildcatter.tailings.rock.Mineral;
 import dev.wildcatter.tailings.rock.Rock;
 import dev.wildcatter.tailings.rock.SizeClass;
+import dev.wildcatter.tailings.mine.TbmGantry;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,6 +27,7 @@ public final class TailingsItems {
 	public static final List<Item> REAGENTS = new ArrayList<>();
 	public static Item LOCOMOTIVE;
 	public static Item CAR;
+	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
 	}
@@ -39,6 +43,9 @@ public final class TailingsItems {
 		}
 		LOCOMOTIVE = item("mine_locomotive");
 		CAR = item("mine_car");
+		for (TbmGantry gantry : TbmGantry.values()) {
+			GANTRIES.put(gantry, item(gantry.id()));
+		}
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {
@@ -57,6 +64,10 @@ public final class TailingsItems {
 		if (seen.add(id)) {
 			into.add(item(Identifier.parse(id).getPath()));
 		}
+	}
+
+	public static Item gantry(TbmGantry gantry) {
+		return GANTRIES.get(gantry);
 	}
 
 	private static Item item(String path) {
