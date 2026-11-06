@@ -1,91 +1,80 @@
 package dev.wildcatter.tailings.haul;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.Arrays;
 
 /**
- * The dump pocket and the sensor sorter. The pocket holds one train. Each assigned product has a bin; anything else
- * is waste. A full bin or a full pocket refuses the tip, and the train waits.
+ * The ore sorter's screen (docs/multiblocks/dump-station.md): each of its four sides (0 north, 1 east, 2 south, 3 west) set to one
+ * rock or ore type by item id, and one side set as waste. Each type goes out of the side set for it; a type with no side goes to
+ * waste. Plain Java.
  */
 public final class Sorter {
-	private final Set<String> products;
-	private final Map<String, Integer> bins = new LinkedHashMap<>();
-	private int waste;
-	private int pocket;
+	public static final int SIDES = 4;
+	private final String[] product = new String[SIDES];
+	private int waste = -1;
 
-	public Sorter(Set<String> products) {
-		this.products = Set.copyOf(products);
-	}
-
-	public void restore(Map<String, Integer> bins, int waste, int pocket) {
-		this.bins.clear();
-		if (bins != null) {
-			this.bins.putAll(bins);
+	/** Sets {@code side} to take {@code itemId}; the side stops being waste, and no other side keeps that type. */
+	public void set(int side, String itemId) {
+		for (int i = 0; i < SIDES; i++) {
+			if (itemId.equals(product[i])) {
+				product[i] = null;
+			}
 		}
-		this.waste = Math.max(0, waste);
-		this.pocket = Math.max(0, pocket);
+		product[side] = itemId;
+		if (waste == side) {
+			waste = -1;
+		}
 	}
 
-	public int pocket() {
-		return pocket;
+	/** Sets {@code side} as the waste side; it takes no one type any more. */
+	public void setWaste(int side) {
+		product[side] = null;
+		waste = side;
+	}
+
+	public String product(int side) {
+		return product[side];
 	}
 
 	public int waste() {
 		return waste;
 	}
 
-	public int bin(String itemId) {
-		return bins.getOrDefault(itemId, 0);
-	}
-
-	public Map<String, Integer> bins() {
-		return Collections.unmodifiableMap(bins);
-	}
-
-	/** Tips one car, or the whole consist, if the pocket and the bins can take every kilogram. */
-	public boolean tip(Map<String, Integer> load) {
-		if (load == null || load.isEmpty()) {
-			return true;
-		}
-		int sum = 0;
-		for (int kg : load.values()) {
-			if (kg > 0) {
-				sum += kg;
+	/** The side {@code itemId} leaves by, or -1 when it has none and there is no waste side. */
+	public int route(String itemId) {
+		for (int i = 0; i < SIDES; i++) {
+			if (itemId.equals(product[i])) {
+				return i;
 			}
 		}
-		if (pocket + sum > Haul.POCKET_ITEMS) {
-			return false;
-		}
-		Map<String, Integer> nextBins = new LinkedHashMap<>(bins);
-		int nextWaste = waste;
-		for (Map.Entry<String, Integer> entry : load.entrySet()) {
-			if (entry.getValue() <= 0) {
-				continue;
-			}
-			if (products.contains(entry.getKey())) {
-				int filled = nextBins.getOrDefault(entry.getKey(), 0) + entry.getValue();
-				if (filled > Haul.BIN_ITEMS) {
-					return false;
-				}
-				nextBins.put(entry.getKey(), filled);
-			} else {
-				nextWaste += entry.getValue();
-				if (nextWaste > Haul.BIN_ITEMS) {
-					return false;
-				}
-			}
-		}
-		bins.clear();
-		bins.putAll(nextBins);
-		waste = nextWaste;
-		pocket += sum;
-		return true;
+		return waste;
 	}
 
-	/** The apron has cleared the pocket into the bins. The kilograms stay in the bins. */
-	public void clearPocket() {
-		pocket = 0;
+	/** Saved as {@code north|east|south|west|waste}, empty for an unset side. */
+	public String save() {
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < SIDES; i++) {
+			out.append(product[i] == null ? "" : product[i]).append('|');
+		}
+		return out.append(waste).toString();
+	}
+
+	public void load(String text) {
+		Arrays.fill(product, null);
+		waste = -1;
+		if (text == null || text.isBlank()) {
+			return;
+		}
+		String[] part = text.split("\\|", -1);
+		for (int i = 0; i < SIDES && i < part.length; i++) {
+			product[i] = part[i].isEmpty() ? null : part[i];
+		}
+		try {
+			waste = part.length > SIDES ? Integer.parseInt(part[SIDES]) : -1;
+		} catch (NumberFormatException ex) {
+			waste = -1;
+		}
+		if (waste < -1 || waste >= SIDES) {
+			waste = -1;
+		}
 	}
 }

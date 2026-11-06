@@ -136,7 +136,9 @@ public class RailBlockEntity extends BlockEntity {
 		Direction facing = travel();
 		BlockPos next = worldPosition.relative(facing);
 		boolean decline = decline();
-		tipOverPockets();
+		if (tipOverPockets()) {
+			return false;   // a loaded car over a full pocket: the train waits until the pocket has room
+		}
 		BlockEntity ahead = level.getBlockEntity(next);
 		RailBlockEntity dest = ahead instanceof RailBlockEntity rail ? rail : null;
 		boolean blocked = dest == null || (!dest.trainId.isEmpty() && !dest.trainId.equals(trainId));
@@ -154,9 +156,11 @@ public class RailBlockEntity extends BlockEntity {
 
 	/**
 	 * Every loaded car standing over a dump pocket, with a dump ramp beside its rail, tips its load into the pocket as it passes
-	 * (docs/multiblocks/dump-station.md): a Granby car tips on the move, so the train does not stop.
+	 * (docs/multiblocks/dump-station.md): a Granby car tips on the move, so the train does not stop. Returns true when a car could
+	 * not tip because the pocket is full: then the train waits (decided with Tim, 2026-11-05).
 	 */
-	private void tipOverPockets() {
+	private boolean tipOverPockets() {
+		boolean waits = false;
 		for (RailBlockEntity car : consist()) {
 			if (car.kind != Kind.CAR || car.load.total() == 0 || !car.besideRamp()) {
 				continue;
@@ -164,11 +168,16 @@ public class RailBlockEntity extends BlockEntity {
 			BlockPos under = car.worldPosition.below();
 			BlockState below = level.getBlockState(under);
 			if (below.getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_POCKET
-					&& level.getBlockEntity(PlantMachineBlock.mainOf(under, below)) instanceof DumpBlockEntity pocket && pocket.offer(car.load.contents())) {
-				car.load.clear();
-				car.setChanged();
+					&& level.getBlockEntity(PlantMachineBlock.mainOf(under, below)) instanceof DumpBlockEntity pocket) {
+				if (pocket.offer(car.load.contents())) {
+					car.load.clear();
+					car.setChanged();
+				} else {
+					waits = true;
+				}
 			}
 		}
+		return waits;
 	}
 
 	private boolean besideRamp() {

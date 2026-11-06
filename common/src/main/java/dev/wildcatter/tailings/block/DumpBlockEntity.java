@@ -1,40 +1,27 @@
 package dev.wildcatter.tailings.block;
 
+import dev.wildcatter.energy.Inspectable;
 import dev.wildcatter.multiblock.BigPartEntity;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.haul.Haul;
-import dev.wildcatter.tailings.haul.Sorter;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.Container;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import org.jspecify.annotations.Nullable;
 
 /**
- * The dump pocket (docs/multiblocks/dump-station.md), which until R4 also sorts, as the one-block dump station did. Slot 0 is waste. Slots 1 to 8 are product bins: a bin keeps the item it already holds.
- * The pocket buffers one 30 t train, then the next train waits.
+ * The dump pocket (docs/multiblocks/dump-station.md): a concrete pocket under the track that takes each tipping car's whole load, up
+ * to one 10-car train. The apron feeder touching it draws the rock out to the sorter. When it cannot take a car's load, that car
+ * does not tip and the train waits (decided with Tim, 2026-11-05).
  */
-public class DumpBlockEntity extends BlockEntity implements WorldlyContainer, BigPartEntity {
-	public static final int SLOTS = 9;
-	private final NonNullList<ItemStack> slots = NonNullList.withSize(SLOTS, ItemStack.EMPTY);
-	private int pocket;
-	private int apron;
+public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspectable {
+	private final Map<String, Integer> held = new LinkedHashMap<>();
 	private boolean grown;
 
 	public DumpBlockEntity(BlockPos pos, BlockState state) {
@@ -42,15 +29,7 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer, Bi
 	}
 
 	public static void tick(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, DumpBlockEntity dump) {
-		if (dump.pocket <= 0) {
-			return;
-		}
-		dump.apron++;
-		if (dump.apron >= 20) {
-			dump.apron = 0;
-			dump.pocket = Math.max(0, dump.pocket - Haul.STACK);
-			dump.setChanged();
-		}
+		// the apron feeder draws from it
 	}
 
 	@Override
@@ -64,171 +43,120 @@ public class DumpBlockEntity extends BlockEntity implements WorldlyContainer, Bi
 		setChanged();
 	}
 
+	/** The items the pocket holds. */
 	public int pocket() {
-		return pocket;
+		int n = 0;
+		for (int c : held.values()) {
+			n += c;
+		}
+		return n;
 	}
 
-	/** Tips a train's kilograms. One item is 1,000 kg. Refuses the whole tip if the pocket or a bin cannot take it. */
+	public int held(String itemId) {
+		return held.getOrDefault(itemId, 0);
+	}
+
+	/** Takes a car's whole load if it fits; otherwise none of it. */
 	public boolean offer(Map<String, Integer> load) {
 		if (load == null || load.isEmpty()) {
 			return true;
 		}
-		Sorter sorter = snapshot();
-		if (!sorter.tip(load)) {
+		int sum = 0;
+		for (int n : load.values()) {
+			sum += Math.max(0, n);
+		}
+		if (pocket() + sum > Haul.POCKET_ITEMS) {
 			return false;
 		}
-		for (Map.Entry<String, Integer> entry : load.entrySet()) {
-			int items = entry.getValue();
-			if (items <= 0) {
-				continue;
+		load.forEach((id, n) -> {
+			if (n > 0) {
+				held.merge(id, n, Integer::sum);
 			}
-			insert(entry.getKey(), items);
-		}
-		pocket = sorter.pocket();
+		});
 		setChanged();
 		return true;
 	}
 
-	private Sorter snapshot() {
-		Set<String> products = new LinkedHashSet<>();
-		Map<String, Integer> bins = new LinkedHashMap<>();
-		int waste = 0;
-		for (int slot = 0; slot < SLOTS; slot++) {
-			ItemStack stack = slots.get(slot);
-			if (stack.isEmpty()) {
-				continue;
-			}
-			String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-			int kg = stack.getCount();
-			if (slot == 0) {
-				waste += kg;
+	/** Draws up to {@code max} items off the pocket's bottom, oldest type first. */
+	public Map<String, Integer> draw(int max) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		Iterator<Map.Entry<String, Integer>> it = held.entrySet().iterator();
+		while (max > 0 && it.hasNext()) {
+			Map.Entry<String, Integer> e = it.next();
+			int take = Math.min(max, e.getValue());
+			out.put(e.getKey(), take);
+			max -= take;
+			if (take == e.getValue()) {
+				it.remove();
 			} else {
-				products.add(id);
-				bins.merge(id, kg, Integer::sum);
+				e.setValue(e.getValue() - take);
 			}
 		}
-		Sorter sorter = new Sorter(products);
-		sorter.restore(bins, waste, pocket);
-		return sorter;
+		if (!out.isEmpty()) {
+			setChanged();
+		}
+		return out;
 	}
 
-	private void insert(String id, int items) {
-		Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(id));
-		if (item == null || item == Items.AIR) {
-			return;
-		}
-		int slot = slotFor(item);
-		if (slot < 0) {
-			return;
-		}
-		ItemStack there = slots.get(slot);
-		if (there.isEmpty()) {
-			slots.set(slot, new ItemStack(item, Math.min(items, item.getDefaultMaxStackSize())));
-		} else {
-			there.grow(Math.min(items, there.getMaxStackSize() - there.getCount()));
-		}
+	/** Puts back what the sorter could not take. */
+	public void putBack(Map<String, Integer> items) {
+		Map<String, Integer> first = new LinkedHashMap<>(items);
+		held.forEach((id, n) -> first.merge(id, n, Integer::sum));
+		held.clear();
+		held.putAll(first);
+		setChanged();
 	}
 
-	private int slotFor(Item item) {
-		for (int slot = 1; slot < SLOTS; slot++) {
-			ItemStack there = slots.get(slot);
-			if (there.getItem() == item && there.getCount() < there.getMaxStackSize()) {
-				return slot;
-			}
+	@Override
+	public Component inspect() {
+		return Component.literal("Dump Pocket: holds " + pocket() + " of " + Haul.POCKET_ITEMS + " items" + (pocket() >= Haul.POCKET_ITEMS ? " (FULL: the next car waits)" : ""));
+	}
+
+	/** Breaking the pocket drops what it holds. */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		if (level != null) {
+			held.forEach((id, n) -> {
+				for (int left = n; left > 0; left -= 64) {
+					Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), Feeds.stack(id, Math.min(64, left)));
+				}
+			});
+			held.clear();
 		}
-		ItemStack waste = slots.get(0);
-		if (waste.isEmpty() || (waste.getItem() == item && waste.getCount() < waste.getMaxStackSize())) {
-			return 0;
-		}
-		for (int slot = 1; slot < SLOTS; slot++) {
-			if (slots.get(slot).isEmpty()) {
-				return slot;
-			}
-		}
-		return -1;
 	}
 
 	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
 		output.putBoolean("grown", grown);
-		ContainerHelper.saveAllItems(output, slots);
-		output.putInt("pocket", pocket);
+		StringBuilder out = new StringBuilder();
+		held.forEach((id, n) -> out.append(out.length() == 0 ? "" : ",").append(id).append('=').append(n));
+		output.putString("held", out.toString());
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		grown = input.getBooleanOr("grown", false);
-		slots.clear();
-		ContainerHelper.loadAllItems(input, slots);
-		pocket = input.getIntOr("pocket", 0);
-	}
-
-	@Override
-	public int getContainerSize() {
-		return slots.size();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return slots.stream().allMatch(ItemStack::isEmpty);
-	}
-
-	@Override
-	public ItemStack getItem(int slot) {
-		return slots.get(slot);
-	}
-
-	@Override
-	public ItemStack removeItem(int slot, int count) {
-		ItemStack out = ContainerHelper.removeItem(slots, slot, count);
-		setChanged();
-		return out;
-	}
-
-	@Override
-	public ItemStack removeItemNoUpdate(int slot) {
-		return ContainerHelper.takeItem(slots, slot);
-	}
-
-	@Override
-	public void setItem(int slot, ItemStack stack) {
-		slots.set(slot, stack);
-		setChanged();
-	}
-
-	@Override
-	public boolean stillValid(Player player) {
-		return Container.stillValidBlockEntity(this, player);
-	}
-
-	@Override
-	public void clearContent() {
-		slots.clear();
-	}
-
-	@Override
-	public int[] getSlotsForFace(Direction side) {
-		int[] slots = new int[SLOTS];
-		for (int i = 0; i < SLOTS; i++) {
-			slots[i] = i;
+		held.clear();
+		// a pocket saved before R4c sorted into nine slots: its items come back into the pocket
+		net.minecraft.core.NonNullList<net.minecraft.world.item.ItemStack> old = net.minecraft.core.NonNullList.withSize(9, net.minecraft.world.item.ItemStack.EMPTY);
+		net.minecraft.world.ContainerHelper.loadAllItems(input, old);
+		for (net.minecraft.world.item.ItemStack stack : old) {
+			if (!stack.isEmpty()) {
+				held.merge(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getCount(), Integer::sum);
+			}
 		}
-		return slots;
-	}
-
-	@Override
-	public boolean canPlaceItem(int slot, ItemStack stack) {
-		return false;
-	}
-
-	@Override
-	public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction side) {
-		return false;
-	}
-
-	@Override
-	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return true;
+		for (String part : input.getStringOr("held", "").split(",")) {
+			int eq = part.lastIndexOf('=');
+			if (eq > 0) {
+				try {
+					held.put(part.substring(0, eq), Integer.parseInt(part.substring(eq + 1)));
+				} catch (NumberFormatException ex) {
+					// left out
+				}
+			}
+		}
 	}
 }

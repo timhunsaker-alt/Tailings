@@ -64,7 +64,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"registers", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "dump_station", "dump_waits", "drill", "drill_pause", "haul", "models", "haul_turnout", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -77,6 +77,8 @@ public class TailingsGameTests {
 			helper.register(id("belt_drive"), loaded(TailingsGameTests::beltDrive));
 			helper.register(id("flotation"), loaded(TailingsGameTests::flotation));
 			helper.register(id("flotation_stops"), loaded(TailingsGameTests::flotationStops));
+			helper.register(id("dump_station"), loaded(TailingsGameTests::dumpStation));
+			helper.register(id("dump_waits"), loaded(TailingsGameTests::dumpWaits));
 			helper.register(id("drill"), loaded(TailingsGameTests::drill));
 			helper.register(id("drill_pause"), loaded(TailingsGameTests::drillPause));
 			helper.register(id("haul"), loaded(TailingsGameTests::haul));
@@ -521,7 +523,7 @@ public class TailingsGameTests {
 		helper.succeed();
 	}
 
-	/** The rectifier feeds the rail, the train moves one block, and the dump splits the car into cobble. */
+	/** The rectifier feeds the rail, the train moves one block, and the car tips into the pocket. */
 	private static void haul(GameTestHelper helper) {
 		BlockPos rectifier = new BlockPos(1, 60, 2);
 		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, rectifier, RectifierBlockEntity.class);
@@ -547,9 +549,94 @@ public class TailingsGameTests {
 		DumpBlockEntity dump = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, 57, 0), DumpBlockEntity.class);
 		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, 60, 0), PlantBlockEntity.class);
 		helper.assertTrue(moved.stepOnce(), Component.literal("the train should go on over the pocket"));
-		ItemStack waste = dump.getItem(0);
-		helper.assertTrue(waste.getItem() == Items.COBBLESTONE && waste.getCount() == 2, Component.literal("the sorter should put cobble in the waste bin, got " + waste));
+		helper.assertTrue(dump.held("minecraft:cobblestone") == 2, Component.literal("the pocket should hold the car's 2 cobble, got " + dump.pocket()));
 		helper.assertTrue(followed.load().total() == 0, Component.literal("the car should be empty after the tip"));
+		helper.succeed();
+	}
+
+	/** A train over a loaded track: the rectifier, rails north to south at x 3 from z 0 to {@code last}, and the rails fed. */
+	private static void track(GameTestHelper helper, int y, int last) {
+		RectifierBlockEntity box = part(helper, TailingsBlocks.TRACTION_RECTIFIER, new BlockPos(1, y, 2), RectifierBlockEntity.class);
+		box.forceRunning();
+		BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+		for (int z = 0; z <= last; z++) {
+			helper.setBlock(new BlockPos(3, y, z), rail);
+		}
+		box.spread();
+	}
+
+	/**
+	 * The dump station (docs/multiblocks/dump-station.md): two cars, copper ore and cobble, tip on the move over the ramp and pocket;
+	 * the apron feeder draws the pocket to the sorter, which sends copper ore to its bin and cobble to the waste bin. With the copper
+	 * bin full, copper waits and the sorter reads FULL for it.
+	 */
+	private static void dumpStation(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 15);
+		DumpBlockEntity pocket = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, y - 3, 6), DumpBlockEntity.class);
+		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, y, 6), PlantBlockEntity.class);
+		PlantBlockEntity feeder = plant(helper, Machine.APRON_FEEDER, new BlockPos(2, y - 3, 9));
+		PlantBlockEntity sorter = plant(helper, Machine.ORE_SORTER, new BlockPos(1, y - 3, 13));
+		PlantBlockEntity copperBin = plant(helper, Machine.ORE_BIN, new BlockPos(4, y - 3, 13));
+		PlantBlockEntity wasteBin = plant(helper, Machine.ORE_BIN, new BlockPos(1, y - 3, 16));
+		feeder.forceRunning();
+		sorter.forceRunning();
+		helper.assertTrue(sorter.setSide(Direction.EAST, new ItemStack(Blocks.COPPER_ORE)), Component.literal("the sorter's east side should take copper ore"));
+		helper.assertTrue(sorter.setWasteSide(Direction.SOUTH), Component.literal("the sorter's south side should take the waste"));
+		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 12), RailBlockEntity.class);
+		RailBlockEntity first = helper.getBlockEntity(new BlockPos(3, y, 13), RailBlockEntity.class);
+		RailBlockEntity second = helper.getBlockEntity(new BlockPos(3, y, 14), RailBlockEntity.class);
+		helper.assertTrue(loco.placeLoco() && first.placeCar() && second.placeCar(), Component.literal("a locomotive and two cars"));
+		first.load().add("minecraft:copper_ore", 64);
+		second.load().add("minecraft:cobblestone", 64);
+		for (int step = 0; step < 9; step++) {
+			RailBlockEntity head = null;
+			for (int z = 0; z <= 15; z++) {
+				RailBlockEntity there = helper.getBlockEntity(new BlockPos(3, y, z), RailBlockEntity.class);
+				if (there.kind() == RailBlockEntity.Kind.LOCO) {
+					head = there;
+				}
+			}
+			helper.assertTrue(head != null && head.stepOnce(), Component.literal("the train should run on over the pocket, step " + step));
+		}
+		helper.assertTrue(pocket.pocket() + feederTaken(sorter, copperBin, wasteBin) == 128, Component.literal("both cars should tip on the move, pocket " + pocket.pocket()));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(copperBin.binned().getOrDefault("minecraft:copper_ore", 0) == 64
+						&& wasteBin.binned().getOrDefault("minecraft:cobblestone", 0) == 64,
+						Component.literal("copper ore to its bin and cobble to waste (feeder " + feeder.status() + "; sorter " + sorter.status() + ")")))
+				.thenExecute(() -> {
+					copperBin.binned().put("minecraft:copper_ore", PlantRates.BIN_ITEMS);
+					helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:copper_ore", 64)), Component.literal("the pocket should take more copper"));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(sorter.status().startsWith("FULL") && sorter.status().contains("copper ore"),
+						Component.literal("the sorter should read FULL for copper, got " + sorter.status())))
+				.thenSucceed();
+	}
+
+	private static int feederTaken(PlantBlockEntity sorter, PlantBlockEntity... bins) {
+		int n = sorter.binCount();
+		for (PlantBlockEntity bin : bins) {
+			n += bin.binCount();
+		}
+		return n;
+	}
+
+	/** A loaded car over a full pocket does not tip, and the train waits until the pocket has room. */
+	private static void dumpWaits(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 3);
+		DumpBlockEntity pocket = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, y - 3, 0), DumpBlockEntity.class);
+		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, y, 0), PlantBlockEntity.class);
+		RailBlockEntity loco = helper.getBlockEntity(new BlockPos(3, y, 1), RailBlockEntity.class);
+		RailBlockEntity car = helper.getBlockEntity(new BlockPos(3, y, 2), RailBlockEntity.class);
+		helper.assertTrue(loco.placeLoco() && car.placeCar(), Component.literal("a locomotive and a car"));
+		car.load().add("minecraft:cobblestone", 64);
+		helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", dev.wildcatter.tailings.haul.Haul.POCKET_ITEMS)), Component.literal("fill the pocket"));
+		helper.assertFalse(loco.stepOnce(), Component.literal("the train should wait at a full pocket"));
+		helper.assertTrue(car.load().total() == 64, Component.literal("the car should not tip into a full pocket"));
+		pocket.draw(64);
+		helper.assertTrue(loco.stepOnce(), Component.literal("with room, the car tips and the train goes on"));
+		helper.assertTrue(pocket.pocket() == dev.wildcatter.tailings.haul.Haul.POCKET_ITEMS, Component.literal("the car's 64 went into the pocket"));
 		helper.succeed();
 	}
 

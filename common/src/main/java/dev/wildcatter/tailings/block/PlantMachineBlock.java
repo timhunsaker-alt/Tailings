@@ -59,16 +59,32 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
-		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant && plant.offer(stack)) {
-			return InteractionResult.SUCCESS;
+		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
+			if (plant.machine() == Machine.ORE_SORTER) {
+				if (!level.isClientSide() && plant.setSide(hit.getDirection(), stack)) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+				}
+				return Feeds.parse(stack) != null ? InteractionResult.SUCCESS : super.useItemOn(stack, state, level, pos, player, hand, hit);
+			}
+			if (plant.offer(stack)) {
+				return InteractionResult.SUCCESS;
+			}
 		}
 		return super.useItemOn(stack, state, level, pos, player, hand, hit);
 	}
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant && plant.give(player)) {
-			return InteractionResult.SUCCESS;
+		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
+			if (player.isShiftKeyDown() && plant.machine() == Machine.ORE_SORTER) {
+				if (!level.isClientSide() && plant.setWasteSide(hit.getDirection())) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+				}
+				return InteractionResult.SUCCESS;
+			}
+			if (plant.give(player)) {
+				return InteractionResult.SUCCESS;
+			}
 		}
 		return super.useWithoutItem(state, level, pos, player, hit);
 	}

@@ -32,8 +32,8 @@ first draft and is still to be checked.
 - **Rate:** 50 t/h, matching the crushing circuit.
 - **The pocket:** holds one 10-car train (decided 2026-11-03).
 - **The feeder:** in game items, it clears one stack (64 items) a second (decided 2026-11-03).
-- **Open question (listed, not chosen):** does a train wait to be sorted, or does the pocket buffer a whole train? A 10-car train
-  of 30 t takes about 36 minutes to clear at 50 t/h.
+- **Decided with Tim, 2026-11-05 (R4):** the pocket buffers a whole train, and when it is full the next car does not tip and the
+  train waits. A 10-car train of 30 t takes about 36 minutes to clear at 50 t/h.
 
 ## Parts
 | Part | Cells (W x H x L) | Real-world basis |
@@ -96,10 +96,17 @@ Below the track (y 0 to 2), and the sorter and bins beside the pocket:
 - **Rock types stay separate.** The crushing circuit treats each rock type differently (granite sand is a zircon feed, cobble sand
   a trace sulfide feed), so a mixed bin gives a mixed product.
 
+## Added while building (R4c)
+- **The sorter's screen:** right-click a side of the sorter with a rock or ore item to set that side to that type; sneak-right-click
+  a side with an empty hand to set it as the waste side. The Power Meter or an empty-hand click reads the settings.
+- **Where the train waits:** with the car over the full pocket, not at the signal before the ramp.
+- **The sorter** passes up to a stack a second, as the feeder does, and holds two stacks on its belt.
+
 ## Left out (ROADMAP)
 - A real X-ray ore sorter's grade cut, which splits ore from waste within one rock type. This sorter sorts by type only.
 - Bottom-dump cars over a grizzly.
 - Dense-medium separation.
+- Oversize staying on the pocket's 300 mm grizzly for a player to clear (proposed in the parts table): every rock passes the bars.
 
 ## Game test
 `dumpStation` (Fabric client game test):

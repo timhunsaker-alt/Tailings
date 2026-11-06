@@ -97,7 +97,7 @@ R brings it in line, one wave at a time.
   - Python-generated piece models and ModelLint.
 
   It includes the new parts: belt and drive, flotation bank, dump ramp, pocket, feeder, sorter and bins.
-- **R4. The real process**, per crushing-circuit.md, flotation-bank.md and dump-station.md: each stage hands off to the next, at
+- **R4. The real process — DONE (2026-11-05)**, per crushing-circuit.md, flotation-bank.md and dump-station.md: each stage hands off to the next, at
   the real rate; nothing runs unbuilt. Built on Wildcatter v0.3.0's assayed slurry. Decided with Tim on 2026-11-05: plant first,
   in three waves; a `tailings_pond_placeholder` takes the tails until 4d; a full pocket makes the train wait; belts draw their
   lumps.
@@ -106,7 +106,9 @@ R brings it in line, one wave at a time.
     its belt.
   - **R4b. Flotation to items — DONE (2026-11-05).** The conditioning tank, bank, blower, thickener and filter on pipe, at the
     75 % ladder; the filter pays nuggets packed into ingots; the tails to a `tailings_pond_placeholder`.
-  - **R4c. The dump station.** Pocket, apron feeder, sorter and bins; the train waits at a full pocket.
+  - **R4c. The dump station — DONE (2026-11-05).** The pocket takes whole car loads up to one train; the apron feeder draws a
+    stack a second to the sorter; the sorter sends each type out of the side set for it into the ore bin there; a loaded car over
+    a full pocket holds the train.
 - **R5. Haulage, per haulage.md:**
   - trains as entities;
   - the rectifier on Wildcatter's DC tier;
@@ -120,7 +122,6 @@ R brings it in line, one wave at a time.
 - Selective lead-then-zinc circuits (flotation-bank.md).
 - The traction rectifier's DC source: a voltage-regulated Wildcatter rectifier, or a Tailings source on Wildcatter's DC solver
   (haulage.md).
-- Whether a train waits at the dump, or the pocket buffers it (dump-station.md).
 - Carried from the first draft: the 1-in-1 steep option, leaking broken lining, ballast on the decline (tunnel-boring-machine.md).
 
 ## Phase 4 — Full recovery — next after R
@@ -156,7 +157,9 @@ These are in the current build on purpose, or because the art and tests have not
 - **The tailings pond is a placeholder (R4b).** `tailings_pond_placeholder` holds 3,400 t of tails, then the bank stops. Its model is plain berms and its recipe is 8 clay. Phase 4d's lined cell replaces it.
 - **Concentrate is mineral only (R4b).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out.
 - **Fines items have no use now (R4b).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.
-- **The dump's feeder, sorter and pocket sorting wait for R4c.** The pocket sorts by itself, as the one-block dump station did. The ore bin already feeds its belt (R4a).
+- **The sorter's screen is clicks, not a screen (R4c).** A side is set by clicking it with a rock item; the waste side by a sneaking empty-hand click.
+- **The train waits over the pocket (R4c),** not at the signal before the ramp.
+- **No oversize on the pocket's grizzly (R4c).** Every rock passes its bars.
 - **Belts deliver at once (R4a).** A run's load reaches its head end without a transit time; the lumps are drawn moving.
 - **Feed faces are not checked (R4a).** A belt's head end feeds whatever part it touches, and a part takes rock through any face, not only the spec's feed face. Parts touching an output face take the product straight in, as a chute.
 - **No gravel face yet (R4a).** The screen's 6-40 mm gravel always goes round to the cone; the aggregate face in crushing-circuit.md is not built.

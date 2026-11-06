@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+## R4c — The dump station (2026-11-05)
+
+- **The pocket** takes each car's whole load, up to one train. When it is full, the car over it does not tip and the train waits.
+- **The apron feeder** draws a stack a second onto the ore sorter.
+- **The ore sorter:** click one of its sides with a rock or ore to send that type out of it; sneak-click a side with an empty hand to make it the waste side. Each type goes into the ore bin touching its side.
+- **Old worlds:** a pocket's old sorted slots come back into the pocket.
+- **Tests:** game tests `dump_station`, `dump_waits`.
+
 ## R4b — Flotation to items (2026-11-05)
 
 - **Real flotation on steel pipe:** conditioning tank, flotation bank with its air blower, concentrate thickener and pressure filter, each on its own motor.

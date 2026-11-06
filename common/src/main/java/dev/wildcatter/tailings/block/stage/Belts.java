@@ -208,6 +208,11 @@ final class Belts {
 
 		@Override
 		public void tick(PlantBlockEntity part) {
+			PlantBlockEntity.Sink sink = part.sink(part.side(Direction.DOWN));
+			if (sink == null) {
+				part.say(part.binCount() == 0 && part.hold().isEmpty() ? "NO FEED: empty" : Crushing.NOWHERE + " (a belt under it)");
+				return;
+			}
 			if (part.hold().isEmpty()) {
 				Iterator<Map.Entry<String, Integer>> it = part.binned().entrySet().iterator();
 				if (it.hasNext()) {
@@ -226,11 +231,6 @@ final class Belts {
 			}
 			if (part.hold().isEmpty()) {
 				part.say("NO FEED: empty");
-				return;
-			}
-			PlantBlockEntity.Sink sink = part.sink(part.side(Direction.DOWN));
-			if (sink == null) {
-				part.say(Crushing.NOWHERE + " (a belt under it)");
 				return;
 			}
 			double max = Math.min(BELT_KG_PER_TICK, sink.room(part.hold()));

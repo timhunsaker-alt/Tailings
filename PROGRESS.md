@@ -43,6 +43,19 @@ The three draft specs are rewritten in Wildcatter's format, and the drill-and-ha
 The slurry the plant puts on Wildcatter's steel pipe needs a Wildcatter change, proposed in Wildcatter's ROADMAP Ideas. No code
 changed.
 
+## R4c: the dump station (2026-11-05); R4 done
+
+The dump station runs as dump-station.md says:
+- the pocket takes each tipping car's whole load, up to one 10-car train; a car it cannot take holds the train (Tim's decision);
+- the apron feeder draws a stack a second to the sorter;
+- the sorter's sides are set by clicking them with a rock item, and one side as waste; each type goes into the ore bin on its side;
+- each ore bin feeds the belt under it, into the crushing circuit.
+
+From train to ingots the plant now runs as the three specs say.
+
+**Tests:** `HaulTest` (the sorter's sides); game tests `dump_station` (both cars tip on the move; copper to its bin, cobble to
+waste; a full copper bin reads FULL) and `dump_waits`; `haul` updated for the pocket.
+
 ## R4b: flotation to items (2026-11-05)
 
 The flotation circuit runs as flotation-bank.md says, on steel pipe:

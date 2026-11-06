@@ -83,9 +83,4 @@ public enum Machine {
 	public int cells() {
 		return width * height * depth;
 	}
-
-	/** The dump station's feeder, sorter and ramp: placed and powered now, joined to the process in R4c. */
-	public boolean waitsForR4() {
-		return this == DUMP_RAMP || this == APRON_FEEDER || this == ORE_SORTER;
-	}
 }

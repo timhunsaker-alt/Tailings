@@ -68,6 +68,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final SlurryHold back = new SlurryHold();
 	/** An ore bin's rock items, by charge, past the one in its intake slot. */
 	private final java.util.Map<String, Integer> binned = new java.util.LinkedHashMap<>();
+	/** An ore sorter's screen: the type each side takes, and the waste side. */
+	private final dev.wildcatter.tailings.haul.Sorter sorter = new dev.wildcatter.tailings.haul.Sorter();
 	private double water;
 	private Motor motor;
 	private boolean demand;
@@ -86,9 +88,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine.watts() > 0) {
 			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
 			motor = new Motor(true, voltage, machine.watts());
-		}
-		if (machine.waitsForR4()) {
-			status = "joins the process in R4";
 		}
 	}
 
@@ -405,6 +404,30 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return gave;
 	}
 
+	public dev.wildcatter.tailings.haul.Sorter sorter() {
+		return sorter;
+	}
+
+	/** A click on a sorter's side with a rock item sets that side to take it; false for anything else. */
+	public boolean setSide(Direction face, ItemStack stack) {
+		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal() || Feeds.parse(stack) == null) {
+			return false;
+		}
+		sorter.set((face.get2DDataValue() + 2) % 4, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+		say("the " + face.getName() + " side takes " + stack.getHoverName().getString());
+		return true;
+	}
+
+	/** A sneaking click with an empty hand on a sorter's side sets it as the waste side. */
+	public boolean setWasteSide(Direction face) {
+		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal()) {
+			return false;
+		}
+		sorter.setWaste((face.get2DDataValue() + 2) % 4);
+		say("the " + face.getName() + " side takes the waste");
+		return true;
+	}
+
 	public ReagentStock reagents() {
 		return reagents;
 	}
@@ -604,6 +627,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.ORE_BIN) {
 			held.append("; ").append(binCount()).append(" of ").append(PlantRates.BIN_ITEMS).append(" items");
 		}
+		if (machine() == Machine.ORE_SORTER) {
+			String[] names = {"north", "east", "south", "west"};
+			for (int side = 0; side < names.length; side++) {
+				String set = side == sorter.waste() ? "waste" : sorter.product(side);
+				if (set != null) {
+					held.append("; ").append(names[side]).append(": ").append(set);
+				}
+			}
+		}
 		return Component.literal(machine().displayName() + " (" + machine().watts() / 1000.0 + " kW): " + status + held + "; " + power);
 	}
 
@@ -631,6 +663,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("out", out.save());
 		output.putString("back", back.save());
 		output.putDouble("water", water);
+		output.putString("sort", sorter.save());
 		StringBuilder bin = new StringBuilder();
 		binned.forEach((id, n) -> bin.append(bin.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("binned", bin.toString());
@@ -654,6 +687,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		out.load(input.getStringOr("out", ""));
 		back.load(input.getStringOr("back", ""));
 		water = input.getDoubleOr("water", 0);
+		sorter.load(input.getStringOr("sort", ""));
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {
 			int eq = part.lastIndexOf('=');

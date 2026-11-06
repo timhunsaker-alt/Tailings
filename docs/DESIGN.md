@@ -181,11 +181,12 @@ IRI
 
 ### Dump and signals
 
-Since R3 the dump pocket holds what the one-block dump station did:
-- **Tipping:** a loaded car passing over a pocket, with a dump ramp beside its rail, tips its load into the pocket on the move.
-- **Not yet joined:** the apron feeder, ore sorter and bins are placed and powered, and join the process in R4.
-
-Slot 0 is waste. Slots 1 to 8 are product bins. A bin keeps the item it already holds. Anything that is not an assigned product is waste. The pocket holds one 10-car train. A full pocket or a full bin refuses the tip, and the train waits. Every second the apron subtracts one stack (64) from the pocket. The recipe is eight iron ingots around a hopper.
+The dump station (R4c, docs/multiblocks/dump-station.md):
+- **Tipping:** a loaded car passing over a pocket, with a dump ramp beside its rail, tips its whole load into the pocket on the move. The pocket holds one 10-car train (`Haul.POCKET_ITEMS`); a car it cannot take does not tip, and the train waits (`RailBlockEntity.stepOnce` does not move).
+- **Apron feeder:** touching the pocket, with the sorter at its tail end (NOT BUILT otherwise); one stack a second while its 11 kW motor runs.
+- **Ore sorter:** its screen (`haul.Sorter`) sets each world side, north to west, to one rock or ore item, and one side as waste: a click on a side with the item sets it, a sneaking empty-hand click sets the waste side. Each type goes out of its side, anything unset to waste, into the ore bin touching that side; a full bin stops that type (FULL names it).
+- **Ore bin:** 8,192 items, out of its bottom onto the belt under it (R4a).
+- An old pocket's sorted slots come back into the pocket when its world loads. The recipes are iron around a hopper.
 
 `block_signal` claims the next 16 rails in the direction it faces as one section. A train enters only when the signal allows it. The recipe is a redstone torch over an iron ingot. The facing face uses `signal_lamp_off` or `signal_lamp_on`. The other faces use `block_signal.png`.
 

@@ -68,15 +68,23 @@ class HaulTest {
 	}
 
 	@Test
-	void thePocketBuffersOneTrainAndSortsTheRestToWaste() {
-		Sorter sorter = new Sorter(Set.of("minecraft:iron_ore"));
-		assertTrue(sorter.tip(Map.of("minecraft:iron_ore", 64, "minecraft:cobblestone", 64)));
-		assertEquals(64, sorter.bin("minecraft:iron_ore"));
-		assertEquals(64, sorter.waste());
-		assertEquals(128, sorter.pocket());
-		assertTrue(sorter.tip(Map.of("minecraft:cobblestone", Haul.POCKET_ITEMS - 128)));
-		assertFalse(sorter.tip(Map.of("minecraft:cobblestone", 1)));
-		sorter.clearPocket();
-		assertTrue(sorter.tip(Map.of("minecraft:cobblestone", 1_000)));
+	void theSorterSendsEachTypeOutOfItsSideAndTheRestToWaste() {
+		Sorter sorter = new Sorter();
+		assertEquals(-1, sorter.route("minecraft:cobblestone"), "nothing set: nowhere to go");
+		sorter.set(1, "minecraft:copper_ore");
+		sorter.setWaste(2);
+		assertEquals(1, sorter.route("minecraft:copper_ore"));
+		assertEquals(2, sorter.route("minecraft:cobblestone"));
+		sorter.set(3, "minecraft:copper_ore");
+		assertEquals(3, sorter.route("minecraft:copper_ore"), "a type has one side");
+		assertEquals(null, sorter.product(1));
+		sorter.set(2, "minecraft:iron_ore");
+		assertEquals(-1, sorter.waste(), "a side set to a type is no longer waste");
+		Sorter back = new Sorter();
+		back.load(sorter.save());
+		assertEquals(sorter.save(), back.save());
+		back.load("junk");
+		assertEquals(-1, back.waste());
+		assertEquals(Haul.MAX_CARS * Haul.CAR_ITEMS, Haul.POCKET_ITEMS, "the pocket holds one 10-car train");
 	}
 }

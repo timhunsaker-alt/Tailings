@@ -53,6 +53,8 @@ public interface Stage {
 			case THICKENER -> Flotation.THICKENER;
 			case FILTER -> Flotation.FILTER;
 			case TAILINGS_POND -> Flotation.POND;
+			case APRON_FEEDER -> Dump.FEEDER;
+			case ORE_SORTER -> Dump.SORTER;
 			default -> Idle.INSTANCE;
 		};
 	}
