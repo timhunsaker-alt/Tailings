@@ -101,6 +101,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("recovery")) {
 				recovery(context, world, server);
 			}
+			if (only("selective")) {
+				selective(context, world, server);
+			}
 			if (only("dump")) {
 				dump(context, world, server);
 			}
@@ -461,6 +464,70 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		int cells = server.computeOnServer(srv -> parts[0][4].countIn(new int[] {1, 2}, nugget) + 9 * parts[0][4].countIn(new int[] {1, 2}, new ItemStack(Items.COPPER_INGOT)));
 		require(cells > 0, "the cells should plate copper");
 		heard("recovery", "tailings:agitator");
+	}
+
+	/** selective-flotation.md: lead off the first bank, zinc off the second, each through its own filter. Force-run, as the other part films. */
+	private void selective(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(180, y + 1, 400);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		Mineral lead = Mineral.GALENA, zinc = Mineral.SPHALERITE;
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			double kg = 1500;
+			PlantBlockEntity tank = plant(level, Machine.CONDITIONER, o.offset(0, 0, 3));
+			tank.back().offer(Product.FINES_SLURRY, kg, SlurryAssay.of(java.util.Map.of(lead.mineralItemId(), 72.0 * 3 / kg, zinc.mineralItemId(), 250.0 * 3 / kg)));
+			tank.toggleSelective();
+			pipe(level, o.offset(0, 0, 6));
+			PlantBlockEntity one = plant(level, Machine.FLOTATION_BANK, o.offset(0, 0, 7));
+			PlantBlockEntity blowerOne = plant(level, Machine.BLOWER, o.offset(7, 0, 7));
+			pipe(level, o.offset(6, 0, 20), o.offset(7, 0, 20), o.offset(8, 0, 20), o.offset(9, 0, 20));
+			PlantBlockEntity thickenerOne = plant(level, Machine.THICKENER, o.offset(9, 0, 21));
+			pipe(level, o.offset(9, 0, 29));
+			PlantBlockEntity filterOne = plant(level, Machine.FILTER, o.offset(9, 0, 30));
+			pipe(level, o.offset(0, 0, 20));
+			PlantBlockEntity activation = plant(level, Machine.ACTIVATION_TANK, o.offset(0, 0, 21));
+			pipe(level, o.offset(0, 0, 24));
+			PlantBlockEntity two = plant(level, Machine.FLOTATION_BANK, o.offset(0, 0, 25));
+			PlantBlockEntity blowerTwo = plant(level, Machine.BLOWER, o.offset(7, 0, 25));
+			pipe(level, o.offset(6, 0, 38));
+			PlantBlockEntity thickenerTwo = plant(level, Machine.THICKENER, o.offset(6, 0, 39));
+			pipe(level, o.offset(6, 0, 47));
+			PlantBlockEntity filterTwo = plant(level, Machine.FILTER, o.offset(6, 0, 48));
+			pipe(level, o.offset(0, 0, 38));
+			plant(level, Machine.TAILINGS_POND, o.offset(0, 0, 39));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {tank, one, blowerOne, thickenerOne, filterOne, activation, two, blowerTwo, thickenerTwo, filterTwo}) {
+				part.forceRunning();
+			}
+			for (Reagent reagent : java.util.List.of(Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.ZINC_SULFATE)) {
+				tank.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(reagent.itemId()))));
+			}
+			for (Reagent reagent : java.util.List.of(Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.COPPER_SULFATE)) {
+				activation.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(reagent.itemId()))));
+			}
+			parts[0] = new PlantBlockEntity[] {tank, one, activation, two, filterOne, filterTwo};
+		});
+		server.runCommand("tp @p " + (o.getX() + 30) + " " + (o.getY() + 26) + " " + (o.getZ() + 26) + " 90 40");
+		context.waitTicks(40);
+		Filming film = film(context, world, "selective");
+		context.takeScreenshot("tailings-selective-built");
+		for (int t = 0; t < 40; t++) {
+			context.waitTicks(20);
+			if (t % 5 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] selective: tank " + parts[0][0].status() + "; lead " + parts[0][4].status() + "; activation " + parts[0][2].status() + "; zinc " + parts[0][5].status()));
+			}
+		}
+		context.takeScreenshot("tailings-selective-end");
+		film.stop();
+		// nine nuggets pack into the ladder's item, so both count
+		java.util.function.BiFunction<PlantBlockEntity, Mineral, Integer> paid = (filter, mineral) -> filter.countIn(new int[] {1, 2}, dev.wildcatter.tailings.block.Feeds.stack(mineral.nuggetId(), 1))
+				+ 9 * filter.countIn(new int[] {1, 2}, dev.wildcatter.tailings.block.Feeds.stack(mineral.phaseOneProductId(), 1));
+		int[] pay = server.computeOnServer(srv -> new int[] {paid.apply(parts[0][4], lead), paid.apply(parts[0][5], zinc), paid.apply(parts[0][4], zinc), paid.apply(parts[0][5], lead)});
+		System.out.println("[tailings-test] selective paid: lead filter " + pay[0] + " lead, " + pay[2] + " zinc; zinc filter " + pay[1] + " zinc, " + pay[3] + " lead (nuggets)");
+		require(pay[0] > 0, "the first filter should pay lead");
+		require(pay[1] > 0, "the second filter should pay zinc");
+		require(pay[2] == 0, "no zinc through the lead filter");
+		require(pay[3] == 0, "no lead floats a second time");
+		heard("selective", "tailings:agitator");
 	}
 
 	/** Tin slurry over the spiral bank: half its tin to the filter, the rest on (gravity-circuit.md). */

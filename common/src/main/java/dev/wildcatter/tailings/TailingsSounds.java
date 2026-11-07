@@ -48,7 +48,7 @@ public final class TailingsSounds {
 			case CONVEYOR_DRIVE -> BELT_CONVEYOR;
 			case APRON_FEEDER -> APRON_FEEDER;
 			case CYCLONE -> SLURRY_RUSH;
-			case CONDITIONER, FLOTATION_BANK -> AGITATOR;
+			case CONDITIONER, ACTIVATION_TANK, FLOTATION_BANK -> AGITATOR;
 			case FILTER -> PRESSURE_FILTER;
 			case ORE_SORTER -> ORE_SORTER;
 			case BLOWER -> WildcatterSounds.FAN;
@@ -69,7 +69,7 @@ public final class TailingsSounds {
 			case JAW, CONE -> 1.5F;
 			case FLOTATION_BANK -> 1.2F;
 			case SCREEN, APRON_FEEDER -> 1F;
-			case CONVEYOR_DRIVE, CONDITIONER -> 0.6F;
+			case CONVEYOR_DRIVE, CONDITIONER, ACTIVATION_TANK -> 0.6F;
 			case THICKENER -> 0.4F;
 			default -> 0.8F;
 		};

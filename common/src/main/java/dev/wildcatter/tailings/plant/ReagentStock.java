@@ -42,6 +42,29 @@ public final class ReagentStock {
 		return out.toString();
 	}
 
+	/** The reagents of {@code dose} short for {@code tonnes} of feed, by name; empty when it has them all. */
+	public String missing(double tonnes, java.util.Set<Reagent> dose) {
+		StringBuilder out = new StringBuilder();
+		for (Reagent reagent : Reagent.values()) {
+			if (dose.contains(reagent) && kilograms(reagent).compareTo(reagent.kilogramsFor(tonnes)) < 0) {
+				out.append(out.length() > 0 ? ", " : "").append(reagent.displayName());
+			}
+		}
+		return out.toString();
+	}
+
+	/** Doses {@code tonnes} of feed solids with {@code dose}. The caller has already checked it is not {@link #missing(double, java.util.Set)}. */
+	public void consume(double tonnes, java.util.Set<Reagent> dose) {
+		for (Reagent reagent : dose) {
+			BigDecimal left = kilograms(reagent).subtract(reagent.kilogramsFor(tonnes));
+			if (left.signum() <= 0) {
+				kilograms.remove(reagent);
+			} else {
+				kilograms.put(reagent, left);
+			}
+		}
+	}
+
 	/** Doses {@code tonnes} of feed solids. The caller has already checked {@link #covers(double, boolean)}. */
 	public void consume(double tonnes, boolean sphalerite) {
 		for (Reagent reagent : Reagent.values()) {

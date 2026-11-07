@@ -77,7 +77,8 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
 - **Readouts:** NO FEED, NO WATER, NO DRIVE, NOT BUILT (names the part), FULL, "its output has nowhere to go".
 
 **How flotation runs (R4b, docs/multiblocks/flotation-bank.md):** each part draws its feed off steel pipe at the north face of its front cells into a few seconds' buffer, and puts its product on pipe at the south face of its back cells (`block.stage.Flotation`).
-- conditioning tank: fines slurry to conditioned slurry, dosing the reagents per tonne of solids; copper sulfate only when the assay holds sphalerite (NO REAGENT names what is short);
+- conditioning tank: fines slurry to conditioned slurry, dosing the reagents per tonne of solids; copper sulfate only when the assay holds sphalerite, or zinc sulfate in its place when set SELECTIVE (NO REAGENT names what is short);
+- activation tank: a selective bank's tails to conditioned slurry, freeing the held-down sphalerite for a second bank (`plant.Selective`, selective-flotation.md);
 - flotation bank: needs an air blower touching it, running (NO AIR); each floating mineral's 75 % (`RecoveryRoute.FLOTATION`) to concentrate slurry at 30 % solids out of its back cell at x 6, the rest of the feed to tails slurry at x 0;
 - concentrate thickener: to thickened concentrate at 60 % solids;
 - pressure filter: its cake (`plant.FilterCake`) pays a nugget for each nugget's worth, and nine of a mineral's nuggets are packed into the ladder's item (`Mineral.phaseOneProductId`) in its two output stacks, for a hopper under it or a hand (FULL: take the concentrate);

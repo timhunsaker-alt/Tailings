@@ -99,4 +99,16 @@ HP.pipe([(5, 0.3, 9.6), (5, 0.3, 10)], 6, "rubber")              # the drain
 HP.pipe([(9.6, 0.5, 5), (10, 0.5, 5)], 4, "galv")                # acid in, east
 HP.collide((0, 0, 0), (10, 2.4, 10))
 
-MODELS = [SC, RG, CL, LT, CC, EW, BP, HP]
+AT = model("activation_tank", 3, 4, 3, "galv")
+AT.box((0, 0, 0), (3, 0.25, 3), "concrete")
+AT.ring("y", (1.5, 1.5), 1.4, 0.25, 3.4, 0.08, "galv", sides=20)      # the second-stage tank
+disc(AT, 1.5, 1.5, 1.4, 3.1, 3.15, "dark")
+AT.box((0.1, 3.4, 1.3), (2.9, 3.55, 1.7), "grating")                  # the bridge
+AT.box((1.2, 3.55, 1.2), (1.8, 3.95, 1.8), "blue")                    # the 15 kW agitator drive
+AT.box((0.35, 3.55, 1.15), (1.0, 3.95, 1.85), "grey")                 # the reagent hopper, on the bridge
+motor_box(AT, 0.4, 0.2)
+AT.pipe([(1.5, 0.6, 0), (1.5, 0.6, 0.1)], 6, "rubber")                # tails in, the front
+AT.pipe([(1.5, 0.6, 2.9), (1.5, 0.6, 3)], 6, "rubber")                # conditioned slurry out, the back
+AT.collide((0.1, 0, 0.1), (2.9, 3.55, 2.9))
+
+MODELS = [SC, RG, CL, LT, CC, EW, BP, HP, AT]

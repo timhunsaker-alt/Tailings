@@ -57,6 +57,7 @@ public interface Stage {
 			case BYPRODUCT_PLANT -> FullRecovery.BYPRODUCTS;
 			case HEAP_PAD -> FullRecovery.HEAP;
 			case CONDITIONER -> Flotation.CONDITIONER;
+			case ACTIVATION_TANK -> Flotation.ACTIVATION;
 			case FLOTATION_BANK -> Flotation.BANK;
 			case BLOWER -> Flotation.BLOWER;
 			case THICKENER -> Flotation.THICKENER;

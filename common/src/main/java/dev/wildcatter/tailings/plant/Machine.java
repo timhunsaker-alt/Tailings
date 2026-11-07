@@ -17,6 +17,7 @@ public enum Machine {
 	/** The 2x route at plant scale: 24 twin-start spirals on the cyclones' overflow, with a 37 kW feed pump (gravity-circuit.md). */
 	SPIRAL_BANK("spiral_bank", "Spiral Bank", 4, 5, 6, 37_000, Supply.INDUSTRIAL),
 	CONDITIONER("conditioning_tank", "Conditioning Tank", 3, 4, 3, 15_000, Supply.INDUSTRIAL),
+	ACTIVATION_TANK("activation_tank", "Activation Tank", 3, 4, 3, 15_000, Supply.INDUSTRIAL),
 	/** Eight 20 m3 cells, 8 x 45 kW of agitators on one motor box. */
 	FLOTATION_BANK("flotation_bank", "Flotation Bank", 7, 4, 13, 360_000, Supply.INDUSTRIAL),
 	BLOWER("air_blower", "Air Blower", 2, 2, 3, 75_000, Supply.INDUSTRIAL),

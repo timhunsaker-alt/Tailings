@@ -82,6 +82,13 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				}
 				return InteractionResult.SUCCESS;
 			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.CONDITIONER) {
+				if (!level.isClientSide()) {
+					plant.toggleSelective();
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+				}
+				return InteractionResult.SUCCESS;
+			}
 			if (plant.give(player)) {
 				return InteractionResult.SUCCESS;
 			}

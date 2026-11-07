@@ -21,6 +21,7 @@ class MachineTest {
 			Map.entry(Machine.BYPRODUCT_PLANT, new int[] {5, 5, 8}),
 			Map.entry(Machine.HEAP_PAD, new int[] {10, 3, 10}),
 			Map.entry(Machine.SCAVENGER_BANK, new int[] {5, 4, 9}),
+			Map.entry(Machine.ACTIVATION_TANK, new int[] {3, 4, 3}),
 			Map.entry(Machine.REGRIND_MILL, new int[] {3, 3, 5}),
 			Map.entry(Machine.CLEANER_BANK, new int[] {4, 3, 6}),
 			Map.entry(Machine.LEACH_TANK, new int[] {5, 6, 5}),

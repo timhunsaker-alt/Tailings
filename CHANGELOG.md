@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Phase 4e — Selective lead-zinc flotation (2026-11-07)
+
+- **A conditioning tank can run selective** (sneak-click with an empty hand): zinc sulfate holds the sphalerite down, a first bank floats the lead, and a new **activation tank** with copper sulfate frees the zinc for a second bank.
+- **Changed for existing plants:** a plain bank fed both galena and sphalerite now loses the zinc it floats, as a bulk cake's zinc goes to slag in a lead furnace. This reaches the traces in country rock. Feed with only one of the two pays as before.
+- **Tests:** `selective_float`, `selective_no_reagent`, `no_activation_tank`, `bulk_loses_zinc`, `bulk_one_mineral`, and a `selective` film.
+
+### Wildcatter 0.4.1
+
 - **Requires Wildcatter 0.4.1,** whose solver fix lets a generator close its breaker onto a dead bus with long busway. The playthrough stalled on 0.4.0.
 - **The playthrough runs on peaceful,** after a creeper killed its player in the pit. Listed as staged.
 

@@ -15,7 +15,9 @@ public enum Reagent {
 	XANTHATE("xanthate", "Potassium Amyl Xanthate", "50"),
 	MIBC("mibc", "MIBC Frother", "20"),
 	LIME("lime", "Quicklime", "500"),
-	COPPER_SULFATE("copper_sulfate", "Copper Sulfate", "300");
+	COPPER_SULFATE("copper_sulfate", "Copper Sulfate", "300"),
+	/** Holds sphalerite down in a selective tank (selective-flotation.md). */
+	ZINC_SULFATE("zinc_sulfate", "Zinc Sulfate", "300");
 
 	/** One block of rock, the mass the doses are written against. */
 	public static final BigDecimal BLOCK_TONNES = new BigDecimal("2.7");
@@ -54,14 +56,14 @@ public enum Reagent {
 
 	/** Copper sulfate only for feed that holds sphalerite; every other reagent always. */
 	public boolean requiredFor(boolean sphalerite) {
-		return this != COPPER_SULFATE || sphalerite;
+		return this == COPPER_SULFATE ? sphalerite : this != ZINC_SULFATE;
 	}
 
 	public boolean requiredFor(Rock rock) {
 		if (this == COPPER_SULFATE) {
 			return rock.contained(Mineral.SPHALERITE).signum() > 0;
 		}
-		return true;
+		return this != ZINC_SULFATE;
 	}
 
 	public static Map<Reagent, BigDecimal> dose(Rock rock) {

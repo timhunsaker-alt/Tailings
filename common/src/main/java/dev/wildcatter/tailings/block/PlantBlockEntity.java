@@ -58,10 +58,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private boolean sounding;
 	private int soundHold;
 	private boolean grown;
-	private final NonNullList<ItemStack> slots = NonNullList.withSize(6, ItemStack.EMPTY);
+	private final NonNullList<ItemStack> slots = NonNullList.withSize(7, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
 	private final FilterCake cake = new FilterCake();
+	private static final int LAST_REAGENT_SLOT = 6;
 	private final ReagentStock reagents = new ReagentStock();
+	private boolean selective;
 	/** Dry rock waiting to be worked, or, in a conveyor drive, the load on its run. */
 	private final RockLoad hold = new RockLoad();
 	/** Rock worked but not yet paid out as an item (the screen's sand for its hopper). */
@@ -386,8 +388,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	public boolean offer(ItemStack stack) {
 		Reagent reagent = reagent(stack);
-		if (reagent != null && machine() == Machine.CONDITIONER) {
-			for (int slot = 2; slot <= 5; slot++) {
+		if (reagent != null && dosed()) {
+			for (int slot = 2; slot <= LAST_REAGENT_SLOT; slot++) {
 				ItemStack there = slots.get(slot);
 				if (there.isEmpty()) {
 					setItem(slot, stack.split(1));
@@ -500,6 +502,21 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return true;
 	}
 
+	/** A conditioning tank's setting: selective holds the sphalerite down with zinc sulfate (selective-flotation.md). */
+	public boolean selective() {
+		return selective;
+	}
+
+	public void toggleSelective() {
+		selective = !selective;
+		setChanged();
+	}
+
+	/** The parts that take reagents by hopper or hand. */
+	private boolean dosed() {
+		return machine() == Machine.CONDITIONER || machine() == Machine.ACTIVATION_TANK;
+	}
+
 	public ReagentStock reagents() {
 		return reagents;
 	}
@@ -553,12 +570,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public void trimReagents() {
 		for (Reagent reagent : Reagent.values()) {
 			int extra = -reagents.items(reagent);
-			for (int slot = 2; slot <= 5; slot++) {
+			for (int slot = 2; slot <= LAST_REAGENT_SLOT; slot++) {
 				if (reagent(slots.get(slot)) == reagent) {
 					extra += slots.get(slot).getCount();
 				}
 			}
-			for (int slot = 2; slot <= 5 && extra > 0; slot++) {
+			for (int slot = 2; slot <= LAST_REAGENT_SLOT && extra > 0; slot++) {
 				ItemStack there = slots.get(slot);
 				if (reagent(there) == reagent) {
 					int take = Math.min(extra, there.getCount());
@@ -696,6 +713,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (stage().waterHold() > 0) {
 			held.append(String.format("; water %.0f/%.0f L", water, stage().waterHold()));
 		}
+		if (machine() == Machine.CONDITIONER) {
+			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
+		}
 		if (machine() == Machine.ORE_BIN) {
 			held.append("; ").append(binCount()).append(" of ").append(PlantRates.BIN_ITEMS).append(" items");
 		}
@@ -739,6 +759,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("back", back.save());
 		output.putDouble("water", water);
 		output.putString("sort", sorter.save());
+		output.putBoolean("selective", selective);
 		StringBuilder bin = new StringBuilder();
 		binned.forEach((id, n) -> bin.append(bin.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("binned", bin.toString());
@@ -771,6 +792,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		back.load(input.getStringOr("back", ""));
 		water = input.getDoubleOr("water", 0);
 		sorter.load(input.getStringOr("sort", ""));
+		selective = input.getBooleanOr("selective", false);
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {
 			int eq = part.lastIndexOf('=');
@@ -816,7 +838,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void setItem(int slot, ItemStack stack) {
 		slots.set(slot, stack);
-		if (!loading && slot >= 2 && machine() == Machine.CONDITIONER) {
+		if (!loading && slot >= 2 && dosed()) {
 			Reagent reagent = reagent(stack);
 			if (reagent != null) {
 				for (int i = 0; i < stack.getCount(); i++) {
@@ -872,11 +894,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			return switch (machine()) {
 				case ORE_BIN -> binCount() < PlantRates.BIN_ITEMS;
-				case CONDITIONER, FILTER, ELECTROWINNING_BANK -> false;
+				case CONDITIONER, ACTIVATION_TANK, FILTER, ELECTROWINNING_BANK -> false;
 				default -> accepts(charge.rock(), charge.size());
 			};
 		}
-		return slot >= 2 && machine() == Machine.CONDITIONER && reagent(stack) != null;
+		return slot >= 2 && dosed() && reagent(stack) != null;
 	}
 
 	@Override

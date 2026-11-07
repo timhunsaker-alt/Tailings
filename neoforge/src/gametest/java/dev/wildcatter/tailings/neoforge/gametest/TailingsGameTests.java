@@ -81,11 +81,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -113,6 +113,11 @@ public class TailingsGameTests {
 			helper.register(id("tbm_gantries"), loaded(TailingsGameTests::tbmGantries));
 			helper.register(id("spiral_bank"), loaded(TailingsGameTests::spiralBank));
 			helper.register(id("full_recovery"), loaded(TailingsGameTests::fullRecovery));
+			helper.register(id("selective_float"), loaded(TailingsGameTests::selectiveFloat));
+			helper.register(id("selective_no_reagent"), loaded(TailingsGameTests::selectiveNoReagent));
+			helper.register(id("no_activation_tank"), loaded(TailingsGameTests::noActivationTank));
+			helper.register(id("bulk_loses_zinc"), loaded(TailingsGameTests::bulkLosesZinc));
+			helper.register(id("bulk_one_mineral"), loaded(TailingsGameTests::bulkOneMineral));
 			helper.register(id("tails_to_cell"), loaded(TailingsGameTests::tailsToCell));
 			helper.register(id("cell_breached"), loaded(TailingsGameTests::cellBreached));
 			helper.register(id("leach_no_acid"), loaded(TailingsGameTests::leachNoAcid));
@@ -447,6 +452,126 @@ public class TailingsGameTests {
 			helper.assertTrue(fromFilter == 3, Component.literal("the scavengers' 0.4 of an ingot should pay 3 nuggets at the filter, got " + fromFilter + ": " + all));
 			helper.assertTrue(fromCells == 5, Component.literal("the leach's 0.6 of an ingot should pay 5 nuggets at the cells, got " + fromCells + ": " + all));
 		});
+	}
+
+	/** A little over four nuggets' worth of a mineral, in kg, so a 75 % bank pays three. */
+	private static double fourNuggets(dev.wildcatter.tailings.rock.Mineral mineral) {
+		return 4.04 * mineral.nuggetAmount().doubleValue();
+	}
+
+	private static int nuggets(PlantBlockEntity filter, dev.wildcatter.tailings.rock.Mineral mineral) {
+		return filter.countIn(new int[] {1, 2}, Feeds.stack(mineral.nuggetId(), 1));
+	}
+
+	/** Fines on one tank, one bank, thickener, filter and a pond for the tails: {@code {tank, filter, pond}}. */
+	private static PlantBlockEntity[] oneBank(GameTestHelper helper, java.util.Map<String, Double> kg, Reagent... reagents) {
+		int y = 4;
+		double total = 1000;
+		java.util.Map<String, Double> shares = new java.util.HashMap<>();
+		kg.forEach((id, m) -> shares.put(id, m / total));
+		fines(helper, new BlockPos(0, y, 0), total, shares);
+		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
+		pipe(helper, new BlockPos(0, y, 6));
+		PlantBlockEntity bank = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 7));
+		PlantBlockEntity blower = plant(helper, Machine.BLOWER, new BlockPos(7, y, 7));
+		pipe(helper, new BlockPos(6, y, 20));
+		PlantBlockEntity thickener = plant(helper, Machine.THICKENER, new BlockPos(6, y, 21));
+		pipe(helper, new BlockPos(6, y, 29));
+		PlantBlockEntity filter = plant(helper, Machine.FILTER, new BlockPos(6, y, 30));
+		pipe(helper, new BlockPos(0, y, 20), new BlockPos(0, y, 21));
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(0, y, 22));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {tank, bank, blower, thickener, filter}) {
+			part.forceRunning();
+		}
+		reagents(helper, tank, reagents);
+		return new PlantBlockEntity[] {tank, filter, pond};
+	}
+
+	/** selective-flotation.md: lead off the first bank, zinc off the second, each through its own filter at the full rung. */
+	private static void selectiveFloat(GameTestHelper helper) {
+		int y = 4;
+		var galena = dev.wildcatter.tailings.rock.Mineral.GALENA;
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		double total = 1000;
+		fines(helper, new BlockPos(0, y, 0), total, java.util.Map.of(galena.mineralItemId(), fourNuggets(galena) / total, sphalerite.mineralItemId(), fourNuggets(sphalerite) / total));
+		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
+		tank.toggleSelective();
+		pipe(helper, new BlockPos(0, y, 6));
+		PlantBlockEntity lead = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 7));
+		PlantBlockEntity blowerOne = plant(helper, Machine.BLOWER, new BlockPos(7, y, 7));
+		pipe(helper, new BlockPos(6, y, 20), new BlockPos(7, y, 20), new BlockPos(8, y, 20), new BlockPos(9, y, 20));
+		PlantBlockEntity thickenerOne = plant(helper, Machine.THICKENER, new BlockPos(9, y, 21));
+		pipe(helper, new BlockPos(9, y, 29));
+		PlantBlockEntity filterOne = plant(helper, Machine.FILTER, new BlockPos(9, y, 30));
+		pipe(helper, new BlockPos(0, y, 20));
+		PlantBlockEntity activation = plant(helper, Machine.ACTIVATION_TANK, new BlockPos(0, y, 21));
+		pipe(helper, new BlockPos(0, y, 24));
+		PlantBlockEntity zinc = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 25));
+		PlantBlockEntity blowerTwo = plant(helper, Machine.BLOWER, new BlockPos(7, y, 25));
+		pipe(helper, new BlockPos(6, y, 38));
+		PlantBlockEntity thickenerTwo = plant(helper, Machine.THICKENER, new BlockPos(6, y, 39));
+		pipe(helper, new BlockPos(6, y, 47));
+		PlantBlockEntity filterTwo = plant(helper, Machine.FILTER, new BlockPos(6, y, 48));
+		pipe(helper, new BlockPos(0, y, 38));
+		PlantBlockEntity pond = plant(helper, Machine.TAILINGS_POND, new BlockPos(0, y, 39));
+		for (PlantBlockEntity part : new PlantBlockEntity[] {tank, lead, blowerOne, thickenerOne, filterOne, activation, zinc, blowerTwo, thickenerTwo, filterTwo}) {
+			part.forceRunning();
+		}
+		reagents(helper, tank, Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.ZINC_SULFATE);
+		reagents(helper, activation, Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.COPPER_SULFATE);
+		helper.succeedWhen(() -> {
+			String all = tank.status() + " | " + lead.status() + " | " + activation.status() + " | " + zinc.status() + " | " + filterOne.status() + " | " + filterTwo.status();
+			helper.assertTrue(nuggets(filterOne, galena) == 3, Component.literal("the first filter should pay 3 lead nuggets, got " + nuggets(filterOne, galena) + ": " + all));
+			helper.assertTrue(nuggets(filterTwo, sphalerite) == 3, Component.literal("the second filter should pay 3 zinc nuggets, got " + nuggets(filterTwo, sphalerite) + ": " + all));
+			helper.assertTrue(nuggets(filterOne, sphalerite) == 0, Component.literal("no zinc through the lead filter: " + all));
+			helper.assertTrue(nuggets(filterTwo, galena) == 0, Component.literal("no lead floats a second time: " + all));
+		});
+	}
+
+	/** A selective tank short of zinc sulfate stops and names it; it does not fall back to bulk. */
+	private static void selectiveNoReagent(GameTestHelper helper) {
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		PlantBlockEntity[] line = oneBank(helper, java.util.Map.of(sphalerite.mineralItemId(), fourNuggets(sphalerite)), Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.COPPER_SULFATE);
+		line[0].toggleSelective();
+		helper.succeedWhen(() -> helper.assertTrue(line[0].status().contains("NO REAGENT: Zinc Sulfate"), Component.literal("got " + line[0].status())));
+	}
+
+	/** A selective tank's tails with no activation tank: the lead pays and the held-down zinc goes to the tails. */
+	private static void noActivationTank(GameTestHelper helper) {
+		var galena = dev.wildcatter.tailings.rock.Mineral.GALENA;
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		double zinc = fourNuggets(sphalerite);
+		PlantBlockEntity[] line = oneBank(helper, java.util.Map.of(galena.mineralItemId(), fourNuggets(galena), sphalerite.mineralItemId(), zinc), Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.ZINC_SULFATE);
+		line[0].toggleSelective();
+		helper.succeedWhen(() -> {
+			double down = line[2].back().assayOf(Product.TAILS_SLURRY).kg(dev.wildcatter.tailings.plant.Selective.DEPRESSED, line[2].back().held(Product.TAILS_SLURRY));
+			helper.assertTrue(nuggets(line[1], galena) == 3, Component.literal("the filter should pay 3 lead nuggets, got " + nuggets(line[1], galena) + ": " + line[0].status()));
+			helper.assertTrue(nuggets(line[1], sphalerite) == 0, Component.literal("no zinc should reach the filter"));
+			helper.assertTrue(Math.abs(down - zinc) < 1, Component.literal("all " + zinc + " kg of zinc should be in the tails, got " + down));
+		});
+	}
+
+	/** A plain bank on feed holding both: lead pays at the rung, the zinc it floated is gone, and only its tails go on. */
+	private static void bulkLosesZinc(GameTestHelper helper) {
+		var galena = dev.wildcatter.tailings.rock.Mineral.GALENA;
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		double zinc = fourNuggets(sphalerite);
+		PlantBlockEntity[] line = oneBank(helper, java.util.Map.of(galena.mineralItemId(), fourNuggets(galena), sphalerite.mineralItemId(), zinc), Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.COPPER_SULFATE);
+		helper.succeedWhen(() -> {
+			double left = line[2].back().assayOf(Product.TAILS_SLURRY).kg(sphalerite.mineralItemId(), line[2].back().held(Product.TAILS_SLURRY));
+			helper.assertTrue(nuggets(line[1], galena) == 3, Component.literal("the filter should pay 3 lead nuggets, got " + nuggets(line[1], galena) + ": " + line[0].status()));
+			helper.assertTrue(nuggets(line[1], sphalerite) == 0, Component.literal("the bulk cake's zinc should be lost"));
+			helper.assertTrue(Math.abs(left - zinc * 0.25) < 1, Component.literal("a quarter of the zinc should go on in the tails, got " + left));
+		});
+	}
+
+	/** Feed holding only sphalerite is not bulk, and pays as it always did. */
+	private static void bulkOneMineral(GameTestHelper helper) {
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		PlantBlockEntity[] line = oneBank(helper, java.util.Map.of(sphalerite.mineralItemId(), fourNuggets(sphalerite)), Reagent.LIME, Reagent.XANTHATE, Reagent.MIBC, Reagent.COPPER_SULFATE);
+		helper.succeedWhen(() -> helper.assertTrue(nuggets(line[1], sphalerite) == 3, Component.literal("the filter should pay 3 zinc nuggets, got " + nuggets(line[1], sphalerite) + ": " + line[0].status())));
 	}
 
 	/** A lined cell of Wildcatter's, 5 x 5 inside and 2 high, its tower at (3, 5, 18), with a bank's tails coming in over the rim. */

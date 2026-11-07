@@ -46,6 +46,7 @@
     "tailings:spiral_bank",
     "tailings:scavenger_bank",
     "tailings:regrind_mill",
+    "tailings:activation_tank",
     "tailings:cleaner_bank",
     "tailings:leach_tank",
     "tailings:ccd_thickener",

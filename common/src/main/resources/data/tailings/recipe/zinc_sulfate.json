@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "wildcatter:zinc_ingot",
+    "wildcatter:sulfur"
+  ],
+  "result": {
+    "id": "tailings:zinc_sulfate",
+    "count": 4
+  }
+}

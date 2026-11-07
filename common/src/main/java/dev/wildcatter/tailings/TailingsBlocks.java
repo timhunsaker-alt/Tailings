@@ -71,6 +71,7 @@ public final class TailingsBlocks {
 	public static final Block SPIRAL_BANK = plant(Machine.SPIRAL_BANK, MapColor.METAL);
 	public static final Block BYPRODUCT_PLANT = plant(Machine.BYPRODUCT_PLANT, MapColor.COLOR_GRAY);
 	public static final Block HEAP_PAD = plant(Machine.HEAP_PAD, MapColor.TERRACOTTA_BROWN);
+	public static final Block ACTIVATION_TANK = plant(Machine.ACTIVATION_TANK, MapColor.COLOR_LIGHT_GRAY);
 	public static final Block SCAVENGER_BANK = plant(Machine.SCAVENGER_BANK, MapColor.COLOR_GRAY);
 	public static final Block REGRIND_MILL = plant(Machine.REGRIND_MILL, MapColor.METAL);
 	public static final Block CLEANER_BANK = plant(Machine.CLEANER_BANK, MapColor.COLOR_GRAY);
@@ -87,7 +88,7 @@ public final class TailingsBlocks {
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
-			Set.of(GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
+			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
@@ -185,6 +186,7 @@ public final class TailingsBlocks {
 			case BALL_MILL -> BALL_MILL;
 			case CYCLONE -> CYCLONE;
 			case CONDITIONER -> CONDITIONER;
+			case ACTIVATION_TANK -> ACTIVATION_TANK;
 			case FLOTATION_BANK -> FLOTATION_BANK;
 			case BLOWER -> BLOWER;
 			case SPIRAL_BANK -> SPIRAL_BANK;

@@ -9,11 +9,14 @@ import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.plant.Assays;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.plant.PlantRates;
+import dev.wildcatter.tailings.plant.Reagent;
+import dev.wildcatter.tailings.plant.Selective;
 import dev.wildcatter.tailings.recovery.RecoveryRoute;
 import dev.wildcatter.tailings.rock.Mineral;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -98,17 +101,60 @@ final class Flotation {
 				return;
 			}
 			SlurryAssay assay = part.back().assayOf(Product.FINES_SLURRY);
-			boolean sphalerite = assay.get(Mineral.SPHALERITE.mineralItemId()) > 0;
+			boolean selective = part.selective();
+			Set<Reagent> dose = Selective.conditioning(selective, assay.get(Mineral.SPHALERITE.mineralItemId()) > 0);
 			double tonnes = max * PlantRates.OVERFLOW_SOLIDS / 1000;
-			if (!part.reagents().covers(tonnes, sphalerite)) {
-				part.say("NO REAGENT: " + part.reagents().missing(tonnes, sphalerite));
+			String missing = part.reagents().missing(tonnes, dose);
+			if (!missing.isEmpty()) {
+				part.say("NO REAGENT: " + missing);
 				return;
 			}
-			part.reagents().consume(tonnes, sphalerite);
+			part.reagents().consume(tonnes, dose);
 			part.trimReagents();
 			Slurry.Taken taken = use(part, Product.FINES_SLURRY, max);
-			part.out().offer(Product.CONDITIONED_SLURRY, taken.kg(), taken.assay());
+			part.out().offer(Product.CONDITIONED_SLURRY, taken.kg(), selective ? Selective.depress(taken.assay()) : taken.assay());
 			part.say("conditioning");
+			part.setChanged();
+		}
+	};
+
+	/** The activation tank: a selective bank's tails in, reagents by hopper; frees the sphalerite for a second bank. */
+	static final Stage ACTIVATION = new Stage() {
+		@Override
+		public @Nullable Product outlet(PlantBlockEntity part, int[] at, Direction localSide) {
+			return backFace(part, at, localSide, -1) ? Product.CONDITIONED_SLURRY : null;
+		}
+
+		@Override
+		public void tick(PlantBlockEntity part) {
+			draw(part, Product.TAILS_SLURRY);
+			double waiting = part.back().held(Product.TAILS_SLURRY);
+			if (waiting < 1e-6) {
+				part.say("NO FEED");
+				return;
+			}
+			part.want();
+			if (!part.running()) {
+				part.say("waiting for its motor");
+				return;
+			}
+			double max = Math.min(Math.min(FEED_PER_TICK * part.strength(), waiting), outRoom(part, Product.CONDITIONED_SLURRY));
+			if (max < 1e-6) {
+				part.say(Crushing.NOWHERE + " (conditioned slurry on the pipe at its south side)");
+				return;
+			}
+			Set<Reagent> dose = Selective.activating(part.back().assayOf(Product.TAILS_SLURRY).get(Selective.DEPRESSED) > 0);
+			double tonnes = max * PlantRates.OVERFLOW_SOLIDS / 1000;
+			String missing = part.reagents().missing(tonnes, dose);
+			if (!missing.isEmpty()) {
+				part.say("NO REAGENT: " + missing);
+				return;
+			}
+			part.reagents().consume(tonnes, dose);
+			part.trimReagents();
+			Slurry.Taken taken = use(part, Product.TAILS_SLURRY, max);
+			part.out().offer(Product.CONDITIONED_SLURRY, taken.kg(), Selective.activate(taken.assay()));
+			part.say("activating");
 			part.setChanged();
 		}
 	};
@@ -146,7 +192,7 @@ final class Flotation {
 				return;
 			}
 			SlurryAssay feed = part.back().assayOf(Product.CONDITIONED_SLURRY);
-			Split per = split(feed, 1);
+			Selective.Split per = split(feed, 1);
 			double max = Math.min(FEED_PER_TICK * part.strength(), waiting);
 			if (per.concentrate() > 0) {
 				max = Math.min(max, outRoom(part, Product.CONCENTRATE_SLURRY) / per.concentrate());
@@ -159,7 +205,7 @@ final class Flotation {
 				return;
 			}
 			Slurry.Taken taken = use(part, Product.CONDITIONED_SLURRY, max);
-			Split split = split(taken.assay(), taken.kg());
+			Selective.Split split = split(taken.assay(), taken.kg());
 			part.out().offer(Product.CONCENTRATE_SLURRY, split.concentrate(), split.concentrateAssay());
 			part.out().offer(Product.TAILS_SLURRY, split.tails(), split.tailsAssay());
 			part.say("floating");
@@ -167,29 +213,9 @@ final class Flotation {
 		}
 	};
 
-	/** What {@code kg} of conditioned slurry assayed {@code feed} makes in the bank. */
-	record Split(double concentrate, SlurryAssay concentrateAssay, double tails, SlurryAssay tailsAssay) {
-	}
-
-	/** The bank's split: each floating mineral's recovered share to a 30 % solids concentrate, the rest of the feed to tails. */
-	static Split split(SlurryAssay feed, double kg) {
-		double recovery = RecoveryRoute.FLOTATION.fraction().doubleValue();
-		Map<String, Double> conc = new HashMap<>();
-		Map<String, Double> tail = new HashMap<>();
-		double solids = 0;
-		for (String id : feed.minerals()) {
-			double there = feed.get(id) * kg;
-			Mineral mineral = Assays.mineral(id);
-			double got = mineral != null && mineral.floats() ? there * recovery : 0;
-			conc.put(id, got);
-			tail.put(id, there - got);
-			solids += got;
-		}
-		double concKg = Math.min(kg, solids / CONCENTRATE_SOLIDS);
-		double tailKg = kg - concKg;
-		conc.replaceAll((id, m) -> concKg > 0 ? m / concKg : 0);
-		tail.replaceAll((id, m) -> tailKg > 0 ? m / tailKg : 0);
-		return new Split(concKg, SlurryAssay.of(conc), tailKg, SlurryAssay.of(tail));
+	/** The bank's split, at the flotation rung, to a 30 % solids concentrate. */
+	static Selective.Split split(SlurryAssay feed, double kg) {
+		return Selective.bank(feed, kg, RecoveryRoute.FLOTATION.fraction().doubleValue(), CONCENTRATE_SOLIDS);
 	}
 
 	/** The blower runs while it touches a bank that has feed; the bank reads it. */

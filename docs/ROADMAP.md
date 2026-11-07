@@ -139,11 +139,11 @@ R brings it in line, one wave at a time.
 - **G. The gravity circuit — DONE (2026-11-06, as recommended, Tim):** a spiral bank on the cyclones' overflow pays the 2x route at plant scale, for what does not float, iron included ([gravity-circuit.md](multiblocks/gravity-circuit.md)). Jigs left out, with the reason.
 
 **Open DECISIONs from the R2 specs (listed, not chosen):**
-- Selective lead-then-zinc circuits (flotation-bank.md).
+- Selective lead-then-zinc circuits: built in 4e (selective-flotation.md).
 
 ## Phase 4 — Full recovery — next after R
 
-Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **All four waves are built** (2026-11-06). The playthrough now runs the top rung and the lined cell for real, on real rock, with nothing force-run; the heap and the by-product plant are proved by NeoForge scenes only, as copper is no by-product ore and the playthrough builds no heap. Selective lead-then-zinc flotation stays Tim's open DECISION.
+Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **All four waves are built** (2026-11-06). The playthrough now runs the top rung and the lined cell for real, on real rock, with nothing force-run; the heap and the by-product plant are proved by NeoForge scenes only, as copper is no by-product ore and the playthrough builds no heap. **4e, selective lead-zinc flotation, is built too** (Tim, 2026-11-06; spec: [selective-flotation.md](multiblocks/selective-flotation.md)): on a plain bank fed both, the zinc it floats is lost.
 
 - **4a.** Scavenger and cleaner flotation beyond the fixed bank, and a regrind.
 - **4b.** Leaching the flotation tails: tank leach with Wildcatter's sulfuric acid, and heap leach on a lined pad.
@@ -203,6 +203,9 @@ These are in the current build on purpose, or because the art and tests have not
 - **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
 - **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10).** Sized cable works, and one train needs only about 110 A. Probably the solver failure fixed in Wildcatter 0.4.1, from the same symptom; not re-tested with the fix.
 - **The waste bin backs up in about 90 minutes of driving without a heap (R10).** 992 items in 11 game minutes against 8,192. A belt under it to a `heap_pad` is the way out, and the heap holds 100 blocks at a tenth of the plant's rate.
+- **Selective flotation (4e) is not in the playthrough:** proved by unit tests, NeoForge scenes and a force-run film only. Its figures, 300 g/t of zinc sulfate above all, are proposed, and its recipes are placeholders.
+- **Nothing makes a selective plant keep its concentrates apart (4e):** both banks piped into one thickener and filter still pay clean lead and clean zinc. The spec gives each its own, but the filter does not check.
+- **The `zinc_sulfate` item borrows vanilla sugar's icon (4e),** as the other reagents borrow vanilla icons.
 - **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot. **By-product item icons are script-drawn placeholders.**
 
 Other stand-ins worth knowing:

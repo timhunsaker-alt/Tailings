@@ -148,12 +148,9 @@ Plan, bottom layer (y 0):
 - **Removing a part** stops the flow through it. What it holds stays until it is broken, then drops.
 
 ## Left out (ROADMAP)
-- Selective lead-then-zinc (or copper-then-moly) circuits. Today the bank makes one bulk sulfide concentrate: an open **DECISION**.
+- Copper-then-moly circuits. Selective lead-then-zinc is built: see selective-flotation.md.
 - Regrind and extra cleaning (Phase 4a); leaching the tails (4b); by-products (4c); the lined tailings cell (4d).
 - Thickener overflow water recycled to the plant; froth chemistry beyond the four reagents; pyrite as a by-product.
-
-## Open DECISIONs (listed, not chosen)
-- Selective circuits (above).
 
 Decided with Tim on 2026-11-05 (R4): the final tails go to a `tailings_pond_placeholder` until Phase 4d.
 

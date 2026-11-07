@@ -25,7 +25,7 @@ class FlotationTest {
 	void theBankFloatsThreeQuartersOfWhatFloatsAndKeepsTheMass() {
 		SlurryAssay feed = SlurryAssay.of(Map.of(COPPER, 0.001, IRON, 0.002));
 		double kg = 10_000;
-		Flotation.Split split = Flotation.split(feed, kg);
+		dev.wildcatter.tailings.plant.Selective.Split split = Flotation.split(feed, kg);
 		assertEquals(kg, split.concentrate() + split.tails(), 1e-6, "no slurry is made or lost");
 		double copperIn = 0.001 * kg;
 		double copperConc = split.concentrateAssay().get(COPPER) * split.concentrate();

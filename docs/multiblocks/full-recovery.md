@@ -80,7 +80,7 @@ Replaces `tailings_pond_placeholder`. It belongs in **Wildcatter**, because the 
 - **Power, as played:** the top rung is about 950 kW on two 1 MW sets: the 400 kW cells on one, the rest and the 37 kW water pump on the other. The pump does not fit on the flotation set: with it, starting the 360 kW bank tripped the set at 56.1 Hz.
 
 ## Left out (ROADMAP)
-- Selective lead-then-zinc flotation (still Tim's open DECISION, flotation-bank.md).
+- Selective lead-then-zinc flotation: its own wave, 4e (selective-flotation.md).
 - Reagent doses at the scavengers and cleaners.
 - Solvent extraction as its own machine (inside `electrowinning_bank`), acid mist, cathode stripping.
 - Cyanide and thiosulfate gold leaching.
