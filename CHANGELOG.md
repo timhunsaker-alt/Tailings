@@ -4,6 +4,9 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+- **Requires Wildcatter 0.4.1,** whose solver fix lets a generator close its breaker onto a dead bus with long busway. The playthrough stalled on 0.4.0.
+- **The playthrough runs on peaceful,** after a creeper killed its player in the pit. Listed as staged.
+
 ## Phase 4d — The lined cell (2026-11-06)
 
 - **Tails go to Wildcatter's lined cell** (v0.4.0), on a real pipe over its rim; the decant's water comes back to the mill. The old pond is a legacy part: no recipe, out of the creative tab.

@@ -63,7 +63,7 @@ import net.minecraft.world.phys.Vec3;
  * and the bank's tails on through the scavengers, the leach and the cells to a lined cell, whose water comes back to the mill.
  *
  * What is still staged, and logged as such: digging the site's pit, the gas and diesel in the generators, the acid in its tank, the
- * water hole under the pump, and the raw materials (the bill they add up to is written to playthrough-bill.txt).
+ * water hole under the pump, peaceful difficulty, and the raw materials (the bill they add up to is written to playthrough-bill.txt).
  */
 final class Playthrough {
 	private static final String SEED = System.getenv().getOrDefault("TAILINGS_SEED", "tailings");
@@ -113,6 +113,8 @@ final class Playthrough {
 			context.waitTicks(40);
 			server.runCommand("time set noon");
 			server.runCommand("gamerule advance_time false");
+			// staged: the placing is done in survival at the bottom of a dark pit, and a creeper there ended one run
+			server.runCommand("difficulty peaceful");
 			// off the ground before the pit opens under spawn: a player left standing there falls in and dies, behind a locked death screen
 			server.runCommand("gamemode spectator @p");
 			server.runCommand("tp @p 34 120 40");
