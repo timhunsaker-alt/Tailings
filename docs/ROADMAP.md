@@ -50,7 +50,7 @@ Pull request 3, between the phases, is docs only: an unscheduled PLC idea. See I
 
 Ventilation (old 3c) was only a proposal. It is not in the game.
 
-## Realignment with Wildcatter (R) — CURRENT
+## Realignment with Wildcatter (R) — done
 
 A review on 2026-11-05 found Tailings far from Wildcatter's patterns:
 - **Machines:** footprint code of its own, not Wildcatter's big parts, and each machine a box of identical vanilla cubes.
@@ -141,7 +141,7 @@ R brings it in line, one wave at a time.
 **Open DECISIONs from the R2 specs (listed, not chosen):**
 - Selective lead-then-zinc circuits: built in 4e (selective-flotation.md).
 
-## Phase 4 — Full recovery — next after R
+## Phase 4 — Full recovery — done
 
 Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2026-11-06. **All four waves are built** (2026-11-06). The playthrough now runs the top rung and the lined cell for real, on real rock, with nothing force-run; the heap and the by-product plant are proved by NeoForge scenes only, as copper is no by-product ore and the playthrough builds no heap. **4e, selective lead-zinc flotation, is built too** (Tim, 2026-11-06; spec: [selective-flotation.md](multiblocks/selective-flotation.md)): on a plain bank fed both, the zinc it floats is lost.
 
