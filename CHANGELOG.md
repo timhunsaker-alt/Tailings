@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### PLC signals, Wildcatter 13i (2026-11-07)
+
+- **Requires Wildcatter 0.5.1,** with its PLCs. 0.5.0 cut a long control trunk short: the playthrough's 2,076 cables reached 26 of 37 devices.
+- **On a PLC:** every plant part with a motor (run, running, stalled, amps, fill), the ore sorter's gates, mine switches, block signals, and the TBM through its cable junction. Each has HAND / OFF / AUTO; in HAND it works as before.
+- **A mine switch can be thrown by hand,** and a train stops if a switch is thrown under its path.
+- **Fixed before release, found by the playthrough:** a GO through the cable junction now does what the cab's Go does first (heading and origin); it read NOT BUILT.
+- **Tests:** `plc_plant`, `plc_switch`, `plc_signal`, `plc_tbm_go`; the playthrough starts the mine from a PLC.
+
 ### Phase 4e — Selective lead-zinc flotation (2026-11-07)
 
 - **A conditioning tank can run selective** (sneak-click with an empty hand): zinc sulfate holds the sphalerite down, a first bank floats the lead, and a new **activation tank** with copper sulfate frees the zinc for a second bank.

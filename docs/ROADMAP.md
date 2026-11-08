@@ -150,6 +150,13 @@ Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2
 - **4c.** By-products, the 95% route: cadmium and indium from sphalerite, silver from galena, rhenium from molybdenite, cobalt from pentlandite, monazite rare earths from heavy mineral sand. The played multiple is 4x. The mass paid is 95% of what the block holds, not 100%. 95/25 is 3.8. The even 4x is the written exception in [VISION.md](VISION.md).
 - **4d.** The lined tailings cell, shared with the Wildcatter uranium-mill idea. What the mill rejects has to go somewhere.
 
+## Wildcatter 13i — PLC signals
+
+Wildcatter's Phase 13 ends with Tailings: its plant motors, ore sorter gates, mine switches, block signals and the TBM's cable
+junction are devices on Wildcatter's control cable (Wildcatter v0.5.1). See DESIGN.md, "PLC signals". NeoForge scenes
+`plc_plant`, `plc_switch`, `plc_signal`, `plc_tbm_go`. The playthrough starts the mine from a PLC: a generated structured-text program
+starts the machines downstream first, one a second, then sends GO to the TBM.
+
 ## Later, not scheduled
 
 - Ventilation of the drive.
@@ -160,11 +167,15 @@ Spec: [full-recovery.md](multiblocks/full-recovery.md), decisions taken by Tim 2
 - Bottom-dump cars over a grizzly.
 - Open-pit mining with haul trucks.
 - Paste backfill of old stopes with tailings.
-- In-game PLCs, modeled on a Siemens S7 and others: ladder logic, function blocks, and I/O modules, for the drill program, the dump sorter, train signals, and plant pumps. Wildcatter's controls stay fixed hardware (genset panel, MCC starters, substation relays). If both mods grow a programmable controller, the scan can live in Wildcatter as plain Java, the way its solver does, and Tailings would call it.
+- PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
+
+- **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
+- **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
+- **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.
 
 - **Gantries keep their place by the machine's course (R6c),** set along the straight bore behind it, not run along the rail by their own wheels. The machine checks the track under them before each advance and stops if it is gone.
 - **Only the first four cars load on a visit (R6c, R9).** A long train leaves with its far cars empty.
@@ -181,7 +192,7 @@ These are in the current build on purpose, or because the art and tests have not
 - **The switch bed is still gravel.** Flat `mine_rail` uses `ballast` under the cutout overlay. `mine_switch` and `mine_switch_thrown` still use `minecraft:block/gravel` for the cube under the overlay.
 - **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
 - **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one.
-- **Still staged in the playthrough (R10, 4d):** digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, the forced chunks, and peaceful difficulty (a creeper in the pit killed the player during the placing in one run). The plant's water is real now, from the process pump and the cell's decant.
+- **Still staged in the playthrough (R10, 4d, 13i):** the PLC's control deck, its 24 V steam set and the control cable to each machine, placed rather than crafted (not in the bill), digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, the forced chunks, and peaceful difficulty (a creeper in the pit killed the player during the placing in one run). The plant's water is real now, from the process pump and the cell's decant.
 - **The scavengers' concentrate has its own thickener and filter in the playthrough (4d),** only as that was the shorter layout; a pipe to the main thickener works too.
 - **Concentrate is mineral only (R4b).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out.
 - **Fines items have no use now (R4b).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.

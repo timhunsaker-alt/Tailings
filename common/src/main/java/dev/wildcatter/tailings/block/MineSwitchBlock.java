@@ -50,6 +50,16 @@ public class MineSwitchBlock extends BaseEntityBlock {
 		return createTickerHelper(type, TailingsBlocks.RAIL, RailBlockEntity::tick);
 	}
 
+	/** A hand on its lever: throws it, while its selector is in HAND. */
+	@Override
+	protected net.minecraft.world.InteractionResult useWithoutItem(BlockState state, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos, net.minecraft.world.entity.player.Player player,
+			net.minecraft.world.phys.BlockHitResult hit) {
+		if (!level.isClientSide() && level.getBlockEntity(pos) instanceof RailBlockEntity rail && rail.handAllowed()) {
+			rail.setThrown(!state.getValue(THROWN));
+		}
+		return net.minecraft.world.InteractionResult.SUCCESS;
+	}
+
 	@Override
 	protected net.minecraft.world.InteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, net.minecraft.world.level.Level level,
 			net.minecraft.core.BlockPos pos, net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand,

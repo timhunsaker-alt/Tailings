@@ -23,6 +23,7 @@ import dev.wildcatter.tailings.block.RailBlockEntity;
 import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
+import dev.wildcatter.tailings.block.SignalBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
 import dev.wildcatter.tailings.client.MineCarModel;
 import dev.wildcatter.tailings.client.MineLocomotiveModel;
@@ -81,10 +82,10 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
-	private static final java.util.Set<String> LONG = java.util.Set.of("haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
+	private static final java.util.Set<String> LONG = java.util.Set.of("plc_switch", "haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
 			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral");
 
 	public TailingsGameTests(IEventBus modBus) {
@@ -114,6 +115,10 @@ public class TailingsGameTests {
 			helper.register(id("spiral_bank"), loaded(TailingsGameTests::spiralBank));
 			helper.register(id("full_recovery"), loaded(TailingsGameTests::fullRecovery));
 			helper.register(id("selective_float"), loaded(TailingsGameTests::selectiveFloat));
+			helper.register(id("plc_switch"), loaded(TailingsGameTests::plcSwitch));
+			helper.register(id("plc_signal"), loaded(TailingsGameTests::plcSignal));
+			helper.register(id("plc_plant"), loaded(TailingsGameTests::plcPlant));
+			helper.register(id("plc_tbm_go"), loaded(TailingsGameTests::plcTbmGo));
 			helper.register(id("selective_no_reagent"), loaded(TailingsGameTests::selectiveNoReagent));
 			helper.register(id("no_activation_tank"), loaded(TailingsGameTests::noActivationTank));
 			helper.register(id("bulk_loses_zinc"), loaded(TailingsGameTests::bulkLosesZinc));
@@ -885,6 +890,73 @@ public class TailingsGameTests {
 		});
 	}
 
+	/** A PLC throws a turnout under a running train's path (Wildcatter's plc.md): the train sees it, and takes the branch. */
+	private static void plcSwitch(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 12);
+		BlockPos switchAt = new BlockPos(3, y, 1);
+		helper.setBlock(switchAt, TailingsBlocks.MINE_SWITCH.defaultBlockState().setValue(MineSwitchBlock.FACING, Direction.NORTH));
+		for (int x = 4; x <= 12; x++) {
+			helper.setBlock(new BlockPos(x, y, 1), TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.EAST));
+		}
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 9), Heading.NORTH);
+		RailBlockEntity rail = (RailBlockEntity) helper.getBlockEntity(switchAt, RailBlockEntity.class);
+		helper.assertTrue(rail.points().size() == 3, Component.literal("a switch has its signals"));
+		helper.assertTrue(((RailBlockEntity) helper.getBlockEntity(new BlockPos(3, y, 5), RailBlockEntity.class)).points().isEmpty(), Component.literal("a plain rail has none, so it is no device"));
+		rail.commandPoint(0, true, helper.getLevel().getGameTime());
+		helper.assertFalse(helper.getBlockState(switchAt).getValue(MineSwitchBlock.THROWN), Component.literal("in HAND a PLC's command does nothing"));
+		rail.cycleHoa(helper.absolutePos(switchAt));
+		rail.cycleHoa(helper.absolutePos(switchAt));
+		helper.runAfterDelay(30, () -> rail.commandPoint(0, true, helper.getLevel().getGameTime()));
+		helper.succeedWhen(() -> helper.assertTrue(relX(helper, loco) > 6, Component.literal("thrown under its path, the train should take the branch, at " + loco.position())));
+	}
+
+	/** A PLC holds a train at a signal or lets it go, and cannot let two into a section. */
+	private static void plcSignal(GameTestHelper helper) {
+		BlockPos at = new BlockPos(1, 6, 1);
+		helper.setBlock(at, TailingsBlocks.BLOCK_SIGNAL.defaultBlockState());
+		SignalBlockEntity signal = (SignalBlockEntity) helper.getBlockEntity(at, SignalBlockEntity.class);
+		long now = helper.getLevel().getGameTime();
+		signal.cycleHoa(helper.absolutePos(at));
+		signal.cycleHoa(helper.absolutePos(at));
+		signal.commandPoint(0, true, now);
+		helper.assertFalse(signal.enter("one"), Component.literal("held, no train may enter"));
+		signal.commandPoint(0, false, now);
+		helper.assertTrue(signal.enter("one"), Component.literal("released, it may"));
+		helper.assertTrue(signal.readPoint(1), Component.literal("and the PLC reads it occupied"));
+		helper.assertFalse(signal.enter("two"), Component.literal("one train a section beats any PLC: there is no way to command a second in"));
+		signal.commandPoint(0, true, now);
+		helper.assertTrue(signal.enter("one"), Component.literal("a train already in stays in"));
+		signal.leave("one");
+		helper.succeed();
+	}
+
+	/** A plant part's signals: in HAND as ever, held in OFF and AUTO with no command; a part with no motor has no signals; a sorter's gates send its product to waste. */
+	private static void plcPlant(GameTestHelper helper) {
+		PlantBlockEntity drive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(1, 6, 1));
+		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(6, 6, 1));
+		PlantBlockEntity sorter = plant(helper, Machine.ORE_SORTER, new BlockPos(12, 6, 1));
+		helper.assertTrue(drive.points().size() == 6, Component.literal("a part with a motor has its six signals: " + drive.points()));
+		helper.assertTrue(grizzly.points().isEmpty(), Component.literal("a part with no motor has none"));
+		helper.assertTrue(sorter.points().size() == 10, Component.literal("a sorter adds a gate a side: " + sorter.points()));
+		BlockPos cell = helper.absolutePos(new BlockPos(1, 6, 1));
+		helper.assertFalse(drive.readPoint(3), Component.literal("a new part is in HAND"));
+		drive.cycleHoa(cell);
+		drive.cycleHoa(cell);
+		helper.assertTrue(drive.readPoint(3), Component.literal("two steps of the key is AUTO"));
+		BlockPos sorterCell = helper.absolutePos(new BlockPos(12, 6, 1));
+		sorter.cycleHoa(sorterCell);
+		sorter.cycleHoa(sorterCell);
+		sorter.sorter().set(1, "minecraft:copper_ore");
+		sorter.sorter().setWaste(2);
+		helper.assertTrue(sorter.sorter().route("minecraft:copper_ore") == 1, Component.literal("its gate open, the ore goes by its side"));
+		sorter.commandPoint(7, true, helper.getLevel().getGameTime());
+		helper.assertTrue(sorter.sorter().route("minecraft:copper_ore") == 2, Component.literal("its gate shut by the PLC, it goes to waste"));
+		sorter.commandPoint(7, false, helper.getLevel().getGameTime());
+		helper.assertTrue(sorter.sorter().route("minecraft:copper_ore") == 1, Component.literal("and back"));
+		helper.succeed();
+	}
+
 	/** Down the 1-in-2 rack decline at the rack brake's 1 m/s, and back up it at power over force. */
 	private static void trainDecline(GameTestHelper helper) {
 		int top = 64;
@@ -1398,6 +1470,24 @@ public class TailingsGameTests {
 			}
 			BlockPos under = helper.absolutePos(c.offset(2, 1, 20));
 			helper.assertTrue(GantryEntity.standingAt(helper.getLevel(), under), Component.literal("a train should find a gantry over the track"));
+		});
+	}
+
+	/** A PLC's GO through the cable junction starts the machine as its cab's own Go does, gantries and all: nobody has pressed anything. */
+	private static void plcTbmGo(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = tbm(helper, c, 6, true);
+		feed(helper, c);
+		cab.core().setTestTicks(10);
+		BlockPos junctionAt = helper.absolutePos(c.offset(-2, 0, 14));
+		var junction = (dev.wildcatter.tailings.block.CableJunctionBlockEntity) helper.getLevel().getBlockEntity(junctionAt);
+		junction.cycleHoa(junctionAt);
+		junction.cycleHoa(junctionAt);   // HAND, OFF, AUTO
+		helper.onEachTick(() -> junction.commandPoint(0, true, helper.getLevel().getGameTime()));
+		helper.succeedWhen(() -> {
+			TbmEntity machine = machine(helper, c);
+			helper.assertTrue(machine != null && machine.core().drill().advanceCount() > 2, Component.literal("a GO from the junction should drive it: " + cab.core().readout() + " / " + cab.core().note()));
+			helper.assertTrue(junction.readPoint(1), Component.literal("and the junction should say RUNNING"));
 		});
 	}
 

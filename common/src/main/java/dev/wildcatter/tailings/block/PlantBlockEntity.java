@@ -52,7 +52,80 @@ import org.jspecify.annotations.Nullable;
  * player hands rock in or takes a product out.
  */
 public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
-		WaterUser, dev.wildcatter.kinetic.Sounding {
+		WaterUser, dev.wildcatter.kinetic.Sounding, dev.wildcatter.control.ControlDevice, dev.wildcatter.control.Measurable {
+	/** Its HAND / OFF / AUTO: HAND runs on its own work as it always has, OFF holds it, and AUTO runs it while a PLC keeps enabling it (Wildcatter's plc.md). */
+	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(5);
+
+	private boolean plcAllows() {
+		return remote.hand() || level != null && remote.on(0, level.getGameTime());
+	}
+
+	@Override
+	public String deviceName() {
+		return machine().name().replace('_', ' ');
+	}
+
+	/** Each motor-driven part: run, its feedback and its current. A sorter adds a diverter gate a side; a part with no motor has no signals. */
+	@Override
+	public java.util.List<Point> points() {
+		if (motor == null) {
+			return java.util.List.of();
+		}
+		java.util.List<Point> out = new java.util.ArrayList<>(java.util.List.of(new Point("RUN", true), new Point("RUNNING", false), new Point("STALLED", false), new Point("AUTO", false),
+				new Point("AMPS 4-20 mA, 150 %", false, Signal.MA), new Point("FILL 4-20 mA", false, Signal.MA)));
+		if (machine() == Machine.ORE_SORTER) {
+			for (String side : java.util.List.of("NORTH", "EAST", "SOUTH", "WEST")) {
+				out.add(new Point("SHUT " + side + " GATE", true));
+			}
+		}
+		return out;
+	}
+
+	@Override
+	public boolean readPoint(int point) {
+		return switch (point) {
+			case 1 -> motor != null && motor.output() > 0;
+			case 2 -> motor != null && motor.stalled();
+			case 3 -> remote.auto();
+			default -> false;
+		};
+	}
+
+	@Override
+	public void commandPoint(int point, boolean on, long gameTime) {
+		if (point == 0) {
+			remote.command(0, on, gameTime);
+		} else if (point >= 6 && point < 10) {
+			remote.command(point - 5, on, gameTime);
+			sorter.setGate(point - 6, remote.auto() && on);
+		}
+	}
+
+	@Override
+	public double readMa(int point) {
+		if (motor == null) {
+			return 0;
+		}
+		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
+	}
+
+	@Override
+	public String cycleHoa(BlockPos cell) {
+		setChanged();
+		return remote.cycle();
+	}
+
+	/** What it can report: its motor, and the rock it holds (on a conveyor drive, the belt's load: a belt scale). */
+	@Override
+	public double measure(Quantity quantity) {
+		return switch (quantity) {
+			case AMPS -> motor == null ? Double.NaN : motor.amps();
+			case SPEED -> motor == null ? Double.NaN : motor.output() * 100;
+			case WEIGHT -> hold.total();
+			case LEVEL -> hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
+			default -> Double.NaN;
+		};
+	}
 	/** How long a part keeps sounding after its last work, so a stage that works in bursts does not flutter. */
 	private static final int SOUND_HOLD_TICKS = 20;
 	private boolean sounding;
@@ -692,7 +765,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void apply(Circuit circuit, int ticks) {
 		if (motor != null) {
-			motor.apply(circuit, ticks, demand);
+			motor.apply(circuit, ticks, demand && plcAllows());
 		}
 	}
 
@@ -759,6 +832,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("back", back.save());
 		output.putDouble("water", water);
 		output.putString("sort", sorter.save());
+		remote.save(output);
 		output.putBoolean("selective", selective);
 		StringBuilder bin = new StringBuilder();
 		binned.forEach((id, n) -> bin.append(bin.length() == 0 ? "" : ",").append(id).append('=').append(n));
@@ -774,6 +848,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		loading = true;
 		ContainerHelper.loadAllItems(input, slots);
 		loading = false;
+		remote.load(input);
 		cake.load(input.getStringOr("cake", ""));
 		reagents.load(input.getStringOr("reagents", ""));
 		// a tank saved by an older build may hold spent reagent items

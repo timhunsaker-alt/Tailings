@@ -26,7 +26,56 @@ import net.minecraft.world.level.storage.ValueOutput;
  * entities (docs/multiblocks/haulage.md); a rail saved before R5 that still holds a train turns it into its entities on its first
  * tick.
  */
-public class RailBlockEntity extends BlockEntity implements CircuitPart {
+public class RailBlockEntity extends BlockEntity implements CircuitPart, dev.wildcatter.control.ControlDevice {
+	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(1);
+
+	private boolean isSwitch() {
+		return getBlockState().getBlock() instanceof MineSwitchBlock;
+	}
+
+	@Override
+	public String deviceName() {
+		return "Mine switch";
+	}
+
+	/** A switch's machine; a plain rail has no signals, and so is no device. */
+	@Override
+	public java.util.List<Point> points() {
+		return isSwitch() ? java.util.List.of(new Point("THROW", true), new Point("THROWN", false), new Point("AUTO", false)) : java.util.List.of();
+	}
+
+	@Override
+	public boolean readPoint(int point) {
+		return point == 1 ? isSwitch() && getBlockState().getValue(MineSwitchBlock.THROWN) : point == 2 && remote.auto();
+	}
+
+	/** In AUTO it follows the PLC; a switch machine stays where it is if the command stops. A train's next path takes it as it lies. */
+	@Override
+	public void commandPoint(int point, boolean on, long gameTime) {
+		if (point == 0 && isSwitch()) {
+			remote.command(0, on, gameTime);
+			if (remote.auto()) {
+				setThrown(on);
+			}
+		}
+	}
+
+	public void setThrown(boolean thrown) {
+		if (level != null && getBlockState().getValue(MineSwitchBlock.THROWN) != thrown) {
+			level.setBlock(worldPosition, getBlockState().setValue(MineSwitchBlock.THROWN, thrown), 3);
+		}
+	}
+
+	public boolean handAllowed() {
+		return remote.hand();
+	}
+
+	@Override
+	public String cycleHoa(BlockPos cell) {
+		setChanged();
+		return isSwitch() ? remote.cycle() : null;
+	}
+
 	private boolean powered;
 	/** Its node on Wildcatter's DC circuit, the conductor rail's volts there, and the locomotive drawing from it. */
 	private int node = -1;
@@ -195,6 +244,7 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
+		remote.save(output);
 		output.putBoolean("powered", powered);
 		output.putLong("signal", signal.asLong());
 		if (!"NONE".equals(oldKind)) {
@@ -208,6 +258,7 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart {
 	@Override
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
+		remote.load(input);
 		powered = input.getBooleanOr("powered", false);
 		signal = BlockPos.of(input.getLongOr("signal", 0));
 		oldKind = input.getStringOr("kind", "NONE");

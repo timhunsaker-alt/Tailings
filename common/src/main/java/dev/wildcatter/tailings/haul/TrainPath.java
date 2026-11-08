@@ -133,7 +133,7 @@ public final class TrainPath {
 		for (int i = 0; i < steps.size(); i++) {
 			Track.Cell was = steps.get(i).cell();
 			Track.Cell now = view.at(was.x(), was.y(), was.z());
-			if (now == null || now.kind() != was.kind() || now.facing() != was.facing()) {
+			if (now == null || now.kind() != was.kind() || now.facing() != was.facing() || now.thrown() != was.thrown()) {
 				return i;
 			}
 		}

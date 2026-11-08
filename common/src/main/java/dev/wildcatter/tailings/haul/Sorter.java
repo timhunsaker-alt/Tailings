@@ -11,6 +11,12 @@ public final class Sorter {
 	public static final int SIDES = 4;
 	private final String[] product = new String[SIDES];
 	private int waste = -1;
+	/** A diverter gate shut on a side, by a PLC: what would leave by it goes to waste. Not saved: it must keep coming. */
+	private final boolean[] gateShut = new boolean[SIDES];
+
+	public void setGate(int side, boolean shut) {
+		gateShut[side] = shut;
+	}
 
 	/** Sets {@code side} to take {@code itemId}; the side stops being waste, and no other side keeps that type. */
 	public void set(int side, String itemId) {
@@ -43,7 +49,7 @@ public final class Sorter {
 	public int route(String itemId) {
 		for (int i = 0; i < SIDES; i++) {
 			if (itemId.equals(product[i])) {
-				return i;
+				return gateShut[i] ? waste : i;
 			}
 		}
 		return waste;

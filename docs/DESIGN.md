@@ -215,6 +215,24 @@ RCR
 III
 ```
 
+## PLC signals (Wildcatter 13i)
+
+Wildcatter's PLCs (its `docs/multiblocks/plc.md`) reach Tailings by its multi-core control cable. Every device below has a keyed
+HAND / OFF / AUTO selector (a click with Wildcatter's Selector Key): HAND works as it always has, OFF holds it, and AUTO does what the
+PLC says while the PLC keeps saying it. A command not refreshed for Wildcatter's stale time counts as off, so a cut cable holds the
+device. A PLC never overrides protection: a stalled motor, a tripped breaker and a full bin are what they were.
+- **A plant part with a motor** (`PlantBlockEntity`): RUN in; RUNNING, STALLED and AUTO out; AMPS (4-20 mA over 150 % of full load)
+  and FILL (4-20 mA over a belt's hold) as analog inputs. A conveyor drive's FILL is a belt scale. **The ore sorter** adds SHUT NORTH,
+  EAST, SOUTH and WEST GATE: a shut gate sends that side's rock to waste. Parts with no motor have no signals; the belts themselves
+  run on their drive.
+- **`mine_switch`:** THROW in; THROWN and AUTO out. In HAND a switch is thrown by hand (a click with an empty hand). A train's path
+  through a switch that is thrown under it is broken, so it stops.
+- **`block_signal`:** HOLD in, keeping the section closed even when it is clear; OCCUPIED and AUTO out.
+- **`cable_junction`:** the TBM's fixed point, as the machine moves. GO in (a rising edge starts the machine as its Go button does);
+  RUNNING and AUTO out; ADVANCE PULSES (one a block advanced) on a counter; CABLE LEFT (4-20 mA over 400 m) and QUENCH TANK as analog
+  inputs. The machine reports to the junction its cable reaches.
+- **Pull cords** are Wildcatter's `pull_cord`, wired to a PLC input like any button.
+
 ## Config
 
 Only one file. It is not created for you.

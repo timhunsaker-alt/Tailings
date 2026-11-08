@@ -8,7 +8,7 @@ repositories {
         forRepository {
             ivy {
                 name = 'WildcatterGitHubReleases'
-                url = 'https://github.com/timhunsaker-alt/Wildcatter/releases/download'
+                url = findProperty('wildcatter_repo') ?: 'https://github.com/timhunsaker-alt/Wildcatter/releases/download'   // -Pwildcatter_repo=file:/... builds against jars not yet released
                 patternLayout {
                     artifact 'v[revision]/[artifact]-[revision].[ext]'
                 }

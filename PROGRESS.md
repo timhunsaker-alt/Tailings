@@ -201,3 +201,11 @@ Three things it found that scenes did not: that solver failure (probably also th
 Spec: docs/multiblocks/selective-flotation.md. Tim said yes on 2026-11-06, and chose that a plain bank fed both loses the zinc it floats. `plant.Selective` holds the logic and is unit-tested; a slurry's assay carries the held-down sphalerite as its own entry, so no Wildcatter release was needed. New: `activation_tank`, `zinc_sulfate`, a BULK or SELECTIVE setting on the conditioning tank. NeoForge scenes `selective_float`, `selective_no_reagent`, `no_activation_tank`, `bulk_loses_zinc`, `bulk_one_mineral`; a force-run film `selective`.
 
 The playthrough does not build this circuit. It was rerun on the change and pays the same on its copper feed.
+
+## Wildcatter 13i: PLC signals (2026-11-07)
+
+Wildcatter's Phase 13 ends here. Plant motors, the sorter's gates, mine switches, block signals and the TBM's cable junction are devices on Wildcatter's control cable (DESIGN.md, "PLC signals"). NeoForge scenes `plc_plant`, `plc_switch`, `plc_signal`, `plc_tbm_go`: 66 pass.
+
+The playthrough now runs the mine from a PLC. A large CPU on a staged deck, with 2,076 cells of control cable to 37 devices, runs a generated structured-text program: it starts the eight generators, then each machine downstream first, one a second, then sends GO to the TBM. Nothing is started by hand. It passed on 2026-11-07 in 16 minutes on Wildcatter 0.5.1: 0 unsolved circuits, mean tick about 9 ms, 3 ingots at the main filter, 3 nuggets at the scavengers' filter, 5 at the cells, 3.2 t in the cell, the TBM 35 blocks down the decline.
+
+Two things it found: a GO through the junction skipped the cab's own start (heading and origin), so the machine read NOT BUILT (fixed, `plc_tbm_go`); and Wildcatter 0.5.0's cable walk stopped after about 1,600 cables, reaching 26 of the 37 devices (fixed in Wildcatter 0.5.1).

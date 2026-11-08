@@ -63,7 +63,8 @@ import net.minecraft.world.phys.Vec3;
  * and the bank's tails on through the scavengers, the leach and the cells to a lined cell, whose water comes back to the mill.
  *
  * What is still staged, and logged as such: digging the site's pit, the gas and diesel in the generators, the acid in its tank, the
- * water hole under the pump, peaceful difficulty, and the raw materials (the bill they add up to is written to playthrough-bill.txt).
+ * water hole under the pump, peaceful difficulty, the PLC's control deck and cable (placed, not crafted), and the raw materials (the
+ * bill they add up to is written to playthrough-bill.txt). A PLC starts the generators, the machines and the TBM.
  */
 final class Playthrough {
 	private static final String SEED = System.getenv().getOrDefault("TAILINGS_SEED", "tailings");
@@ -140,6 +141,9 @@ final class Playthrough {
 			server.runCommand("gamemode spectator @p");
 			camera(server, 34, 22, 40, 90, 25);
 			context.takeScreenshot("tailings-play-built");
+			server.runOnServer(this::plcSite);
+			context.waitTicks(40);
+			server.runOnServer(this::plcProgram);
 			power(server);
 			play(server);
 			film.stop();
@@ -749,6 +753,286 @@ final class Playthrough {
 		return BigParts.entity(srv.overworld(), at) instanceof dev.wildcatter.energy.Inspectable i ? i.inspect().getString() : "(no readout at " + at.toShortString() + ")";
 	}
 
+	// ---- the PLC: every machine with a motor, the generators and the TBM on one program (Wildcatter's plc.md, wave 13i) ---------------------------
+
+	private BlockPos cabinet;
+	private final List<BlockPos> sets = new ArrayList<>();
+	private final List<BlockPos> machines = new ArrayList<>();
+	private BlockPos junctionAt;
+
+	private void wire(ServerLevel level, java.util.Set<BlockPos> placed, Block cable, BlockPos from, BlockPos to) {
+		BlockPos at = from;
+		while (true) {
+			BlockState there = level.getBlockState(at);
+			if (there.canBeReplaced() || placed.contains(at)) {
+				if (!placed.contains(at)) {
+					level.setBlock(at, cable.defaultBlockState(), 3);
+					placed.add(at.immutable());
+				}
+			} else {
+				require(false, "a control run at " + at.toShortString() + " is blocked by " + there);
+			}
+			if (at.equals(to)) {
+				return;
+			}
+			at = at.offset(Integer.signum(to.getX() - at.getX()), Integer.signum(to.getY() - at.getY()), Integer.signum(to.getZ() - at.getZ()));
+		}
+	}
+
+	/** Where a riser can start for this device, a clear column up to {@code top}: over one of its cells, or beside one. */
+	private BlockPos riserFor(ServerLevel level, BlockPos device, int top) {
+		List<BlockPos> cells = BigParts.cellsAt(level, device);
+		for (BlockPos cell : cells) {
+			if (!cells.contains(cell.above()) && clear(level, cell.above(), top)) {
+				return cell.above();
+			}
+		}
+		for (BlockPos cell : cells) {
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos beside = cell.relative(side);
+				if (!cells.contains(beside) && clear(level, beside, top)) {
+					return beside;
+				}
+			}
+		}
+		return null;
+	}
+
+	/** For a failure: each cell's first blocker above it and what stands beside it. */
+	private String blockers(ServerLevel level, BlockPos device, int top) {
+		StringBuilder out = new StringBuilder();
+		List<BlockPos> cells = BigParts.cellsAt(level, device);
+		for (BlockPos cell : cells) {
+			out.append("\n  ").append(cell.toShortString()).append(" up:");
+			for (int y = cell.getY() + 1; y < top; y++) {
+				BlockPos up = new BlockPos(cell.getX(), y, cell.getZ());
+				if (!cells.contains(up) && !level.getBlockState(up).canBeReplaced()) {
+					out.append(BuiltInRegistries.BLOCK.getKey(level.getBlockState(up).getBlock()).getPath()).append("@").append(y);
+					break;
+				}
+			}
+			for (Direction side : Direction.Plane.HORIZONTAL) {
+				BlockPos beside = cell.relative(side);
+				if (!cells.contains(beside)) {
+					out.append(" ").append(side.getName().charAt(0)).append(":").append(BuiltInRegistries.BLOCK.getKey(level.getBlockState(beside).getBlock()).getPath());
+				}
+			}
+		}
+		return out.toString();
+	}
+
+	/** A boxed-in device: the shortest way out through open space, up to 16 cells, to a clear column, or null. */
+	private List<BlockPos> stubFor(ServerLevel level, BlockPos device, java.util.Set<BlockPos> placed, int top) {
+		List<BlockPos> cells = BigParts.cellsAt(level, device);
+		Map<BlockPos, BlockPos> from = new java.util.HashMap<>();
+		java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+		for (BlockPos cell : cells) {
+			for (Direction side : Direction.values()) {
+				BlockPos next = cell.relative(side);
+				if (!cells.contains(next) && !placed.contains(next) && level.getBlockState(next).canBeReplaced() && !from.containsKey(next)) {
+					from.put(next, next);
+					queue.add(next);
+				}
+			}
+		}
+		while (!queue.isEmpty()) {
+			BlockPos at = queue.poll();
+			if (clear(level, at, top)) {
+				List<BlockPos> path = new ArrayList<>();
+				for (BlockPos step = at; ; step = from.get(step)) {
+					path.add(0, step);
+					if (from.get(step).equals(step)) {
+						return path;
+					}
+				}
+			}
+			int depth = 0;
+			for (BlockPos step = at; !from.get(step).equals(step); step = from.get(step)) {
+				depth++;
+			}
+			if (depth >= 16) {
+				continue;
+			}
+			for (Direction side : Direction.values()) {
+				BlockPos next = at.relative(side);
+				if (!cells.contains(next) && !placed.contains(next) && level.getBlockState(next).canBeReplaced() && !from.containsKey(next)) {
+					from.put(next, at);
+					queue.add(next);
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean clear(ServerLevel level, BlockPos from, int top) {
+		for (int y = from.getY(); y < top; y++) {
+			if (!level.getBlockState(new BlockPos(from.getX(), y, from.getZ())).canBeReplaced()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Staged, as the hardware is not in the bill: a deck over the plant with its own small steam set for 24 V, a large CPU, and a control cable from every machine up to a
+	 * trunk over the site. A real site would run trays; this shows the signals are the real ones.
+	 */
+	private void plcSite(MinecraftServer srv) {
+		ServerLevel level = srv.overworld();
+		sets.addAll(panels);
+		List<BlockPos> list = new ArrayList<>(parts.values());
+		java.util.Collections.reverse(list);   // downstream first: a belt starts before what feeds it
+		for (BlockPos at : list) {
+			if (level.getBlockEntity(at) instanceof dev.wildcatter.control.ControlDevice d && !d.points().isEmpty()) {
+				machines.add(at);
+			}
+		}
+		junctionAt = c.offset(-2, 0, 14);
+		List<BlockPos> all = new ArrayList<>(sets);
+		all.addAll(machines);
+		all.add(junctionAt);
+		int top = 0;
+		int minZ = Integer.MAX_VALUE;
+		int maxZ = Integer.MIN_VALUE;
+		int spine = c.getX() - 18;
+		for (BlockPos at : all) {
+			minZ = Math.min(minZ, at.getZ());
+			maxZ = Math.max(maxZ, at.getZ());
+		}
+		// over the plant only: the dug pit (see dig), not the hills around it
+		for (int x = c.getX() - 24; x <= c.getX() + 46; x++) {
+			for (int z = Math.max(c.getZ(), minZ - 8); z <= Math.min(c.getZ() + 120, maxZ + 4); z++) {
+				top = Math.max(top, level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z));
+			}
+		}
+		int deck = top + 2;
+		Block cable = BuiltInRegistries.BLOCK.getValue(Identifier.parse("wildcatter:control_cable"));
+		Block box = BuiltInRegistries.BLOCK.getValue(Identifier.parse("wildcatter:junction_box"));
+		java.util.Set<BlockPos> placed = new java.util.HashSet<>();
+		int benchZ = minZ - 6;
+		wire(level, placed, cable, new BlockPos(spine, deck, benchZ), new BlockPos(spine, deck, maxZ + 2));
+		for (BlockPos at : all) {
+			BlockPos riser = riserFor(level, at, deck);
+			if (riser == null) {
+				List<BlockPos> stub = stubFor(level, at, placed, deck);
+				require(stub != null, "no clear way up from " + read(srv, at) + " at " + at.toShortString() + " to y " + deck + ": " + blockers(level, at, deck));
+				for (BlockPos step : stub) {
+					wire(level, placed, cable, step, step);
+				}
+				riser = stub.get(stub.size() - 1);
+			}
+			wire(level, placed, cable, riser, new BlockPos(riser.getX(), deck, riser.getZ()));
+			wire(level, placed, cable, new BlockPos(riser.getX(), deck, riser.getZ()), new BlockPos(spine, deck, riser.getZ()));
+		}
+		// a joint where a run meets more than a run
+		for (BlockPos at : placed) {
+			int touching = 0;
+			for (Direction side : Direction.values()) {
+				if (dev.wildcatter.control.ControlNet.joins(level, at.relative(side))) {
+					touching++;
+				}
+			}
+			if (touching > 2) {
+				level.setBlock(at, box.defaultBlockState(), 3);
+			}
+		}
+		// the deck: as a test's bench, on a floor, the trunk's start under its box
+		int bx = spine - 4;
+		for (int x = bx - 1; x <= bx + 6; x++) {
+			for (int z = benchZ - 1; z <= benchZ + 2; z++) {
+				if (!placed.contains(new BlockPos(x, deck - 1, z))) {
+					level.setBlock(new BlockPos(x, deck - 1, z), Blocks.STONE.defaultBlockState(), 3);
+				}
+			}
+		}
+		java.util.function.BiConsumer<String, BlockPos> set = (id, at) -> level.setBlock(at, BuiltInRegistries.BLOCK.getValue(Identifier.parse(id)).defaultBlockState(), 3);
+		set.accept("minecraft:campfire", new BlockPos(bx, deck, benchZ));
+		set.accept("wildcatter:boiler", new BlockPos(bx, deck + 1, benchZ));
+		set.accept("wildcatter:steam_turbine", new BlockPos(bx + 1, deck + 1, benchZ));
+		set.accept("wildcatter:plastic_wire_hot", new BlockPos(bx + 2, deck + 1, benchZ));
+		set.accept("wildcatter:control_supply", new BlockPos(bx + 3, deck + 1, benchZ));
+		for (int x = bx + 1; x <= bx + 3; x++) {
+			set.accept("wildcatter:plastic_wire_neutral", new BlockPos(x, deck + 1, benchZ + 1));
+		}
+		set.accept("wildcatter:junction_box", new BlockPos(bx + 4, deck + 1, benchZ));
+		((dev.wildcatter.block.BoilerBlockEntity) level.getBlockEntity(new BlockPos(bx, deck + 1, benchZ))).addWater(4000);
+		cabinet = new BlockPos(bx + 5, deck + 1, benchZ);
+		set.accept("wildcatter:plc_cabinet", cabinet);
+		BigParts.grow(level, cabinet, level.getBlockState(cabinet));
+		log("staged: a control deck at y " + deck + ", " + placed.size() + " cells of control cable, a trunk to " + all.size() + " devices");
+		var found = dev.wildcatter.control.ControlNet.walk(level, BigParts.cellsAt(level, cabinet));
+		List<BlockPos> missed = new ArrayList<>();
+		for (BlockPos at : all) {
+			if (!found.devices().contains(dev.wildcatter.control.ControlNet.mainOf(level, at))) {
+				missed.add(at);
+			}
+		}
+		require(missed.isEmpty(), "the trunk reaches " + found.devices().size() + " of " + all.size() + " devices; missed " + missed + (found.badJoint() != null ? ", a bad joint at " + found.badJoint().toShortString() : ""));
+	}
+
+	/** The modules, the landings, each selector to AUTO, and a program that starts the generators and then every machine in turn, downstream first, the TBM last. */
+	private void plcProgram(MinecraftServer srv) {
+		ServerLevel level = srv.overworld();
+		var box = (dev.wildcatter.control.PlcCabinetBlockEntity) level.getBlockEntity(cabinet);
+		box.seat(dev.wildcatter.control.PlcModuleItem.Type.CPU_LARGE);
+		for (int i = 0; i < 2; i++) {
+			box.seat(dev.wildcatter.control.PlcModuleItem.Type.DI16);
+		}
+		for (int i = 0; i < 6; i++) {
+			box.seat(dev.wildcatter.control.PlcModuleItem.Type.DO16);
+		}
+		StringBuilder vars = new StringBuilder("PROGRAM SITE\nVAR\n");
+		StringBuilder code = new StringBuilder();
+		int[] in = {0};
+		int[] out = {0};
+		java.util.function.BiFunction<BlockPos, Integer, String> landIn = (at, point) -> {
+			String address = "%IX" + (in[0] / 16 * dev.wildcatter.control.PlcCabinetBlockEntity.BYTES_PER_SLOT + in[0] % 16 / 8) + "." + (in[0] % 8);   // the DI16s in slots 0 and 1
+			in[0]++;
+			String refused = box.land(at, point, address);
+			require(refused == null, "input " + address + ": " + refused);
+			return address;
+		};
+		java.util.function.BiFunction<BlockPos, Integer, String> landOut = (at, point) -> {
+			String address = "%QX" + ((2 + out[0] / 16) * dev.wildcatter.control.PlcCabinetBlockEntity.BYTES_PER_SLOT + out[0] % 16 / 8) + "." + (out[0] % 8);   // the DO16s in slots 2 to 7
+			out[0]++;
+			String refused = box.land(at, point, address);
+			require(refused == null, "output " + address + ": " + refused);
+			return address;
+		};
+		StringBuilder up = new StringBuilder("TRUE");
+		for (int i = 0; i < sets.size(); i++) {
+			BlockPos set = sets.get(i);
+			vars.append("set_run").append(i).append(" AT ").append(landOut.apply(set, 0)).append(" : BOOL;\n");
+			vars.append("set_permit").append(i).append(" AT ").append(landOut.apply(set, 1)).append(" : BOOL;\n");
+			vars.append("set_closed").append(i).append(" AT ").append(landIn.apply(set, 5)).append(" : BOOL;\n");
+			code.append("set_run").append(i).append(" := TRUE;\nset_permit").append(i).append(" := TRUE;\n");
+			up.append(" AND set_closed").append(i);
+			auto(level, set);
+		}
+		for (int i = 0; i < machines.size(); i++) {
+			BlockPos at = machines.get(i);
+			vars.append("run").append(i).append(" AT ").append(landOut.apply(at, 0)).append(" : BOOL;\n");
+			code.append("run").append(i).append(" := started > ").append(i).append(";\n");
+			auto(level, at);
+		}
+		vars.append("go AT ").append(landOut.apply(junctionAt, 0)).append(" : BOOL;\n");
+		auto(level, junctionAt);
+		vars.append("started : INT;\nnext : TON;\nEND_VAR\n");
+		code.append("next(IN := (").append(up).append(") AND NOT next.Q, PT := T#1s);\n");
+		code.append("IF next.Q THEN\n\tstarted := started + 1;\nEND_IF;\n");
+		code.append("go := started > ").append(machines.size()).append(";\nEND_PROGRAM");
+		List<?> errors = box.download(vars.toString() + code);
+		require(errors.isEmpty(), "the site's program should compile: " + errors + "\n" + vars + code);
+		log("the site's program: " + sets.size() + " generators, " + machines.size() + " machines and the TBM, " + out[0] + " outputs, " + in[0] + " inputs, " + (vars.length() + code.length()) + " characters of structured text");
+	}
+
+	private void auto(ServerLevel level, BlockPos at) {
+		var device = dev.wildcatter.control.ControlNet.deviceAt(level, at);
+		require(device != null, "no device at " + at.toShortString());
+		device.cycleHoa(at);
+		device.cycleHoa(at);
+	}
+
 	private void power(TestServerContext server) {
 		context.waitTicks(40);
 		server.runOnServer(srv -> {
@@ -759,11 +1043,12 @@ final class Playthrough {
 					tank.setFuel(2000);
 				}
 				box.setGasForTest(200);
-				box.setWantRun(true);
 			}
-			log("staged: gas and diesel put in the generators; each started from its panel");
+			log("staged: gas and diesel put in the generators; their PLC starts them");
 		});
-		context.waitTicks(300);
+		server.runOnServer(srv -> ((dev.wildcatter.control.PlcCabinetBlockEntity) srv.overworld().getBlockEntity(cabinet)).cpu().setMode(dev.wildcatter.plc.Cpu.Mode.RUN));
+		context.waitTicks(800);
+		server.runOnServer(srv -> log("PLC: " + read(srv, cabinet)));
 		server.runOnServer(srv -> {
 			for (BlockPos panel : panels) {
 				log("generator " + panel.toShortString() + ": " + read(srv, panel));
@@ -779,8 +1064,7 @@ final class Playthrough {
 		server.runOnServer(srv -> {
 			DrillBlockEntity cab = (DrillBlockEntity) srv.overworld().getBlockEntity(beam);
 			cab.press(6, null);   // the screen's "stop on ore" off: this drive means to go through it
-			cab.press(10, null);
-			log("pressed Go: " + cab.core().readout() + " / " + cab.core().note());
+			log("the program's last step gives the TBM its GO: " + cab.core().readout() + " / " + cab.core().note());
 		});
 		server.runCommand("tick rate " + rate);
 		int minutes = Integer.parseInt(System.getenv().getOrDefault("TAILINGS_GAME_MINUTES", "50"));

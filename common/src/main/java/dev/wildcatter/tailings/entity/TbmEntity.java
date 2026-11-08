@@ -276,6 +276,9 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			}
 			lastAdvance = core.drill().advanceCount();
 		}
+		if (core.junction() != null && server.getBlockEntity(core.junction()) instanceof dev.wildcatter.tailings.block.CableJunctionBlockEntity reporting) {
+			reporting.report(core, server, button -> core.press(button, server));
+		}
 		if (core.running() && core.junction() != null && server.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity junction) {
 			junction.draw(core.drawWatts());
 		}
