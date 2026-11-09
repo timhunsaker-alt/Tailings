@@ -53,7 +53,7 @@ The added parts come to about **470 kW**: bank 360, blower 75, tank 15, thickene
 
 ## How it is built
 - **No Wildcatter release needed:** a slurry's assay is keyed by strings, so held-down sphalerite travels as its own assay entry (`tailings:depressed_sphalerite`).
-- **Model:** `activation_tank`, on a contact sheet before the commit, in Wildcatter's materials. The `zinc_sulfate` item borrows vanilla sugar's icon, as the other reagents do.
+- **Model:** `activation_tank`, on a contact sheet before the commit, in Wildcatter's materials. The `zinc_sulfate` item has a Ludo icon since the 2026-11-09 art wave, as the other reagents do.
 - **Scenes:** `selective_float` (both pay their full rung through two filters), `selective_no_depressant`, `no_activation_tank` (zinc lost), `bulk_loses_zinc`, `bulk_one_mineral` (feed with only one of the two pays as before).
 - **Playthrough:** extended only if the drive meets real lead and zinc ore. Its copper feed proves the trace behaviour otherwise, and the report will say which.
 

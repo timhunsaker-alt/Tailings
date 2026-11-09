@@ -1,6 +1,6 @@
 # Art
 
-Phase 3 art is in the repository. Phase 1 and phase 2 machines are still vanilla block textures. This page is how the files are laid out and how they were made, so the next pass does not wipe them.
+Phase 3 art is in the repository. Since the 2026-11-09 art wave the rest comes from Ludo through `tools/process_art.py` (sources and prompts in `art/source/`). This page is how the files are laid out and how they were made, so the next pass does not wipe them.
 
 ## Where the files are
 
@@ -10,7 +10,8 @@ All runtime art is under `common/src/main/resources/assets/tailings/`.
 |---|---|
 | `textures/block/*.png` | 16×16 block sprites, including the rail overlays, ballast, signal lamps, and mine light on/off |
 | `textures/item/mine_car.png`, `textures/item/mine_locomotive.png` | 16×16 inventory icons |
-| `textures/entity/mine_car_placeholder.png`, `textures/entity/mine_locomotive_placeholder.png` | 256×256 entity skins, script-drawn placeholders (tools/models/vehicles.py) |
+| `textures/entity/mine_car.png`, `textures/entity/mine_locomotive.png` | 256×256 entity skins, painted by tools/models/vehicles.py in the Ludo materials of `art/source/vehicle/` |
+| `textures/entity/haul_truck.png`, `textures/entity/wheel_loader.png` | 1024×1024 skins, painted the same way by tools/models/pit_vehicles.py |
 | `models/block/*.json` | Block models. Slopes and sloped rails are element models (eight slices). Flat rail and the switch are a full cube plus a thin overlay |
 | `models/item/mine_car.json`, `models/item/mine_locomotive.json` | `minecraft:item/generated` icons |
 | `blockstates/*.json` | Variants. `mine_rail` picks slope, look, and rack. `block_signal` picks the lamp. `mine_light` picks on/off. `mine_switch` picks thrown |

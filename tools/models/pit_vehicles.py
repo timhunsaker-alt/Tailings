@@ -10,12 +10,16 @@ arms lift about their pins. Skins are 1024 x 1024 (a 10 m body is 160 px long, t
 Wheels are as round as the pixel grid allows: each tyre is a stack of 1/16 m slices, each as long as the circle is wide at its
 height, with a steel hub and six wheel nuts on its outer face. Each wheel is its own group on its axle, so the renderer rolls it.
 
+Skins are painted in Ludo's materials (tools/models/skin.py): run python3 tools/process_art.py first.
+
 Run from the repo root: python3 tools/models/pit_vehicles.py
 """
 import math
 import random
 
 from PIL import Image
+
+from skin import sample
 
 OUT_TEX = "common/src/main/resources/assets/tailings/textures/entity/"
 OUT_JAVA = "common/src/main/java/dev/wildcatter/tailings/client/"
@@ -28,6 +32,8 @@ STEEL = (96, 100, 106)
 ROCK = (92, 84, 74)
 GLASS = (44, 68, 82)
 RUST = (112, 74, 44)
+# each colour's Ludo material (tools/models/skin.py); glass is see-through, so it has none
+MATERIAL = {YELLOW: "paint_yellow", BLACK: "rubber_tread", DARK: "steel_dark", STEEL: "steel_worn", ROCK: "rock", RUST: "steel_rust"}
 
 # name, group, (x0, x1), (y0, y1), (z0, z1), colour, pattern
 TRUCK_HINGE = (0.0, 2.0, 4.6)
@@ -93,38 +99,30 @@ def disc(radius_px):
 	return rows
 
 
-def shade(colour, rng, spread=7):
-	d = rng.randint(-spread, spread)
-	return tuple(max(0, min(255, c + d)) for c in colour)
-
-
-def scale(colour, k):
-	return tuple(max(0, min(255, int(c * k))) for c in colour)
-
-
-def face(img, x, y, w, h, colour, pattern, rng):
+def face(img, x, y, w, h, colour, pattern, rng, k=1.0):
+	"""One face of a box, top left at (x, y) on the skin: its colour's material, shaded by k, with the pattern's details."""
+	mat = MATERIAL[colour]
 	for j in range(h):
 		for i in range(w):
-			c = shade(colour, rng, 3)
+			X, Y = x + i, y + j
+			c = sample(mat, X, Y, k)
 			edge = i == 0 or j == 0 or i == w - 1 or j == h - 1
 			if pattern == "plate" and edge and w > 2 and h > 2:
-				c = scale(colour, 0.78)
+				c = sample(mat, X, Y, k * 0.78)
 			elif pattern == "hazard" and (i + j) % 8 < 4:
-				c = BLACK
+				c = sample("steel_dark", X, Y, 0.55)
 			elif pattern == "ribs" and i % 16 == 7:
-				c = scale(colour, 1.18)
+				c = sample(mat, X, Y, k * 1.18)
 			elif pattern == "ribs" and rng.random() < 0.04:
-				c = RUST
-			elif pattern == "rock":
-				c = shade(colour if rng.random() > 0.12 else RUST, rng, 20)
+				c = sample("steel_rust", X, Y, k)
 			elif pattern == "tread" and (j % 6 < 2):
-				c = scale(colour, 1.6)
+				c = sample(mat, X, Y, k * 1.6)
 			elif pattern == "louvres" and j % 4 == 1 and 1 < i < w - 2 and 1 < j < h - 2:
-				c = BLACK
+				c = sample("steel_dark", X, Y, 0.35)
 			elif pattern == "cab" and h > 8 and 0.15 * h < j < 0.55 * h and 2 < i < w - 3:
-				c = GLASS
+				c = None
 			# the windows are clear: the cutout drops these pixels, so from the seat the driver sees out
-			img.putpixel((x + i, y + j), c + ((0,) if c == GLASS else (255,)))
+			img.putpixel((X, Y), GLASS + (0,) if c is None else c + (255,))
 
 
 def px(v):
@@ -146,12 +144,12 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 			u, v, row = 0, v + row + 1, 0
 		if v + h > SHEET:
 			raise SystemExit(f"{name}: the skin is full at {part}")
-		face(img, u + sz, v, sx, sz, scale(colour, 1.08), pattern if pattern in ("plate", "rock") else "flat", rng)
-		face(img, u + sz + sx, v, sx, sz, scale(colour, 0.7), "flat", rng)
-		face(img, u, v + sz, sz, sy, scale(colour, 0.88), pattern, rng)
+		face(img, u + sz, v, sx, sz, colour, pattern if pattern in ("plate", "rock") else "flat", rng, 1.08)
+		face(img, u + sz + sx, v, sx, sz, colour, "flat", rng, 0.7)
+		face(img, u, v + sz, sz, sy, colour, pattern, rng, 0.88)
 		face(img, u + sz, v + sz, sx, sy, colour, pattern, rng)
-		face(img, u + sz + sx, v + sz, sz, sy, scale(colour, 0.88), pattern, rng)
-		face(img, u + sz + sx + sz, v + sz, sx, sy, scale(colour, 0.92), pattern, rng)
+		face(img, u + sz + sx, v + sz, sz, sy, colour, pattern, rng, 0.88)
+		face(img, u + sz + sx + sz, v + sz, sx, sy, colour, pattern, rng, 0.92)
 		if group:
 			hx, hy, hz = px(-hinge[0]), px(-hinge[1]), px(hinge[2])
 			group_lines[group].append(f'\t\t{group}.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({u}, {v})'
@@ -173,7 +171,7 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 			if u + w > SHEET:
 				u, v, row = 0, v + row + 1, 0
 			# the whole rectangle, solid: a smaller slice lays its faces over other parts of it, which must not be see-through
-			face(img, u, v, w, h, scale(colour, 0.9), "flat", rng)
+			face(img, u, v, w, h, colour, "flat", rng, 0.9)
 			for fx, fy, fw, fh in ((u + sz, v, sx, sz), (u + sz + sx, v, sx, sz), (u, v + sz, sz, sy), (u + sz, v + sz, sx, sy),
 					(u + sz + sx, v + sz, sz, sy), (u + sz + sx + sz, v + sz, sx, sy)):
 				face(img, fx, fy, fw, fh, colour, pattern, rng)
@@ -181,8 +179,8 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 			if key == "tread":
 				for j in range(0, 2 * biggest, 5):
 					for i in range(sx):
-						img.putpixel((u + sz + i, v + j), scale(BLACK, 1.9) + (255,))
-						img.putpixel((u + sz + i, v + j + 1), scale(BLACK, 1.9) + (255,))
+						img.putpixel((u + sz + i, v + j), sample(MATERIAL[BLACK], u + sz + i, v + j, 1.9) + (255,))
+						img.putpixel((u + sz + i, v + j + 1), sample(MATERIAL[BLACK], u + sz + i, v + j + 1, 1.9) + (255,))
 			regions[key] = (u, v)
 			u += w + 1
 			row = max(row, h)
@@ -207,7 +205,7 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 					ny, nz = int(round(r * 16 * 0.28 * math.sin(a))) - 1, int(round(r * 16 * 0.28 * math.cos(a))) - 1
 					wheel_lines.append(f'\t\t{wname}.addOrReplaceChild("n{k}", CubeListBuilder.create().texOffs({nu}, {nv})'
 							f'.addBox({nx}F, {ny}F, {nz}F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);')
-	img.save(OUT_TEX + name + "_placeholder.png")   # drawn by script: a placeholder until the art comes from Ludo
+	img.save(OUT_TEX + name + ".png")   # painted in the Ludo materials (art/final/vehicle)
 	hx, hy, hz = px(-hinge[0]), px(-hinge[1]), px(hinge[2])
 	body = list(root_lines)
 	for g in groups:
@@ -228,7 +226,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** {doc} Written by tools/models/pit_vehicles.py, with its 1024 x 1024 placeholder skin: change the script, not this file. */
+/** {doc} Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
 public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("{name}"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */
