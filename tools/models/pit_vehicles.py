@@ -98,7 +98,8 @@ def face(img, x, y, w, h, colour, pattern, rng):
 				c = BLACK
 			elif pattern == "cab" and h > 8 and 0.15 * h < j < 0.55 * h and 2 < i < w - 3:
 				c = GLASS
-			img.putpixel((x + i, y + j), c + (255,))
+			# the windows are clear: the cutout drops these pixels, so from the seat the driver sees out
+			img.putpixel((x + i, y + j), c + ((0,) if c == GLASS else (255,)))
 
 
 def px(v):

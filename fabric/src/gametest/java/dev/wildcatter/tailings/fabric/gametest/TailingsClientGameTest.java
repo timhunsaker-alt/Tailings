@@ -642,7 +642,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	 * real 40 s, so the film stays short.
 	 */
 	private void pit(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
-		BlockPos b = new BlockPos(40, y, 600);
+		BlockPos b = new BlockPos(40, y + 8, 600);   // a raised pad: the hopper's cut goes 7 below it, past a flat world's floor
 		dev.wildcatter.tailings.entity.PitVehicleEntity[] v = new dev.wildcatter.tailings.entity.PitVehicleEntity[3];
 		dev.wildcatter.tailings.block.DumpBlockEntity[] hopper = new dev.wildcatter.tailings.block.DumpBlockEntity[1];
 		PlantBlockEntity[] plant = new PlantBlockEntity[3];
@@ -686,6 +686,10 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 					}
 				}
 			}
+			// vehicles left from an earlier run of this scene in the same test world
+			var stale = level.getEntitiesOfClass(dev.wildcatter.tailings.entity.PitVehicleEntity.class, new net.minecraft.world.phys.AABB(b).inflate(80));
+			System.out.println("[tailings-test] pit: " + stale.size() + " vehicles already here");
+			stale.forEach(e -> e.discard());
 			var loader = dev.wildcatter.tailings.TailingsEntities.WHEEL_LOADER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
 			loader.setPos(b.getX() + 3.5, b.getY(), b.getZ() + 22.3);
 			loader.setYRot(0);
@@ -707,20 +711,33 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		});
 		server.runCommand("tp @p " + (b.getX() + 26) + " " + (b.getY() + 14) + " " + (b.getZ() + 40) + " 135 30");
 		context.waitTicks(40);
+		// their chunks may have unloaded and loaded again before the camera came: hold the entities the world has now
+		java.util.UUID[] ids = server.computeOnServer(srv -> new java.util.UUID[] {v[0].getUUID(), v[1].getUUID(), v[2].getUUID()});
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			for (int i = 0; i < 3; i++) {
+				if (srv.overworld().getEntity(ids[i]) instanceof dev.wildcatter.tailings.entity.PitVehicleEntity e) {
+					v[i] = e;
+				}
+			}
+		});
+		fresh.run();
 		context.takeScreenshot("tailings-pit-built");
 		Filming film = film(context, world, "pit");
 		// into the loader's cab, and five passes with the jump key
 		server.runCommand("gamemode creative @p");
 		server.runOnServer(srv -> srv.getPlayerList().getPlayers().get(0).startRiding(v[0]));
 		context.waitTicks(20);
-		for (int pass = 0; pass < 12 && v[1].load().room() > 0; pass++) {
+		for (int pass = 0; pass < 16 && v[1].load().room() > 0; pass++) {
 			context.getInput().holdKey(options -> options.keyJump);
-			context.waitTicks(3);
+			context.waitTicks(10);   // held long enough for the server to see it down
 			context.getInput().releaseKey(options -> options.keyJump);
 			context.waitTicks(5);
 			int p = pass;
-			server.runOnServer(srv -> System.out.println("[tailings-test] pit: press " + p + ": loader " + v[0].status() + "; truck " + v[1].load().tonnes()));
-			for (int t = 0; t < 40 && server.computeOnServer(srv -> v[0].busy()); t++) {
+			server.runOnServer(srv -> System.out.println("[tailings-test] pit: press " + p + ": loader " + v[0].status() + "; truck " + v[1].load().tonnes() + " at " + v[1].position() + "; other " + v[2].load().tonnes() + " at " + v[2].position() + "; loader at " + v[0].position()));
+			for (int t = 0; t < 20 && !server.computeOnServer(srv -> v[0].busy()); t++) {
+				context.waitTicks(2);   // the press may still be on its way to the server
+			}
+			for (int t = 0; t < 60 && server.computeOnServer(srv -> v[0].busy()); t++) {
 				context.waitTicks(5);
 			}
 			if (pass == 1) {
@@ -733,11 +750,16 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.getInput().holdKey(options -> options.keyShift);
 		context.waitTicks(5);
 		context.getInput().releaseKey(options -> options.keyShift);
+		context.waitTicks(15);   // the sneak reaches the server first, or it would take them out of the truck too
 		server.runOnServer(srv -> srv.getPlayerList().getPlayers().get(0).startRiding(v[1]));
 		context.waitTicks(20);
 		context.getInput().holdKey(options -> options.keyDown);
 		for (int t = 0; t < 30; t++) {
 			context.waitTicks(10);
+			server.runOnServer(srv -> {
+				var pl = srv.getPlayerList().getPlayers().get(0);
+				System.out.println("[tailings-test] pit: backing: riding " + (pl.getVehicle() != null) + "; z " + (v[1].getZ() - b.getZ()) + "; speed " + v[1].speed() + "; " + v[1].status());
+			});
 			if (server.computeOnServer(srv -> v[1].speed() == 0 && v[1].getZ() < b.getZ() + 18)) {
 				break;
 			}
@@ -749,6 +771,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.getInput().releaseKey(options -> options.keyShift);
 		server.runCommand("gamemode spectator @p");
 		server.runCommand("tp @p " + (b.getX() + 24) + " " + (b.getY() + 8) + " " + (b.getZ() + 6) + " 100 25");
+		fresh.run();
 		server.runOnServer(srv -> {
 			v[1].pressJump(srv.overworld());
 			v[2].pressJump(srv.overworld());
@@ -758,12 +781,14 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		for (int t = 0; t < 30 && server.computeOnServer(srv -> v[1].busy()); t++) {
 			context.waitTicks(10);
 		}
-		server.runOnServer(srv -> System.out.println("[tailings-test] pit: truck " + v[1].status() + "; hopper " + hopper[0].pocket() + " blocks; other truck " + v[2].status()));
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit: truck " + v[1].status() + ", left in it " + v[1].load().contents() + "; hopper " + hopper[0].pocket() + " blocks; other truck " + v[2].status()));
 		require(server.computeOnServer(srv -> hopper[0].pocket() > 0 || plant[2].binned().getOrDefault("minecraft:cobblestone", 0) > 0), "the truck should tip into the hopper");
 		server.runCommand("tp @p " + (b.getX() + 30) + " " + (b.getY() + 6) + " " + (b.getZ() + 10) + " 0 25");
+		fresh.run();
 		context.waitTicks(60);
 		context.takeScreenshot("tailings-pit-sand-tipped");
 		server.runCommand("tp @p " + (b.getX() + 22) + " " + (b.getY() + 2) + " " + (b.getZ() - 6) + " 90 10");
+		fresh.run();
 		context.waitTicks(200);
 		server.runOnServer(srv -> System.out.println("[tailings-test] pit: feeder " + plant[0].status() + "; sorter " + plant[1].status() + "; bin " + plant[2].binned() + "; hopper " + hopper[0].pocket()));
 		context.takeScreenshot("tailings-pit-feeder");
@@ -776,10 +801,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			v[0].pressJump(srv.overworld());   // a real-length pass from what is left of the face: its arms are up as it carries
 		});
 		context.waitTicks(200);
-		server.runCommand("tp @p " + (b.getX() + 40) + " " + (b.getY() + 5) + " " + (b.getZ() + 22) + " 120 15");
+		server.runCommand("tp @p " + (b.getX() + 40) + " " + (b.getY() + 6) + " " + (b.getZ() + 20) + " 50 15");
+		fresh.run();
 		context.waitTicks(20);
 		context.takeScreenshot("tailings-pit-truck-close");
-		server.runCommand("tp @p " + (b.getX() + 14) + " " + (b.getY() + 5) + " " + (b.getZ() + 14) + " 135 15");
+		server.runCommand("tp @p " + (b.getX() + 13) + " " + (b.getY() + 6) + " " + (b.getZ() + 14) + " 50 20");
+		fresh.run();
 		context.waitTicks(20);
 		context.takeScreenshot("tailings-pit-loader-close");
 		heard("pit", "wildcatter:diesel_idle", "tailings:muck_load", "tailings:muck_tip", "tailings:apron_feeder");

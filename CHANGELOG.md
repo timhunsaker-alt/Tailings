@@ -15,6 +15,8 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 - **Muck and loose ground:** broken rock as `muck` blocks that remember what they were; tipped loads land and settle downhill, piles
   standing at 37 degrees, and fill holes first.
 - **Config:** `truck_damage` in `config/tailings-train.properties` (default 8).
+- **Clear cab windows:** the truck's and loader's windows are see-through, so the driver can see out (they were opaque; found
+  filming the `pit` scene).
 - **Tests:** `pit_settle`, `pit_truck_tip`, `pit_truck_body`, `pit_hopper`, `pit_truck_drive`, `pit_loader_soft`, `pit_loader_hard`,
   `pit_loader_muck`; `SettleTest`, `PitDriveTest`.
 

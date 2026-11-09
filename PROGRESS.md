@@ -230,3 +230,13 @@ DESIGN.md, "The open pit (P1)".
   (`pit_loader_muck`).
 - NeoForge scenes: **74 pass** (66 before, 8 new).
 
+- **The filmed scene** (`pit`, Fabric client, 2026-11-09). A player rides the loader and fills the truck with the jump key in five
+  passes (0, 20.3, 40.5, 60.8, 81.0, 91 t), backs it to the bumper with the movement keys (it reaches 3 m/s in reverse and stops at
+  z 16, its tail over the hopper), and tips it in: the feeder and sorter put 12 copper ore and 20 cobble in the bin. The second
+  truck tips 40 t of sand on the ground, 25 blocks in a heap behind its tail. The screenshots found two things:
+  - **The cabs were blind:** the window pixels were opaque, so from the seat the driver saw only the cab's inside. They are now clear
+    (the cutout drops them), and from the loader's seat the plant and the truck show through.
+  - **What a hopper leaves:** the hopper takes whole bank blocks of each ore, so after a 91 t tip 4.6 t stays in the body (2.0 t of
+    copper ore, 2.6 t of cobble), and the body is drawn full. Put to Tim (ROADMAP Known gaps).
+  - The scene itself first failed for its own reasons: it was built below a flat world's floor, it held entities that their chunks had
+    reloaded as new ones, and its key presses were shorter than the server's tick. All three are fixed in the scene.
