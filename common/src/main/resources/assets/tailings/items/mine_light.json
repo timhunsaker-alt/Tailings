@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "tailings:block/mine_light"
+    "model": "tailings:block/mine_light_on"
   }
 }
