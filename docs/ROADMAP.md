@@ -165,7 +165,7 @@ starts the machines downstream first, one a second, then sends GO to the TBM.
 - A shaft and hoist (headframe, skip) instead of the decline.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track.
 - Bottom-dump cars over a grizzly.
-- Open-pit mining with haul trucks.
+- Open-pit and strip mining (Tim's answers 2026-11-09): drills and emulsion blasting, loaders and shovels, 100 t and 360 t haul trucks driven or self-driving on surveyed roads under PLC dispatch, dry-stacked tails on waste dumps that settle, and a walking dragline. Specs approved 2026-11-09: multiblocks/open-pit.md, multiblocks/dragline.md. Waves P1-P7 (open-pit.md, Proposed waves).
 - Paste backfill of old stopes with tailings.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 

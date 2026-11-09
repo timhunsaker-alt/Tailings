@@ -1,0 +1,268 @@
+# Open-pit mining: drills, blasting, loaders, haul trucks, haul roads and dumps (APPROVED by Tim 2026-11-09)
+
+**Surface mining with drill, blast, load and haul.** Benches are drilled and blasted. Loaders and shovels load the broken rock
+into haul trucks. The trucks carry it on surveyed haul roads to a dump pocket over the primary crusher. **Every load goes
+through the plant, country rock as well as ore:** country rock pays its trace minerals as nuggets (crushing-circuit.md,
+Nuggets). What the plant rejects is filtered dry, loaded back into trucks and tipped on a waste dump. The dump grows as real
+falling blocks that settle at the lowest points. Strip mining with the dragline is in [dragline.md](dragline.md). The explosive
+comes from an ammonia plant, proposed in Wildcatter: `wildcatter/docs/multiblocks/ammonia-plant.md`.
+
+**Real counterparts:**
+- Truck-and-shovel open pits: porphyry copper and molybdenum pits, bauxite strip mines (Weipa), limestone quarries.
+- SME *Mining Engineering Handbook*, 3rd ed. (2011): surface mining, blasting, haulage and dump chapters.
+- Dry-stack (filtered) tailings: the plant's tails filtered to a cake, hauled by truck and stacked, as at Karara and La Coipa.
+- Autonomous haulage systems (AHS): driverless trucks on surveyed routes under a dispatch system, at Pilbara iron-ore mines.
+
+**Decided with Tim (2026-11-09):**
+- **Trucks:** both classes, a 100 t truck and a 360 t ultra-class truck.
+- **Loaders:** all of them: a wheel loader, a hydraulic front shovel and an electric rope shovel.
+- **Driving:** a player can drive any truck. A truck can also run by itself on a surveyed haul road, under dispatch on
+  Wildcatter's PLC control cable.
+- **Blasting:** hard rock is drilled and blasted. The explosive is a pumped **emulsion (slurry) explosive** made from the
+  ammonium nitrate of a real ammonia plant, which is to be built.
+- **Waste:** all rock goes through the crusher and the plant. The plant's rejects are hauled to a dump site. Tipped loads fall
+  like gravel and settle at the lowest points, so dumps grow into real waste mountains.
+- **Strip mining:** a walking dragline (dragline.md).
+- **Ore bodies:** the existing veins. No new worldgen. A pit's value is its veins plus the trace-mineral nuggets in all the
+  country rock it moves.
+
+**Decided with Tim (2026-11-09, on this draft):**
+- **The plant's size:** option (a), a pit-sized concentrator line, built after the trucks; option (b) until then (below).
+- **Truck loads in real tonnes** (below).
+- **The ammonia plant is Wildcatter's** (wildcatter/docs/multiblocks/ammonia-plant.md).
+- **The 37° settle exception** (below).
+- **Boosters and detonators are made with TNT** (vanilla TNT): real cast boosters of TNT and its mixes exist.
+
+A figure marked *(proposed)* is a textbook value, a scaled value, or a proposal. A figure marked *(unverified)* is from memory
+and is to be checked against a manufacturer's spec sheet or the SME handbook before approval.
+
+```
+ BENCH: drill pattern -> charge (emulsion truck) -> stem -> fire        (hard rock; soft ground is dug as it is)
+   |
+   v  muck pile (broken rock, swollen 1.33x)
+ LOADER / SHOVEL -> HAUL TRUCK -> surveyed haul road (max grade 10 %) -> DUMP POCKET -> primary crusher -> the plant
+                                                                                                             |
+                                       tails slurry -> TAILINGS FILTER -> dry tails -> TRUCK LOAD-OUT -> HAUL TRUCK
+                                                                                                             |
+                                                                    WASTE DUMP (tipped blocks settle downhill) <-
+```
+
+## The plant's size: the plant is 50 t/h; a pit moves thousands (decided: a, after the trucks)
+The crushing circuit is sized for a small underground mine: **50 t/h, a block of rock every 3 min 15 s**
+(crushing-circuit.md). One 360 t truck is 133 blocks of rock, **7.2 hours** of crushing. One 100 t truck is 2 hours. Real pits
+feed a gyratory crusher at 2,000-10,000 t/h. The options:
+- **(a) A pit-sized concentrator line:** a primary gyratory crusher under the dump pocket (about 3,000 t/h), a coarse-ore
+  stockpile, and a SAG mill line (a few hundred to a few thousand t/h). Each gets its own spec. Real and big: a SAG mill line
+  draws 10-20 MW.
+- **(b) Keep the 50 t/h plant:** the dump pocket and a coarse-ore stockpile buffer the trucks, and the pit runs as fast as the
+  plant. The 100 t truck is the right size for it.
+- **(c) A written exception:** the existing plant runs at a game-scaled rate for pit rock.
+
+**Decided (Tim, 2026-11-09): (a), built after the trucks, with (b) until then.** The coarse-ore stockpile comes with the dump
+pocket, as the first part of (a). The gyratory, stockpile reclaim and SAG mill line each get their own spec before their wave.
+
+## Rock, broken rock and dug ground
+- **Soft ground** is dug as it stands: dirt, grass, sand, red sand, gravel, clay, mud, and the soft Wildcatter ores (bauxite,
+  phosphate rock, heavy mineral sand, bentonite, borax ore). A loader's bucket takes it block by block.
+- **Hard rock** must be blasted first: stone, deepslate, granite, diorite, andesite, tuff, sandstone, calcite, every other
+  Wildcatter ore, and the vanilla ores. A loader cannot dig standing hard rock. It reads "hard rock: blast it first".
+- **Muck (broken rock):** a blast turns each block in the shot into **muck**: a `muck` block with a block entity that holds what
+  the block was (its rock or ore, counted as in a mine car). Real broken rock swells: **3 blocks of bank rock break to 4 blocks
+  of muck** (swell 1.33, *proposed*; real hard rock 1.3-1.6). The extra muck spills forward off the face and settles (below).
+  A muck block falls like gravel. When dug, it gives its contents to the bucket.
+- **What a truck carries** is counted in tonnes from what it loaded: a block of rock is 2.7 t (2.6-3.0 by rock, as in
+  `rock.Rock`), a block of muck three-quarters of that. **Decided (Tim, 2026-11-09): real tonnes.** A 91 t truck carries about 34 blocks of bank
+  rock (45 of muck); a 363 t truck about 134 (179 of muck). The truck is full by mass, not by stacks.
+
+## The settle rule (muck piles, tipped loads, dumps)
+One rule for every loose block Tailings places: muck spilled by a blast, a tipped truck load, a dragline's cast.
+- A placed loose block falls straight down to the first solid block.
+- It then looks at its four neighbours. If a neighbour's column is **2 or more blocks lower**, it rolls to the lowest one and
+  repeats. It stops when no neighbour is 2 lower, or after 64 rolls.
+- So a pile stands at **1 in 1 (45°)**, the steepest slope a block world can hold one block at a time. Real broken rock rests at
+  about **37°** (1.33 in 1). **Written exception (decided with Tim, 2026-11-09):** a block with a neighbour just 1 lower also
+  rolls on, with a chance of 1 in 3, which gives a long-run slope near 37°. The `pit_settle` test checks the slope.
+- **Into water or lava** it falls through and displaces the fluid. A dump can fill a flooded pit (real in-pit backfill).
+- **Load:** a tipped 360 t load is about 200 blocks of dry tails. Settling is worked out on the server and placed at once,
+  with a short falling animation for the client. No falling-block entities *(proposed, for the server's sake)*.
+- The rule lives in plain Java (`mine/Settle`), with unit tests.
+
+## Machines
+
+### Haul trucks (entities, true size)
+| | `haul_truck` (100 t class) | `ultra_haul_truck` (360 t class) |
+|---|---|---|
+| Payload | **91 t** (target payload) | **363 t** (nominal) |
+| Size L x W x H | **10.0 x 6.2 x 5.2 m**, about 10 m high with the body raised *(height to the cab unverified)* | **15.1 x 9.5 x 7.7 m**: 9.5 m over the tyres; length and height *(unverified)* |
+| Empty mass | about 70 t *(unverified)* | about 260 t (624 t rated gross less the payload) |
+| Engine | **765 kW** gross diesel, mechanical drive | **2,983 kW** gross diesel |
+| Fuel | Wildcatter diesel, about 1,100 L tank, about 100 L/h working *(proposed)* | about 4,000 L tank, about 350 L/h *(proposed)* |
+| Top speed | 60 km/h on the flat, empty | 64 km/h |
+| Up a 10 % haul road, loaded | about 12 km/h *(proposed, from P = m g v (sin θ + rolling 0.02), 80 % at the wheels)* | about 12 km/h |
+
+- **Speed follows power**, as the trains do: v = P η / (m g (sin θ + rolling)), η 0.8 at the wheels *(proposed)*, with a
+  retarder holding a loaded truck to 15 km/h down a 10 % grade *(proposed)*.
+- **The body** holds any mix of rock, ore, muck contents and dry tails, counted by item and tonne. It tips to dump: the load
+  goes out behind the truck by the settle rule, or into a dump pocket's hopper.
+- **Driving:** right-click to sit in the cab and drive with the movement keys. A truck hurts a player or mob it hits, by the
+  trains' config (`config/tailings-train.properties`, a new `truck_damage` line). Sneak-attack with an empty hand to break it
+  into its item and its load.
+- **Running by itself:** see Haul roads and dispatch.
+- **Placing:** right-click the ground with the truck item. Crafted from Wildcatter parts (placeholder recipes until the art wave).
+
+### Loaders
+| Part | Size (W x L x H) | Bucket | Power | Cycle | Fills a 100 t truck in | Fills a 360 t truck in |
+|---|---|---|---|---|---|---|
+| `wheel_loader` | 4.5 x 16 x 6 m *(unverified)* | **12 m³**, 20.4 t (high-lift rating; the class takes 11.5-24.5 m³ buckets) | **607 kW** net diesel | 40 s | 5 passes | 18 (not done in practice) |
+| `hydraulic_shovel` (front shovel, about 250 t) | 7 x 15 x 8 m *(unverified)* | **15 m³**, about 27 t *(unverified)* | about 1,100 kW diesel *(unverified)* | 30 s | 4 passes | 13 |
+| `rope_shovel` (electric) | 14.4 x 15 m crawlers and house, about 21 m to the boom point *(height unverified)* | **55 m³** dipper, **100 t** (the class: 53-61 m³, 100-109 t) | electric off the pit cable; real ones take 7.2 or 13.8 kV from at least a 3,750 kVA transformer. About 1.5 MW average, 3.5 MW peak *(proposed)* | 35 s | 1 pass | **4 passes** |
+
+- **Operation:** a player sits in the cab. A bucket pass digs the bucket's volume from the face in front: soft ground block by
+  block, or muck. It then swings and dumps into the truck standing under the bucket. In AUTO (a button on the cab's screen),
+  it keeps loading whatever truck stands in its loading spot until the face in reach is gone *(proposed)*.
+- **Reach:** the face up to the bucket's height: about 6 m for the loader, 12 m for the hydraulic shovel, 15 m for the rope
+  shovel *(proposed; a bench is cut to the shovel's reach)*.
+- **The wheel loader** also loads a truck from a stockpile, and moves on wheels at up to 20 km/h. **The shovels** crawl on
+  tracks at about 1.5 km/h *(proposed)*.
+- **The rope shovel** is a big contraption, like the TBM: its parts (crawlers, revolving frame and machinery house, boom,
+  dipper handle and dipper) are placed as big parts, checked, and lift into one entity while it moves or swings
+  (multiblocks README, The contraption). It draws power through a trailing cable from a pit switch house.
+
+### Rotary blasthole drill (`blasthole_drill`)
+- **Real:** a crawler-mounted rotary drill with a mast, drilling **270 mm** holes (the class: 171-270 mm, 311 mm on the larger
+  rigs) to the bench depth plus 1.5 m of subdrill, **up to 16.8 m in a single pass**. Electric off the pit cable, a **522 kW** motor
+  (746 kW option), or diesel.
+- **Size:** 7 x 15 x 26 m with the mast up *(unverified)*. Contraption, like the rope shovel.
+- **Its screen sets a pattern:** rows and columns, burden and spacing (proposed default **7 x 8 m**), and depth (the bench height
+  plus subdrill). It walks the pattern and drills each hole. A drilled hole is a column of `blasthole` blocks with its
+  cuttings beside the collar, which serve as stemming.
+- **Rate:** **1 m every 10 s** *(scaled; a real rotary drill makes about 30-60 m/h)*.
+- PLC points: RUN, RUNNING, HOLES DRILLED (pulse).
+
+### Emulsion truck (`emulsion_truck`, a bulk explosives truck)
+- **Real:** a bulk truck carrying emulsion matrix (an ammonium-nitrate oxidiser, not yet an explosive), diesel and a gassing
+  solution. It pumps the matrix down the hole through a hose and sensitises it in the hole by gassing.
+- **Carries:** 12 t of emulsion matrix *(proposed)*, filled from the ammonia plant's emulsion matrix (ammonia-plant.md).
+- **Charging:** parked by a hole, it charges the hole to its set column (default: the hole's depth less 4 m of stemming). At
+  **1.2 g/cm³** a 270 mm hole holds **69 kg a metre** *(from the volume; proposed density)*. A 16 m hole, 12 m charged, holds
+  about 820 kg.
+- **Powder factor:** a 7 x 8 x 14.5 m block is 812 m³, 2,190 t. 820 kg is **0.37 kg/t** *(real hard-rock open pits run about
+  0.2-0.5 kg/t)*.
+- **Initiation:** each hole needs a `cast_booster` and a `detonator` dropped in before charging (items). The holes are tied in to a
+  `blasting_machine` with a delay chosen per row (25 ms default). **Both are made with TNT (decided with Tim, 2026-11-09):**
+  - `cast_booster`: a 400 g cast of TNT *(real boosters are TNT, pentolite or TNT mixes, 340-450 g)*: one TNT makes 4
+    *(proposed)*;
+  - `detonator`: an electronic delay detonator. Its base charge is really PETN; TNT stands in for it, written as an exception.
+    One TNT, copper wire and a circuit makes 8 *(proposed)*.
+- **Stemming:** each hole is filled to its collar with its cuttings or 4 gravel *(proposed)*. A hole not stemmed blows out: half
+  the break and a crater of flyrock *(proposed)*.
+
+### The blast
+- **Fired** from the `blasting_machine` (a key and a FIRE button, or the PLC's FIRE point).
+- **What breaks:** each charged, primed, stemmed hole breaks its burden x spacing x depth to muck. A hole with less than **0.15
+  kg/t** fails and breaks nothing *(proposed)*. Muck spills forward off the free face by the settle rule.
+- **Danger:** players and mobs within **50 m** of a firing hole take damage, more nearer, and blocks of flyrock land up to 100 m
+  off *(scaled; a real blast clears people to 500 m)*. No vanilla explosion: no crater and no item loss. A siren sounds for 10 s
+  before the shot *(proposed)*.
+- **Ground left:** the floor at the subdrill depth is left flat as the next bench's floor.
+
+### Track dozer (`track_dozer`)
+- **Real:** a **70 t** crawler dozer with a semi-U blade **4.9 m wide, 2.1 m high, 18.5 m³**, **449 kW** net diesel.
+- **Driven by a player.** Its blade cuts the layer level with its tracks: soft ground and muck, one block deep, pushed ahead as a
+  pile up to the blade's 2.1 m height (a 5 x 2 block blade). It cuts ramps and benches and pushes a pile over a dump crest (settle rule).
+- Left out: the rear ripper for soft rock.
+
+### Pit power: the pit switch house and trailing cable
+- **Real:** a skid-mounted switch house on the pit's power line, with a breaker for each machine's trailing cable.
+- `pit_switch_house` (3 x 3 x 6, *proposed*): a Wildcatter circuit part on Wildcatter's medium-voltage cable. **Four outlets**,
+  each a breaker and a trailing cable up to **400 m** *(proposed; the TBM's is 300 m)*, to the rope shovel, the drill and the
+  dragline. Moving past the cable's length stops the machine ("cable end").
+- **Voltage:** Wildcatter's medium-voltage tier. Real shovels and draglines run at 4.16-7.2 kV.
+
+### Dump pocket (`pit_dump_pocket`)
+- **Real:** a truck dump: a concrete wall with a hopper below that a truck backs to and tips into, over the primary crusher.
+- **Size:** **16 x 8 x 12 m** *(proposed)*: a pad, a retaining wall with a bumper block, and a hopper of **400 t** (one ultra-class
+  load and a margin).
+- Feeds the jaw crusher (or, by Decision 1, the gyratory) at its rate. Reads FULL when a truck could not tip into it, and a
+  self-driving truck waits.
+- PLC points: LEVEL (4-20 mA), FULL.
+
+### Tailings filter and truck load-out (dry stack)
+- `tailings_filter`: a large plate-and-frame filter press. It takes the tails slurry (the flotation bank's tails, which today go to
+  the tailings pond placeholder) and gives **dry tails at 15 % moisture** *(proposed; real dry-stack cake is 12-20 %)*. Rate:
+  **60 t/h of solids** *(proposed, more than the plant's 50 t/h)*, about 150 kW *(proposed)*. Its size and grid come with the
+  model.
+- **Dry tails** are `dry_tails` blocks when placed: 1 m³ at **1.8 t** *(proposed; real dry stacks are 1.6-1.9 t/m³)*. So a 91 t
+  load is 50 blocks and a 363 t load about 200.
+- `truck_loadout`: a steel bin of 400 t on legs, with a chute over a drive-through lane. A truck under the chute is filled. It is fed
+  by belt from the filter, and also takes the gravity circuit's coarse rejects.
+- The tailings pond placeholder stays for slurry. The lined tailings cell (ROADMAP 4d) is still to come.
+
+### Waste dump
+- A **dump site** is ordinary ground the player chooses. A surveyed **dump point** (below) at a crest tells a truck where to tip.
+- A truck backs to the crest and tips: the load goes out behind it by the settle rule, so the dump's face advances out from the
+  crest as tipped loads roll down it, as a real end-tipped dump does.
+- **A safety berm** (a windrow of dry tails 1 block high) along the crest stops a reversing truck *(proposed: the dozer pushes
+  one up; a truck backing over a crest without a berm rolls off and is wrecked)*.
+
+## Haul roads, surveying and dispatch
+- **Survey stakes** (`survey_stake`, a block): a player places stakes along a road and names its stops on the stake's screen:
+  LOAD (by a loader), DUMP POCKET, LOADOUT, DUMP POINT, FUEL, PARK. A **survey book** item links stakes in order, by clicking them,
+  into a route.
+- **The surveyed route** is the line through its stakes. The survey checks it and writes problems on the book:
+  - **grade:** not over **10 %** between stakes *(real haul roads 8-10 %)*;
+  - **width:** at least **3 truck widths** for two-way traffic (18 m for the 100 t truck, 30 m for the ultra) *(SME rule)*.
+    Narrower roads are one-way, and a truck waits at the stake before one for an oncoming truck to clear;
+  - **clear:** no solid block in a truck's way, along the line and its width.
+- **Self-driving trucks:** a truck given a route (click it with the survey book) drives itself: to LOAD, waits in the loader's
+  spot, then to its dump stop, tips, and back. It slows for curves and grades by power, keeps 50 m from the truck ahead
+  *(proposed)*, and stops for any player, mob or vehicle in its way (real AHS obstacle detection). It goes to FUEL when its tank is
+  under 15 %, and to PARK when told to stop.
+- **The dispatch office** (`haul_dispatch`, a 3 x 3 x 3 building, *proposed*) is a Wildcatter `ControlDevice` on the control
+  cable, so a PLC runs the fleet. It reaches trucks within **2 km** by radio *(proposed)*. Its points, for each route (up to 8):
+  - RUN (command): trucks on the route run; off sends them to PARK;
+  - RUNNING, TRUCKS (count, 4-20 mA), LOADS (pulse each tipped load), TONNES (4-20 mA, the last hour);
+  - for the whole fleet: FUEL LOW (any truck under 15 %), BLOCKED (a truck stopped for an obstacle more than 30 s).
+- **Fuel bay** (`fuel_bay`, *proposed*): a diesel dispenser fed by Wildcatter pipe from a tank. A truck stopped at a FUEL stake fills.
+- **A player can take over** any self-driving truck by sitting in it. It drops off its route until it is given one again.
+
+## Chunks
+A running truck, loader, shovel, drill or dragline refreshes the `tailings:runner` ticket on its chunks and the one ahead (R1).
+A self-driving fleet keeps its route's chunks loaded only while trucks are on them.
+
+## Left out (to ROADMAP)
+- Trolley assist (overhead lines on the ramp).
+- Grade control (ore and waste sent to different places): Tim's rule sends everything to the plant.
+- In-pit crushing and conveying.
+- Graders and water trucks; tyre wear; road condition.
+- Pit slope failure and wall stability.
+- Reclamation and topsoil.
+- Electric drive for the haul trucks.
+
+## Game tests (each wave adds its own)
+- `pit_settle`: 200 blocks tipped at one point stand at no more than 1 in 1, average near 37°, and fill a hole beside the tip first.
+- `pit_truck_haul`: a 100 t truck on a 3-stake route loads at a loader, climbs a 10 % ramp, tips into the dump pocket and comes back.
+- `pit_truck_drive`: a player-driven truck tips at a crest; the load settles downhill.
+- `pit_loader_soft`: a wheel loader fills a truck from a sand face in 5 passes.
+- `pit_loader_hard`: a loader at a stone face reads "hard rock: blast it first".
+- `pit_drill_pattern`: a 3 x 3 pattern drills 9 holes to depth.
+- `pit_blast`: a charged, primed, stemmed 3 x 3 pattern breaks to muck at 4 for 3; an unstemmed hole blows out; a player 20 m off
+  is hurt.
+- `pit_dispatch`: a PLC turns a route's RUN on and off; trucks run and park; LOADS pulses.
+- `pit_loadout`: dry tails from the filter fill a truck under the load-out.
+- `pit_berm`: a self-driving truck stops at a berm and tips.
+
+## Proposed waves (after approval)
+- **P1:** the settle rule, muck, the 100 t truck (driven), the dump pocket with a coarse-ore stockpile, the wheel loader on soft ground.
+- **P2:** survey stakes, routes, self-driving trucks, fuel bay, the dispatch office on the PLC.
+- **P3:** the ammonia plant (a Wildcatter wave), the drill, the emulsion truck, TNT boosters and detonators, the blast.
+- **P4:** the tailings filter, the load-out, waste dumps, berms, the track dozer.
+- **P5:** the pit switch house, the ultra-class truck, the hydraulic shovel, the rope shovel.
+- **P6:** the dragline (dragline.md).
+- **P7:** the pit-sized line (decided): gyratory crusher, stockpile reclaim, SAG mill line, each specced first.
+
+## Sources for the figures
+Checked 2026-11-09 against manufacturers' and dealers' published specifications for current machines of each class: a 91 t
+mechanical truck (C32 engine), a 363 t truck (C175-20 engine), a 992-class wheel loader, a 4100-class electric rope shovel, a
+271-class rotary blasthole drill and a D10-class dozer. Brand names stay out of the game. Figures still marked *(unverified)*
+were not in those sheets.

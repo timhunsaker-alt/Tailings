@@ -24,6 +24,8 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [tunnel-boring-machine.md](tunnel-boring-machine.md) | R6 | the one-block cab and 2 x 2 x 2 pump that step by deleting and re-placing blocks |
 | [haulage.md](haulage.md) | R5, R6 | cars stored on rail blocks; the rectifier modelled as a motor |
 | [dump-station.md](dump-station.md) | R3, R4 | the one-block `dump_station` with a slot-map sorter |
+| [open-pit.md](open-pit.md) | P1-P5, P7 | (new) drill, blast, load, haul, dumps |
+| [dragline.md](dragline.md) | P6 | (new) strip mining |
 | [tunnel-drill-haulage.md](tunnel-drill-haulage.md) | | pointer only: split into the three specs above |
 
 ## Shared rules
