@@ -318,6 +318,50 @@ in [questions/p2b-dispatch.md](questions/p2b-dispatch.md).
 - **Readouts:** right-click the office with an empty hand for its selector, power and each route's RUN or PARK, trucks, loads and
   tonnes in the last hour, and the fleet's alarms.
 
+## The open pit (P4): dry stack, the load-out, dumps, berms and the dozer
+
+Spec: [multiblocks/open-pit-p4-dry-stack.md](multiblocks/open-pit-p4-dry-stack.md) (draft, decided on recommendation); the choices made
+building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The figures are in `pit.DryStack` (unit-tested).
+
+- **The tailings thickener** (`tailings_thickener`, 15 x 5 x 15, 11 kW, `block.stage.DryStackStages.THICKENER`): tails slurry in at
+  the north face of its front cells; thickened tails out at the south face of its back cells at 60 % solids, on the pipe as tails
+  slurry whose assay carries its solids (`tailings:solids`, Wildcatter 0.5.1 has no product for them); about 1.2 L of overflow water a
+  kg of solids, sent once a second to the water users on a water pipe at its east face (lost with none, as built mills do). It holds
+  20 t of underflow for the press.
+- **The tailings filter** (`tailings_filter`, 6 x 6 x 24, 150 kW): a batch press on thickened tails (plain tails read NOT THICKENED).
+  Each 15-minute cycle it fills its chambers to 15 t of solids over the first 7.5 minutes (filling, squeezing, blowing), then opens
+  and drops the cake (a thud): into a `loadout_bin` under it, else as `dry_tails` items into a container under its chute, else as
+  blocks onto open ground under the chute; with nowhere, it holds the cake and reads FULL. The filtrate, about 0.49 L a kg, goes back
+  on the water pipe as the thickener's overflow does.
+- **Dry tails** (`dry_tails`): a block that falls like sand, 1.8 t; carried in a truck by kg; tipped as itself; dug and pushed as soft
+  ground; refused by the pit hopper.
+- **The truck load-out**: `loadout_bin` (10 x 7 x 10, 400 t) on `loadout_frame` (12 x 10 x 12; legs over a 10 m wide, 9 m clear
+  lane; the clamshell gate and chute under its deck; the gate's 7.5 kW hydraulics are its motor). The bin takes dry tails from a press
+  over it, by hand and by hopper, and refuses anything else ("dry tails only"). The gate fills a haul truck stopped with its body's
+  centre within 2 m of the lane's centre at 2 t/s, until the truck is full by mass or the bin is empty.
+- **LOADOUT routes** (`entity.TruckRoute`): the LOADOUT stake stands at the mouth of the lane; a truck drives on through to the frame's
+  gate (found within 16 m along the line) and stops there; filled, it drives out of the far side 15 m, round a balloon loop and back
+  through the lane (give it about 40 m beyond and 25 m to its right). The leg next to a load-out is single file. It leaves after
+  60 s with nothing more loaded once it holds some. Its loads count on its dispatch office as any tipped load does.
+- **DUMP POINT, crest and berm** (`pit.Crest`): at the stake before a DUMP POINT a truck looks up to 10 m behind the stake for a crest
+  (a drop of 3 m or more). None: a paddock dump, it tips at the stake on the flat. A crest with a berm (mid-axle high, 1 block for the
+  100 t truck, spanning its tail within 3 m): it backs until its tail is 1 m short of the berm and tips over it; the load runs down the
+  face by the settle rule, so a dump's crest advances as loads are tipped. A crest with no berm: it stops at that stake reading NO
+  BERM (BLOCKED in dispatch after 30 s), and goes on once a berm is up.
+- **Berms and going over the crest** (`entity.HaulTruckEntity`): reversing, a truck does not step up onto a ridge with a drop behind
+  it, so a berm stops a truck driven by hand. A truck not on a route that backs its rear axle over a drop of 3 m or more tips back over
+  the edge, falls, and is wrecked where it lands: its item and its load are left there, and its driver takes the fall.
+- **The track dozer** (`track_dozer`, `entity.TrackDozerEntity`): 70 t, 447 kW, 8.8 x 4.9 x 4.6 m, a 1,200 L tank, driven by a player.
+  Jump steps the blade CARRY, CUT, RAISED; sprint steps the setting for the blade's position (the grade in CUT, the berm's height in
+  CARRY). CARRY takes the loose ground and muck in the blade's 5 x 2 front (and loose above it) into its 18-block load and spills the
+  rest beside its ends; CUT also cuts the layer under its front, a block below its tracks, stepping down a block each 20, 12 or 10 m
+  for 5, 8 or 10 % (level never steps); RAISED takes nothing. Pushing or cutting it goes 3.5 km/h and burns at 80 % power.
+  Reversing with a load leaves it in front. At a crest it stops and pushes its load over. Along a crest (2 to 5 m to its side) with a
+  load it drops a berm 1 or 2 high at a block a metre. Hard rock in its blade's rows stops it: "hard rock: blast it first".
+- **Models:** the four parts are drawn in Wildcatter's materials (`tools/models/pit.py`); the dozer's model and skin come from
+  `tools/models/pit_vehicles.py` in Ludo's materials, on tracks: treads over a round idler and sprocket a side, its blade group raised
+  and lowered by the blade's position.
+
 ## Config
 
 Only one file. It is not created for you.
@@ -374,6 +418,7 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `truck_dump_wall` | Smooth stone around an iron ingot (placeholder) | 12 x 5 x 2: 3 m retaining wall and a 1.5 m bumper a reversing truck stops against |
 | `pit_hopper` | Iron, a hopper and smooth stone (placeholder) | 10 x 6 x 6, 400 t of bank blocks. A truck whose tail is over it tips in; the apron feeder touching it draws it out. It refuses soil |
 | `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
+| `dry_tails` | None. The tailings filter makes it | The filter's cake, 1.8 t a block: falls like sand, tipped on dumps, dug and pushed as soft ground (P4) |
 
 Stamp mill:
 
@@ -437,5 +482,6 @@ Block items exist for every block above, including the ones with no crafting rec
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 | `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
 | `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |
+| `track_dozer` | `TrackDozerEntity` | `PitVehicleRenderer` (`TrackDozerModel`) | Pushes loose ground with its blade (CARRY, CUT, RAISED), cuts ramps to grade, pushes up berms (P4) |
 
 Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

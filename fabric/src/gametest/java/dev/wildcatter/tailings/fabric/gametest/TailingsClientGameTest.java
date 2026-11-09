@@ -119,6 +119,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_dispatch")) {
 				pitDispatch(context, world, server);
 			}
+			if (only("pit_dry_stack")) {
+				pitDryStack(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -1038,6 +1041,143 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		film.stop();
 		require(server.computeOnServer(srv -> !truck[0].parked()), "back in HAND, the truck should go to work");
 		heard("pit_dispatch", "wildcatter:diesel_load", "tailings:muck_tip");
+	}
+
+	/**
+	 * The open pit's P4, filmed: the tailings filter over the load-out drops a cake into the bin; a self-driving truck drives through the
+	 * load-out's lane, is filled under the gate, loops round and goes to a DUMP POINT at a crest with no berm, where it stops reading NO
+	 * BERM; the track dozer pushes a berm up along the crest; the truck backs to the berm and tips over it, down the face.
+	 */
+	private void pitDryStack(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(-700, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is the bench's road level
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] truck = new dev.wildcatter.tailings.entity.HaulTruckEntity[1];
+		dev.wildcatter.tailings.entity.TrackDozerEntity[] dozer = new dev.wildcatter.tailings.entity.TrackDozerEntity[1];
+		dev.wildcatter.tailings.block.PlantBlockEntity[] filter = new dev.wildcatter.tailings.block.PlantBlockEntity[1];
+		dev.wildcatter.tailings.block.PlantBlockEntity[] bin = new dev.wildcatter.tailings.block.PlantBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			// the bench, its crest at z -10 with a 6 m drop to the dump's floor beyond
+			for (int x = -30; x <= 60; x++) {
+				for (int z = -40; z <= 140; z++) {
+					for (int yy = 44; yy <= 100; yy++) {
+						boolean solid = z >= -10 ? yy <= 58 : yy <= 52;
+						level.setBlock(b.offset(x, yy, z), (solid ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.LOADOUT_FRAME, b.offset(14, 59, 60));
+			part(level, TailingsBlocks.LOADOUT_BIN, b.offset(15, 69, 61));
+			part(level, TailingsBlocks.TAILINGS_FILTER, b.offset(17, 76, 58));
+			part(level, TailingsBlocks.TAILINGS_THICKENER, b.offset(30, 59, 75));
+			var frame = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(14, 59, 60));
+			frame.forceRunning();
+			bin[0] = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(15, 69, 61));
+			bin[0].setDryKg(80_000);
+			filter[0] = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(17, 76, 58));
+			filter[0].forceRunning();
+			filter[0].fastCycle(30);
+			filter[0].back().offer(dev.wildcatter.fluid.Product.TAILS_SLURRY, 26_000, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY, 0.6)));
+			int[] zs = {-8, 25, 45, 59};
+			dev.wildcatter.tailings.pit.StopKind[] kinds = {dev.wildcatter.tailings.pit.StopKind.DUMP_POINT, dev.wildcatter.tailings.pit.StopKind.WAYPOINT,
+					dev.wildcatter.tailings.pit.StopKind.WAYPOINT, dev.wildcatter.tailings.pit.StopKind.LOADOUT};
+			java.util.List<BlockPos> route = new java.util.ArrayList<>();
+			for (int i = 0; i < zs.length; i++) {
+				BlockPos at = b.offset(19, 59, zs[i]);
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SurveyStakeBlock.KIND, kinds[i]), Block.UPDATE_ALL);
+				route.add(at);
+			}
+			var t = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			t.setPos(b.getX() + 19.5, b.getY() + 59, b.getZ() + 38);
+			t.setYRot(0);
+			t.setFuel(t.tank());
+			level.addFreshEntity(t);
+			System.out.println("[tailings-test] pit_dry_stack: truck " + t.takeRoute(level, route));
+			truck[0] = t;
+			var d = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			d.setPos(b.getX() + 2.5, b.getY() + 59, b.getZ() - 3.5);
+			d.setYRot(-90);   // along the crest, heading east, the crest on its left
+			d.setFuel(d.tank());
+			d.loadBlade(dev.wildcatter.tailings.pit.PitMass.DRY_TAILS, 18);
+			level.addFreshEntity(d);
+			dozer[0] = d;
+		});
+		server.runCommand("tp @p " + (b.getX() + 45) + " " + (b.getY() + 90) + " " + (b.getZ() + 40) + " 120 35");   // over the load-out
+		context.waitTicks(60);
+		java.util.UUID truckId = server.computeOnServer(srv -> truck[0].getUUID());
+		java.util.UUID dozerId = server.computeOnServer(srv -> dozer[0].getUUID());
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(truckId) instanceof dev.wildcatter.tailings.entity.HaulTruckEntity e) {
+				truck[0] = e;
+			}
+			if (srv.overworld().getEntity(dozerId) instanceof dev.wildcatter.tailings.entity.TrackDozerEntity e) {
+				dozer[0] = e;
+			}
+		});
+		fresh.run();
+		context.takeScreenshot("tailings-pit-dry-stack-layout");
+		Filming film = film(context, world, "pit_dry_stack");
+		// the filter's cycle: a cake drops into the bin
+		for (int t = 0; t < 120 && server.computeOnServer(srv -> filter[0].cycles()) == 0; t++) {
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: cake dropped; bin " + Math.round(bin[0].dryKg() / 1000) + " t; " + filter[0].status()));
+		context.takeScreenshot("tailings-pit-dry-stack-cake");
+		java.util.function.Consumer<double[]> follow = at -> {
+			double yaw = Math.toRadians(at[2]);
+			double cx = at[0] + Math.cos(yaw) * 22 + Math.sin(yaw) * 12, cz = at[1] + Math.sin(yaw) * 22 - Math.cos(yaw) * 12;
+			double look = Math.toDegrees(Math.atan2(-(at[0] - cx), at[1] - cz));
+			server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.1f %.1f %.1f %.0f 30", cx, b.getY() + 76.0, cz, look));
+		};
+		Runnable followTruck = () -> {
+			fresh.run();
+			follow.accept(server.computeOnServer(srv -> new double[] {truck[0].getX(), truck[0].getZ(), truck[0].getYRot()}));
+		};
+		// through the lane and filled under the gate
+		for (int t = 0; t < 400 && server.computeOnServer(srv -> truck[0].load().room()) > 0; t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: filled " + truck[0].load().tonnes() + " at z " + Math.round(truck[0].getZ() - b.getZ())));
+		context.takeScreenshot("tailings-pit-dry-stack-loaded");
+		// round the loop, back through, to the dump: no berm
+		for (int t = 0; t < 600 && !server.computeOnServer(srv -> truck[0].status().startsWith("NO BERM")); t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: " + truck[0].status()));
+		context.takeScreenshot("tailings-pit-dry-stack-no-berm");
+		require(server.computeOnServer(srv -> truck[0].status().startsWith("NO BERM")), "the truck should stop short of an unbermed crest");
+		// the dozer pushes up the berm along the crest
+		server.runOnServer(srv -> dozer[0].testDrive(new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false)));
+		for (int t = 0; t < 300 && server.computeOnServer(srv -> dozer[0].getX() - b.getX() < 30 && dozer[0].bladeBlocks() > 0); t++) {
+			if (t % 4 == 0) {
+				fresh.run();
+				follow.accept(server.computeOnServer(srv -> new double[] {dozer[0].getX(), dozer[0].getZ(), dozer[0].getYRot()}));
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> {
+			dozer[0].testDrive(net.minecraft.world.entity.player.Input.EMPTY);
+			System.out.println("[tailings-test] pit_dry_stack: dozer " + dozer[0].status());
+		});
+		context.takeScreenshot("tailings-pit-dry-stack-berm");
+		// the truck backs to the berm and tips over it
+		for (int t = 0; t < 400 && !server.computeOnServer(srv -> truck[0].load().empty()); t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: " + truck[0].status()));
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-dry-stack-tipped");
+		film.stop();
+		require(server.computeOnServer(srv -> truck[0].load().empty()), "with the berm up, the truck should tip over it");
+		heard("pit_dry_stack", "wildcatter:diesel_load", "tailings:muck_tip");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

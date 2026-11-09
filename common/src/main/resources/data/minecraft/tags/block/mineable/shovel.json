@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "tailings:muck"
+    "tailings:muck",
+    "tailings:dry_tails"
   ]
 }

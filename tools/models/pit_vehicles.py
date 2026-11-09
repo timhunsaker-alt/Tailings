@@ -85,6 +85,43 @@ LOADER_WHEELS = [
 	("wheel_rr", (1.25, 2.25), 1.5, 3.0, 1.5, 1),
 ]
 
+# The track dozer (open-pit-p4-dry-stack.md): 8.8 x 4.9 x 4.6 m with its semi-U blade. It runs on tracks: each side a tread over an
+# idler at the front and a sprocket at the rear (round, turned as it rolls), with its rollers in the track frame between them.
+DOZER_HINGE = (0.0, 0.8, -1.0)
+DOZER = [
+	("track_frame_l", None, (-2.0, -1.3), (0.3, 1.2), (-2.6, 2.6), DARK, "plate"),
+	("track_frame_r", None, (1.3, 2.0), (0.3, 1.2), (-2.6, 2.6), DARK, "plate"),
+	("tread_top_l", None, (-2.1, -1.2), (1.2, 1.32), (-2.6, 2.6), BLACK, "tread"),
+	("tread_top_r", None, (1.2, 2.1), (1.2, 1.32), (-2.6, 2.6), BLACK, "tread"),
+	("tread_low_l", None, (-2.1, -1.2), (0.0, 0.14), (-2.6, 2.6), BLACK, "tread"),
+	("tread_low_r", None, (1.2, 2.1), (0.0, 0.14), (-2.6, 2.6), BLACK, "tread"),
+	("rollers_l", None, (-1.95, -1.35), (0.14, 0.4), (-1.8, 1.8), STEEL, "plate"),
+	("rollers_r", None, (1.35, 1.95), (0.14, 0.4), (-1.8, 1.8), STEEL, "plate"),
+	("fender_l", None, (-2.4, -1.2), (1.35, 1.5), (-2.9, 2.9), YELLOW, "plate"),
+	("fender_r", None, (1.2, 2.4), (1.35, 1.5), (-2.9, 2.9), YELLOW, "plate"),
+	("mainframe", None, (-1.2, 1.2), (0.6, 1.4), (-3.4, 3.0), DARK, "plate"),
+	("hood", None, (-1.0, 1.0), (1.4, 2.8), (-3.6, -0.6), YELLOW, "louvres"),
+	("grille", None, (-0.9, 0.9), (1.5, 2.7), (-3.7, -3.6), DARK, "louvres"),
+	("stack", None, (-0.6, -0.4), (2.8, 3.6), (-2.6, -2.4), DARK, "flat"),
+	("tank", None, (-1.3, 1.3), (1.4, 2.6), (1.0, 3.0), YELLOW, "plate"),
+	("cab", None, (-1.1, 1.1), (1.6, 4.6), (-0.6, 1.0), YELLOW, "cab"),
+	("drawbar", None, (-1.0, 1.0), (0.8, 1.6), (3.0, 3.6), DARK, "hazard"),
+	("arm_l", "blade", (-2.35, -2.05), (0.6, 1.0), (-3.9, -1.0), DARK, "plate"),
+	("arm_r", "blade", (2.05, 2.35), (0.6, 1.0), (-3.9, -1.0), DARK, "plate"),
+	("tilt_ram", "blade", (-0.2, 0.2), (1.2, 1.6), (-3.9, -3.0), STEEL, "flat"),
+	("blade", "blade", (-2.45, 2.45), (0.15, 2.1), (-4.4, -3.95), YELLOW, "ribs"),
+	("edge", "blade", (-2.45, 2.45), (0.0, 0.15), (-4.45, -3.95), STEEL, "plate"),
+	("blade_load", "blade", (-2.2, 2.2), (0.2, 1.6), (-5.4, -4.45), ROCK, "rock"),
+]
+
+# its idlers (front) and sprockets (rear), the round ends its treads run round
+DOZER_WHEELS = [
+	("idler_l", (-2.1, -1.2), 0.66, -2.6, 0.66, -1),
+	("idler_r", (1.2, 2.1), 0.66, -2.6, 0.66, 1),
+	("sprocket_l", (-2.1, -1.2), 0.66, 2.6, 0.66, -1),
+	("sprocket_r", (1.2, 2.1), 0.66, 2.6, 0.66, 1),
+]
+
 
 def disc(radius_px):
 	"""A disc's pixel rows about its axle: (the row's top, its half-length) for each row, as round as whole pixels allow."""
@@ -260,14 +297,39 @@ public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 	print(f"{cls}: {len(boxes)} boxes, skin rows to v = {v + row}")
 
 
-if __name__ == "__main__":
+def main(names):
+	if not names or "haul_truck" in names:
+		truck()
+	if not names or "wheel_loader" in names:
+		loader()
+	if not names or "track_dozer" in names:
+		dozer()
+
+
+def dozer():
+	paint(DOZER, "track_dozer", DOZER_HINGE, "TrackDozerModel",
+		"The 70 t track dozer at its real size, 8.8 x 4.9 x 4.6 m; its blade and push arms rise and fall about their trunnions.", ["blade"],
+		"\t\tModelPart blade = root().getChild(BLADE);\n"
+		"\t\tblade.y += (0.5F - state.lift) * 24F;   // CUT a block lower than CARRY, RAISED a block and a half higher\n"
+		"\t\tblade.getChild(\"blade_load\").visible = state.loaded;", DOZER_WHEELS)
+
+
+def truck():
 	paint(TRUCK, "haul_truck", TRUCK_HINGE, "HaulTruckModel",
 		"The 100 t class haul truck at its real size, 10.0 x 6.2 x 5.2 m; its body tips about its rear hinge.", ["body"],
 		"\t\tModelPart body = root().getChild(BODY);\n"
 		"\t\tbody.xRot = -state.lift * 0.84F;   // the body tips to 48 degrees (proposed)\n"
 		"\t\tbody.getChild(\"load\").visible = state.loaded;", TRUCK_WHEELS)
+
+
+def loader():
 	paint(LOADER, "wheel_loader", LOADER_HINGE, "WheelLoaderModel",
 		"The wheel loader at its real size, 15 x 4.5 x 6 m; its arms and bucket lift about the boom pins.", ["arm"],
 		"\t\tModelPart arm = root().getChild(ARM);\n"
 		"\t\tarm.xRot = -state.lift * 0.9F;   // the arms lift the bucket over a truck's side\n"
 		"\t\tarm.getChild(\"bucket_load\").visible = state.loaded;", LOADER_WHEELS)
+
+
+if __name__ == "__main__":
+	import sys
+	main(sys.argv[1:])

@@ -22,14 +22,17 @@ import net.minecraft.resources.Identifier;
 public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehicleRenderer.PitState> {
 	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck.png");
 	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader.png");
+	private static final Identifier DOZER_TEXTURE = Tailings.id("textures/entity/track_dozer.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
+	private final TrackDozerModel dozer;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
 		truck = new HaulTruckModel(context.bakeLayer(HaulTruckModel.LAYER));
 		loader = new WheelLoaderModel(context.bakeLayer(WheelLoaderModel.LAYER));
+		dozer = new TrackDozerModel(context.bakeLayer(TrackDozerModel.LAYER));
 	}
 
 	@Override
@@ -47,6 +50,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
+		state.dozer = entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
@@ -58,14 +62,15 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		pose.pushPose();
 		pose.rotateDegrees(Axis.YP, 180.0F - state.yaw);
 		pose.scale(-1.0F, -1.0F, 1.0F);
-		EntityModel<PitState> model = state.truck ? truck : loader;
-		collector.submitModel(model, state, pose, state.truck ? TRUCK_TEXTURE : LOADER_TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
+		EntityModel<PitState> model = state.dozer ? dozer : state.truck ? truck : loader;
+		collector.submitModel(model, state, pose, state.dozer ? DOZER_TEXTURE : state.truck ? TRUCK_TEXTURE : LOADER_TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		pose.popPose();
 		super.submit(state, pose, collector, camera);
 	}
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
+		public boolean dozer;
 		public boolean loaded;
 		public float lift;
 		public float yaw;

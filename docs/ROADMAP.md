@@ -184,8 +184,19 @@ PARK stakes now work: RUN off sends a route's trucks to its PARK stake (or its n
 `pit_dispatch`, `pit_dispatch_alarms`, `pit_dispatch_fallback`; unit tests `DispatchTest`.
 
 Next: P3 (the ammonia plant
-in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
+in Wildcatter, the drill, the emulsion truck, the blast; on its own branch for Wildcatter 0.6.0), P4 (below), P5 (the big shovels and the ultra
 truck), P6 (the dragline), P7 (the pit-sized plant).
+
+## Open pit — P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/open-pit-p4-dry-stack.md](multiblocks/open-pit-p4-dry-stack.md), decisions in
+[questions/p4-dry-stack.md](questions/p4-dry-stack.md). P4a: the `tailings_thickener` (60 % underflow, overflow water back on a water
+pipe), the `tailings_filter` (a 15-minute batch press dropping 15 t of `dry_tails`), the truck load-out (`loadout_bin` on
+`loadout_frame`, 2 t/s through its gate), LOADOUT routes driven through and round a balloon loop. P4b: dump points with crests,
+berms and paddock dumps; NO BERM; a truck backed over a crest is wrecked; the `track_dozer` (CARRY, CUT to grade, RAISED; berms; hard
+rock). NeoForge scenes `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`,
+`pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`; unit tests
+`DryStackTest`; the client scene `pit_dry_stack` (written, not yet filmed).
 
 ## Plant gaps (2026-11-09, closed while Tim was away)
 
@@ -211,6 +222,20 @@ into the playthrough.
 
 ## Known gaps and stand-ins
 
+- **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
+  cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).
+- **Thickened tails are marked tails slurry (P4):** Wildcatter 0.5.1 has no product for them, so the underflow is tails slurry whose
+  assay carries its solids. Wildcatter's lined cell counts it as plain tails. A `THICKENED_TAILS` product is proposed for Wildcatter.
+- **No PLC points of their own for the press and the load-out (P4):** they have the plant's motor points; the spec's LEVEL, FULL,
+  LOADING and CYCLE are not built.
+- **No new P4 sounds:** the press, thickener, gate and dozer reuse existing sounds; the hydraulic whine, the cake's thud and the
+  track clatter are for the art wave.
+- **Placeholder art (P4):** `dry_tails_placeholder` (block) and `track_dozer_placeholder` (the dozer's icon) are drawn by script; the
+  dozer's entity skin is painted in Ludo's materials; the four parts use Wildcatter's materials.
+- **The dozer is drawn level and its treads do not run (P4):** its idlers and sprockets turn as it moves; the tread boxes are still.
+- **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
+  to its right; it halts and says so if it cannot loop within 3 minutes.
+- **Loads are tipped where the truck stops (P4):** a DUMP POINT stake is moved by the player as the crest advances; nothing moves it.
 - **Art (2026-11-09 art wave):** no `*_placeholder` texture is left. The pit machines', locomotive's and car's skins are painted by
   their generators in Ludo materials (`art/source/vehicle/`, `tools/models/skin.py`); muck, the survey stakes, the hand-line machines,
   the reagents, the by-products, the survey book and the vehicle icons are Ludo art (`art/source/PROMPTS.md`). Still vanilla:

@@ -164,6 +164,21 @@ and is to be checked before approval.
 - **P4a:** the tailings thickener, the filter, `dry_tails`, the load-out; the LOADOUT stake drives through.
 - **P4b:** dumps, berms and NO BERM, going over the crest; the track dozer.
 
+## As built (2026-11-09, decided while Tim was away: [../questions/p4-dry-stack.md](../questions/p4-dry-stack.md))
+- **All of P4a and P4b is built** to the figures above, on Wildcatter 0.5.1. What building changed or added:
+  - **The underflow is tails slurry marked with its solids** in its assay (no thickened-tails product in Wildcatter 0.5.1); the press
+    refuses unmarked tails (NOT THICKENED). The thickener holds 20 t of underflow so it works on while the press stands open.
+  - **The cake drops into a load-out bin under the press, a container under its chute, or onto open ground**; belts are left out.
+  - **The gate is drawn in the frame:** two parts, `loadout_frame` and `loadout_bin`; the gate's 7.5 kW is the frame's motor.
+  - **The LOADOUT stake stands at the lane's mouth**; the truck finds the frame within 16 m on along the line and stops with its body
+    under the gate. Filled, it leaves out of the far side and round a balloon loop (about 40 m beyond the gate, 25 m to one side).
+  - **A berm stops a truck driven by hand:** reversing, it does not step up onto a ridge with a drop behind it.
+  - **The dozer's settings** are on the sprint key (no screen): the grade in CUT, the berm's height in CARRY. It turns on 4 m
+    *(proposed)*. At a crest it stops and pushes its load over.
+  - **Not built:** the press's and load-out's own PLC points; the new sounds; dry tails on belts.
+- **Scenes:** `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`, `pit_over_crest`,
+  `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`; the client film `pit_dry_stack` (written).
+
 ## Sources
 - R. Kaswalder, filter press paper (ACG Paste 2017 proceedings): one unit with 2,500 x 2,500 mm plates about 1,800 t/day (average
   filterability) to about 3,000 t/day.

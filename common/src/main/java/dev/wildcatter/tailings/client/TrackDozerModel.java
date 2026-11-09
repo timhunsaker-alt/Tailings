@@ -1,0 +1,223 @@
+package dev.wildcatter.tailings.client;
+
+import dev.wildcatter.tailings.Tailings;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+
+/** The 70 t track dozer at its real size, 8.8 x 4.9 x 4.6 m; its blade and push arms rise and fall about their trunnions. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
+public class TrackDozerModel extends EntityModel<PitVehicleRenderer.PitState> {
+	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("track_dozer"), "main");
+	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */
+	public static final String[] WHEELS = {"idler_l", "idler_r", "sprocket_l", "sprocket_r"};
+	public static final float WHEEL_RADIUS = 0.66F;
+	public static final String BLADE = "blade";
+
+	public TrackDozerModel(ModelPart root) {
+		super(root, id -> RenderTypes.entityCutout(id));
+	}
+
+	public static LayerDefinition createBodyLayer() {
+		MeshDefinition mesh = new MeshDefinition();
+		PartDefinition root = mesh.getRoot();
+		root.addOrReplaceChild("track_frame_l", CubeListBuilder.create().texOffs(0, 0).addBox(21F, -19F, -42F, 11F, 14F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("track_frame_r", CubeListBuilder.create().texOffs(189, 0).addBox(-32F, -19F, -42F, 11F, 14F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("tread_top_l", CubeListBuilder.create().texOffs(378, 0).addBox(19F, -21F, -42F, 14F, 2F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("tread_top_r", CubeListBuilder.create().texOffs(573, 0).addBox(-34F, -21F, -42F, 14F, 2F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("tread_low_l", CubeListBuilder.create().texOffs(768, 0).addBox(19F, -2F, -42F, 14F, 2F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("tread_low_r", CubeListBuilder.create().texOffs(0, 98).addBox(-34F, -2F, -42F, 14F, 2F, 83F), PartPose.ZERO);
+		root.addOrReplaceChild("rollers_l", CubeListBuilder.create().texOffs(195, 98).addBox(22F, -6F, -29F, 10F, 4F, 58F), PartPose.ZERO);
+		root.addOrReplaceChild("rollers_r", CubeListBuilder.create().texOffs(332, 98).addBox(-31F, -6F, -29F, 10F, 4F, 58F), PartPose.ZERO);
+		root.addOrReplaceChild("fender_l", CubeListBuilder.create().texOffs(469, 98).addBox(19F, -24F, -46F, 19F, 2F, 93F), PartPose.ZERO);
+		root.addOrReplaceChild("fender_r", CubeListBuilder.create().texOffs(694, 98).addBox(-38F, -24F, -46F, 19F, 2F, 93F), PartPose.ZERO);
+		root.addOrReplaceChild("mainframe", CubeListBuilder.create().texOffs(0, 194).addBox(-19F, -22F, -54F, 38F, 13F, 102F), PartPose.ZERO);
+		root.addOrReplaceChild("hood", CubeListBuilder.create().texOffs(281, 194).addBox(-16F, -45F, -58F, 32F, 22F, 48F), PartPose.ZERO);
+		root.addOrReplaceChild("grille", CubeListBuilder.create().texOffs(442, 194).addBox(-14F, -43F, -59F, 29F, 19F, 2F), PartPose.ZERO);
+		root.addOrReplaceChild("stack", CubeListBuilder.create().texOffs(505, 194).addBox(6F, -58F, -42F, 3F, 13F, 3F), PartPose.ZERO);
+		root.addOrReplaceChild("tank", CubeListBuilder.create().texOffs(518, 194).addBox(-21F, -42F, 16F, 42F, 19F, 32F), PartPose.ZERO);
+		root.addOrReplaceChild("cab", CubeListBuilder.create().texOffs(667, 194).addBox(-18F, -74F, -10F, 35F, 48F, 26F), PartPose.ZERO);
+		root.addOrReplaceChild("drawbar", CubeListBuilder.create().texOffs(790, 194).addBox(-16F, -26F, 48F, 32F, 13F, 10F), PartPose.ZERO);
+		PartDefinition blade = root.addOrReplaceChild("blade", CubeListBuilder.create(), PartPose.offset(0F, -13F, -16F));
+		blade.addOrReplaceChild("arm_l", CubeListBuilder.create().texOffs(875, 194).addBox(33F, -3F, -46F, 5F, 6F, 46F), PartPose.ZERO);
+		blade.addOrReplaceChild("arm_r", CubeListBuilder.create().texOffs(0, 310).addBox(-38F, -3F, -46F, 5F, 6F, 46F), PartPose.ZERO);
+		blade.addOrReplaceChild("tilt_ram", CubeListBuilder.create().texOffs(103, 310).addBox(-3F, -13F, -46F, 6F, 6F, 14F), PartPose.ZERO);
+		blade.addOrReplaceChild("blade", CubeListBuilder.create().texOffs(144, 310).addBox(-39F, -21F, -54F, 78F, 31F, 7F), PartPose.ZERO);
+		blade.addOrReplaceChild("edge", CubeListBuilder.create().texOffs(315, 310).addBox(-39F, 11F, -55F, 78F, 2F, 8F), PartPose.ZERO);
+		blade.addOrReplaceChild("blade_load", CubeListBuilder.create().texOffs(488, 310).addBox(-35F, -13F, -70F, 70F, 22F, 15F), PartPose.ZERO);
+		PartDefinition idler_l = root.addOrReplaceChild("idler_l", CubeListBuilder.create(), PartPose.offset(0.0F, -11F, -42F));
+		idler_l.addOrReplaceChild("t0", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -11F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t1", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -10F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t2", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -9F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t3", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -8F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t4", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -7F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t5", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -6F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t6", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -5F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t7", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t8", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t9", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t10", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -1F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t11", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 0F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t12", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 1F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t13", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t14", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t15", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t16", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 5F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t17", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 6F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t18", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 7F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t19", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 8F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t20", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 9F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("t21", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 10F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h0", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -5F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h1", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -4F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h2", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -3F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h3", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -2F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h4", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h5", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 0F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h6", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h7", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 2F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h8", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 3F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("h9", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 4F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n0", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -1F, 2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n1", CubeListBuilder.create().texOffs(779, 310).addBox(34F, 2F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n2", CubeListBuilder.create().texOffs(779, 310).addBox(34F, 2F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n3", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -1F, -4F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n4", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -4F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_l.addOrReplaceChild("n5", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -4F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		PartDefinition idler_r = root.addOrReplaceChild("idler_r", CubeListBuilder.create(), PartPose.offset(0.0F, -11F, -42F));
+		idler_r.addOrReplaceChild("t0", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -11F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t1", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -10F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t2", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -9F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t3", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -8F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t4", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -7F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t5", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -6F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t6", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -5F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t7", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t8", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t9", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t10", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -1F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t11", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 0F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t12", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 1F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t13", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t14", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t15", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t16", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 5F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t17", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 6F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t18", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 7F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t19", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 8F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t20", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 9F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("t21", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 10F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h0", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -5F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h1", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -4F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h2", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -3F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h3", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -2F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h4", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h5", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 0F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h6", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h7", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 2F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h8", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 3F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("h9", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 4F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n0", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -1F, 2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n1", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, 2F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n2", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, 2F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n3", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -1F, -4F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n4", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -4F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		idler_r.addOrReplaceChild("n5", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -4F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		PartDefinition sprocket_l = root.addOrReplaceChild("sprocket_l", CubeListBuilder.create(), PartPose.offset(0.0F, -11F, 42F));
+		sprocket_l.addOrReplaceChild("t0", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -11F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t1", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -10F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t2", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -9F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t3", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -8F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t4", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -7F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t5", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -6F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t6", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -5F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t7", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t8", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t9", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t10", CubeListBuilder.create().texOffs(659, 310).addBox(19F, -1F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t11", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 0F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t12", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 1F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t13", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t14", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t15", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t16", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 5F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t17", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 6F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t18", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 7F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t19", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 8F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t20", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 9F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("t21", CubeListBuilder.create().texOffs(659, 310).addBox(19F, 10F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h0", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -5F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h1", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -4F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h2", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -3F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h3", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -2F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h4", CubeListBuilder.create().texOffs(732, 310).addBox(33F, -1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h5", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 0F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h6", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h7", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 2F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h8", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 3F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("h9", CubeListBuilder.create().texOffs(732, 310).addBox(33F, 4F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n0", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -1F, 2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n1", CubeListBuilder.create().texOffs(779, 310).addBox(34F, 2F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n2", CubeListBuilder.create().texOffs(779, 310).addBox(34F, 2F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n3", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -1F, -4F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n4", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -4F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_l.addOrReplaceChild("n5", CubeListBuilder.create().texOffs(779, 310).addBox(34F, -4F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		PartDefinition sprocket_r = root.addOrReplaceChild("sprocket_r", CubeListBuilder.create(), PartPose.offset(0.0F, -11F, 42F));
+		sprocket_r.addOrReplaceChild("t0", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -11F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t1", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -10F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t2", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -9F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t3", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -8F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t4", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -7F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t5", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -6F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t6", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -5F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t7", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t8", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t9", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t10", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, -1F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t11", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 0F, -11F, 14F, 1.0F, 22F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t12", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 1F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t13", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 2F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t14", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 3F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t15", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 4F, -10F, 14F, 1.0F, 20F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t16", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 5F, -9F, 14F, 1.0F, 18F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t17", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 6F, -8F, 14F, 1.0F, 16F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t18", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 7F, -7F, 14F, 1.0F, 14F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t19", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 8F, -6F, 14F, 1.0F, 12F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t20", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 9F, -5F, 14F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("t21", CubeListBuilder.create().texOffs(659, 310).addBox(-34F, 10F, -1F, 14F, 1.0F, 2F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h0", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -5F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h1", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -4F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h2", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -3F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h3", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -2F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h4", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, -1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h5", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 0F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h6", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 1F, -5F, 1.0F, 1.0F, 10F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h7", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 2F, -4F, 1.0F, 1.0F, 8F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h8", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 3F, -3F, 1.0F, 1.0F, 6F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("h9", CubeListBuilder.create().texOffs(732, 310).addBox(-35F, 4F, -2F, 1.0F, 1.0F, 4F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n0", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -1F, 2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n1", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, 2F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n2", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, 2F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n3", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -1F, -4F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n4", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -4F, -2F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		sprocket_r.addOrReplaceChild("n5", CubeListBuilder.create().texOffs(779, 310).addBox(-36F, -4F, 0F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);
+		return LayerDefinition.create(mesh, 1024, 1024);
+	}
+
+	/** Set when the frame is drawn, from this machine's own state. */
+	@Override
+	public void setupAnim(PitVehicleRenderer.PitState state) {
+		super.setupAnim(state);
+		for (String wheel : WHEELS) {
+			root().getChild(wheel).xRot = state.roll / WHEEL_RADIUS;   // turned through the distance rolled over the radius
+		}
+		ModelPart blade = root().getChild(BLADE);
+		blade.y += (0.5F - state.lift) * 24F;   // CUT a block lower than CARRY, RAISED a block and a half higher
+		blade.getChild("blade_load").visible = state.loaded;
+	}
+}

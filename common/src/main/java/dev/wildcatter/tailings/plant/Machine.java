@@ -48,7 +48,15 @@ public enum Machine {
 	/** The pit's diesel dispenser island and its 2,000 L day tank, fed by pipe (open-pit.md, P2a). */
 	FUEL_BAY("fuel_bay", "Fuel Bay", 4, 3, 2, 0, Supply.NONE),
 	/** The pit's haul dispatch office (open-pit.md, P2b): a small building on the control cable that runs the fleet by radio. Its load is on the low tier, not a motor. */
-	HAUL_DISPATCH("haul_dispatch", "Haul Dispatch Office", 3, 3, 3, 0, Supply.NONE);
+	HAUL_DISPATCH("haul_dispatch", "Haul Dispatch Office", 3, 3, 3, 0, Supply.NONE),
+	/** The dry stack (open-pit-p4-dry-stack.md): a 15 m high-rate thickener on the plant's tails, its rake drive 11 kW (proposed). */
+	TAILINGS_THICKENER("tailings_thickener", "Tailings Thickener", 15, 5, 15, 11_000, Supply.INDUSTRIAL),
+	/** A plate-and-frame press with 2.5 m plates, 60 t/h in 15-minute batches, 150 kW (open-pit.md, proposed). */
+	TAILINGS_FILTER("tailings_filter", "Tailings Filter", 6, 6, 24, 150_000, Supply.INDUSTRIAL),
+	/** The load-out's legs over a 10 m wide, 9 m clear drive-through lane, with the clamshell gate under its deck: the gate's 7.5 kW hydraulics. */
+	LOADOUT_FRAME("loadout_frame", "Load-Out Frame", 12, 10, 12, 7_500, Supply.INDUSTRIAL),
+	/** The load-out's 400 t steel bin of dry tails, on the frame. */
+	LOADOUT_BIN("loadout_bin", "Load-Out Bin", 10, 7, 10, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

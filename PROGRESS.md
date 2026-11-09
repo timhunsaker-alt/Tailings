@@ -355,3 +355,25 @@ Tim (2026-11-09): "close all known gaps", decided on the best recommendation whi
   and recovery scenes feed real masses.
 - Kept: concentrate as mineral only, and the `fines_*` items. The waste bin's way out is written in DESIGN.md.
 - NeoForge scenes: **91 pass** (83 before, 8 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).
+
+## Open pit P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09)
+
+Built while Tim was away on the draft spec `docs/multiblocks/open-pit-p4-dry-stack.md`, on Wildcatter 0.5.1; the choices made
+building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.md). DESIGN.md, "The open pit (P4)".
+
+- **P4a:** the `tailings_thickener` (15 x 5 x 15, 11 kW: tails to 60 % underflow, about 1.2 L of overflow water a kg back on a water
+  pipe), the `tailings_filter` (6 x 6 x 24, 150 kW: a 15-minute batch press dropping 15 t of `dry_tails`), and the truck load-out
+  (`loadout_bin`, 400 t, on `loadout_frame` over a 10 m lane; 2 t/s through its gate: a 91 t truck in 45.5 s). A truck on a LOADOUT
+  route drives through the lane, is filled under the gate, leaves out of the far side round a balloon loop, and hauls to its dump.
+- **P4b:** DUMP POINTs look for a crest and a berm (`pit.Crest`): a paddock on the flat, back to the berm and tip over it, or NO BERM
+  (BLOCKED in dispatch after 30 s). A berm stops a truck backed by hand; one backed over a crest with no berm falls and is wrecked into
+  its item and load. Ten 91 t loads at one crest advance it and the face stands between 28 and 46 degrees. The `track_dozer` (70 t,
+  447 kW, on tracks): CARRY, CUT to level/5/8/10 %, RAISED; it pushes loads over a crest, pushes up berms, and stops at hard rock.
+- **What building it found:** Wildcatter 0.5.1 has no thickened-tails product, so the underflow is tails slurry marked with its solids
+  in its assay; the frame's cells fill the lane, so the LOADOUT stake stands at its mouth; a U-turn left a truck 25 m off a 10 m lane,
+  so it loops; a 1-block berm did not stop a truck that climbs 1-block steps. The first crest scenes stood their benches on a 3-block
+  slab, and tipped loads rolled under it to the world's floor: benches are now solid down to the dump's floor.
+- **Scenes:** NeoForge `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`,
+  `pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`: **114 pass** (102
+  before, 12 new). Unit tests `DryStackTest` (110 unit tests pass). The Fabric client scene `pit_dry_stack` (`TAILINGS_ONLY=pit_dry_stack`) is written and
+  compiles; it has not been run or filmed.

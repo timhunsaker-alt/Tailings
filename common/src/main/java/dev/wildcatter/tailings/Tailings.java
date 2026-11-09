@@ -66,6 +66,8 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsItems.CAR));
 		output.accept(new ItemStack(TailingsItems.HAUL_TRUCK));
 		output.accept(new ItemStack(TailingsItems.WHEEL_LOADER));
+		output.accept(new ItemStack(TailingsItems.TRACK_DOZER));
+		output.accept(new ItemStack(TailingsBlocks.DRY_TAILS));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
 		output.accept(new ItemStack(TailingsBlocks.MUCK));

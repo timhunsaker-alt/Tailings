@@ -152,6 +152,19 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** An ore sorter's screen: the type each side takes, and the waste side. */
 	private final dev.wildcatter.tailings.haul.Sorter sorter = new dev.wildcatter.tailings.haul.Sorter();
 	private double water;
+	/**
+	 * The dry stack (open-pit-p4-dry-stack.md): a load-out bin's dry tails, or the cake in a tailings filter's chambers, kg; the
+	 * filter's cake dropped and not yet placed; its time into its cycle in ticks; water waiting to go back on a water pipe, and the
+	 * litres returned so far.
+	 */
+	private double dryKg;
+	private double cakeOut;
+	private double cycle;
+	private double waterOut;
+	private double waterReturned;
+	private int cycles;
+	/** A game test's shorter press cycle (not saved). */
+	private int fast = 1;
 	private Motor motor;
 	private boolean demand;
 	private boolean forced;
@@ -227,6 +240,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
 	private void intake() {
 		ItemStack in = slots.get(0);
+		if (machine() == Machine.LOADOUT_BIN) {
+			if (dryTails(in) && dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG <= dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
+				in.shrink(1);
+				dryKg += dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
+				setChanged();
+			}
+			return;
+		}
 		Feeds.Charge charge = Feeds.parse(in);
 		if (charge == null) {
 			return;
@@ -295,6 +316,81 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return water;
 	}
 
+	public double dryKg() {
+		return dryKg;
+	}
+
+	public void setDryKg(double kg) {
+		dryKg = Math.max(0, kg);
+		setChanged();
+	}
+
+	public double cakeOut() {
+		return cakeOut;
+	}
+
+	public void setCakeOut(double kg) {
+		cakeOut = Math.max(0, kg);
+		setChanged();
+	}
+
+	/** A filter's time into its cycle, in ticks. */
+	public double cycle() {
+		return cycle;
+	}
+
+	public void setCycle(double ticks) {
+		cycle = ticks;
+		setChanged();
+	}
+
+	/** Cake drops so far. */
+	public int cycles() {
+		return cycles;
+	}
+
+	public void countCycle() {
+		cycles++;
+		setChanged();
+	}
+
+	/** A game test's shorter press cycle: the cycle runs {@code divisor} times as fast. */
+	public void fastCycle(int divisor) {
+		fast = Math.max(1, divisor);
+	}
+
+	public int fast() {
+		return fast;
+	}
+
+	/** Water squeezed or settled out, to go back on a water pipe. */
+	public void overflow(double litres) {
+		waterOut += litres;
+	}
+
+	public double waterOut() {
+		return waterOut;
+	}
+
+	public void returned(double litres, boolean lost) {
+		waterOut = Math.max(0, waterOut - litres);
+		waterReturned += lost ? 0 : litres;
+		waterLost += lost ? litres : 0;
+		setChanged();
+	}
+
+	/** Litres with no water pipe or user to take them, counted as lost (not saved). */
+	public double waterLost() {
+		return waterLost;
+	}
+
+	private double waterLost;
+
+	/** Litres sent back on the water pipe so far. */
+	public double waterReturned() {
+		return waterReturned;
+	}
+
 	public void useWater(double litres) {
 		water = Math.max(0, water - litres);
 		setChanged();
@@ -341,6 +437,19 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A conveyor drive's load, along its run. */
 	public dev.wildcatter.tailings.plant.BeltTravel travel() {
 		return travel;
+	}
+
+	/** A load-out frame's gate: the centre of its lane, at its floor (open-pit-p4-dry-stack.md). */
+	public net.minecraft.world.phys.Vec3 loadoutGate() {
+		List<BlockPos> cells = cells();
+		double cx = 0, cz = 0;
+		int lowest = Integer.MAX_VALUE;
+		for (BlockPos c : cells) {
+			cx += c.getX() + 0.5;
+			cz += c.getZ() + 0.5;
+			lowest = Math.min(lowest, c.getY());
+		}
+		return new net.minecraft.world.phys.Vec3(cx / cells.size(), lowest, cz / cells.size());
 	}
 
 	/** A part of kind {@code machine} touching this one, or null. */
@@ -482,7 +591,26 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	// ---- hands and hoppers -------------------------------------------------------------------------------------------------------
 
+	private static boolean dryTails(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == TailingsBlocks.DRY_TAILS.asItem();
+	}
+
 	public boolean offer(ItemStack stack) {
+		if (machine() == Machine.LOADOUT_BIN) {
+			// the load-out takes dry tails only (open-pit-p4-dry-stack.md)
+			if (!dryTails(stack)) {
+				say("dry tails only: " + stack.getHoverName().getString() + " refused");
+				return false;
+			}
+			if (dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG > dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
+				say("FULL");
+				return false;
+			}
+			stack.shrink(1);
+			dryKg += dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
+			setChanged();
+			return true;
+		}
 		Reagent reagent = reagent(stack);
 		if (reagent != null && dosed()) {
 			for (int slot = 2; slot <= LAST_REAGENT_SLOT; slot++) {
@@ -830,6 +958,18 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (stage().waterHold() > 0) {
 			held.append(String.format("; water %.0f/%.0f L", water, stage().waterHold()));
 		}
+		if (machine() == Machine.LOADOUT_BIN) {
+			held.append(String.format("; holds %.1f of %.0f t of dry tails", dryKg / 1000, dev.wildcatter.tailings.pit.DryStack.BIN_KG / 1000));
+		}
+		if (machine() == Machine.TAILINGS_FILTER) {
+			held.append(String.format("; %.1f t of cake in the press, %d drops", dryKg / 1000, cycles));
+			if (cakeOut > 0) {
+				held.append(String.format("; %.1f t of cake waiting to drop", cakeOut / 1000));
+			}
+		}
+		if (waterReturned > 0) {
+			held.append(String.format("; %.0f L of water returned", waterReturned));
+		}
 		if (machine() == Machine.CONDITIONER) {
 			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
 		}
@@ -876,6 +1016,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("byproducts", made.toString());
 		output.putString("back", back.save());
 		output.putDouble("water", water);
+		output.putDouble("dry_kg", dryKg);
+		output.putDouble("cake_out", cakeOut);
+		output.putDouble("cycle", cycle);
+		output.putDouble("water_out", waterOut);
+		output.putDouble("water_returned", waterReturned);
+		output.putInt("cycles", cycles);
 		output.putString("sort", sorter.save());
 		remote.save(output);
 		output.putBoolean("selective", selective);
@@ -914,6 +1060,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		back.load(input.getStringOr("back", ""));
 		water = input.getDoubleOr("water", 0);
+		dryKg = input.getDoubleOr("dry_kg", 0);
+		cakeOut = input.getDoubleOr("cake_out", 0);
+		cycle = input.getDoubleOr("cycle", 0);
+		waterOut = input.getDoubleOr("water_out", 0);
+		waterReturned = input.getDoubleOr("water_returned", 0);
+		cycles = input.getIntOr("cycles", 0);
 		sorter.load(input.getStringOr("sort", ""));
 		selective = input.getBooleanOr("selective", false);
 		binned.clear();
@@ -989,6 +1141,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			});
 			binned.clear();
+			// a load-out bin's dry tails, as items, up to a few stacks: the rest is spilt
+			int blocks = (int) Math.min(64 * 9, (dryKg + cakeOut) / dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG);
+			for (int left = blocks; left > 0; left -= 64) {
+				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(TailingsBlocks.DRY_TAILS, Math.min(64, left)));
+			}
+			dryKg = 0;
+			cakeOut = 0;
 		}
 	}
 
@@ -1009,6 +1168,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public boolean canPlaceItem(int slot, ItemStack stack) {
 		if (slot == 0 && machine() == Machine.BYPRODUCT_PLANT) {
 			return dev.wildcatter.tailings.plant.ByProducts.byItem(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()) != null;
+		}
+		if (slot == 0 && machine() == Machine.LOADOUT_BIN) {
+			return dryTails(stack);
 		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);
