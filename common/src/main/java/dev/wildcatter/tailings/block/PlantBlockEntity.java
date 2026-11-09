@@ -139,6 +139,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private boolean selective;
 	/** Dry rock waiting to be worked, or, in a conveyor drive, the load on its run. */
 	private final RockLoad hold = new RockLoad();
+	/** A conveyor drive's load, by where it rides along the run (the transit time to the head end). */
+	private final dev.wildcatter.tailings.plant.BeltTravel travel = new dev.wildcatter.tailings.plant.BeltTravel();
 	/** Rock worked but not yet paid out as an item (the screen's sand for its hopper). */
 	private final RockLoad made = new RockLoad();
 	/** What it puts on steel pipe. */
@@ -321,10 +323,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return stage().accepts(rock, size);
 	}
 
-	/** Takes rock into its hold; the caller checked {@link #room} and {@link #accepts}. */
+	/** Takes rock into its hold; the caller checked {@link #room} and {@link #accepts}. A conveyor drive takes it onto its run's tail end. */
 	public void receive(RockLoad load) {
+		receive(load, stage().dropAt(this, null));
+	}
+
+	/** Takes rock into its hold; on a conveyor drive's run it drops {@code toGo} metres short of the head end and rides from there. */
+	public void receive(RockLoad load, double toGo) {
+		if (machine() == Machine.CONVEYOR_DRIVE) {
+			travel.match(hold.total());
+			travel.add(load.total(), toGo);
+		}
 		hold.add(load);
 		setChanged();
+	}
+
+	/** A conveyor drive's load, along its run. */
+	public dev.wildcatter.tailings.plant.BeltTravel travel() {
+		return travel;
 	}
 
 	/** A part of kind {@code machine} touching this one, or null. */
@@ -361,10 +377,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		void put(RockLoad load);
 	}
 
-	/** The first place out of {@code faces} that takes rock: a moving belt, or a part touching that face. */
+	/** The first place out of {@code faces} that takes rock: a moving belt, or a part whose feed face touches that face. */
 	public @Nullable Sink sink(List<Lines.Face> faces) {
 		for (Lines.Face face : faces) {
-			Sink there = sinkAt(face.pipe(), this);
+			Sink there = sinkAt(face.pipe(), face.side(), this);
 			if (there != null) {
 				return there;
 			}
@@ -372,11 +388,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return null;
 	}
 
-	/** What takes rock at {@code pos}, never {@code except}: a belt's run (through its drive) or a part. */
-	public @Nullable Sink sinkAt(BlockPos pos, @Nullable PlantBlockEntity except) {
+	/**
+	 * What takes rock at {@code pos}, coming in moving {@code into} (DOWN: dropped onto it from above), never {@code except}: a belt's
+	 * run (through its drive) or a part, only through its feed face (crushing-circuit.md, "Nozzles and faces").
+	 */
+	public @Nullable Sink sinkAt(BlockPos pos, Direction into, @Nullable PlantBlockEntity except) {
 		if (level.getBlockEntity(pos) instanceof BeltBlockEntity belt) {
 			BlockPos at = belt.drive();
 			if (at != null && level.getBlockEntity(at) instanceof PlantBlockEntity drive && drive != except) {
+				double toGo = drive.stage().dropAt(drive, pos);
 				return new Sink() {
 					@Override
 					public double room(RockLoad what) {
@@ -385,13 +405,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 					@Override
 					public void put(RockLoad load) {
-						drive.receive(load);
+						drive.receive(load, toGo);
 					}
 				};
 			}
 			return null;
 		}
 		if (BigParts.entity(level, pos) instanceof PlantBlockEntity part && part != except && part != this) {
+			if (!part.stage().feeds(part, PartFrame.local(part.worldPosition, part.getBlockState(), pos), part.local(into.getOpposite()))) {
+				return null;
+			}
 			return new Sink() {
 				@Override
 				public double room(RockLoad what) {
@@ -555,23 +578,44 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return sorter;
 	}
 
-	/** A click on a sorter's side with a rock item sets that side to take it; false for anything else. */
+	private static final String[] SIDE_NAMES = {"north", "east", "south", "west"};
+
+	/** A click on a sorter's side with a rock item sets that side to take it (a shortcut for its screen); false for anything else. */
 	public boolean setSide(Direction face, ItemStack stack) {
 		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal() || Feeds.parse(stack) == null) {
 			return false;
 		}
-		sorter.set((face.get2DDataValue() + 2) % 4, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-		say("the " + face.getName() + " side takes " + stack.getHoverName().getString());
+		setSide((face.get2DDataValue() + 2) % 4, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getHoverName().getString());
 		return true;
 	}
 
-	/** A sneaking click with an empty hand on a sorter's side sets it as the waste side. */
+	/** Sets a sorter's side (0 north to 3 west) to take {@code itemId}, from its screen. */
+	public void setSide(int side, String itemId, String name) {
+		sorter.set(side, itemId);
+		say("the " + SIDE_NAMES[side] + " side takes " + name);
+		setChanged();
+	}
+
+	/** Clears a sorter's side: it takes nothing of its own. */
+	public void clearSide(int side) {
+		sorter.clear(side);
+		say("the " + SIDE_NAMES[side] + " side takes nothing");
+		setChanged();
+	}
+
+	/** Makes a sorter's side the waste side. */
+	public void setWaste(int side) {
+		sorter.setWaste(side);
+		say("the " + SIDE_NAMES[side] + " side takes the waste");
+		setChanged();
+	}
+
+	/** Sets the sorter's side facing {@code face} as the waste side. */
 	public boolean setWasteSide(Direction face) {
 		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal()) {
 			return false;
 		}
-		sorter.setWaste((face.get2DDataValue() + 2) % 4);
-		say("the " + face.getName() + " side takes the waste");
+		setWaste((face.get2DDataValue() + 2) % 4);
 		return true;
 	}
 
@@ -824,6 +868,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
 		output.putString("hold", hold.save());
+		output.putString("travel", travel.save());
 		output.putString("made", made.save());
 		output.putString("out", out.save());
 		StringBuilder made = new StringBuilder();
@@ -855,6 +900,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		trimReagents();
 		status = input.getStringOr("status", "idle");
 		hold.load(input.getStringOr("hold", ""));
+		// a run saved before belts had a transit time: its load is at the head end
+		travel.load(input.getStringOr("travel", ""));
+		travel.match(hold.total());
 		made.load(input.getStringOr("made", ""));
 		out.load(input.getStringOr("out", ""));
 		byproducts.clear();

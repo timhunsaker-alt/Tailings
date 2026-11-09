@@ -289,13 +289,14 @@ final class Flotation {
 				return;
 			}
 			Slurry.Taken taken = use(part, Product.THICKENED_CONCENTRATE, Math.min(FEED_PER_TICK * part.strength(), waiting));
-			for (String id : taken.assay().minerals()) {
+			SlurryAssay cake = Selective.cake(taken.assay());
+			for (String id : cake.minerals()) {
 				Mineral mineral = Assays.mineral(id);
 				if (mineral != null) {
-					part.cake().add(mineral, taken.assay().get(id) * taken.kg());
+					part.cake().addKg(mineral, cake.get(id) * taken.kg());
 				}
 			}
-			part.say("filtering");
+			part.say(Selective.mixed(taken.assay()) ? "filtering a BULK cake: lead and zinc concentrate mixed, the zinc goes to slag" : "filtering");
 			part.setChanged();
 		}
 	};

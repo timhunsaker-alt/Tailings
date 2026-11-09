@@ -86,7 +86,7 @@ public class TailingsGameTests {
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("plc_switch", "haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -302,35 +302,68 @@ public class TailingsGameTests {
 	}
 
 	/**
-	 * The crushing circuit at 50 t/h (docs/multiblocks/crushing-circuit.md, game test checks 1-3): copper ore on the grizzly, the jaw
-	 * under it, a belt climbing to the screen, the screen's oversize into the cone and its sand by belt onto the ball mill, mill
-	 * discharge by steel pipe to the cyclones, and fines slurry at the cyclones carrying the copper ore's mineral.
+	 * The crushing circuit's layout, as the spec's faces have it (crushing-circuit.md, "Nozzles and faces"): the grizzly on the jaw, its
+	 * undersize down a belt off its east face onto the jaw's discharge belt, that belt up over the screen's north (feed) end; the screen's
+	 * oversize off its south face up over the cone's top; its sand off its east face over the mill's north (feed) end; the cyclones beside
+	 * the mill. {@code at} places a part, {@code belt} a belt. Returns the parts: grizzly, jaw, screen, cone, mill, cyclone, and the drives.
+	 */
+	static java.util.Map<String, BlockPos> crushingLayout(int y) {
+		java.util.Map<String, BlockPos> at = new java.util.LinkedHashMap<>();
+		at.put("jaw", new BlockPos(0, y, 0));
+		at.put("grizzly", new BlockPos(0, y + 4, 0));
+		at.put("screen", new BlockPos(5, y, 4));
+		at.put("cone", new BlockPos(5, y, 14));
+		at.put("mill", new BlockPos(9, y - 2, 4));
+		at.put("cyclone", new BlockPos(13, y - 2, 6));
+		at.put("bypassDrive", new BlockPos(3, y + 3, 3));
+		at.put("jawDrive", new BlockPos(7, y + 3, 3));
+		at.put("oversizeDrive", new BlockPos(6, y + 4, 15));
+		at.put("sandDrive", new BlockPos(11, y + 2, 4));
+		return at;
+	}
+
+	/** The crushing layout's belts: X runs then Z runs. */
+	static BlockPos[][] crushingBelts(int y) {
+		return new BlockPos[][] {
+				// the jaw's discharge, along its south face and up over the screen's north end
+				{new BlockPos(0, y, 4), new BlockPos(1, y, 4), new BlockPos(2, y, 4), new BlockPos(3, y + 1, 4), new BlockPos(4, y + 2, 4), new BlockPos(5, y + 3, 4), new BlockPos(6, y + 3, 4),
+						// the sand, off the screen's east face over the mill's north end
+						new BlockPos(8, y + 2, 5), new BlockPos(9, y + 2, 5), new BlockPos(10, y + 2, 5)},
+				// the grizzly's undersize, off its east face down onto the jaw's belt; the screen's oversize up over the cone
+				{new BlockPos(3, y + 4, 1), new BlockPos(3, y + 3, 2), new BlockPos(3, y + 2, 3),
+						new BlockPos(6, y, 10), new BlockPos(6, y + 1, 11), new BlockPos(6, y + 2, 12), new BlockPos(6, y + 3, 13), new BlockPos(6, y + 4, 14)}};
+	}
+
+	/** The mill discharge pipe round to the cyclones' north face. */
+	static BlockPos[] crushingPipe(int y) {
+		return new BlockPos[] {new BlockPos(12, y - 2, 10), new BlockPos(13, y - 2, 10), new BlockPos(14, y - 2, 10), new BlockPos(15, y - 2, 10), new BlockPos(15, y - 2, 9),
+				new BlockPos(15, y - 2, 8), new BlockPos(15, y - 2, 7), new BlockPos(15, y - 2, 6), new BlockPos(15, y - 2, 5), new BlockPos(14, y - 2, 5)};
+	}
+
+	/**
+	 * The crushing circuit at 50 t/h (docs/multiblocks/crushing-circuit.md, game test checks 1-3), every part fed only through its feed
+	 * face: copper ore on the grizzly, the jaw under it, belts to the screen, the screen's oversize by belt over the cone and its sand by
+	 * belt over the ball mill, mill discharge by steel pipe to the cyclones, and fines slurry at the cyclones carrying the copper ore's metal.
 	 */
 	private static void crushingCircuit(GameTestHelper helper) {
 		int y = 4;
-		PlantBlockEntity jaw = plant(helper, Machine.JAW, new BlockPos(0, y, 0));
-		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(0, y + 4, 0));
-		// the jaw's discharge belt, east along its south face and up two blocks to under the screen
-		for (BlockPos at : new BlockPos[] {new BlockPos(0, y, 4), new BlockPos(1, y, 4), new BlockPos(2, y, 4), new BlockPos(3, y, 4),
-				new BlockPos(4, y + 1, 4), new BlockPos(5, y + 2, 4)}) {
-			helper.setBlock(at, belt(Direction.Axis.X));
+		java.util.Map<String, BlockPos> at = crushingLayout(y);
+		java.util.Map<String, PlantBlockEntity> part = new java.util.HashMap<>();
+		at.forEach((name, pos) -> part.put(name, plant(helper, machineOf(name), pos)));
+		BlockPos[][] belts = crushingBelts(y);
+		for (int axis = 0; axis < 2; axis++) {
+			for (BlockPos pos : belts[axis]) {
+				helper.setBlock(pos, belt(axis == 0 ? Direction.Axis.X : Direction.Axis.Z));
+			}
 		}
-		PlantBlockEntity jawDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(6, y + 2, 4));
-		PlantBlockEntity screen = plant(helper, Machine.SCREEN, new BlockPos(3, y + 3, 0));
-		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(3, y + 3, 6));
-		// the sand belt, off the screen's east face and over the mill
-		for (int x = 6; x <= 8; x++) {
-			helper.setBlock(new BlockPos(x, y + 3, 1), belt(Direction.Axis.X));
-		}
-		PlantBlockEntity sandDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(9, y + 3, 1));
-		PlantBlockEntity mill = plant(helper, Machine.BALL_MILL, new BlockPos(7, y - 1, 0));
-		PlantBlockEntity cyclone = plant(helper, Machine.CYCLONE, new BlockPos(11, y - 1, 2));
-		pipe(helper, new BlockPos(10, y - 1, 6), new BlockPos(11, y - 1, 6), new BlockPos(12, y - 1, 6), new BlockPos(13, y - 1, 6),
-				new BlockPos(13, y - 1, 5), new BlockPos(13, y - 1, 4), new BlockPos(13, y - 1, 3), new BlockPos(13, y - 1, 2),
-				new BlockPos(13, y - 1, 1), new BlockPos(12, y - 1, 1));
-		for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, jawDrive, sandDrive, mill, cyclone}) {
-			part.forceRunning();
-		}
+		pipe(helper, crushingPipe(y));
+		PlantBlockEntity grizzly = part.get("grizzly"), jaw = part.get("jaw"), screen = part.get("screen"), cone = part.get("cone"), mill = part.get("mill"),
+				cyclone = part.get("cyclone");
+		part.forEach((name, p) -> {
+			if (p != grizzly) {
+				p.forceRunning();
+			}
+		});
 		helper.onEachTick(() -> {
 			mill.addWater(1000);
 			cyclone.addWater(1000);
@@ -339,10 +372,24 @@ public class TailingsGameTests {
 		helper.succeedWhen(() -> {
 			double fines = cyclone.out().held(Product.FINES_SLURRY);
 			double copper = cyclone.out().assayOf(Product.FINES_SLURRY).get("minecraft:copper_ingot");
-			helper.assertTrue(cone.hold().total() > 0, Component.literal("the cone should get the screen's oversize (" + screen.status() + ")"));
+			helper.assertTrue(cone.hold().total() > 0, Component.literal("the cone should get the screen's oversize (screen " + screen.status() + "; oversize belt "
+					+ part.get("oversizeDrive").status() + "; grizzly " + grizzly.status() + "; jaw " + jaw.status() + "; bypass " + part.get("bypassDrive").status()
+					+ "; jaw belt " + part.get("jawDrive").status() + ")"));
 			helper.assertTrue(fines > 0 && copper > 0, Component.literal("fines slurry with copper should leave the cyclones, got " + fines
-					+ " kg (jaw " + jaw.status() + "; screen " + screen.status() + "; mill " + mill.status() + "; cyclone " + cyclone.status() + ")"));
+					+ " kg (grizzly " + grizzly.status() + "; jaw " + jaw.status() + "; bypass " + part.get("bypassDrive").status() + "; jaw belt " + part.get("jawDrive").status()
+					+ "; screen " + screen.status() + "; sand " + part.get("sandDrive").status() + "; mill " + mill.status() + "; cyclone " + cyclone.status() + ")"));
 		});
+	}
+
+	private static Machine machineOf(String name) {
+		return name.endsWith("Drive") ? Machine.CONVEYOR_DRIVE : switch (name) {
+			case "jaw" -> Machine.JAW;
+			case "grizzly" -> Machine.GRIZZLY;
+			case "screen" -> Machine.SCREEN;
+			case "cone" -> Machine.CONE;
+			case "mill" -> Machine.BALL_MILL;
+			default -> Machine.CYCLONE;
+		};
 	}
 
 	/** An ore bin feeds the belt under it, and the belt drops the rock onto the grizzly under its head end. */
@@ -381,7 +428,12 @@ public class TailingsGameTests {
 		}
 		PlantBlockEntity sandDrive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(6, y + 1, 11));
 		PlantBlockEntity mill = plant(helper, Machine.BALL_MILL, new BlockPos(4, y - 3, 10));
-		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(0, y, 16));
+		// the screen's oversize by belt over the cone's top (a cone touching its south face no longer takes it as a chute)
+		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(0, y, 20));
+		for (BlockPos at : new BlockPos[] {new BlockPos(1, y, 16), new BlockPos(1, y + 1, 17), new BlockPos(1, y + 2, 18), new BlockPos(1, y + 3, 19), new BlockPos(1, y + 4, 20)}) {
+			helper.setBlock(at, belt(Direction.Axis.Z));
+		}
+		plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(1, y + 4, 21)).forceRunning();
 		screen.forceRunning();
 		sandDrive.forceRunning();
 		cone.forceRunning();
@@ -422,8 +474,9 @@ public class TailingsGameTests {
 	 */
 	private static void flotation(GameTestHelper helper) {
 		int y = 4;
-		double copper = Rock.COPPER.contained(dev.wildcatter.tailings.rock.Mineral.COPPER).doubleValue();
-		fines(helper, new BlockPos(0, y, 0), 100, java.util.Map.of("minecraft:copper_ingot", copper / 100));
+		// the assay counts metal in kg: a block of copper ore's four ingots are 400 kg of copper
+		double copper = Rock.COPPER.contained(dev.wildcatter.tailings.rock.Mineral.COPPER).doubleValue() * dev.wildcatter.tailings.rock.Mineral.INGOT_KG;
+		fines(helper, new BlockPos(0, y, 0), 1200, java.util.Map.of("minecraft:copper_ingot", copper / 1200));
 		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
 		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
 		pipe(helper, new BlockPos(0, y, 6));
@@ -444,7 +497,7 @@ public class TailingsGameTests {
 			double tailCopper = pond.back().assayOf(Product.TAILS_SLURRY).get("minecraft:copper_ingot") * pond.back().held(Product.TAILS_SLURRY);
 			helper.assertTrue(ingots == 3, Component.literal("the filter should pay 3 copper ingots, got " + ingots + " (tank " + tank.status()
 					+ "; bank " + bank.status() + "; thickener " + thickener.status() + "; filter " + filter.status() + ")"));
-			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 1e-3, Component.literal("the tails should carry the rest of the copper, got "
+			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 0.1, Component.literal("the tails should carry the rest of the copper, got "
 					+ tailCopper + " (pond " + pond.status() + ")"));
 		});
 	}
@@ -453,7 +506,7 @@ public class TailingsGameTests {
 	private static void fullRecovery(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(3, y, 0));
-		source.out().offer(Product.TAILS_SLURRY, 100, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 1.0 / 100)));
+		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.INGOT_KG / 200)));
 		pipe(helper, new BlockPos(3, y, 13));
 		PlantBlockEntity scavenger = plant(helper, Machine.SCAVENGER_BANK, new BlockPos(3, y, 14));
 		PlantBlockEntity blower = plant(helper, Machine.BLOWER, new BlockPos(1, y, 15));
@@ -696,7 +749,7 @@ public class TailingsGameTests {
 	private static void leachNoAcid(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
-		source.out().offer(Product.TAILS_SLURRY, 100, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 1.0 / 100)));
+		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.INGOT_KG / 200)));
 		pipe(helper, new BlockPos(0, y, 13));
 		PlantBlockEntity leach = plant(helper, Machine.LEACH_TANK, new BlockPos(0, y, 14));
 		leach.forceRunning();
@@ -1101,6 +1154,11 @@ public class TailingsGameTests {
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(first.load().total() == 0 && second.load().total() == 0,
 						Component.literal("both cars should tip on the move (" + loco.status() + ", locomotive at z " + relZ(helper, loco) + ")")))
+				.thenExecute(() -> {
+					// one item in a hundred is over the grizzly's 300 mm bars: 128 tipped leave one on them, broken through here
+					helper.assertTrue(pocket.oversize() == 1, Component.literal("one piece of oversize should stay on the grizzly, got " + pocket.oversize()));
+					helper.assertTrue(pocket.breakOne() != null, Component.literal("and it breaks through"));
+				})
 				.thenWaitUntil(() -> helper.assertTrue(copperBin.binned().getOrDefault("minecraft:copper_ore", 0) == 64
 						&& wasteBin.binned().getOrDefault("minecraft:cobblestone", 0) == 64,
 						Component.literal("copper ore to its bin and cobble to waste (feeder " + feeder.status() + "; sorter " + sorter.status() + ")")))
@@ -1123,6 +1181,8 @@ public class TailingsGameTests {
 		MineVehicleEntity car = car(helper, new BlockPos(3, y, 4), Heading.NORTH);
 		car.load().add("minecraft:cobblestone", 64);
 		helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", Haul.POCKET_ITEMS)), Component.literal("fill the pocket"));
+		pocket.liftOff();   // its oversize, lifted off the grizzly, so that only the full pocket holds the car
+		int full = pocket.pocket();
 		double start = relZ(helper, loco);
 		helper.startSequence()
 				.thenExecuteAfter(40, () -> {
@@ -1131,7 +1191,7 @@ public class TailingsGameTests {
 					helper.assertTrue(car.load().total() == 64, Component.literal("the car should not tip into a full pocket"));
 					pocket.draw(64);
 				})
-				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0 && pocket.pocket() == Haul.POCKET_ITEMS,
+				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0 && pocket.pocket() + pocket.oversize() == full,
 						Component.literal("with room, the car tips")))
 				.thenSucceed();
 	}

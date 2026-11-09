@@ -20,8 +20,9 @@ class SelectiveTest {
 		return Selective.bank(feed, 100, 0.75, 0.30);
 	}
 
+	/** What a filter fed only this concentrate pays of {@code id}. */
 	private static double conc(Selective.Split split, String id) {
-		return split.concentrateAssay().kg(id, split.concentrate());
+		return Selective.cake(split.concentrateAssay()).kg(id, split.concentrate());
 	}
 
 	private static double tails(Selective.Split split, String id) {
@@ -78,5 +79,24 @@ class SelectiveTest {
 		assertFalse(Selective.conditioning(true, false).contains(Reagent.ZINC_SULFATE));
 		assertTrue(Selective.activating(true).contains(Reagent.COPPER_SULFATE));
 		assertFalse(Selective.activating(false).contains(Reagent.COPPER_SULFATE));
+	}
+
+	@Test
+	void leadAndZincConcentratePipedTogetherMakeABulkCake() {
+		Selective.Split lead = bank(Selective.depress(BOTH));
+		Selective.Split zinc = Selective.bank(Selective.activate(lead.tailsAssay()), lead.tails(), 0.75, 0.30);
+		SlurryAssay mixed = SlurryAssay.blend(lead.concentrateAssay(), lead.concentrate(), zinc.concentrateAssay(), zinc.concentrate());
+		double kg = lead.concentrate() + zinc.concentrate();
+		assertTrue(Selective.mixed(mixed));
+		assertEquals(0.75, Selective.cake(mixed).kg(LEAD, kg), 1e-9, "the lead still pays");
+		assertEquals(0, Selective.cake(mixed).kg(ZINC, kg), 1e-9, "the bank's zinc goes to slag, as a bulk cake's does");
+		assertFalse(Selective.mixed(zinc.concentrateAssay()), "zinc concentrate on its own is clean");
+	}
+
+	@Test
+	void theScavengersZincStillPaysBesideLead() {
+		SlurryAssay scavenged = SlurryAssay.of(Map.of(LEAD, 0.01, ZINC, 0.02));
+		assertFalse(Selective.mixed(scavenged));
+		assertEquals(2, Selective.cake(scavenged).kg(ZINC, 100), 1e-9);
 	}
 }

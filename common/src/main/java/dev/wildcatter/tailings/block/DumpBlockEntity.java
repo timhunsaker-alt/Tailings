@@ -22,6 +22,10 @@ import net.minecraft.world.level.storage.ValueOutput;
  */
 public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspectable {
 	private final Map<String, Integer> held = new LinkedHashMap<>();
+	/** Rock on the rail pocket's 300 mm grizzly bars, too big to pass, by item: it waits to be broken or lifted off. */
+	private final Map<String, Integer> oversize = new LinkedHashMap<>();
+	/** Items' worth of oversize owed, under a whole item. */
+	private double oversizeDue;
 	/** The pit hopper's part blocks: what a truck tipped under a whole block of each ore, kept for the next load (Tim, 2026-11-09). */
 	private final dev.wildcatter.tailings.pit.PitLoad part = new dev.wildcatter.tailings.pit.PitLoad(Long.MAX_VALUE);
 	private boolean grown;
@@ -130,7 +134,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		return held.getOrDefault(itemId, 0);
 	}
 
-	/** Takes a car's whole load if it fits; otherwise none of it. */
+	/** Takes a car's whole load if it fits and the grizzly is not choked; otherwise none of it. Its oversize stays on the bars. */
 	public boolean offer(Map<String, Integer> load) {
 		if (load == null || load.isEmpty()) {
 			return true;
@@ -139,7 +143,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		for (int n : load.values()) {
 			sum += Math.max(0, n);
 		}
-		if (pocket() + sum > capacity()) {
+		if (!takes(sum)) {
 			return false;
 		}
 		load.forEach((id, n) -> {
@@ -147,8 +151,76 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 				held.merge(id, n, Integer::sum);
 			}
 		});
+		if (!pit()) {
+			grizzly(load, sum);
+		}
 		setChanged();
 		return true;
+	}
+
+	/** True when a car's load of {@code items} would tip now: there is room, and the grizzly is not choked with oversize. */
+	public boolean takes(int items) {
+		return !choked() && pocket() + items <= capacity();
+	}
+
+	/** The share of a load that is over the bars' 300 mm stays on them, taken from the load's commonest rock (dump-station.md). */
+	private void grizzly(Map<String, Integer> load, int sum) {
+		oversizeDue += sum * Haul.OVERSIZE_SHARE;
+		while (oversizeDue >= 1 - 1e-9) {
+			String most = null;
+			for (Map.Entry<String, Integer> e : load.entrySet()) {
+				if (held.getOrDefault(e.getKey(), 0) > 0 && (most == null || e.getValue() > load.get(most))) {
+					most = e.getKey();
+				}
+			}
+			if (most == null) {
+				break;
+			}
+			oversizeDue -= 1;
+			held.merge(most, -1, Integer::sum);
+			held.remove(most, 0);
+			oversize.merge(most, 1, Integer::sum);
+		}
+	}
+
+	/** Items of oversize on the grizzly's bars. */
+	public int oversize() {
+		int n = 0;
+		for (int c : oversize.values()) {
+			n += c;
+		}
+		return n;
+	}
+
+	/** Too much oversize on the bars: no car tips until it is cleared. */
+	public boolean choked() {
+		return oversize() >= Haul.GRIZZLY_CHOKE;
+	}
+
+	/** Breaks one piece of oversize through the bars into the pocket, as a rock breaker does; the item it was, or null with none. */
+	public @org.jspecify.annotations.Nullable String breakOne() {
+		Iterator<Map.Entry<String, Integer>> it = oversize.entrySet().iterator();
+		if (!it.hasNext()) {
+			return null;
+		}
+		Map.Entry<String, Integer> e = it.next();
+		String id = e.getKey();
+		if (e.getValue() <= 1) {
+			it.remove();
+		} else {
+			e.setValue(e.getValue() - 1);
+		}
+		held.merge(id, 1, Integer::sum);
+		setChanged();
+		return id;
+	}
+
+	/** Lifts all the oversize off the bars, returned to whoever cleared it. */
+	public Map<String, Integer> liftOff() {
+		Map<String, Integer> out = new LinkedHashMap<>(oversize);
+		oversize.clear();
+		setChanged();
+		return out;
 	}
 
 	/** Draws up to {@code max} items off the pocket's bottom, oldest type first. */
@@ -187,7 +259,8 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 			return Component.literal("Pit Hopper: holds " + pocket() * dev.wildcatter.tailings.pit.PitMass.ROCK_KG / 1000 + " t of " + PIT_HOPPER_KG / 1000 + " t"
 					+ (pocket() >= capacity() ? " (FULL: the next truck waits)" : ""));
 		}
-		return Component.literal("Dump Pocket: holds " + pocket() + " of " + Haul.POCKET_ITEMS + " items" + (pocket() >= Haul.POCKET_ITEMS ? " (FULL: the next car waits)" : ""));
+		String bars = oversize() == 0 ? "" : "; " + oversize() + " oversize on the grizzly" + (choked() ? " (CHOKED: break it with a pickaxe, or sneak-click to lift it off)" : "");
+		return Component.literal("Dump Pocket: holds " + pocket() + " of " + Haul.POCKET_ITEMS + " items" + (pocket() >= Haul.POCKET_ITEMS ? " (FULL: the next car waits)" : "") + bars);
 	}
 
 	/** Breaking the pocket drops what it holds. */
@@ -201,6 +274,12 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 				}
 			});
 			held.clear();
+			oversize.forEach((id, n) -> {
+				for (int left = n; left > 0; left -= 64) {
+					Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), Feeds.stack(id, Math.min(64, left)));
+				}
+			});
+			oversize.clear();
 		}
 	}
 
@@ -212,6 +291,10 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		held.forEach((id, n) -> out.append(out.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("held", out.toString());
 		output.putString("part", part.save());
+		StringBuilder bars = new StringBuilder();
+		oversize.forEach((id, n) -> bars.append(bars.length() == 0 ? "" : ",").append(id).append('=').append(n));
+		output.putString("oversize", bars.toString());
+		output.putDouble("oversizeDue", oversizeDue);
 	}
 
 	@Override
@@ -219,6 +302,18 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		super.loadAdditional(input);
 		grown = input.getBooleanOr("grown", false);
 		held.clear();
+		oversize.clear();
+		oversizeDue = input.getDoubleOr("oversizeDue", 0);
+		for (String one : input.getStringOr("oversize", "").split(",")) {
+			int eq = one.lastIndexOf('=');
+			if (eq > 0) {
+				try {
+					oversize.put(one.substring(0, eq), Integer.parseInt(one.substring(eq + 1)));
+				} catch (NumberFormatException ex) {
+					// left out
+				}
+			}
+		}
 		part.load(input.getStringOr("part", ""));
 		// a pocket saved before R4c sorted into nine slots: its items come back into the pocket
 		net.minecraft.core.NonNullList<net.minecraft.world.item.ItemStack> old = net.minecraft.core.NonNullList.withSize(9, net.minecraft.world.item.ItemStack.EMPTY);

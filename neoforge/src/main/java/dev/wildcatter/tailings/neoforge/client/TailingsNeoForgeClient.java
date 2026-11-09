@@ -20,7 +20,10 @@ public final class TailingsNeoForgeClient {
 
 	public static void init(IEventBus modBus) {
 		dev.wildcatter.tailings.entity.SoundingEntity.Hook.start = dev.wildcatter.tailings.client.EntitySound::start;
-		modBus.addListener(RegisterMenuScreensEvent.class, event -> event.register(DrillMenus.DRILL, DrillScreen::new));
+		modBus.addListener(RegisterMenuScreensEvent.class, event -> {
+			event.register(DrillMenus.DRILL, DrillScreen::new);
+			event.register(DrillMenus.SORTER, dev.wildcatter.tailings.client.SorterScreen::new);
+		});
 		modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> {
 			event.registerLayerDefinition(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 			event.registerLayerDefinition(MineCarModel.LAYER, MineCarModel::createBodyLayer);

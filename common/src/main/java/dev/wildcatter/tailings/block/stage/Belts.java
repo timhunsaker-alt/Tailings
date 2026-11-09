@@ -5,6 +5,7 @@ import dev.wildcatter.tailings.block.BeltBlockEntity;
 import dev.wildcatter.tailings.block.BeltConveyorBlock;
 import dev.wildcatter.tailings.block.Feeds;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
+import dev.wildcatter.tailings.plant.BeltTravel;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.plant.PlantRates;
 import dev.wildcatter.tailings.plant.RockLoad;
@@ -36,7 +37,24 @@ final class Belts {
 	record Scan(List<BlockPos> run, BlockPos head, Direction way, boolean holder, Set<BlockPos> drives) {
 	}
 
+	/** Kg a metre of belt carries when it is full, at its speed: three times the plant's rate (proposed). */
+	static final double FULL_KG_PER_METRE = BELT_KG_PER_TICK * 20 / PlantRates.BELT_METRES_PER_SECOND;
+
 	static final Stage DRIVE = new Stage() {
+		@Override
+		public double dropAt(PlantBlockEntity part, @Nullable BlockPos belt) {
+			if (!(part.run instanceof Scan scan) || scan.run().isEmpty()) {
+				return 0;
+			}
+			int index = belt == null ? -1 : scan.run().indexOf(belt);
+			int last = scan.run().size() - 1;
+			boolean headLast = scan.run().get(last).equals(scan.head());
+			if (index < 0) {
+				return scan.run().size();   // onto the tail end
+			}
+			return (headLast ? last - index : index) + 0.5;
+		}
+
 		@Override
 		public void tick(PlantBlockEntity part) {
 			Level level = part.getLevel();
@@ -53,6 +71,7 @@ final class Belts {
 				part.say("helping drive a " + scan.run().size() + " m run");
 				return;
 			}
+			part.travel().match(part.hold().total());
 			int needed = PlantRates.drivesFor(scan.run().size());
 			int running = 0;
 			for (BlockPos at : scan.drives()) {
@@ -61,53 +80,127 @@ final class Belts {
 				}
 			}
 			boolean moving = running >= needed;
-			if (part.scanDue()) {
-				draw(part, scan, moving);
-			}
 			if (!moving) {
+				if (part.scanDue()) {
+					draw(part, scan, false);
+				}
 				part.say(running == 0 ? "NO DRIVE: the drive's motor is not running"
 						: "NO DRIVE: a " + scan.run().size() + " m run needs " + needed + " drives running (7.5 kW each 30 m)");
 				return;
 			}
-			if (part.hold().isEmpty()) {
-				part.say("running empty");
-				return;
+			boolean blocked = deliver(part, scan);
+			// a run whose head end is blocked stops, as a real belt trips on a full chute, rather than piling rock at its head
+			if (!blocked) {
+				part.travel().advance(PlantRates.BELT_METRES_PER_SECOND / 20);
 			}
-			PlantBlockEntity.Sink sink = receiver(part, scan);
-			if (sink == null) {
-				part.say(Crushing.NOWHERE + " (nothing takes the load at its head end)");
-				return;
+			if (part.scanDue()) {
+				draw(part, scan, !blocked);
 			}
-			double max = Math.min(BELT_KG_PER_TICK * part.strength(), sink.room(part.hold()));
-			if (max < 1e-6) {
-				part.say("FULL: what the head end feeds is full");
-				return;
-			}
-			sink.put(part.hold().take(max));
-			part.say(String.format("carrying %.0f kg of %s", part.hold().total(), Crushing.main(part.hold())));
-			part.setChanged();
 		}
 	};
 
-	/** What the run's head end delivers into: straight ahead, under it, beside it, then over it (a chute). Never the run or a drive. */
+	/** Delivers what has reached the head end; true when the head end is blocked (nothing takes it, or what it feeds is full). */
+	private static boolean deliver(PlantBlockEntity part, Scan scan) {
+		if (part.hold().isEmpty()) {
+			part.say("running empty");
+			return false;
+		}
+		double ready = part.travel().ready();
+		PlantBlockEntity.Sink sink = receiver(part, scan);
+		net.minecraft.world.Container box = sink == null ? container(part, scan) : null;
+		if (box != null) {
+			bag(part, box);
+		}
+		if (sink == null && box == null) {
+			part.say(Crushing.NOWHERE + " (nothing takes the load at its head end)");
+			return ready > 0;
+		}
+		if (ready < 1e-6) {
+			part.say(String.format("carrying %.0f kg of %s, %.0f s from its head end", part.hold().total(), Crushing.main(part.hold()),
+					BeltTravel.transitSeconds(scan.run().size(), PlantRates.BELT_METRES_PER_SECOND)));
+			return false;
+		}
+		double room = sink != null ? sink.room(part.hold()) : Math.max(0, 2 * PlantRates.BLOCK_KG - part.made().total());
+		double max = Math.min(Math.min(BELT_KG_PER_TICK * part.strength(), room), ready);
+		if (max < 1e-6) {
+			part.say(box != null ? "FULL: the container at its head end is full" : "FULL: what the head end feeds is full");
+			return true;
+		}
+		RockLoad taken = part.hold().take(max);
+		part.travel().take(max);
+		if (sink != null) {
+			sink.put(taken);
+		} else {
+			part.made().add(taken);
+			bag(part, box);
+		}
+		part.say(String.format("carrying %.0f kg of %s", part.hold().total(), Crushing.main(part.hold())));
+		part.setChanged();
+		return false;
+	}
+
+	/** A hopper or chest at the head end, which takes the run's rock as whole items (a block's worth of one rock and size each). */
+	private static net.minecraft.world.@Nullable Container container(PlantBlockEntity part, Scan scan) {
+		BlockPos head = scan.head();
+		for (BlockPos at : new BlockPos[] {head.below(), head.relative(scan.way()), head.relative(scan.way()).below()}) {
+			if (BigParts.entity(part.getLevel(), at) == null && part.getLevel().getBlockEntity(at) instanceof net.minecraft.world.Container box
+					&& !(part.getLevel().getBlockEntity(at) instanceof BeltBlockEntity)) {
+				return box;
+			}
+		}
+		return null;
+	}
+
+	/** Each block's worth of one rock and size at the head end goes into {@code box} as its item, while it fits. */
+	private static void bag(PlantBlockEntity part, net.minecraft.world.Container box) {
+		java.util.List<Object[]> whole = new ArrayList<>();
+		part.made().forEach((rock, size, kg) -> {
+			if (kg >= PlantRates.BLOCK_KG - 1e-6) {
+				whole.add(new Object[] {rock, size});
+			}
+		});
+		for (Object[] one : whole) {
+			Rock rock = (Rock) one[0];
+			dev.wildcatter.tailings.rock.SizeClass size = (dev.wildcatter.tailings.rock.SizeClass) one[1];
+			net.minecraft.world.item.ItemStack item = Feeds.stack(size == null ? Feeds.blockId(rock) : size.itemId(rock), 1);
+			if (item.isEmpty()) {
+				continue;
+			}
+			net.minecraft.world.item.ItemStack left = net.minecraft.world.level.block.entity.HopperBlockEntity.addItem(null, box, item, Direction.UP);
+			if (left.isEmpty()) {
+				part.made().take(PlantRates.BLOCK_KG, (r, s) -> r == rock && s == size);
+				box.setChanged();
+				part.setChanged();
+			}
+		}
+	}
+
+	/** What the run's head end delivers into: straight ahead, under it, ahead and under it, beside it, then over it. Never the run or a drive. */
 	private static PlantBlockEntity.@Nullable Sink receiver(PlantBlockEntity part, Scan scan) {
 		BlockPos head = scan.head();
 		List<BlockPos> tries = new ArrayList<>();
+		List<Direction> into = new ArrayList<>();
 		tries.add(head.relative(scan.way()));
+		into.add(scan.way());
 		tries.add(head.below());
+		into.add(Direction.DOWN);
 		tries.add(head.relative(scan.way()).below());
+		into.add(Direction.DOWN);
 		for (Direction side : Direction.Plane.HORIZONTAL) {
 			tries.add(head.relative(side));
+			into.add(side);
 		}
 		tries.add(head.above());
-		for (BlockPos at : tries) {
+		into.add(Direction.UP);
+		for (int i = 0; i < tries.size(); i++) {
+			BlockPos at = tries.get(i);
 			if (scan.run().contains(at) || scan.drives().contains(BigParts.owner(part.getLevel(), at))) {
 				continue;
 			}
 			if (BigParts.entity(part.getLevel(), at) instanceof PlantBlockEntity other && other.machine() == Machine.CONVEYOR_DRIVE) {
 				continue;
 			}
-			PlantBlockEntity.Sink sink = part.sinkAt(at, part);
+			PlantBlockEntity.Sink sink = part.sinkAt(at, into.get(i), part);
 			if (sink != null) {
 				return sink;
 			}
@@ -177,11 +270,10 @@ final class Belts {
 		return main;
 	}
 
-	/** Each belt of the run shows the load's main rock, how full the run is, and which way it moves. */
+	/** Each belt of the run shows the load's main rock, how much rides on that metre of it, and which way it moves. */
 	private static void draw(PlantBlockEntity part, Scan scan, boolean moving) {
 		Rock rock = part.hold().main();
 		String id = rock == null ? "" : rock.name();
-		float fill = (float) Math.min(1, part.hold().total() / PlantRates.BELT_HOLD_KG);
 		List<BlockPos> run = new ArrayList<>(scan.run());
 		if (!run.get(run.size() - 1).equals(scan.head())) {
 			java.util.Collections.reverse(run);
@@ -193,8 +285,10 @@ final class Belts {
 				int dx = b.getX() - a.getX(), dz = b.getZ() - a.getZ();
 				toward = dx > 0 ? Direction.EAST : dx < 0 ? Direction.WEST : dz > 0 ? Direction.SOUTH : Direction.NORTH;
 			}
+			int fromHead = run.size() - 1 - i;
+			float fill = (float) Math.min(1, part.travel().between(fromHead, fromHead + 1) / FULL_KG_PER_METRE);
 			if (part.getLevel().getBlockEntity(run.get(i)) instanceof BeltBlockEntity belt) {
-				belt.set(part.getBlockPos(), id, fill, toward, moving);
+				belt.set(part.getBlockPos(), fill > 0 ? id : "", fill, toward, moving);
 			}
 		}
 	}

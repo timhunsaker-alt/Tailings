@@ -22,6 +22,7 @@ public final class TailingsFabricClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		dev.wildcatter.tailings.entity.SoundingEntity.Hook.start = dev.wildcatter.tailings.client.EntitySound::start;
 		MenuScreens.register(DrillMenus.DRILL, DrillScreen::new);
+		MenuScreens.register(DrillMenus.SORTER, dev.wildcatter.tailings.client.SorterScreen::new);
 		ModelLayerRegistry.registerModelLayer(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(MineCarModel.LAYER, MineCarModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);

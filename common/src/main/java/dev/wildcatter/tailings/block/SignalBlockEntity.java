@@ -72,6 +72,26 @@ public class SignalBlockEntity extends BlockEntity implements dev.wildcatter.con
 		return section.occupant(SELF);
 	}
 
+	/** The rail dump pocket under a rail of this section, beside its ramp, or null: a loaded train waits here while it is full. */
+	public @org.jspecify.annotations.Nullable DumpBlockEntity dumpPocket() {
+		if (level == null || !(getBlockState().getBlock() instanceof BlockSignalBlock)) {
+			return null;
+		}
+		net.minecraft.core.Direction facing = getBlockState().getValue(BlockSignalBlock.FACING);
+		BlockPos cursor = worldPosition.relative(facing);
+		for (int i = 0; i < 16; i++) {
+			if (!(level.getBlockEntity(cursor) instanceof RailBlockEntity rail) || !rail.signal().equals(worldPosition)) {
+				return null;
+			}
+			DumpBlockEntity pocket = DumpBlockEntity.under(level, cursor);
+			if (pocket != null && !pocket.pit()) {
+				return pocket;
+			}
+			cursor = cursor.relative(facing);
+		}
+		return null;
+	}
+
 	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);
