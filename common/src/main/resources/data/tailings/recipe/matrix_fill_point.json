@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I",
+    "H",
+    "S"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "H": "minecraft:hopper",
+    "S": "minecraft:smooth_stone"
+  },
+  "result": {
+    "id": "tailings:matrix_fill_point",
+    "count": 1
+  }
+}

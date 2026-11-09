@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "tailings:block/blasthole_top_placeholder",
+    "side": "tailings:block/blasthole_placeholder"
+  }
+}

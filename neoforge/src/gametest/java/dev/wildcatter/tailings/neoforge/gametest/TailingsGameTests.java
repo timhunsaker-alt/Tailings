@@ -175,10 +175,26 @@ public class TailingsGameTests {
 			helper.register(id("pit_dispatch"), wide("pit_dispatch", PitDispatchGameTests::dispatch));
 			helper.register(id("pit_dispatch_alarms"), wide("pit_dispatch_alarms", PitDispatchGameTests::alarms));
 			helper.register(id("pit_dispatch_fallback"), wide("pit_dispatch_fallback", PitDispatchGameTests::fallback));
+			helper.register(id("pit_drill_pattern"), wide("pit_drill_pattern", PitBlastGameTests::drillPattern));
+			helper.register(id("pit_drill_short"), wide("pit_drill_short", PitBlastGameTests::drillShort));
+			helper.register(id("pit_charge"), wide("pit_charge", PitBlastGameTests::charge));
+			helper.register(id("pit_prime_stem"), wide("pit_prime_stem", PitBlastGameTests::primeStem));
+			helper.register(id("pit_blast"), wide("pit_blast", PitBlastGameTests::blast));
+			helper.register(id("pit_blast_blowout"), wide("pit_blast_blowout", PitBlastGameTests::blowout));
+			helper.register(id("pit_blast_boxcut"), wide("pit_blast_boxcut", PitBlastGameTests::boxCut));
+			helper.register(id("pit_misfire"), wide("pit_misfire", PitBlastGameTests::misfire));
+			helper.register(id("pit_blast_guard"), wide("pit_blast_guard", PitBlastGameTests::guard));
+			helper.register(id("pit_blast_plc"), wide("pit_blast_plc", PitBlastGameTests::plc));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
+			// TAILINGS_ONLY=pit_blast,pit_charge runs only those scenes (a wave's own, while it is built); unset, all of them
+			String only = System.getenv("TAILINGS_ONLY");
+			java.util.Set<String> chosen = only == null || only.isBlank() ? null : java.util.Set.of(only.split(","));
+			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitBlastGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
+				if (chosen != null && !chosen.contains(scene)) {
+					continue;
+				}
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
 						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,

@@ -298,3 +298,30 @@ questions were decided on the best recommendation and logged in `docs/questions/
   `pit_dispatch_fallback` (the PLC stops writing RUN and the truck parks at its next stake; HAND runs it again; the office's power off
   stops it at its next stake with its loops at 0 mA; power back, it goes on). Unit tests `DispatchTest`.
 - NeoForge scenes: **86 pass** (83 before, 3 new).
+
+## Open pit P3: drilling and blasting (2026-11-09)
+
+Spec `docs/multiblocks/open-pit-p3-blasting.md` (a draft decided on recommendation; "As built" at its end). Built while Tim was away;
+what building it raised was decided on the best recommendation and logged in `docs/questions/p3-blasting.md` (19 decisions). DESIGN.md,
+"The open pit (P3)". Compiles against **Wildcatter 0.6.0** (its emulsion matrix), from the local release folder until it is published.
+
+- **P3b, the drill and the hole:** `blasthole_drill`, one real-size machine (decision 1: not four parts yet). Its panel sets the
+  pattern; GO squares it to the grid and walks it, a serpentine, turning on the spot, tramming at 1.5 km/h, 20 s on its jacks, 1 m
+  every 10 s. A drilled hole is a column of `blasthole` blocks remembering their rock (`pit_drill_pattern`: 9 holes 16 m deep through
+  a granite layer); a cave stops it SHORT (`pit_drill_short`). Each collar carries the hole and shows its state by colour.
+- **P3c, charging and firing:** boosters and detonators from TNT; the matrix fill point on Wildcatter pipe and the emulsion truck
+  (`pit_charge`: a stock tank of matrix fills the truck at 1 t/min; it charges 3 primed holes to 828 kg at 20 kg/s and skips the
+  unprimed one); stemming from cuttings or gravel, washing out, the logger's delays (`pit_prime_stem`); the blasting machine with its
+  key, ARM, FIRE, siren, WAIT and PLC points (`pit_blast_plc`, `pit_blast_guard`: TOO CLOSE at 40 m, a truck on the shot stops it).
+- **The shot** (`pit_blast`): a 3 x 3 pattern breaks 7,056 bank blocks to 9,408 muck blocks, 4 for 3, every quarter kept; the swell
+  spills off the face; the floor under the shot is solid at grade; iron golems 20 m and 40 m off take 18 and 6. A blowout breaks the
+  lower half of its box and throws 6 flyrock (`pit_blast_blowout`); a box cut heaves its swell up over the shot (`pit_blast_boxcut`);
+  a hole with no booster misfires, stands in the muck, holds the next shot 30 s, stops a loader's bucket and washes out
+  (`pit_misfire`).
+- **What building it found:** the second hole in the front row broke sideways into its neighbour, fired 25 ms before it, instead of
+  to the face, and left rock standing; a hole now breaks to its pattern's face whenever that face is in reach (decision 8). A truck
+  added to the world in a tick is not in the world's entity lists until the next, so the guard's scene waits a few ticks. The spec's
+  cuttings figure (3.4 m) did not follow from its own basis (12 m; decision 4).
+- **The client film** `pit_blast` is written in `TailingsClientGameTest` (`TAILINGS_ONLY=pit_blast`): drill a 3 x 4 pattern, prime,
+  charge from two truck stands, stem, log, fire from 60 m with the siren, then a loader digs the muck. Compiled, not yet filmed.
+- NeoForge scenes: **96 pass** (86 before, 10 new). Unit tests: 100 pass (`BlastingTest` new).

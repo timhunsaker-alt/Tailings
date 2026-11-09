@@ -56,6 +56,19 @@ public final class TailingsEntities {
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("wheel_loader")));
 
+	public static final EntityType<dev.wildcatter.tailings.entity.BlastholeDrillEntity> BLASTHOLE_DRILL = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.BlastholeDrillEntity>of(dev.wildcatter.tailings.entity.BlastholeDrillEntity::new, MobCategory.MISC)
+			.sized(7.0F, 26.0F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("blasthole_drill")));
+	public static final EntityType<dev.wildcatter.tailings.entity.EmulsionTruckEntity> EMULSION_TRUCK = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.EmulsionTruckEntity>of(dev.wildcatter.tailings.entity.EmulsionTruckEntity::new, MobCategory.MISC)
+			.sized(2.5F, 3.8F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("emulsion_truck")));
+
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
 	public static final EntityType<GantryEntity> CONVEYOR_GANTRY = gantryType(TbmGantry.CONVEYOR);
@@ -87,6 +100,8 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine"), TBM);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("haul_truck"), HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("wheel_loader"), WHEEL_LOADER);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("blasthole_drill"), BLASTHOLE_DRILL);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("emulsion_truck"), EMULSION_TRUCK);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

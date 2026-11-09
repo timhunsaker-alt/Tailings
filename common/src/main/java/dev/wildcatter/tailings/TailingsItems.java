@@ -30,6 +30,13 @@ public final class TailingsItems {
 	public static Item HAUL_TRUCK;
 	public static Item WHEEL_LOADER;
 	public static Item SURVEY_BOOK;
+	/** Open pit P3 (open-pit-p3-blasting.md). */
+	public static Item BLASTHOLE_DRILL;
+	public static Item EMULSION_TRUCK;
+	public static Item CAST_BOOSTER;
+	public static Item DETONATOR;
+	public static Item BLAST_LOGGER;
+	public static Item BLASTING_KEY;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -51,6 +58,14 @@ public final class TailingsItems {
 		CAR = item("mine_car");
 		HAUL_TRUCK = vehicle("haul_truck", () -> TailingsEntities.HAUL_TRUCK);
 		WHEEL_LOADER = vehicle("wheel_loader", () -> TailingsEntities.WHEEL_LOADER);
+		BLASTHOLE_DRILL = vehicle("blasthole_drill", () -> TailingsEntities.BLASTHOLE_DRILL);
+		EMULSION_TRUCK = vehicle("emulsion_truck", () -> TailingsEntities.EMULSION_TRUCK);
+		CAST_BOOSTER = item("cast_booster");
+		DETONATOR = item("detonator");
+		BLASTING_KEY = Registry.register(BuiltInRegistries.ITEM, ResourceKey.create(Registries.ITEM, Tailings.id("blasting_key")),
+				new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, Tailings.id("blasting_key"))).stacksTo(1)));
+		ResourceKey<Item> logger = ResourceKey.create(Registries.ITEM, Tailings.id("blast_logger"));
+		BLAST_LOGGER = Registry.register(BuiltInRegistries.ITEM, logger, new dev.wildcatter.tailings.item.BlastLoggerItem(new Item.Properties().setId(logger).stacksTo(1)));
 		ResourceKey<Item> book = ResourceKey.create(Registries.ITEM, Tailings.id("survey_book"));
 		SURVEY_BOOK = Registry.register(BuiltInRegistries.ITEM, book, new dev.wildcatter.tailings.item.SurveyBookItem(new Item.Properties().setId(book).stacksTo(1)));
 		for (TbmGantry gantry : TbmGantry.values()) {

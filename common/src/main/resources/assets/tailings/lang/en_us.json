@@ -297,5 +297,16 @@
   "block.tailings.fuel_bay": "Fuel Bay",
   "block.tailings.haul_dispatch": "Haul Dispatch Office",
   "block.tailings.survey_stake": "Survey Stake",
-  "item.tailings.survey_book": "Survey Book"
+  "item.tailings.survey_book": "Survey Book",
+  "block.tailings.matrix_fill_point": "Matrix Fill Point",
+  "block.tailings.blasthole": "Blasthole",
+  "block.tailings.blasting_machine": "Blasting Machine",
+  "item.tailings.blasthole_drill": "Blasthole Drill",
+  "item.tailings.emulsion_truck": "Emulsion Truck",
+  "item.tailings.cast_booster": "Cast Booster",
+  "item.tailings.detonator": "Electronic Detonator",
+  "item.tailings.blast_logger": "Blast Logger",
+  "item.tailings.blasting_key": "Blasting Key",
+  "entity.tailings.blasthole_drill": "Blasthole Drill",
+  "entity.tailings.emulsion_truck": "Emulsion Truck"
 }

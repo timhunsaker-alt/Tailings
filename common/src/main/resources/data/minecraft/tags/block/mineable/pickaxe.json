@@ -56,6 +56,9 @@
     "tailings:truck_dump_wall",
     "tailings:pit_hopper",
     "tailings:fuel_bay",
-    "tailings:haul_dispatch"
+    "tailings:haul_dispatch",
+    "tailings:matrix_fill_point",
+    "tailings:blasting_machine",
+    "tailings:blasthole"
   ]
 }

@@ -50,6 +50,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.HAUL_DISPATCH) {
 			return new HaulDispatchBlockEntity(pos, state);
 		}
+		if (machine == Machine.MATRIX_FILL_POINT) {
+			return new MatrixFillPointBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -63,6 +66,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		}
 		if (machine == Machine.HAUL_DISPATCH) {
 			return createTickerHelper(type, TailingsBlocks.HAUL_DISPATCH_ENTITY, HaulDispatchBlockEntity::tick);
+		}
+		if (machine == Machine.MATRIX_FILL_POINT) {
+			return createTickerHelper(type, TailingsBlocks.MATRIX_FILL_POINT_ENTITY, MatrixFillPointBlockEntity::tick);
 		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
@@ -87,6 +93,12 @@ public class PlantMachineBlock extends TailingsPartBlock {
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+		if (level.getBlockEntity(main(pos, state)) instanceof MatrixFillPointBlockEntity fill) {
+			if (!level.isClientSide()) {
+				player.sendOverlayMessage(fill.inspect());
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof HaulDispatchBlockEntity office) {
 			if (!level.isClientSide()) {
 				player.sendSystemMessage(office.inspect());

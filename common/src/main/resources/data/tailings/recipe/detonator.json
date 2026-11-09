@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:tnt",
+    "minecraft:copper_ingot",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "tailings:detonator",
+    "count": 8
+  }
+}

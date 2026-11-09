@@ -204,6 +204,18 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 		BlockPos base = BlockPos.containing(lip.x, getY() + 0.5, lip.z);
 		Vec3 in = ahead();
 		Vec3 across = right();
+		// a bucket that would take a misfired hole stops: the real accident is a bucket hitting live explosive (open-pit-p3-blasting.md)
+		for (int up = REACH_UP - 1; up >= 0; up--) {
+			for (int depth = 0; depth < REACH_IN; depth++) {
+				for (int side = -REACH_ACROSS; side <= REACH_ACROSS; side++) {
+					BlockPos pos = BlockPos.containing(lip.x + in.x * (depth + 0.5) + across.x * side, base.getY() + up, lip.z + in.z * (depth + 0.5) + across.z * side);
+					if (level.getBlockEntity(pos) instanceof dev.wildcatter.tailings.block.BlastholeBlockEntity hole && hole.collarEntity() != null && hole.collarEntity().misfired()) {
+						say(driver, "misfire in the muck: stop");
+						return;
+					}
+				}
+			}
+		}
 		outer:
 		for (int up = REACH_UP - 1; up >= 0; up--) {
 			for (int depth = 0; depth < REACH_IN; depth++) {

@@ -38,6 +38,13 @@ public final class PitDrive {
 	 * down and 20 km/h (proposed). It bends in the middle and turns on 9 m (proposed).
 	 */
 	public static final Spec LOADER = new Spec(15.0, 4.5, 6.0, 106_000, 20_400, 607_000, 20 / 3.6, 3.0, 9.0);
+	/**
+	 * The rotary blasthole drill (open-pit-p3-blasting.md): about 7 x 15 m on its crawlers and 26 m to the mast top (unverified), a
+	 * 600 kW diesel (unverified), tramming at 1.5 km/h (proposed); about 110 t (proposed). By hand it steers on 5 m.
+	 */
+	public static final Spec DRILL = new Spec(15.0, 7.0, 26.0, 110_000, 1, 600_000, 1.5 / 3.6, 1.5 / 3.6, 5.0);
+	/** The emulsion truck: 8.5 x 2.5 x 3.8 m, about 300 kW, 12 t of matrix, about 14 t empty and 40 km/h (proposed). */
+	public static final Spec EMULSION_TRUCK = new Spec(8.5, 2.5, 3.8, 14_000, 12_000, 300_000, 40 / 3.6, 3.0, 8.0);
 
 	private PitDrive() {
 	}

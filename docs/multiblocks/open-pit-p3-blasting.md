@@ -1,6 +1,6 @@
 # Open pit P3: the blasthole drill, the emulsion truck, boosters and detonators, the blast
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** The choices are listed in
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved. Built (P3b, P3c): see "As built" at the end.** The choices are listed in
 [../questions/specs-tailings.md](../questions/specs-tailings.md) (P3 section).
 
 This fills in open-pit.md's P3 machines ("Rotary blasthole drill", "Emulsion truck", "The blast") so they can be coded without
@@ -246,6 +246,33 @@ block in two boxes breaks once.
 - **P3c:** boosters, detonators, the logger, the blasting machine, the emulsion truck and the matrix fill point, the blast, flyrock,
   harm and misfires.
 - Each with models on a contact sheet, NeoForge scenes, and the client film at the end of P3c.
+
+## As built (P3b and P3c, 2026-11-09; decided while Tim was away, see ../questions/p3-blasting.md)
+Built as above except where listed here. The numbers are in `pit.Blasting` (`BlastingTest`).
+- **The drill is one machine** at its real size (7 x 15 m, mast to 26 m), not four placed parts (decision 1): no build check, no
+  contraption, no PLC points until the parts come. Its mast is at its back end, the hole 1.5 m in from it; its back faces the free face
+  and the rows run on the way it faces (decision 2). GO squares it to the nearest of the four ways: patterns run square to the grid.
+  It turns on the spot at **9°/s** to face the next hole's stand, trams, turns back, sets up and drills *(proposed)*; about **110 t**
+  *(proposed)*. A hole already drilled is passed over.
+- **Its screen** is a small panel of minus and plus buttons shared with the truck and the logger (decision 3): sneak-right-click the
+  drill or truck, sneak-use the logger.
+- **Cuttings stem 0.75 of the hole's depth** (12 m for 16 m), by the spec's own basis; "3.4 m" did not follow from it (decision 4). An
+  empty hand on the collar shovels them in (decision 5). Gravel stems 13 m a block.
+- **Priming goes in before charging** (decision 6); a misfire takes a new booster and detonator and is no longer marked misfired.
+- **The logger logs any primed or charged hole**, stemmed or not, so a short-stemmed hole can be fired and blow out; ARM warns
+  (decision 7).
+- **The free face:** the pattern's own face when it has open ground in reach; a neighbour broken first does not turn a hole
+  (decision 8). **The subdrill** is rock again after the shot (decision 9).
+- **What breaks** is a block a pickaxe digs with a collision box and no block entity, not soft ground, not unbreakable (decision 10).
+  Any block entity, or a Tailings or Wildcatter vehicle, in a box stops ARM and FIRE (decision 11).
+- **Flyrock** lands after its flight time with no entity in the air, **40-100 m** off; an overcharged hole throws **3** *(proposed)*
+  (decisions 12, 13). Its damage is generic, 10.
+- **The blasting machine** is one block; an empty hand ARMs, then FIREs; sneak takes the key out (decision 14). Sounds are borrowed
+  (decision 15); the camera shake is left out (decision 16).
+- **The emulsion truck:** about **14 t** empty, **40 km/h**, its pump at **10 %** of its engine *(proposed)*. **The fill point**
+  holds **1,000 kg** drawn ahead from its line *(proposed)*.
+- **Game tests** as listed, plus `pit_prime_stem` (priming in either order, stemming, gravel, washing out, the logger's delays) and
+  `pit_blast_blowout` (the blowout split out of `pit_blast`). The harm is measured on iron golems, not a player.
 
 ## Sources
 - A 271-class rotary drill's product page: 270 mm single pass, 16.8 m single pass, 32 m max, 34 t (75,000 lb) bit load.

@@ -48,7 +48,9 @@ public enum Machine {
 	/** The pit's diesel dispenser island and its 2,000 L day tank, fed by pipe (open-pit.md, P2a). */
 	FUEL_BAY("fuel_bay", "Fuel Bay", 4, 3, 2, 0, Supply.NONE),
 	/** The pit's haul dispatch office (open-pit.md, P2b): a small building on the control cable that runs the fleet by radio. Its load is on the low tier, not a motor. */
-	HAUL_DISPATCH("haul_dispatch", "Haul Dispatch Office", 3, 3, 3, 0, Supply.NONE);
+	HAUL_DISPATCH("haul_dispatch", "Haul Dispatch Office", 3, 3, 3, 0, Supply.NONE),
+	/** The emulsion truck's filling point (open-pit-p3-blasting.md, P3): a standpipe and hose on Wildcatter pipe from the matrix tank. */
+	MATRIX_FILL_POINT("matrix_fill_point", "Matrix Fill Point", 1, 2, 1, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

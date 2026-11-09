@@ -4,6 +4,28 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P3 — drilling and blasting (2026-11-09)
+
+Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
+
+- **Blasthole Drill** (`blasthole_drill`): a crawler rotary drill at its real size, 26 m to the mast top. Sneak-right-click it for its
+  panel: rows and columns, burden, spacing, bench height, subdrill, staggered. GO walks the pattern and drills each hole, 1 m every
+  10 s, in a serpentine; it stops and says why (DONE, OUT OF FUEL, BLOCKED, NOT LEVEL, not on broken ground). Drive it by hand and
+  jump to drill one hole. Diesel, filled at a fuel bay.
+- **Blastholes:** a drilled hole is a column of blocks, each remembering its rock. Its collar shows its state by colour. Put a
+  **Cast Booster** and an **Electronic Detonator** in it (TNT makes both), click it with an empty hand to stem it with its cuttings
+  (or gravel), wash it out with a water bucket, sneak-click to read it.
+- **Emulsion Truck** (`emulsion_truck`) and **Matrix Fill Point** (`matrix_fill_point`): pipe Wildcatter's emulsion matrix to the
+  fill point; a truck stopped beside it fills at 1 t/min. Jump in the truck charges every primed hole within its 12 m hose at
+  20 kg/s, to the hole's depth less the stemming set on its panel.
+- **Blast Logger**, **Blasting Machine** and **Blasting Key:** log each hole (its delay by row and place in the row), load the shot
+  into the machine at least 50 m away, put the key in, ARM, FIRE: a 10 s siren, then the shot. On the PLC: ARM, FIRE, ARMED, FIRED,
+  HOLES, MISFIRES.
+- **The blast:** rock in each hole's box breaks to muck, 4 blocks for 3, the extra spilling off the free face; the bench floor is
+  left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
+  detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
+  shot fires with a machine or vehicle in the rock it breaks.
+
 ### Round wheels (2026-11-09, Tim's request)
 
 - **The haul truck's and wheel loader's wheels are round**, as round as the pixel grid allows (a 1/16 m slice per row), with a steel

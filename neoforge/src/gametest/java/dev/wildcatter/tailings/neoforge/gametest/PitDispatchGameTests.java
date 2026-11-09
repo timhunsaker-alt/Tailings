@@ -38,7 +38,7 @@ final class PitDispatchGameTests {
 			case "pit_dispatch" -> new int[] {-3, 5, -1, 11};
 			case "pit_dispatch_fallback" -> new int[] {-3, 5, -1, 9};
 			case "pit_dispatch_alarms" -> new int[] {-1, 3, -1, 5};
-			default -> new int[] {-1, 2, -1, 2};
+			default -> PitBlastGameTests.reach(scene);
 		};
 	}
 

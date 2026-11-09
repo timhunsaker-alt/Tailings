@@ -38,6 +38,12 @@ public final class TailingsNeoForge {
 					DrillMenus.DRILL = menu;
 					helper.register(Tailings.id("tunnel_drill"), menu);
 				}
+				if (dev.wildcatter.tailings.block.PitPanelMenu.TYPE == null) {
+					MenuType<dev.wildcatter.tailings.block.PitPanelMenu> panel = new MenuType<>(dev.wildcatter.tailings.block.PitPanelMenu::new,
+							net.minecraft.world.flag.FeatureFlags.VANILLA_SET);
+					dev.wildcatter.tailings.block.PitPanelMenu.TYPE = panel;
+					helper.register(Tailings.id("pit_panel"), panel);
+				}
 			});
 		});
 		if (FMLEnvironment.getDist() == Dist.CLIENT) {

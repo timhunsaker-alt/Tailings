@@ -309,6 +309,56 @@ in [questions/p2b-dispatch.md](questions/p2b-dispatch.md).
 - **Readouts:** right-click the office with an empty hand for its selector, power and each route's RUN or PARK, trucks, loads and
   tonnes in the last hour, and the fleet's alarms.
 
+## The open pit (P3): drilling and blasting
+
+Spec: [multiblocks/open-pit-p3-blasting.md](multiblocks/open-pit-p3-blasting.md) (a draft decided on recommendation); decisions taken
+while building are in [questions/p3-blasting.md](questions/p3-blasting.md). The numbers are in `pit.Blasting` (unit-tested in
+`BlastingTest`), the pattern in `pit.DrillPattern`, the shot in `pit.Shot`.
+
+- **The bench and the hole:** a 14 m bench, 2 m subdrill, 16 m hole (one 16.8 m pass), 7 x 8 m staggered, 4 m stemming over a 12 m
+  column: 69 kg a metre at 1.2 g/cm³, 828 kg, 0.39 kg/t of its 2,117 t box. Every one is a panel setting within the spec's limits.
+- **The drill** (`entity.BlastholeDrillEntity`, `BlastholeDrillModel`): one machine at its real size (7 x 15 m, mast to 26 m), its
+  hole under the mast 1.5 m in from its back end. Its panel (sneak-right-click) sets rows x columns, burden, spacing, bench, subdrill
+  and staggered; GO squares it to the grid and walks the pattern in a serpentine: turn on the spot toward the next hole's stand, tram
+  at 1.5 km/h, turn back square, 20 s on its jacks, drill 1 m every 10 s (15 s in deepslate). It stops and says why: DONE, OUT OF
+  FUEL, BLOCKED, NOT LEVEL (over 1 block out under the crawlers), "not on broken ground" (muck at the collar). Driven by hand, jump
+  drills one hole where it stands. Diesel by work: 70 % of 600 kW drilling, 40 % tramming, 1,500 L tank; it fuels at a fuel bay.
+- **A hole** (`block.BlastholeBlock`, `BlastholeBlockEntity`): a column of `blasthole` blocks from the collar down, each remembering
+  the block it replaced; the collar holds the hole: depth (SHORT where it met a cave, fluid, bedrock or a block entity), its row and
+  place in the pattern, the pattern's free face, its cuttings (0.75 of its depth), booster, detonator ID, charge and when it was
+  charged, stemming, delay, and a misfire. Its state (DRILLED, PRIMED, CHARGED, STEMMED, LOGGED, MISFIRED) is a block state, drawn as
+  a coloured ring on the collar. On the collar: a booster or detonator primes it (before charging); an empty hand stems it with its
+  cuttings, gravel 13 m a block; a water bucket washes it out (not once stemmed, unless it misfired), giving back the booster and
+  detonator; sneak reads it. Mined by hand it drops the rock it replaced.
+- **The emulsion truck** (`entity.EmulsionTruckEntity`, `EmulsionTruckModel`): 12 t of matrix, 8.5 x 2.5 x 3.8 m, 300 kW, 400 L. The
+  matrix fill point (`matrix_fill_point`, 1 x 2 x 1, `block.MatrixFillPointBlockEntity`) draws Wildcatter's `EMULSION_MATRIX` by pipe on
+  any face (a stock tank or IBC) and fills a stopped truck within 6 m at 1 t/min. Jump (or Charge on its panel), standing, charges every
+  primed, uncharged hole within 12 m of its hose reel, nearest first, at 20 kg/s, to the hole's depth less the stemming set on its panel;
+  unprimed holes are skipped and counted (NOT PRIMED). The pump runs the engine at 10 %; it reads EMPTY, NO HOLES IN REACH.
+- **Boosters and detonators:** `cast_booster` (1 TNT makes 4) and `detonator` (TNT, copper, redstone make 8): items that do nothing
+  on their own. **The logger** (`item.BlastLoggerItem`) logs a primed or charged hole: delay = row x row ms + hole x hole ms (65 and
+  25, set on its panel), up to 200 holes, kept on the item.
+- **The blasting machine** (`blasting_machine`, a block, `block.BlastingMachineBlockEntity`): the logger loads the shot (every hole
+  50-500 m off, else TOO CLOSE or TOO FAR); the `blasting_key` goes in; an empty hand ARMs (it tests the shot: holes that answer, kg,
+  tonnes, powder factor, what will not fire and what will blow out; armed for 30 s), then FIREs: a player in the danger zone asks a
+  second FIRE; a 10 s siren at the shot; then the shot. With misfires it reads WAIT for 30 s. A machine, block entity or Tailings or
+  Wildcatter vehicle in a hole's box stops ARM and FIRE. A `ControlDevice`: ARM and FIRE (rising edges, key in), ARMED, FIRED (pulses),
+  HOLES (4-20 mA over 200), MISFIRES (pulses). It keeps the shot's chunks working while it fires.
+- **The shot** (`pit.Shot`): its holes fire in delay order, a tick each 50 ms. A hole with no detonator, no booster, or under
+  0.15 kg/t (its charge counting half until it has gassed 60 s) misfires, keeping its charge and standing. A hole breaks its box:
+  burden deep toward its free face (its pattern's face if open ground stands half the bench high within burden + 2 m; else the nearest
+  other side; else a box cut centred on it), spacing wide, collar to bench floor. Rock (a block a pickaxe digs, with a collision box,
+  no block entity, not soft ground, not unbreakable) becomes muck holding 3 quarters; the 4th quarter of each goes to the swell, let go
+  3 quarters a block by the settle rule from the face side's top (or over the shot in a box cut); at the end what is left goes as a part
+  block, so every quarter is kept. The hole's own column below the floor is rock again. Stemming under 2 m blows out: the lower half of
+  its box, and 6 flyrock; a front-row burden under half throws 3 forward, an overcharge (over 1.0 kg/t) 3. Flyrock is a quarter of
+  muck landing 40-100 m off after its flight on a 45° arc, breaking glass and leaves, 10 damage where it lands. Players and mobs
+  within 50 m of the nearest firing hole take 30 x (1 - r/50) explosion damage. No vanilla explosion, no drops. Dust (campfire smoke)
+  over the shot for 20 s; one explosion sound.
+- **The loader** stops before a pass that would take a misfired hole's block: "misfire in the muck: stop".
+- **Sounds:** the drill's rotary head is `tailings:tbm_cutter`; the truck's pump Wildcatter's `motor_hum`; the siren vanilla's raid
+  horn; the blast vanilla's explosion (decisions 15).
+
 ## Config
 
 Only one file. It is not created for you.
@@ -415,6 +465,9 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`. No crafting recipe. The 50% machines produce them.
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`.
+- **Blasting items (P3):** `cast_booster` (shapeless: 1 TNT makes 4), `detonator` (shapeless: TNT, copper ingot, redstone make 8),
+  `blast_logger` (shapeless: copper ingot, redstone, 2 iron ingots), `blasting_key` (shapeless: iron nugget, redstone), and the
+  `blasthole_drill` and `emulsion_truck` machine items (placeholder recipes).
 
 Block items exist for every block above, including the ones with no crafting recipe.
 
@@ -428,5 +481,7 @@ Block items exist for every block above, including the ones with no crafting rec
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 | `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
 | `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |
+| `blasthole_drill` | `BlastholeDrillEntity` | `PitVehicleRenderer` (`BlastholeDrillModel`) | Drills a pattern of 270 mm holes to depth (P3); driven, drills one hole on jump |
+| `emulsion_truck` | `EmulsionTruckEntity` | `PitVehicleRenderer` (`EmulsionTruckModel`) | 12 t of emulsion matrix; charges primed holes in its hose's reach on jump (P3) |
 
 Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

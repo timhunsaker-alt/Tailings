@@ -1,0 +1,40 @@
+{
+  "variants": {
+    "collar=true,stage=drilled": {
+      "model": "tailings:block/blasthole_collar_drilled"
+    },
+    "collar=false,stage=drilled": {
+      "model": "tailings:block/blasthole"
+    },
+    "collar=true,stage=primed": {
+      "model": "tailings:block/blasthole_collar_primed"
+    },
+    "collar=false,stage=primed": {
+      "model": "tailings:block/blasthole"
+    },
+    "collar=true,stage=charged": {
+      "model": "tailings:block/blasthole_collar_charged"
+    },
+    "collar=false,stage=charged": {
+      "model": "tailings:block/blasthole"
+    },
+    "collar=true,stage=stemmed": {
+      "model": "tailings:block/blasthole_collar_stemmed"
+    },
+    "collar=false,stage=stemmed": {
+      "model": "tailings:block/blasthole"
+    },
+    "collar=true,stage=logged": {
+      "model": "tailings:block/blasthole_collar_logged"
+    },
+    "collar=false,stage=logged": {
+      "model": "tailings:block/blasthole"
+    },
+    "collar=true,stage=misfired": {
+      "model": "tailings:block/blasthole_collar_misfired"
+    },
+    "collar=false,stage=misfired": {
+      "model": "tailings:block/blasthole"
+    }
+  }
+}

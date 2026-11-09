@@ -22,14 +22,20 @@ import net.minecraft.resources.Identifier;
 public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehicleRenderer.PitState> {
 	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck_placeholder.png");
 	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader_placeholder.png");
+	private static final Identifier DRILL_TEXTURE = Tailings.id("textures/entity/blasthole_drill_placeholder.png");
+	private static final Identifier EMULSION_TEXTURE = Tailings.id("textures/entity/emulsion_truck_placeholder.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
+	private final BlastholeDrillModel drill;
+	private final EmulsionTruckModel emulsion;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
 		truck = new HaulTruckModel(context.bakeLayer(HaulTruckModel.LAYER));
 		loader = new WheelLoaderModel(context.bakeLayer(WheelLoaderModel.LAYER));
+		drill = new BlastholeDrillModel(context.bakeLayer(BlastholeDrillModel.LAYER));
+		emulsion = new EmulsionTruckModel(context.bakeLayer(EmulsionTruckModel.LAYER));
 	}
 
 	@Override
@@ -39,7 +45,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	@Override
 	public boolean shouldRender(PitVehicleEntity entity, Frustum frustum, double cameraX, double cameraY, double cameraZ, float partialTick) {
-		return frustum.isVisible(entity.getBoundingBox().inflate(4.0));
+		return frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
 	}
 
 	@Override
@@ -47,6 +53,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
+		state.kind = entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
+				: state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
@@ -58,14 +66,27 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		pose.pushPose();
 		pose.rotateDegrees(Axis.YP, 180.0F - state.yaw);
 		pose.scale(-1.0F, -1.0F, 1.0F);
-		EntityModel<PitState> model = state.truck ? truck : loader;
-		collector.submitModel(model, state, pose, state.truck ? TRUCK_TEXTURE : LOADER_TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
+		EntityModel<PitState> model = switch (state.kind) {
+			case 0 -> truck;
+			case 2 -> drill;
+			case 3 -> emulsion;
+			default -> loader;
+		};
+		Identifier texture = switch (state.kind) {
+			case 0 -> TRUCK_TEXTURE;
+			case 2 -> DRILL_TEXTURE;
+			case 3 -> EMULSION_TEXTURE;
+			default -> LOADER_TEXTURE;
+		};
+		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		pose.popPose();
 		super.submit(state, pose, collector, camera);
 	}
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
+		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck. */
+		public int kind;
 		public boolean loaded;
 		public float lift;
 		public float yaw;

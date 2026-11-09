@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:tnt"
+  ],
+  "result": {
+    "id": "tailings:cast_booster",
+    "count": 4
+  }
+}

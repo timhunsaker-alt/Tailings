@@ -1,0 +1,106 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "tailings:block/blasting_machine_placeholder",
+    "box": "tailings:block/blasting_machine_placeholder",
+    "stand": "tailings:block/blasting_machine_stand_placeholder"
+  },
+  "elements": [
+    {
+      "from": [
+        7,
+        0,
+        7
+      ],
+      "to": [
+        9,
+        6,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#stand"
+        },
+        "south": {
+          "texture": "#stand"
+        },
+        "east": {
+          "texture": "#stand"
+        },
+        "west": {
+          "texture": "#stand"
+        },
+        "up": {
+          "texture": "#stand"
+        },
+        "down": {
+          "texture": "#stand"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        1,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#stand"
+        },
+        "south": {
+          "texture": "#stand"
+        },
+        "east": {
+          "texture": "#stand"
+        },
+        "west": {
+          "texture": "#stand"
+        },
+        "up": {
+          "texture": "#stand"
+        },
+        "down": {
+          "texture": "#stand"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        6,
+        3
+      ],
+      "to": [
+        13,
+        12,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#box"
+        },
+        "south": {
+          "texture": "#box"
+        },
+        "east": {
+          "texture": "#box"
+        },
+        "west": {
+          "texture": "#box"
+        },
+        "up": {
+          "texture": "#box"
+        },
+        "down": {
+          "texture": "#box"
+        }
+      }
+    }
+  ]
+}

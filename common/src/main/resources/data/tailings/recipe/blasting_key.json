@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:iron_nugget",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "tailings:blasting_key",
+    "count": 1
+  }
+}

@@ -22,10 +22,13 @@ public final class TailingsFabricClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		dev.wildcatter.tailings.entity.SoundingEntity.Hook.start = dev.wildcatter.tailings.client.EntitySound::start;
 		MenuScreens.register(DrillMenus.DRILL, DrillScreen::new);
+		MenuScreens.register(dev.wildcatter.tailings.block.PitPanelMenu.TYPE, dev.wildcatter.tailings.client.PitPanelScreen::new);
 		ModelLayerRegistry.registerModelLayer(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(MineCarModel.LAYER, MineCarModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.BlastholeDrillModel.LAYER, dev.wildcatter.tailings.client.BlastholeDrillModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.EmulsionTruckModel.LAYER, dev.wildcatter.tailings.client.EmulsionTruckModel::createBodyLayer);
 		EntityRendererRegistry.register(TailingsEntities.DRILL, NoopRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.TRAIN, NoopRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
@@ -36,6 +39,8 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		EntityRendererRegistry.register(TailingsEntities.CONVEYOR_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.BLASTHOLE_DRILL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.EMULSION_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		BlockEntityRenderers.register(TailingsBlocks.BELT, context -> new BeltRenderer());
 		Tailings.LOGGER.info("Tailings client ready");
 	}

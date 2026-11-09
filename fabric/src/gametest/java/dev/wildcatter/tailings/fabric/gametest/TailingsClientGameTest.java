@@ -116,6 +116,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_haul")) {
 				pitHaul(context, world, server);
 			}
+			if (only("pit_blast")) {
+				pitBlast(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -924,6 +927,173 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(server.computeOnServer(srv -> hopper[0].pocket() >= 33), "the truck should tip a full load into the hopper");
 		require(shot.contains("back"), "the truck should come back after tipping");
 		heard("pit_haul", "wildcatter:diesel_load", "tailings:muck_load", "tailings:muck_tip");
+	}
+
+	/**
+	 * The open pit's P3 (open-pit-p3-blasting.md), the spec's film: the drill walks a 3 x 4 staggered pattern on a 14 m bench, each hole
+	 * is primed, the emulsion truck charges them from two stands, they are stemmed with their cuttings and logged, the blasting machine
+	 * 60 m off arms, sounds its siren and fires; the bench breaks to muck spilled off the face; a loader digs it into a truck.
+	 */
+	private void pitBlast(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(300, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is the bench top; its face north at z 43
+		Object[] v = new Object[4];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -10; x <= 70; x++) {
+				for (int z = -10; z <= 84; z++) {
+					int top = x >= 6 && x <= 60 && z >= 44 ? 59 : 45;
+					for (int yy = 40; yy <= 75; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= top ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			var drill = dev.wildcatter.tailings.TailingsEntities.BLASTHOLE_DRILL.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			drill.setPos(b.getX() + 44.5, b.getY() + 60, b.getZ() + 56.5);   // its mast over the pattern's first hole, x 44, z 50
+			drill.setYRot(0);
+			drill.setFuel(drill.tank());
+			drill.fast(20);
+			drill.setting("Rows", 3);
+			drill.setting("Columns", 4);
+			level.addFreshEntity(drill);
+			System.out.println("[tailings-test] pit_blast: " + drill.go());
+			v[0] = drill;
+		});
+		server.runCommand("tp @p " + (b.getX() + 78) + " " + (b.getY() + 92) + " " + (b.getZ() + 18) + " 45 35");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-pit-blast-bench");
+		Filming film = film(context, world, "pit_blast");
+		java.util.UUID drillId = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[0]).getUUID());
+		for (int t = 0; t < 600; t++) {
+			context.waitTicks(10);
+			boolean running = server.computeOnServer(srv -> srv.overworld().getEntity(drillId) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d && d.running());
+			if (t == 20) {
+				context.takeScreenshot("tailings-pit-blast-drilling");
+			}
+			if (!running) {
+				break;
+			}
+		}
+		context.takeScreenshot("tailings-pit-blast-drilled");
+		// prime every hole, then the truck charges them from two stands
+		java.util.List<BlockPos> collars = server.computeOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			java.util.List<BlockPos> out = new java.util.ArrayList<>();
+			if (level.getEntity(drillId) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d) {
+				System.out.println("[tailings-test] pit_blast: drill " + d.status());
+				d.setPos(b.getX() + 54.5, b.getY() + 60, b.getZ() + 74.5);   // out of the shot
+			}
+			for (BlockPos p : BlockPos.betweenClosed(b.offset(6, 59, 44), b.offset(60, 59, 80))) {
+				if (level.getBlockEntity(p) instanceof dev.wildcatter.tailings.block.BlastholeBlockEntity hole && hole.isCollar()) {
+					hole.addBooster();
+					hole.addDetonator(1 + out.size());
+					out.add(p.immutable());
+				}
+			}
+			var truck = dev.wildcatter.tailings.TailingsEntities.EMULSION_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(b.getX() + 38.5, b.getY() + 60, b.getZ() + 53.25);
+			truck.setYRot(180);
+			truck.setFuel(truck.tank());
+			truck.setMatrix(dev.wildcatter.tailings.pit.Blasting.TRUCK_MATRIX_KG);
+			truck.fastPump(10);
+			level.addFreshEntity(truck);
+			v[1] = truck;
+			return out;
+		});
+		System.out.println("[tailings-test] pit_blast: " + collars.size() + " holes primed");
+		java.util.UUID truckId = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[1]).getUUID());
+		for (double standX : new double[] {38.5, 22.5}) {
+			server.runOnServer(srv -> {
+				if (srv.overworld().getEntity(truckId) instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity truck) {
+					truck.setPos(b.getX() + standX, b.getY() + 60, b.getZ() + 53.25);
+				}
+			});
+			context.waitTicks(5);
+			server.runOnServer(srv -> {
+				if (srv.overworld().getEntity(truckId) instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity truck) {
+					System.out.println("[tailings-test] pit_blast: truck " + truck.chargeAll(srv.overworld()));
+				}
+			});
+			for (int t = 0; t < 120; t++) {
+				context.waitTicks(10);
+				if (t == 4) {
+					context.takeScreenshot("tailings-pit-blast-charging-" + (int) standX);
+				}
+				if (!server.computeOnServer(srv -> srv.overworld().getEntity(truckId) instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity truck && truck.busy())) {
+					break;
+				}
+			}
+		}
+		// stem with the cuttings, log, and fire from 60 m
+		BlockPos firing = b.offset(30, 60, 126);
+		String armed = server.computeOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			if (level.getEntity(truckId) instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity truck) {
+				truck.setPos(b.getX() + 30.5, b.getY() + 46, b.getZ() + 6.5);   // out of the shot
+			}
+			ItemStack logger = new ItemStack(dev.wildcatter.tailings.TailingsItems.BLAST_LOGGER);
+			for (BlockPos p : collars) {
+				if (level.getBlockEntity(p) instanceof dev.wildcatter.tailings.block.BlastholeBlockEntity hole) {
+					hole.charge(0, level.getGameTime() - dev.wildcatter.tailings.pit.Blasting.SLEEP_TICKS);   // the film does not wait the gassing minute
+					hole.stemWithCuttings();
+					dev.wildcatter.tailings.item.BlastLoggerItem.log(level, logger, p);
+				}
+			}
+			level.setBlock(firing, TailingsBlocks.BLASTING_MACHINE.defaultBlockState(), Block.UPDATE_ALL);
+			var machine = (dev.wildcatter.tailings.block.BlastingMachineBlockEntity) level.getBlockEntity(firing);
+			System.out.println("[tailings-test] pit_blast: machine " + machine.load(logger));
+			machine.setKey(true);
+			String said = machine.arm();
+			System.out.println("[tailings-test] pit_blast: " + said + " | " + machine.fire());
+			return said;
+		});
+		require(armed.startsWith("ARMED: 12 of 12"), "the shot should arm with all 12 holes: " + armed);
+		context.takeScreenshot("tailings-pit-blast-siren");
+		for (int t = 0; t < 60; t++) {
+			context.waitTicks(10);
+			String status = server.computeOnServer(srv -> srv.overworld().getBlockEntity(firing) instanceof dev.wildcatter.tailings.block.BlastingMachineBlockEntity m ? m.status() : "gone");
+			if (status.startsWith("FIRED")) {
+				System.out.println("[tailings-test] pit_blast: " + status);
+				break;
+			}
+		}
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-blast-fired");
+		context.waitTicks(100);
+		server.runCommand("tp @p " + (b.getX() + 30) + " " + (b.getY() + 66) + " " + (b.getZ() + 4) + " 0 25");
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-blast-muck");
+		// a loader digs the muck pile at the face into a haul truck beside it
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			var loader = dev.wildcatter.tailings.TailingsEntities.WHEEL_LOADER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			loader.setPos(b.getX() + 30.5, b.getY() + 46, b.getZ() + 22.5);   // its bucket at the toe of the pile (tune when filming)
+			loader.setYRot(0);
+			loader.fastPasses(8);
+			loader.setFuel(loader.tank());
+			level.addFreshEntity(loader);
+			var truck = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(b.getX() + 38.5, b.getY() + 46, b.getZ() + 28.5);
+			truck.setYRot(90);
+			truck.setFuel(truck.tank());
+			level.addFreshEntity(truck);
+			v[2] = loader;
+			v[3] = truck;
+		});
+		java.util.UUID loaderId = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[2]).getUUID());
+		for (int t = 0; t < 120; t++) {
+			context.waitTicks(10);
+			server.runOnServer(srv -> {
+				if (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity loader && !loader.busy()) {
+					loader.pressJump(srv.overworld());
+				}
+			});
+			if (t == 30) {
+				context.takeScreenshot("tailings-pit-blast-loading");
+			}
+		}
+		film.stop();
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_blast: loader " + (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity l ? l.status() : "gone")));
+		heard("pit_blast", "tailings:tbm_cutter", "wildcatter:diesel_idle", "minecraft:entity.generic.explode");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

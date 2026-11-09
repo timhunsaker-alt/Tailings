@@ -181,9 +181,20 @@ Built while Tim was away, on the best recommendation (decisions in [questions/p2
 PARK stakes now work: RUN off sends a route's trucks to its PARK stake (or its next stake) with their engines off. NeoForge scenes
 `pit_dispatch`, `pit_dispatch_alarms`, `pit_dispatch_fallback`; unit tests `DispatchTest`.
 
-Next: P3 (the ammonia plant
-in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
-truck), P6 (the dragline), P7 (the pit-sized plant).
+## Open pit — P3: drilling and blasting (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/open-pit-p3-blasting.md](multiblocks/open-pit-p3-blasting.md), decided on
+recommendation (decisions in [questions/p3-blasting.md](questions/p3-blasting.md)); needs Wildcatter 0.6.0 (the ammonia plant's
+emulsion matrix). P3b: the rotary blasthole drill (one real-size machine; a panel sets the pattern; GO walks it), the `blasthole`
+block and its states, stemming from cuttings or gravel. P3c: `cast_booster` and `detonator` (from TNT), the `blast_logger`, the
+`blasting_machine` and its `blasting_key` (a PLC device), the `matrix_fill_point` and the `emulsion_truck`, and the shot: muck at 4
+for 3 off the free face, the floor left at grade, blowouts, flyrock, harm by distance, misfires and the 30 s wait, and the guard
+against machines in the shot. NeoForge scenes `pit_drill_pattern`, `pit_drill_short`, `pit_charge`, `pit_prime_stem`, `pit_blast`,
+`pit_blast_blowout`, `pit_blast_boxcut`, `pit_misfire`, `pit_blast_guard`, `pit_blast_plc`; unit tests `BlastingTest`; client film
+`pit_blast` (written, to be filmed).
+
+Next: P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra truck; the drill's parts and its electric drive), P6
+(the dragline), P7 (the pit-sized plant).
 
 ## Later, not scheduled
 
@@ -198,6 +209,20 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **The blasting art is placeholder (P3):** `blasthole_drill_placeholder` and `emulsion_truck_placeholder` skins, the
+  `blasthole*_placeholder` and `blasting_machine*_placeholder` block textures, and the six item icons are drawn by script
+  (`tools/models/pit_blast_vehicles.py`, `tools/models/blast_assets.py`). The matrix fill point is drawn in Wildcatter's materials.
+- **The drill is one machine, not four parts (P3, decision 1):** no build check, no lift into a contraption, no parts to place; and so
+  no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW) and no electric drive until the parts come (P5).
+- **Patterns run square to the grid (P3):** GO turns the drill to the nearest of the four ways.
+- **No flyrock in the air (P3):** a piece lands after its flight time with no entity drawn on the way; one landing in an unloaded
+  chunk is lost. No camera shake for players near a blast.
+- **Borrowed sounds (P3):** the drill's rotary head is the TBM's cutter, the truck's pump Wildcatter's motor hum, the siren vanilla's
+  raid horn, the blast vanilla's explosion.
+- **The emulsion truck is driven by hand only (P3):** no self-running charge crew (spec, Left out); no hose drawn to the hole.
+- **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
+  damage, less armour and Blast Protection, but no scene checks a player.
 
 - **The open pit's art is placeholder (P1):** `haul_truck_placeholder` and `wheel_loader_placeholder` skins, their item icons, and
   `muck_placeholder` are drawn by script.

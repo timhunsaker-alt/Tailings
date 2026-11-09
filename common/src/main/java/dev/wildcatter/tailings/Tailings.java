@@ -66,6 +66,13 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsItems.CAR));
 		output.accept(new ItemStack(TailingsItems.HAUL_TRUCK));
 		output.accept(new ItemStack(TailingsItems.WHEEL_LOADER));
+		output.accept(new ItemStack(TailingsItems.BLASTHOLE_DRILL));
+		output.accept(new ItemStack(TailingsItems.EMULSION_TRUCK));
+		output.accept(new ItemStack(TailingsItems.CAST_BOOSTER));
+		output.accept(new ItemStack(TailingsItems.DETONATOR));
+		output.accept(new ItemStack(TailingsItems.BLAST_LOGGER));
+		output.accept(new ItemStack(TailingsItems.BLASTING_KEY));
+		output.accept(new ItemStack(TailingsBlocks.BLASTING_MACHINE));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
 		output.accept(new ItemStack(TailingsBlocks.MUCK));

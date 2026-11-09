@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ILI",
+    "IFI",
+    "BIB"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "L": "minecraft:lightning_rod",
+    "F": "minecraft:blast_furnace",
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "tailings:blasthole_drill",
+    "count": 1
+  }
+}

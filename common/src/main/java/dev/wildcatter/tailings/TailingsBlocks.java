@@ -90,11 +90,21 @@ public final class TailingsBlocks {
 	public static final Block PIT_HOPPER = plant(Machine.PIT_HOPPER, MapColor.METAL);
 	public static final Block FUEL_BAY = plant(Machine.FUEL_BAY, MapColor.COLOR_YELLOW);
 	public static final Block HAUL_DISPATCH = plant(Machine.HAUL_DISPATCH, MapColor.TERRACOTTA_WHITE);
+	public static final Block MATRIX_FILL_POINT = plant(Machine.MATRIX_FILL_POINT, MapColor.COLOR_ORANGE);
 	/** A haul road's survey stake (open-pit.md, P2a): no collision, so trucks drive over it. */
 	public static final Block SURVEY_STAKE = block("survey_stake", props -> new dev.wildcatter.tailings.block.SurveyStakeBlock(props.mapColor(MapColor.COLOR_ORANGE)
 			.strength(0.5F, 1.0F).sound(SoundType.WOOD).noCollision().noOcclusion()));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.FuelBayBlockEntity> FUEL_BAY_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FuelBayBlockEntity::new, Set.of(FUEL_BAY));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.HaulDispatchBlockEntity> HAUL_DISPATCH_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.HaulDispatchBlockEntity::new, Set.of(HAUL_DISPATCH));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.MatrixFillPointBlockEntity> MATRIX_FILL_POINT_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MatrixFillPointBlockEntity::new, Set.of(MATRIX_FILL_POINT));
+	/** A blasthole (open-pit-p3-blasting.md): stone-hard, each block remembering the rock it replaced; it drops that rock, not itself. */
+	public static final Block BLASTHOLE = block("blasthole", props -> new dev.wildcatter.tailings.block.BlastholeBlock(props.mapColor(MapColor.STONE).strength(1.5F, 6.0F)
+			.sound(SoundType.STONE).noLootTable()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.BlastholeBlockEntity> BLASTHOLE_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BlastholeBlockEntity::new, Set.of(BLASTHOLE));
+	/** The blasting machine (open-pit-p3-blasting.md, Tying in and firing): a box with a key switch, ARM and FIRE, on the lead line. */
+	public static final Block BLASTING_MACHINE = block("blasting_machine", props -> new dev.wildcatter.tailings.block.BlastingMachineBlock(props.mapColor(MapColor.COLOR_RED)
+			.strength(2.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.BlastingMachineBlockEntity> BLASTING_MACHINE_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BlastingMachineBlockEntity::new, Set.of(BLASTING_MACHINE));
 	/** Broken rock (open-pit.md): falls and settles, holding what it was. Its drops are its contents, not a loot table. */
 	public static final Block MUCK = block("muck", props -> new dev.wildcatter.tailings.block.MuckBlock(props.mapColor(MapColor.STONE).strength(0.8F, 1.0F)
 			.sound(SoundType.GRAVEL).noLootTable()));
@@ -192,6 +202,11 @@ public final class TailingsBlocks {
 		add("survey_stake", SURVEY_STAKE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("matrix_fill_point"), MATRIX_FILL_POINT_ENTITY);
+		add("blasthole", BLASTHOLE);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasthole"), BLASTHOLE_ENTITY);
+		add("blasting_machine", BLASTING_MACHINE);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasting_machine"), BLASTING_MACHINE_ENTITY);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -228,6 +243,7 @@ public final class TailingsBlocks {
 			case PIT_HOPPER -> PIT_HOPPER;
 			case FUEL_BAY -> FUEL_BAY;
 			case HAUL_DISPATCH -> HAUL_DISPATCH;
+			case MATRIX_FILL_POINT -> MATRIX_FILL_POINT;
 		};
 	}
 
