@@ -129,11 +129,10 @@ final class PitGameTests {
 		truck.tip(helper.getLevel());
 		int sand = count(helper, Blocks.SAND, 0, 30, 60, 75, 0, 30);
 		int muck = count(helper, TailingsBlocks.MUCK, 0, 30, 60, 75, 0, 30);
-		helper.assertTrue(sand == 18, Component.literal("30 t of sand at 1.6 t a block is 18 blocks, got " + sand));
+		helper.assertTrue(sand == 19, Component.literal("30 t of sand at 1.6 t a block is 18.75, rounded to 19 blocks, got " + sand));
 		// 27 t of cobble is 10 bank blocks, 40 quarters: 13 full muck blocks and one with a quarter
 		helper.assertTrue(muck == 14, Component.literal("27 t of cobble should land as 14 muck blocks, got " + muck));
-		helper.assertTrue(truck.load().kg("minecraft:sand") == 1_200 && truck.load().kg("minecraft:cobblestone") == 0,
-				Component.literal("what is under a whole block stays in the body: " + truck.load().save()));
+		helper.assertTrue(truck.load().empty(), Component.literal("tipped on the ground, the truck comes away empty: " + truck.load().save()));
 		helper.succeed();
 	}
 

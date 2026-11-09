@@ -116,6 +116,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_haul")) {
 				pitHaul(context, world, server);
 			}
+			if (only("pit_dispatch")) {
+				pitDispatch(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -924,6 +927,109 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(server.computeOnServer(srv -> hopper[0].pocket() >= 33), "the truck should tip a full load into the hopper");
 		require(shot.contains("back"), "the truck should come back after tipping");
 		heard("pit_haul", "wildcatter:diesel_load", "tailings:muck_load", "tailings:muck_tip");
+	}
+
+	/**
+	 * The open pit's P2b, filmed: a haul dispatch office runs a route. In HAND the truck hauls and tips at the dump point (LOADS counts
+	 * it); switched OFF it drives back and parks at the PARK stake with its engine off; back in HAND it goes to work. (The PLC's RUN in
+	 * AUTO is proved by the server scenes pit_dispatch and pit_dispatch_fallback.)
+	 */
+	private void pitDispatch(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(-300, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is road level
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] truck = new dev.wildcatter.tailings.entity.HaulTruckEntity[1];
+		dev.wildcatter.tailings.block.HaulDispatchBlockEntity[] office = new dev.wildcatter.tailings.block.HaulDispatchBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -28; x <= 68; x++) {
+				for (int z = -4; z <= 170; z++) {
+					for (int yy = 54; yy <= 72; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= 58 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			int[] zs = {0, 30, 70, 110, 140};
+			dev.wildcatter.tailings.pit.StopKind[] kinds = {dev.wildcatter.tailings.pit.StopKind.LOAD, dev.wildcatter.tailings.pit.StopKind.WAYPOINT,
+					dev.wildcatter.tailings.pit.StopKind.PARK, dev.wildcatter.tailings.pit.StopKind.WAYPOINT, dev.wildcatter.tailings.pit.StopKind.DUMP_POINT};
+			java.util.List<BlockPos> route = new java.util.ArrayList<>();
+			for (int i = 0; i < zs.length; i++) {
+				BlockPos at = b.offset(20, 59, zs[i]);
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SurveyStakeBlock.KIND, kinds[i]), Block.UPDATE_ALL);
+				route.add(at);
+			}
+			part(level, TailingsBlocks.HAUL_DISPATCH, b.offset(50, 59, 4));
+			office[0] = (dev.wildcatter.tailings.block.HaulDispatchBlockEntity) level.getBlockEntity(b.offset(50, 59, 4));
+			office[0].forcePowered(true);
+			System.out.println("[tailings-test] pit_dispatch: " + office[0].addRoute(route));
+			var t = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			t.setPos(b.getX() + 16.5, b.getY() + 59, b.getZ() + 40);
+			t.setYRot(0);
+			t.setFuel(t.tank());
+			t.load().add("minecraft:sand", 30_000);
+			t.refreshLoad();
+			level.addFreshEntity(t);
+			System.out.println("[tailings-test] pit_dispatch: truck " + t.takeRoute(level, route));
+			truck[0] = t;
+		});
+		server.runCommand("tp @p " + (b.getX() + 75) + " " + (b.getY() + 100) + " " + (b.getZ() - 15) + " 33 38");   // over the office, down the road
+		context.waitTicks(60);
+		java.util.UUID id = server.computeOnServer(srv -> truck[0].getUUID());
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(id) instanceof dev.wildcatter.tailings.entity.HaulTruckEntity e) {
+				truck[0] = e;
+			}
+		});
+		fresh.run();
+		context.takeScreenshot("tailings-pit-dispatch-route");
+		Filming film = film(context, world, "pit_dispatch");
+		java.util.function.Consumer<String> follow = name -> {
+			fresh.run();
+			double[] at = server.computeOnServer(srv -> new double[] {truck[0].getX(), truck[0].getZ(), truck[0].getYRot()});
+			double yaw = Math.toRadians(at[2]);
+			double cx = at[0] + Math.cos(yaw) * 20 + Math.sin(yaw) * 12, cz = at[1] + Math.sin(yaw) * 20 - Math.cos(yaw) * 12;
+			double look = Math.toDegrees(Math.atan2(-(at[0] - cx), at[1] - cz));
+			server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.1f %.1f %.1f %.0f 30", cx, b.getY() + 74.0, cz, look));
+		};
+		// HAND: it hauls to the dump point and tips
+		for (int t = 0; t < 400 && server.computeOnServer(srv -> office[0].loads(0)) == 0; t++) {
+			if (t % 4 == 0) {
+				follow.accept("haul");
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: tipped; loads " + office[0].loads(0) + ", " + Math.round(office[0].tonnesLastHour(0)) + " t in the hour; " + truck[0].status()));
+		follow.accept("tipped");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-dispatch-tipped");
+		// OFF: it drives back and parks at the PARK stake
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: selector " + office[0].cycleHoa(b.offset(50, 59, 4))));
+		for (int t = 0; t < 400 && !server.computeOnServer(srv -> truck[0].parked() && truck[0].speed() == 0); t++) {
+			if (t % 4 == 0) {
+				follow.accept("park");
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: " + truck[0].status() + " at z " + Math.round(truck[0].getZ() - b.getZ()) + "; engine on " + truck[0].engineOn()));
+		follow.accept("parked");
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-dispatch-parked");
+		require(server.computeOnServer(srv -> truck[0].parked() && Math.abs(truck[0].getZ() - b.getZ() - 70) < 8), "switched OFF, the truck should park at the PARK stake");
+		// back to HAND (through AUTO): it goes to work
+		server.runOnServer(srv -> {
+			office[0].cycleHoa(b.offset(50, 59, 4));
+			System.out.println("[tailings-test] pit_dispatch: selector " + office[0].cycleHoa(b.offset(50, 59, 4)));
+		});
+		for (int t = 0; t < 120 && server.computeOnServer(srv -> truck[0].parked() || Math.abs(truck[0].getZ() - b.getZ() - 70) < 15); t++) {
+			if (t % 4 == 0) {
+				follow.accept("work");
+			}
+			context.waitTicks(10);
+		}
+		follow.accept("work");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-dispatch-back-to-work");
+		film.stop();
+		require(server.computeOnServer(srv -> !truck[0].parked()), "back in HAND, the truck should go to work");
+		heard("pit_dispatch", "wildcatter:diesel_load", "tailings:muck_tip");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

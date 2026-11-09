@@ -298,3 +298,11 @@ questions were decided on the best recommendation and logged in `docs/questions/
   `pit_dispatch_fallback` (the PLC stops writing RUN and the truck parks at its next stake; HAND runs it again; the office's power off
   stops it at its next stake with its loops at 0 mA; power back, it goes on). Unit tests `DispatchTest`.
 - NeoForge scenes: **86 pass** (83 before, 3 new).
+
+## The dispatch office filmed; ground tips come away clean (2026-11-09)
+
+- **`pit_dispatch` (Fabric client, filmed):** the office in HAND runs the route; the truck hauls to the dump point and tips (LOADS 1,
+  30 t in the hour); switched OFF it drives back and parks at the PARK stake (z 71, engine off); back in HAND it goes to work.
+- **Found by the film:** after a ground tip the truck was drawn full, holding the 1.2 t under a whole block of sand. A ground tip now
+  goes out to the nearest whole block or quarter and the rest spills, so the truck comes away empty (`pit_truck_tip`: 30 t of sand
+  is 19 blocks). Logged in `docs/questions/lead-decisions.md`.

@@ -250,7 +250,7 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
   up 1 block. Its box is its real length and width, turned with it; it will not turn into a wall.
 - **The truck** (`HaulTruckEntity`): standing, jump raises the body over 13 s. At the top its load goes into a pit hopper under its
   tail (`DumpBlockEntity.tip`: whole bank blocks, all or none; soil refused; FULL) or out 1.5 m behind it by `Loose.tip` (soil as its
-  own blocks, rock as muck at 4 quarters a bank block). On the ground, what is under a whole block or quarter stays in the body; the
+  own blocks, rock as muck at 4 quarters a bank block). On the ground a load goes out to the nearest whole block (soil) or quarter (rock) and the rest spills; the
   hopper keeps what is under a whole block of each ore and makes it up with the next load, so the truck comes away empty.
 - **The loader** (`WheelLoaderEntity`): jump with the bucket empty digs up to 20.4 t from the face in front of the bucket (5 wide,
   6 high from its own floor, 3 deep, top down), soft ground or muck; a pass is 25 s. Jump with the bucket full dumps it into the
