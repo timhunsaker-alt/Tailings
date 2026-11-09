@@ -20,8 +20,8 @@ import net.minecraft.resources.Identifier;
  * loader's arms lifted as the entity says (open-pit.md). The model's ground is its root, so nothing is offset.
  */
 public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehicleRenderer.PitState> {
-	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck_placeholder.png");
-	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader_placeholder.png");
+	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck.png");
+	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;

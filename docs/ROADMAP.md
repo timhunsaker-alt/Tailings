@@ -191,14 +191,16 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 
 ## Known gaps and stand-ins
 
-- **The open pit's art is placeholder (P1):** `haul_truck_placeholder` and `wheel_loader_placeholder` skins, their item icons, and
-  `muck_placeholder` are drawn by script.
+- **Art (2026-11-09 art wave):** no `*_placeholder` texture is left. The pit machines', locomotive's and car's skins are painted by
+  their generators in Ludo materials (`art/source/vehicle/`, `tools/models/skin.py`); muck, the survey stakes, the hand-line machines,
+  the reagents, the by-products, the survey book and the vehicle icons are Ludo art (`art/source/PROMPTS.md`). Still vanilla:
+  the rock-size items (crushed, gravel, sand, fines), nuggets, minerals and concentrates share one vanilla icon per kind (cobblestone,
+  gravel, sand, clay, iron nugget, raw iron, gold nugget) across every rock; they were never on this list and are a wave of their own
+  (`docs/questions/art-wave.md`, 5).
 - **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
   without driving between; the driver moves it. A self-running loader stands where it was left too.
-- **The open pit's P2a art is placeholder:** `survey_stake_*_placeholder` (the post and its flag colours) and
-  `survey_book_placeholder` are drawn by script.
 - **A truck's route is only as good as its stakes (P2a):** it drives straight between stakes and turns round in the open at the
   stake before an end (about 25 m). It does not find its own way round anything the survey missed between samples.
 - **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
@@ -219,7 +221,7 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **TBM recipes are placeholders (R6a).** Eight iron around a copper ingot, as the plant's.
 - **Standing on the moving machine waits (decided with Tim, R6).** Riding is a seat in the cab.
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
-- **The hand-line machines still use vanilla block textures.** Stamp mill, hand screen, shaking table, magnetic separator. The crushing, flotation and dump parts are real models since R3.
+- **The hand-line machines are plain cubes (2026-11-09 art wave).** Stamp mill, hand screen, shaking table and magnetic separator have their own Ludo textures now, but are still one textured cube each, not models; the crushing, flotation and dump parts are real models since R3.
 - **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one.
 - **Still staged in the playthrough (R10, 4d, 13i):** the PLC's control deck, its 24 V steam set and the control cable to each machine, placed rather than crafted (not in the bill), digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, the forced chunks, and peaceful difficulty (a creeper in the pit killed the player during the placing in one run). The plant's water is real now, from the process pump and the cell's decant.
 - **The scavengers' concentrate has its own thickener and filter in the playthrough (4d),** only as that was the shorter layout; a pipe to the main thickener works too.
@@ -239,14 +241,12 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Sound levels are not tuned by ear (R8).** The volumes in `sound.md` were set from the files' levels. The tests prove each sound starts, not how it sounds together. The films have no audio: `screencapture` can only record a microphone.
 - **Silent for now (R8).** The traction rectifier, the small phase 1 machines, the reel gantry, and the wheels of an unpowered car. A plant part's sound does not follow its load.
-- **The locomotive and car skins are script-drawn placeholders (R9):** `mine_locomotive_placeholder`, `mine_car_placeholder`, from `tools/models/vehicles.py`, until they come from Ludo.
 - **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
 - **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10).** Sized cable works, and one train needs only about 110 A. Probably the solver failure fixed in Wildcatter 0.4.1, from the same symptom; not re-tested with the fix.
 - **The waste bin backs up in about 90 minutes of driving without a heap (R10).** 992 items in 11 game minutes against 8,192. A belt under it to a `heap_pad` is the way out, and the heap holds 100 blocks at a tenth of the plant's rate.
 - **Selective flotation (4e) is not in the playthrough:** proved by unit tests, NeoForge scenes and a force-run film only. Its figures, 300 g/t of zinc sulfate above all, are proposed, and its recipes are placeholders.
 - **Nothing makes a selective plant keep its concentrates apart (4e):** both banks piped into one thickener and filter still pay clean lead and clean zinc. The spec gives each its own, but the filter does not check.
-- **The `zinc_sulfate` item borrows vanilla sugar's icon (4e),** as the other reagents borrow vanilla icons.
-- **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot. **By-product item icons are script-drawn placeholders.**
+- **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot.
 
 Other stand-ins worth knowing:
 
