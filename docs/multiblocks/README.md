@@ -27,6 +27,20 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [open-pit.md](open-pit.md) | P1-P5, P7 | (new) drill, blast, load, haul, dumps |
 | [dragline.md](dragline.md) | P6 | (new) strip mining |
 | [tunnel-drill-haulage.md](tunnel-drill-haulage.md) | | pointer only: split into the three specs above |
+| [open-pit-p3-blasting.md](open-pit-p3-blasting.md) | P3 (DRAFT) | (new) build detail: blasthole drill, emulsion truck, boosters, detonators, the blast, misfires |
+| [open-pit-p4-dry-stack.md](open-pit-p4-dry-stack.md) | P4 (DRAFT) | (new) build detail: tailings thickener and filter, load-out, dumps, berms, track dozer |
+| [open-pit-p5-big-machines.md](open-pit-p5-big-machines.md) | P5 (DRAFT) | (new) build detail: pit switch house and trailing cables, ultra truck, hydraulic and rope shovels |
+| [primary-gyratory-stockpile.md](primary-gyratory-stockpile.md) | P7a (DRAFT) | (new) gyratory crusher, coarse-ore stockpile, reclaim |
+| [sag-mill-line.md](sag-mill-line.md) | P7b (DRAFT) | (new) SAG mill, pebble crusher, ball mill, cyclones at 1,000 t/h |
+| [pit-flotation.md](pit-flotation.md) | P7c (DRAFT) | (new) tank-cell flotation and the large tails thickener for the pit line |
+| [ventilation.md](ventilation.md) | L1 (DRAFT) | (new) the drive's main fan, duct and the TBM's duct cassette |
+| [battery-locomotive.md](battery-locomotive.md) | L2 (DRAFT) | (new) battery locomotives and their charger on a Wildcatter receptacle |
+| [bottom-dump-cars.md](bottom-dump-cars.md) | L3 (DRAFT) | (new) bottom-dump cars over a track grizzly |
+| [shaft-and-hoist.md](shaft-and-hoist.md) | L4 (DRAFT) | (new) raise-bored shaft, headframe, double-drum hoist, skips, cage |
+| [paste-backfill.md](paste-backfill.md) | L5 (DRAFT) | (new) paste fill of enclosed old workings with tailings |
+| [dry-mill.md](dry-mill.md) | L6 (DRAFT) | (new) dryer, magnetic and electrostatic separators for ilmenite, rutile, zircon, monazite |
+| [dense-medium-separation.md](dense-medium-separation.md) | L7 (DRAFT) | (new) DMS cyclone pre-concentration on the gravel face |
+| [xrt-ore-sorter.md](xrt-ore-sorter.md) | L8 (DRAFT) | (new) X-ray transmission ore sorter as its own machine |
 
 ## Shared rules
 Wildcatter's apply unchanged: its `docs/multiblocks/README.md`, "Shared rules" and "Big parts". In short:
