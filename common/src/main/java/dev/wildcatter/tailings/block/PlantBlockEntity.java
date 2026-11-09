@@ -192,6 +192,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 	/** How long a part keeps sounding after its last work, so a stage that works in bursts does not flutter. */
 	private static final int SOUND_HOLD_TICKS = 20;
+	/** Ticks a started motor still runs on with no work ({@link dev.wildcatter.tailings.plant.PlantRates#MOTOR_RUN_ON_SECONDS}); not saved. */
+	private int runOn;
 	private boolean sounding;
 	private int soundHold;
 	private boolean grown;
@@ -272,6 +274,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		intake();
 		stage().tick(this);
+		runOn = demand ? dev.wildcatter.tailings.plant.PlantRates.MOTOR_RUN_ON_SECONDS * 20 : Math.max(0, runOn - 1);
 		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
 		boolean now = soundHold > 0;
 		if (now != sounding) {
@@ -1009,7 +1012,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void apply(Circuit circuit, int ticks) {
 		if (motor != null) {
-			motor.apply(circuit, ticks, demand && plcAllows());
+			// a started motor runs on through a gap in its feed instead of stopping and starting again on the next few kilograms
+			boolean runningOn = runOn > 0 && motor.state() != dev.wildcatter.circuit.Motor.State.STOPPED;
+			motor.apply(circuit, ticks, (demand || runningOn) && plcAllows());
 		}
 	}
 
