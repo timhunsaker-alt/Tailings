@@ -27,6 +27,8 @@ public final class TailingsItems {
 	public static final List<Item> REAGENTS = new ArrayList<>();
 	public static Item LOCOMOTIVE;
 	public static Item CAR;
+	public static Item HAUL_TRUCK;
+	public static Item WHEEL_LOADER;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -46,6 +48,8 @@ public final class TailingsItems {
 		}
 		LOCOMOTIVE = item("mine_locomotive");
 		CAR = item("mine_car");
+		HAUL_TRUCK = vehicle("haul_truck", () -> TailingsEntities.HAUL_TRUCK);
+		WHEEL_LOADER = vehicle("wheel_loader", () -> TailingsEntities.WHEEL_LOADER);
 		for (TbmGantry gantry : TbmGantry.values()) {
 			GANTRIES.put(gantry, item(gantry.id()));
 		}
@@ -71,6 +75,13 @@ public final class TailingsItems {
 
 	public static Item gantry(TbmGantry gantry) {
 		return GANTRIES.get(gantry);
+	}
+
+	private static Item vehicle(String path, java.util.function.Supplier<net.minecraft.world.entity.EntityType<? extends dev.wildcatter.tailings.entity.PitVehicleEntity>> type) {
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Tailings.id(path));
+		Item item = new dev.wildcatter.tailings.item.PitVehicleItem(new Item.Properties().setId(key).stacksTo(1), type);
+		Registry.register(BuiltInRegistries.ITEM, key, item);
+		return item;
 	}
 
 	private static Item item(String path) {

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I I",
+    "IHI",
+    "SIS"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "H": "minecraft:hopper",
+    "S": "minecraft:smooth_stone"
+  },
+  "result": {
+    "id": "tailings:pit_hopper",
+    "count": 1
+  }
+}

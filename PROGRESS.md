@@ -209,3 +209,24 @@ Wildcatter's Phase 13 ends here. Plant motors, the sorter's gates, mine switches
 The playthrough now runs the mine from a PLC. A large CPU on a staged deck, with 2,076 cells of control cable to 37 devices, runs a generated structured-text program: it starts the eight generators, then each machine downstream first, one a second, then sends GO to the TBM. Nothing is started by hand. It passed on 2026-11-07 in 16 minutes on Wildcatter 0.5.1: 0 unsolved circuits, mean tick about 9 ms, 3 ingots at the main filter, 3 nuggets at the scavengers' filter, 5 at the cells, 3.2 t in the cell, the TBM 35 blocks down the decline.
 
 Two things it found: a GO through the junction skipped the cab's own start (heading and origin), so the machine read NOT BUILT (fixed, `plc_tbm_go`); and Wildcatter 0.5.0's cable walk stopped after about 1,600 cables, reaching 26 of the 37 devices (fixed in Wildcatter 0.5.1).
+
+## Open pit P1: loose ground, the haul truck, the truck dump, the wheel loader (2026-11-09)
+
+Spec `docs/multiblocks/open-pit.md`, approved 2026-11-09; Tim's P1 answers: soil goes to dumps, and the truck dump is separate parts.
+DESIGN.md, "The open pit (P1)".
+
+- **The settle rule** (`mine.Settle`). The first way written, a 1-in-3 chance for a block to creep past a single step, measured 43
+  degrees, and 1 in 2 the same; creeping every time flattened piles to 12. It is now a look-ahead: a block rolls on where resting
+  would leave a step of 2, or 4 up in a run of 4 columns. 2,000 blocks tipped at one point stand at 36 degrees (`SettleTest`).
+- **The truck** drives on the server from the rider's keys, by `pit.PitDrive`: loaded up a 10 % road it settles at 3.24 m/s (11.7
+  km/h), as the spec's formula gives; the retarder holds it to 15 km/h down one (`PitDriveTest`). It steps up a block, and stops
+  at a 2-block wall (`pit_truck_drive`).
+- **The truck dump.** The bumper first stood 1 m: the model tool clips a collision box to the part's cells, and a truck steps up a
+  block, so it drove over it into the hopper (found by `pit_hopper`). The wall is now 12 x 5 x 2 so the bumper's 1.5 m collides.
+  `pit_hopper`: backed up with the movement keys, the truck stops at the bumper with its tail over the hopper; 54 t of cobble goes
+  in as 20 bank blocks, sand is refused, a full hopper reads FULL, and the apron feeder draws it to the sorter's bin.
+- **The loader** fills a 91 t truck from a sand face in 5 passes of 12 blocks (19.2 t a pass, the 13th block would pass its 20.4 t)
+  (`pit_loader_soft`); reads "hard rock: blast it first" at stone (`pit_loader_hard`); digs ten blocks of muck to exactly 20.25 t
+  (`pit_loader_muck`).
+- NeoForge scenes: **74 pass** (66 before, 8 new).
+

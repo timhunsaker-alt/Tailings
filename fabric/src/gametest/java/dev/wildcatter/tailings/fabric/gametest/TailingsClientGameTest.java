@@ -110,6 +110,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("haul")) {
 				haul(context, world, server);
 			}
+			if (only("pit")) {
+				pit(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -630,6 +633,156 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-dump-end");
 		film.stop();
 		heard("dump", "tailings:mine_locomotive", "tailings:muck_tip", "tailings:apron_feeder", "tailings:ore_sorter", "tailings:car_couple");
+	}
+
+	/**
+	 * The open pit, P1 (open-pit.md): the player sits in the wheel loader and loads a haul truck from a face of broken rock with the
+	 * jump key, then drives the truck back to the truck dump's bumper with the movement keys and tips it into the hopper, which the
+	 * apron feeder draws to the sorter's bin. A second truck tips sand on the ground, where it settles. Passes are a quarter of their
+	 * real 40 s, so the film stays short.
+	 */
+	private void pit(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(40, y, 600);
+		dev.wildcatter.tailings.entity.PitVehicleEntity[] v = new dev.wildcatter.tailings.entity.PitVehicleEntity[3];
+		dev.wildcatter.tailings.block.DumpBlockEntity[] hopper = new dev.wildcatter.tailings.block.DumpBlockEntity[1];
+		PlantBlockEntity[] plant = new PlantBlockEntity[3];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			// a flat stone pad, cleared above
+			for (int x = -12; x <= 44; x++) {
+				for (int z = -12; z <= 60; z++) {
+					for (int yy = -8; yy <= 14; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy < 0 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			// the truck dump in an open cut: the hopper under the pad's edge, its wall and bumper, the feeder, sorter and bin
+			for (int x = 2; x <= 17; x++) {
+				for (int z = -9; z <= 9; z++) {
+					for (int yy = -7; yy <= -1; yy++) {
+						level.setBlock(b.offset(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.PIT_HOPPER, b.offset(5, -6, 4));
+			part(level, TailingsBlocks.TRUCK_DUMP_WALL, b.offset(4, -3, 10));
+			part(level, TailingsBlocks.plantBlock(Machine.APRON_FEEDER), b.offset(8, -6, 0));
+			part(level, TailingsBlocks.plantBlock(Machine.ORE_SORTER), b.offset(7, -6, -3));
+			part(level, TailingsBlocks.plantBlock(Machine.ORE_BIN), b.offset(7, -6, -6));
+			hopper[0] = (dev.wildcatter.tailings.block.DumpBlockEntity) level.getBlockEntity(b.offset(5, -6, 4));
+			plant[0] = (PlantBlockEntity) level.getBlockEntity(b.offset(8, -6, 0));
+			plant[1] = (PlantBlockEntity) level.getBlockEntity(b.offset(7, -6, -3));
+			plant[2] = (PlantBlockEntity) level.getBlockEntity(b.offset(7, -6, -6));
+			plant[1].setWasteSide(Direction.NORTH);
+			plant[0].forceRunning();
+			plant[1].forceRunning();
+			// a face of broken copper-ore rock and cobble, as a blast leaves it
+			for (int x = 0; x <= 6; x++) {
+				for (int z = 30; z <= 34; z++) {
+					for (int yy = 0; yy <= 4; yy++) {
+						BlockPos at = b.offset(x, yy, z);
+						level.setBlock(at, TailingsBlocks.MUCK.defaultBlockState(), Block.UPDATE_ALL);
+						((dev.wildcatter.tailings.block.MuckBlockEntity) level.getBlockEntity(at)).set(java.util.Map.of((x + yy + z) % 3 == 0 ? "minecraft:copper_ore" : "minecraft:cobblestone", 3));
+					}
+				}
+			}
+			var loader = dev.wildcatter.tailings.TailingsEntities.WHEEL_LOADER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			loader.setPos(b.getX() + 3.5, b.getY(), b.getZ() + 22.3);
+			loader.setYRot(0);
+			loader.fastPasses(4);
+			level.addFreshEntity(loader);
+			var truck = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(b.getX() + 10.0, b.getY(), b.getZ() + 26.0);
+			truck.setYRot(0);
+			level.addFreshEntity(truck);
+			var other = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			other.setPos(b.getX() + 30.0, b.getY(), b.getZ() + 30.0);
+			other.setYRot(0);
+			other.load().add("minecraft:sand", 40_000);
+			other.refreshLoad();
+			level.addFreshEntity(other);
+			v[0] = loader;
+			v[1] = truck;
+			v[2] = other;
+		});
+		server.runCommand("tp @p " + (b.getX() + 26) + " " + (b.getY() + 14) + " " + (b.getZ() + 40) + " 135 30");
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-built");
+		Filming film = film(context, world, "pit");
+		// into the loader's cab, and five passes with the jump key
+		server.runCommand("gamemode creative @p");
+		server.runOnServer(srv -> srv.getPlayerList().getPlayers().get(0).startRiding(v[0]));
+		context.waitTicks(20);
+		for (int pass = 0; pass < 12 && v[1].load().room() > 0; pass++) {
+			context.getInput().holdKey(options -> options.keyJump);
+			context.waitTicks(3);
+			context.getInput().releaseKey(options -> options.keyJump);
+			context.waitTicks(5);
+			int p = pass;
+			server.runOnServer(srv -> System.out.println("[tailings-test] pit: press " + p + ": loader " + v[0].status() + "; truck " + v[1].load().tonnes()));
+			for (int t = 0; t < 40 && server.computeOnServer(srv -> v[0].busy()); t++) {
+				context.waitTicks(5);
+			}
+			if (pass == 1) {
+				context.takeScreenshot("tailings-pit-loader-cab");
+			}
+		}
+		double loaded = server.computeOnServer(srv -> (double) v[1].load().total());
+		require(loaded >= 85_000, "the loader should fill the truck with the jump key, it holds " + loaded + " kg");
+		// out, and into the truck: back it up to the bumper with the movement keys
+		context.getInput().holdKey(options -> options.keyShift);
+		context.waitTicks(5);
+		context.getInput().releaseKey(options -> options.keyShift);
+		server.runOnServer(srv -> srv.getPlayerList().getPlayers().get(0).startRiding(v[1]));
+		context.waitTicks(20);
+		context.getInput().holdKey(options -> options.keyDown);
+		for (int t = 0; t < 30; t++) {
+			context.waitTicks(10);
+			if (server.computeOnServer(srv -> v[1].speed() == 0 && v[1].getZ() < b.getZ() + 18)) {
+				break;
+			}
+		}
+		context.getInput().releaseKey(options -> options.keyDown);
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit: truck backed to z " + (v[1].getZ() - b.getZ()) + "; hopper under it " + (((dev.wildcatter.tailings.entity.HaulTruckEntity) v[1]).hopperBehind(srv.overworld()) != null)));
+		context.getInput().holdKey(options -> options.keyShift);
+		context.waitTicks(5);
+		context.getInput().releaseKey(options -> options.keyShift);
+		server.runCommand("gamemode spectator @p");
+		server.runCommand("tp @p " + (b.getX() + 24) + " " + (b.getY() + 8) + " " + (b.getZ() + 6) + " 100 25");
+		server.runOnServer(srv -> {
+			v[1].pressJump(srv.overworld());
+			v[2].pressJump(srv.overworld());
+		});
+		context.waitTicks(150);
+		context.takeScreenshot("tailings-pit-tipping");
+		for (int t = 0; t < 30 && server.computeOnServer(srv -> v[1].busy()); t++) {
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit: truck " + v[1].status() + "; hopper " + hopper[0].pocket() + " blocks; other truck " + v[2].status()));
+		require(server.computeOnServer(srv -> hopper[0].pocket() > 0 || plant[2].binned().getOrDefault("minecraft:cobblestone", 0) > 0), "the truck should tip into the hopper");
+		server.runCommand("tp @p " + (b.getX() + 30) + " " + (b.getY() + 6) + " " + (b.getZ() + 10) + " 0 25");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-pit-sand-tipped");
+		server.runCommand("tp @p " + (b.getX() + 22) + " " + (b.getY() + 2) + " " + (b.getZ() - 6) + " 90 10");
+		context.waitTicks(200);
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit: feeder " + plant[0].status() + "; sorter " + plant[1].status() + "; bin " + plant[2].binned() + "; hopper " + hopper[0].pocket()));
+		context.takeScreenshot("tailings-pit-feeder");
+		film.stop();
+		// the contact sheet's close looks: the truck with its body up, the loader with its arms up
+		server.runOnServer(srv -> {
+			v[2].load().add("minecraft:gravel", 9_000);
+			v[2].pressJump(srv.overworld());
+			((dev.wildcatter.tailings.entity.WheelLoaderEntity) v[0]).fastPasses(1);
+			v[0].pressJump(srv.overworld());   // a real-length pass from what is left of the face: its arms are up as it carries
+		});
+		context.waitTicks(200);
+		server.runCommand("tp @p " + (b.getX() + 40) + " " + (b.getY() + 5) + " " + (b.getZ() + 22) + " 120 15");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-truck-close");
+		server.runCommand("tp @p " + (b.getX() + 14) + " " + (b.getY() + 5) + " " + (b.getZ() + 14) + " 135 15");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-loader-close");
+		heard("pit", "wildcatter:diesel_idle", "tailings:muck_load", "tailings:muck_tip", "tailings:apron_feeder");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

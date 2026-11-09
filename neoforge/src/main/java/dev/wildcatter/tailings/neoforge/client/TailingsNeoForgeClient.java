@@ -24,6 +24,8 @@ public final class TailingsNeoForgeClient {
 		modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> {
 			event.registerLayerDefinition(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 			event.registerLayerDefinition(MineCarModel.LAYER, MineCarModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
 			event.registerEntityRenderer(TailingsEntities.DRILL, NoopRenderer::new);
@@ -34,6 +36,8 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.PUMP_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.REEL_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CONVEYOR_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));

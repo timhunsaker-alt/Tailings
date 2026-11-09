@@ -42,6 +42,20 @@ public final class TailingsEntities {
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine")));
 
+	/** The open pit's machines at their real size; their boxes are their own (PitVehicleEntity). */
+	public static final EntityType<dev.wildcatter.tailings.entity.HaulTruckEntity> HAUL_TRUCK = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.HaulTruckEntity>of(dev.wildcatter.tailings.entity.HaulTruckEntity::new, MobCategory.MISC)
+			.sized(6.2F, 5.2F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("haul_truck")));
+	public static final EntityType<dev.wildcatter.tailings.entity.WheelLoaderEntity> WHEEL_LOADER = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.WheelLoaderEntity>of(dev.wildcatter.tailings.entity.WheelLoaderEntity::new, MobCategory.MISC)
+			.sized(4.5F, 6.0F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("wheel_loader")));
+
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
 	public static final EntityType<GantryEntity> CONVEYOR_GANTRY = gantryType(TbmGantry.CONVEYOR);
@@ -71,6 +85,8 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_locomotive"), LOCOMOTIVE);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_car"), CAR);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine"), TBM);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("haul_truck"), HAUL_TRUCK);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("wheel_loader"), WHEEL_LOADER);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

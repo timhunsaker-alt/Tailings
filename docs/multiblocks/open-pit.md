@@ -33,6 +33,12 @@ comes from an ammonia plant, proposed in Wildcatter: `wildcatter/docs/multiblock
 - **The 37° settle exception** (below).
 - **Boosters and detonators are made with TNT** (vanilla TNT): real cast boosters of TNT and its mixes exist.
 
+**Decided with Tim (2026-11-09, planning P1):**
+- **Soil goes to dumps, not the plant.** Dirt, grass, sand, red sand, gravel, clay and mud are overburden: the pit's hopper refuses
+  them ("not rock: tip it on a dump") and they are tipped on waste dumps, as real overburden is. Rock and ore all go through the
+  plant. (Before this, soil reaching an ore bin was silently lost; that stays for other feeds.)
+- **The dump pocket is separate real parts** (below), not one 16 x 8 x 12 part.
+
 A figure marked *(proposed)* is a textbook value, a scaled value, or a proposal. A figure marked *(unverified)* is from memory
 and is to be checked against a manufacturer's spec sheet or the SME handbook before approval.
 
@@ -58,8 +64,8 @@ feed a gyratory crusher at 2,000-10,000 t/h. The options:
   plant. The 100 t truck is the right size for it.
 - **(c) A written exception:** the existing plant runs at a game-scaled rate for pit rock.
 
-**Decided (Tim, 2026-11-09): (a), built after the trucks, with (b) until then.** The coarse-ore stockpile comes with the dump
-pocket, as the first part of (a). The gyratory, stockpile reclaim and SAG mill line each get their own spec before their wave.
+**Decided (Tim, 2026-11-09): (a), built after the trucks, with (b) until then.** Until then the truck dump's 400 t hopper holds
+8 hours of feed. The gyratory, the coarse-ore stockpile and reclaim, and the SAG mill line each get their own spec before P7.
 
 ## Rock, broken rock and dug ground
 - **Soft ground** is dug as it stands: dirt, grass, sand, red sand, gravel, clay, mud, and the soft Wildcatter ores (bauxite,
@@ -69,7 +75,12 @@ pocket, as the first part of (a). The gyratory, stockpile reclaim and SAG mill l
 - **Muck (broken rock):** a blast turns each block in the shot into **muck**: a `muck` block with a block entity that holds what
   the block was (its rock or ore, counted as in a mine car). Real broken rock swells: **3 blocks of bank rock break to 4 blocks
   of muck** (swell 1.33, *proposed*; real hard rock 1.3-1.6). The extra muck spills forward off the face and settles (below).
-  A muck block falls like gravel. When dug, it gives its contents to the bucket.
+  A muck block falls like gravel. When dug, it gives its contents to the bucket. It holds its contents in **quarters of a bank
+  block**: a full muck block holds 3 quarters.
+- **Masses** *(proposed, bank densities)*: rock and ore 2.7 t a block (`PlantRates.BLOCK_KG`, as the plant counts it); dirt,
+  grass block, sand and red sand 1.6 t; gravel 1.9 t; clay 2.0 t; mud 1.8 t. A truck or bucket counts kilograms of each item.
+- **Tipping on the ground:** soil lands as its own blocks; rock and ore land as muck, 4 quarters of muck for each bank block (the
+  same swell).
 - **What a truck carries** is counted in tonnes from what it loaded: a block of rock is 2.7 t (2.6-3.0 by rock, as in
   `rock.Rock`), a block of muck three-quarters of that. **Decided (Tim, 2026-11-09): real tonnes.** A 91 t truck carries about 34 blocks of bank
   rock (45 of muck); a 363 t truck about 134 (179 of muck). The truck is full by mass, not by stacks.
@@ -77,11 +88,13 @@ pocket, as the first part of (a). The gyratory, stockpile reclaim and SAG mill l
 ## The settle rule (muck piles, tipped loads, dumps)
 One rule for every loose block Tailings places: muck spilled by a blast, a tipped truck load, a dragline's cast.
 - A placed loose block falls straight down to the first solid block.
-- It then looks at its four neighbours. If a neighbour's column is **2 or more blocks lower**, it rolls to the lowest one and
-  repeats. It stops when no neighbour is 2 lower, or after 64 rolls.
-- So a pile stands at **1 in 1 (45°)**, the steepest slope a block world can hold one block at a time. Real broken rock rests at
-  about **37°** (1.33 in 1). **Written exception (decided with Tim, 2026-11-09):** a block with a neighbour just 1 lower also
-  rolls on, with a chance of 1 in 3, which gives a long-run slope near 37°. The `pit_settle` test checks the slope.
+- It then looks along its four sides. It rolls one cell toward a side where resting would leave the ground too steep, and falls
+  again: a step of **2 or more to the next column** (1 in 1, 45°, the steepest a block world holds), or **4 up in a run of 4
+  columns**. It goes the steepest way, a tie by chance, and stops after 64 rolls.
+- So a long slope stands at **3 in 4, 37°**, real broken rock's angle of repose. **Written exception (decided with Tim,
+  2026-11-09):** the 37°. *As built (P1):* the first way proposed, a 1-in-3 chance for a block to creep on past a single step,
+  measured 43° in the unit test, so the run-of-4 rule replaced it; 2,000 blocks tipped at one point stand at 36°
+  (`SettleTest`).
 - **Into water or lava** it falls through and displaces the fluid. A dump can fill a flooded pit (real in-pit backfill).
 - **Load:** a tipped 360 t load is about 200 blocks of dry tails. Settling is worked out on the server and placed at once,
   with a short falling animation for the client. No falling-block entities *(proposed, for the server's sake)*.
@@ -179,12 +192,21 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   dragline. Moving past the cable's length stops the machine ("cable end").
 - **Voltage:** Wildcatter's medium-voltage tier. Real shovels and draglines run at 4.16-7.2 kV.
 
-### Dump pocket (`pit_dump_pocket`)
-- **Real:** a truck dump: a concrete wall with a hopper below that a truck backs to and tips into, over the primary crusher.
-- **Size:** **16 x 8 x 12 m** *(proposed)*: a pad, a retaining wall with a bumper block, and a hopper of **400 t** (one ultra-class
-  load and a margin).
-- Feeds the jaw crusher (or, by Decision 1, the gyratory) at its rate. Reads FULL when a truck could not tip into it, and a
-  self-driving truck waits.
+### Truck dump (`truck_dump_wall` and `pit_hopper`, split into parts with Tim, 2026-11-09)
+- **Real:** a truck dump: a concrete retaining wall with a bumper on its lip that a truck backs to, and a steel-lined hopper below
+  the lip that it tips into, over the feeder to the primary crusher.
+- `truck_dump_wall`: **12 x 5 x 2 cells** *(proposed)*: 3 m of concrete wall below the pad and a **1.5 m bumper** on its top edge
+  (about half the truck's 2.7 m wheel). A reversing truck stops against the bumper: it steps up 1 block, not 1.5. *(As built, P1:
+  the bumper first stood 1 m in a 4-row part, and a truck stepped over it; the bumper's top half needs a fifth row of cells.)*
+- `pit_hopper`: **10 x 6 x 6 m** *(proposed)*, below and behind the wall, its top at the wall's top. It holds **400 t** (one
+  ultra-class load and a margin; 400 t of broken rock at about 1.7 t/m³ is 235 m³ of its 360). A truck whose tail is over it tips
+  into it.
+- **Downstream:** the hopper is drawn by the existing apron feeder touching it, then the ore sorter and ore bins, as the rail dump
+  pocket is (dump-station.md), and so to the jaw crusher at its rate (or, by Decision 1, the gyratory).
+- It takes whole bank blocks: a load's rock and ore go in as items (2.7 t each), and what is left under a whole block stays in
+  the truck. It refuses soil.
+- Reads FULL when a truck could not tip its load into it, and a self-driving truck waits.
+- **The coarse-ore stockpile** moves to P7 with the gyratory: at 50 t/h a 400 t hopper already holds 8 hours of feed.
 - PLC points: LEVEL (4-20 mA), FULL.
 
 ### Tailings filter and truck load-out (dry stack)
@@ -253,13 +275,13 @@ A self-driving fleet keeps its route's chunks loaded only while trucks are on th
 - `pit_berm`: a self-driving truck stops at a berm and tips.
 
 ## Proposed waves (after approval)
-- **P1:** the settle rule, muck, the 100 t truck (driven), the dump pocket with a coarse-ore stockpile, the wheel loader on soft ground.
+- **P1:** the settle rule, muck, the 100 t truck (driven), the truck dump (wall and hopper), the wheel loader on soft ground.
 - **P2:** survey stakes, routes, self-driving trucks, fuel bay, the dispatch office on the PLC.
 - **P3:** the ammonia plant (a Wildcatter wave), the drill, the emulsion truck, TNT boosters and detonators, the blast.
 - **P4:** the tailings filter, the load-out, waste dumps, berms, the track dozer.
 - **P5:** the pit switch house, the ultra-class truck, the hydraulic shovel, the rope shovel.
 - **P6:** the dragline (dragline.md).
-- **P7:** the pit-sized line (decided): gyratory crusher, stockpile reclaim, SAG mill line, each specced first.
+- **P7:** the pit-sized line (decided): gyratory crusher, coarse-ore stockpile and reclaim, SAG mill line, each specced first.
 
 ## Sources for the figures
 Checked 2026-11-09 against manufacturers' and dealers' published specifications for current machines of each class: a 91 t

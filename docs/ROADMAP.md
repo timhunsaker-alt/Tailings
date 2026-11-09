@@ -157,6 +157,18 @@ junction are devices on Wildcatter's control cable (Wildcatter v0.5.1). See DESI
 `plc_plant`, `plc_switch`, `plc_signal`, `plc_tbm_go`. The playthrough starts the mine from a PLC: a generated structured-text program
 starts the machines downstream first, one a second, then sends GO to the TBM.
 
+## Open pit — P1: loose ground, the haul truck, the truck dump, the wheel loader (2026-11-09)
+
+Spec [multiblocks/open-pit.md](multiblocks/open-pit.md), approved 2026-11-09, with Tim's P1 answers: soil goes to dumps, and the truck
+dump is separate parts. Built: the settle rule (`mine.Settle`, 37 degrees), muck, real-tonne loads, the 100 t haul truck you drive,
+the truck dump wall and 400 t pit hopper feeding the existing apron feeder, and the wheel loader on soft ground and muck. NeoForge
+scenes `pit_settle`, `pit_truck_tip`, `pit_truck_body`, `pit_hopper`, `pit_truck_drive`, `pit_loader_soft`, `pit_loader_hard`,
+`pit_loader_muck`; unit tests `SettleTest`, `PitDriveTest`; the filmed client scene `pit`.
+
+Next: **P2**, survey stakes, routes, self-driving trucks, the fuel bay and the dispatch office on the PLC. Then P3 (the ammonia plant
+in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
+truck), P6 (the dragline), P7 (the pit-sized plant).
+
 ## Later, not scheduled
 
 - Ventilation of the drive.
@@ -165,11 +177,19 @@ starts the machines downstream first, one a second, then sends GO to the TBM.
 - A shaft and hoist (headframe, skip) instead of the decline.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track.
 - Bottom-dump cars over a grizzly.
-- Open-pit and strip mining (Tim's answers 2026-11-09): drills and emulsion blasting, loaders and shovels, 100 t and 360 t haul trucks driven or self-driving on surveyed roads under PLC dispatch, dry-stacked tails on waste dumps that settle, and a walking dragline. Specs approved 2026-11-09: multiblocks/open-pit.md, multiblocks/dragline.md. Waves P1-P7 (open-pit.md, Proposed waves).
+- Open-pit and strip mining: scheduled, waves P1-P7 (above).
 - Paste backfill of old stopes with tailings.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **The open pit's art is placeholder (P1):** `haul_truck_placeholder` and `wheel_loader_placeholder` skins, their item icons, and
+  `muck_placeholder` are drawn by script.
+- **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
+- **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
+- **Trucks burn no fuel yet (P1).** The fuel tank and fuel bay come with P2.
+- **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
+  without driving between; the driver moves it.
 
 These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
 

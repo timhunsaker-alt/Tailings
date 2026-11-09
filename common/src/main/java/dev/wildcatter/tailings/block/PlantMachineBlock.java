@@ -44,7 +44,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 
 	@Override
 	protected BlockEntity createMain(BlockPos pos, BlockState state) {
-		return machine == Machine.DUMP_POCKET ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
+		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (level.isClientSide()) {
 			return dev.wildcatter.tailings.TailingsSounds.loop(machine) == null ? null : (at, pos, cell, entity) -> dev.wildcatter.kinetic.Sounding.Hook.start.accept(entity);
 		}
-		return machine == Machine.DUMP_POCKET ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
+		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
 	}
 

@@ -64,6 +64,9 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.BLOCK_SIGNAL));
 		output.accept(new ItemStack(TailingsItems.LOCOMOTIVE));
 		output.accept(new ItemStack(TailingsItems.CAR));
+		output.accept(new ItemStack(TailingsItems.HAUL_TRUCK));
+		output.accept(new ItemStack(TailingsItems.WHEEL_LOADER));
+		output.accept(new ItemStack(TailingsBlocks.MUCK));
 		output.accept(new ItemStack(TailingsBlocks.MINE_SWITCH));
 		output.accept(new ItemStack(TailingsBlocks.MINE_LIGHT));
 		for (ItemStack stack : TailingsItems.REAGENTS.stream().map(ItemStack::new).toList()) {

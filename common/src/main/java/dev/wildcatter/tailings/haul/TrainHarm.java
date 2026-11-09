@@ -14,6 +14,7 @@ public final class TrainHarm {
 	private static Object readFor;
 	private static boolean cachedEnabled = true;
 	private static float cachedAmount = DEFAULT_AMOUNT;
+	private static float cachedTruck = DEFAULT_AMOUNT;
 
 	private TrainHarm() {
 	}
@@ -24,9 +25,24 @@ public final class TrainHarm {
 			List<String> lines = read(file);
 			cachedEnabled = enabled(lines);
 			cachedAmount = amount(lines);
+			cachedTruck = truckAmount(lines);
 			readFor = server;
 		}
 		return cachedEnabled ? cachedAmount : 0;
+	}
+
+	/** What a moving haul truck or loader does to what it hits (open-pit.md): {@code truck_damage=8}; {@code damage=false} turns both off. */
+	public static synchronized float truckDamageFor(Object server, Path file) {
+		damageFor(server, file);
+		return cachedEnabled ? cachedTruck : 0;
+	}
+
+	public static float truckAmount(List<String> lines) {
+		try {
+			return Float.parseFloat(value(lines, "truck_damage", Float.toString(DEFAULT_AMOUNT)));
+		} catch (NumberFormatException ex) {
+			return DEFAULT_AMOUNT;
+		}
 	}
 
 	public static boolean enabled(List<String> lines) {

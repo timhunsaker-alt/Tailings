@@ -24,8 +24,49 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	private final Map<String, Integer> held = new LinkedHashMap<>();
 	private boolean grown;
 
+	/** The truck dump's hopper (docs/multiblocks/open-pit.md): 400 t. */
+	public static final int PIT_HOPPER_KG = 400_000;
+
 	public DumpBlockEntity(BlockPos pos, BlockState state) {
 		super(TailingsBlocks.DUMP, pos, state);
+	}
+
+	/** The truck dump's hopper rather than the rail dump pocket. */
+	public boolean pit() {
+		return getBlockState().getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.PIT_HOPPER;
+	}
+
+	/** Items it holds when full: a rail pocket one 10-car train, the pit hopper 400 t of bank blocks. */
+	public int capacity() {
+		return pit() ? PIT_HOPPER_KG / dev.wildcatter.tailings.pit.PitMass.ROCK_KG : Haul.POCKET_ITEMS;
+	}
+
+	/**
+	 * A truck tips its load in (open-pit.md, Truck dump): its rock and ore as whole bank blocks, all or none. What is under a whole
+	 * block stays in the truck. Returns null when it took the load, or why not: soil goes to a dump, never to the plant (decided with
+	 * Tim, 2026-11-09).
+	 */
+	public @org.jspecify.annotations.Nullable String tip(dev.wildcatter.tailings.pit.PitLoad load) {
+		if (load.hasSoil()) {
+			return "not rock: tip it on a dump";
+		}
+		Map<String, Integer> whole = load.wholeBlocks();
+		int sum = 0;
+		for (int n : whole.values()) {
+			sum += n;
+		}
+		if (sum == 0) {
+			return null;
+		}
+		if (pocket() + sum > capacity()) {
+			return "FULL";
+		}
+		whole.forEach((id, n) -> {
+			held.merge(id, n, Integer::sum);
+			load.take(id, (long) n * dev.wildcatter.tailings.pit.PitMass.kg(id));
+		});
+		setChanged();
+		return null;
 	}
 
 	public static void tick(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, DumpBlockEntity dump) {
@@ -88,7 +129,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		for (int n : load.values()) {
 			sum += Math.max(0, n);
 		}
-		if (pocket() + sum > Haul.POCKET_ITEMS) {
+		if (pocket() + sum > capacity()) {
 			return false;
 		}
 		load.forEach((id, n) -> {
@@ -132,6 +173,10 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 
 	@Override
 	public Component inspect() {
+		if (pit()) {
+			return Component.literal("Pit Hopper: holds " + pocket() * dev.wildcatter.tailings.pit.PitMass.ROCK_KG / 1000 + " t of " + PIT_HOPPER_KG / 1000 + " t"
+					+ (pocket() >= capacity() ? " (FULL: the next truck waits)" : ""));
+		}
 		return Component.literal("Dump Pocket: holds " + pocket() + " of " + Haul.POCKET_ITEMS + " items" + (pocket() >= Haul.POCKET_ITEMS ? " (FULL: the next car waits)" : ""));
 	}
 

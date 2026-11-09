@@ -4,6 +4,20 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P1 — the haul truck, the truck dump and the wheel loader (2026-11-09)
+
+- **Haul truck** (100 t class, 91 t payload, true size): right-click to drive it with the movement keys, by its 765 kW against its
+  load and the grade; jump, standing, tips the body. Its load is counted in real tonnes.
+- **Truck dump:** a `truck_dump_wall` with a 1.5 m bumper and a 400 t `pit_hopper`. A truck backed to the bumper tips its rock into the
+  hopper, and the apron feeder, sorter and ore bins take it on as from the rail dump pocket. Soil is refused: tip it on a dump.
+- **Wheel loader:** jump digs up to 20.4 t of soft ground (dirt, sand, gravel, clay, mud, the soft Wildcatter ores) or muck from the
+  face in front; jump again dumps it into a truck beside it. Five passes fill a truck. Standing rock it cannot dig.
+- **Muck and loose ground:** broken rock as `muck` blocks that remember what they were; tipped loads land and settle downhill, piles
+  standing at 37 degrees, and fill holes first.
+- **Config:** `truck_damage` in `config/tailings-train.properties` (default 8).
+- **Tests:** `pit_settle`, `pit_truck_tip`, `pit_truck_body`, `pit_hopper`, `pit_truck_drive`, `pit_loader_soft`, `pit_loader_hard`,
+  `pit_loader_muck`; `SettleTest`, `PitDriveTest`.
+
 ### PLC signals, Wildcatter 13i (2026-11-07)
 
 - **Requires Wildcatter 0.5.1,** with its PLCs. 0.5.0 cut a long control trunk short: the playthrough's 2,076 cables reached 26 of 37 devices.

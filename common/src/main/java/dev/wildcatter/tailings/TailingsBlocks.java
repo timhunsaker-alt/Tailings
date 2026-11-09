@@ -86,10 +86,16 @@ public final class TailingsBlocks {
 	public static final Block APRON_FEEDER = plant(Machine.APRON_FEEDER, MapColor.COLOR_GRAY);
 	public static final Block ORE_SORTER = plant(Machine.ORE_SORTER, MapColor.COLOR_GRAY);
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
+	public static final Block TRUCK_DUMP_WALL = plant(Machine.TRUCK_DUMP_WALL, MapColor.STONE);
+	public static final Block PIT_HOPPER = plant(Machine.PIT_HOPPER, MapColor.METAL);
+	/** Broken rock (open-pit.md): falls and settles, holding what it was. Its drops are its contents, not a loot table. */
+	public static final Block MUCK = block("muck", props -> new dev.wildcatter.tailings.block.MuckBlock(props.mapColor(MapColor.STONE).strength(0.8F, 1.0F)
+			.sound(SoundType.GRAVEL).noLootTable()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.MuckBlockEntity> MUCK_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MuckBlockEntity::new, Set.of(MUCK));
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
-					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN));
+					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -126,7 +132,7 @@ public final class TailingsBlocks {
 			.sound(SoundType.METAL).requiresCorrectToolForDrops().lightLevel(state -> state.getValue(BlockSignalBlock.LIT) ? 12 : 0)));
 	public static final Block TRACTION_RECTIFIER = block("traction_rectifier", props -> new TractionRectifierBlock(props.mapColor(MapColor.COLOR_YELLOW)
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
-	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET));
+	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET, PIT_HOPPER));
 	public static final BlockEntityType<SignalBlockEntity> SIGNAL = new BlockEntityType<>(SignalBlockEntity::new, Set.of(BLOCK_SIGNAL));
 	public static final BlockEntityType<RectifierBlockEntity> RECTIFIER = new BlockEntityType<>(RectifierBlockEntity::new, Set.of(TRACTION_RECTIFIER));
 
@@ -174,6 +180,8 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("dump_station"), DUMP);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("block_signal"), SIGNAL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("traction_rectifier"), RECTIFIER);
+		add("muck", MUCK);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("muck"), MUCK_ENTITY);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -206,6 +214,8 @@ public final class TailingsBlocks {
 			case APRON_FEEDER -> APRON_FEEDER;
 			case ORE_SORTER -> ORE_SORTER;
 			case ORE_BIN -> ORE_BIN;
+			case TRUCK_DUMP_WALL -> TRUCK_DUMP_WALL;
+			case PIT_HOPPER -> PIT_HOPPER;
 		};
 	}
 

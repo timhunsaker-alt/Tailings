@@ -155,13 +155,21 @@ public class TailingsGameTests {
 			helper.register(id("part_break"), loaded(TailingsGameTests::partBreak));
 			helper.register(id("not_built"), loaded(TailingsGameTests::notBuilt));
 			helper.register(id("terminal"), loaded(TailingsGameTests::terminal));
+			helper.register(id("pit_settle"), loaded(PitGameTests::settle));
+			helper.register(id("pit_truck_tip"), loaded(PitGameTests::truckTip));
+			helper.register(id("pit_truck_body"), loaded(PitGameTests::truckBody));
+			helper.register(id("pit_hopper"), loaded(PitGameTests::hopper));
+			helper.register(id("pit_truck_drive"), loaded(PitGameTests::truckDrive));
+			helper.register(id("pit_loader_soft"), loaded(PitGameTests::loaderSoft));
+			helper.register(id("pit_loader_hard"), loaded(PitGameTests::loaderHard));
+			helper.register(id("pit_loader_muck"), loaded(PitGameTests::loaderMuck));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : SCENES) {
+			for (String scene : java.util.stream.Stream.concat(java.util.Arrays.stream(SCENES), java.util.Arrays.stream(PitGameTests.SCENES)).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), LONG.contains(scene) ? 1600 : 400, 1, true,
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400, 1, true,
 								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, 40)));
 			}
 		});

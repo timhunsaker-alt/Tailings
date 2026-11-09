@@ -40,7 +40,11 @@ public enum Machine {
 	DUMP_POCKET("dump_pocket", "Dump Pocket", 4, 3, 3, 0, Supply.NONE),
 	APRON_FEEDER("apron_feeder", "Apron Feeder", 2, 1, 4, 11_000, Supply.INDUSTRIAL),
 	ORE_SORTER("ore_sorter", "Ore Sorter", 3, 3, 3, 40_000, Supply.INDUSTRIAL),
-	ORE_BIN("ore_bin", "Ore Bin", 3, 6, 3, 0, Supply.NONE);
+	ORE_BIN("ore_bin", "Ore Bin", 3, 6, 3, 0, Supply.NONE),
+	/** The truck dump's concrete retaining wall: 3 m of wall below the pad and its 1.5 m bumper above, in two rows (open-pit.md). */
+	TRUCK_DUMP_WALL("truck_dump_wall", "Truck Dump Wall", 12, 5, 2, 0, Supply.NONE),
+	/** The truck dump's 400 t hopper, drawn by an apron feeder touching it (open-pit.md). */
+	PIT_HOPPER("pit_hopper", "Pit Hopper", 10, 6, 6, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

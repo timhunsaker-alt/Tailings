@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IFI",
+    "BIB"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "F": "minecraft:blast_furnace",
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "tailings:haul_truck",
+    "count": 1
+  }
+}

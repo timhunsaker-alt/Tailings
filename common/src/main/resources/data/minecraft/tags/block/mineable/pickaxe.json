@@ -52,6 +52,8 @@
     "tailings:ccd_thickener",
     "tailings:electrowinning_bank",
     "tailings:byproduct_plant",
-    "tailings:heap_pad"
+    "tailings:heap_pad",
+    "tailings:truck_dump_wall",
+    "tailings:pit_hopper"
   ]
 }

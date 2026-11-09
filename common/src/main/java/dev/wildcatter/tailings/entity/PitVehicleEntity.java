@@ -1,0 +1,361 @@
+package dev.wildcatter.tailings.entity;
+
+import dev.wildcatter.tailings.block.ChunkRunner;
+import dev.wildcatter.tailings.block.Feeds;
+import dev.wildcatter.tailings.haul.TrainHarm;
+import dev.wildcatter.tailings.pit.PitDrive;
+import dev.wildcatter.tailings.pit.PitLoad;
+import dev.wildcatter.tailings.platform.Platform;
+import java.util.Map;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * A rubber-tyred pit machine a player drives (docs/multiblocks/open-pit.md): the haul truck and the wheel loader. Right-click to sit
+ * in its cab; the movement keys drive it on the server from the rider's keys, by its engine's power ({@link PitDrive}); jump works
+ * its body or bucket; sneak gets out. It is at its real size, its box turning with it, and it steps up one block at a time.
+ */
+public abstract class PitVehicleEntity extends Entity implements SoundingEntity {
+	private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.FLOAT);
+	/** The truck's body or the loader's bucket arm, 0 down to 1 up. */
+	private static final EntityDataAccessor<Float> DATA_LIFT = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
+	protected static final double TICK = 1.0 / 20;
+
+	protected final PitLoad load;
+	private double speed;
+	/** The grade under it, averaged over the last 10 m it moved: plus is uphill in the way it faces. */
+	private double slope;
+	private double fall;
+	private boolean lastJump;
+	private int refresh;
+	protected String status = "standing";
+	/** A game test's keys, when no player drives. */
+	private Input testInput = Input.EMPTY;
+
+	protected PitVehicleEntity(EntityType<?> type, Level level) {
+		super(type, level);
+		this.load = new PitLoad(spec().ratingKg());
+	}
+
+	public abstract PitDrive.Spec spec();
+
+	protected abstract Item item();
+
+	/** The jump key, pressed once: the truck tips, the loader digs or dumps. */
+	protected abstract void jump(ServerLevel level, @Nullable Player driver);
+
+	/** It may not drive: the truck's body is up, the loader is in a pass. */
+	public abstract boolean busy();
+
+	/** The jump key pressed once, with nobody in the cab: for game tests. */
+	public void pressJump(ServerLevel level) {
+		jump(level, null);
+	}
+
+	/** Where its cab seat is, from its centre on the ground: across (plus is to its right), up, ahead. */
+	protected abstract Vec3 seat();
+
+	/** Each server tick, after it has moved. */
+	protected void work(ServerLevel level) {
+	}
+
+	public PitLoad load() {
+		return load;
+	}
+
+	public double speed() {
+		return speed;
+	}
+
+	public double slope() {
+		return slope;
+	}
+
+	public String status() {
+		return status;
+	}
+
+	public float lift() {
+		return entityData.get(DATA_LIFT);
+	}
+
+	protected void setLift(float lift) {
+		entityData.set(DATA_LIFT, lift);
+	}
+
+	public boolean loaded() {
+		return entityData.get(DATA_LOADED);
+	}
+
+	/** After its load changes. */
+	public void refreshLoad() {
+		entityData.set(DATA_LOADED, load.total() > 0);
+	}
+
+	public double massKg() {
+		return spec().emptyKg() + load.total();
+	}
+
+	/** Keys for a game test to drive it with. */
+	public void testDrive(Input input) {
+		this.testInput = input;
+	}
+
+	@Override
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		builder.define(DATA_SPEED, 0F);
+		builder.define(DATA_LIFT, 0F);
+		builder.define(DATA_LOADED, false);
+	}
+
+	// ---- its frame: ahead and to its right ---------------------------------------------------------------------------------------
+
+	protected Vec3 ahead() {
+		double yaw = Math.toRadians(getYRot());
+		return new Vec3(-Math.sin(yaw), 0, Math.cos(yaw));
+	}
+
+	protected Vec3 right() {
+		double yaw = Math.toRadians(getYRot());
+		return new Vec3(-Math.cos(yaw), 0, -Math.sin(yaw));
+	}
+
+	/** A point given from its centre on the ground: across (plus right), up, ahead. */
+	public Vec3 local(double across, double up, double forward) {
+		return position().add(right().scale(across)).add(ahead().scale(forward)).add(0, up, 0);
+	}
+
+	// ---- its box -----------------------------------------------------------------------------------------------------------------
+
+	/** Its box runs its real length and width, turned with it. */
+	@Override
+	protected AABB makeBoundingBox(Vec3 at) {
+		return boxAt(at, getYRot());
+	}
+
+	protected AABB boxAt(Vec3 at, float yawDegrees) {
+		PitDrive.Spec spec = spec();
+		double half = spec.length() / 2, side = spec.width() / 2;
+		double yaw = Math.toRadians(yawDegrees), sin = Math.abs(Math.sin(yaw)), cos = Math.abs(Math.cos(yaw));
+		double x = sin * half + cos * side, z = cos * half + sin * side;
+		return new AABB(at.x - x, at.y, at.z - z, at.x + x, at.y + spec.height(), at.z + z);
+	}
+
+	@Override
+	public void setYRot(float yaw) {
+		boolean turned = yaw != getYRot();
+		super.setYRot(yaw);
+		if (turned) {
+			setBoundingBox(makeBoundingBox(position()));
+		}
+	}
+
+	@Override
+	public float maxUpStep() {
+		return 1.0F;
+	}
+
+	@Override
+	public boolean isPickable() {
+		return !isRemoved();
+	}
+
+	@Override
+	public boolean canBeCollidedWith(@Nullable Entity other) {
+		return true;
+	}
+
+	@Override
+	public boolean isPushable() {
+		return false;
+	}
+
+	// ---- driving -----------------------------------------------------------------------------------------------------------------
+
+	private Input keys() {
+		return getFirstPassenger() instanceof ServerPlayer driver ? driver.getLastClientInput() : testInput;
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (!(level() instanceof ServerLevel server)) {
+			SoundingEntity.Hook.start.accept(this);
+			return;
+		}
+		Input keys = keys();
+		if (keys.jump() && !lastJump) {
+			jump(server, getFirstPassenger() instanceof Player p ? p : null);
+		}
+		lastJump = keys.jump();
+		double throttle = busy() ? 0 : keys.forward() ? 1 : keys.backward() ? -1 : 0;
+		speed = busy() ? 0 : PitDrive.next(spec(), massKg(), speed, throttle, slope, TICK);
+		double steer = keys.left() ? 1 : keys.right() ? -1 : 0;
+		if (Math.abs(speed) > 0.05 && steer != 0) {
+			float turned = getYRot() - (float) Math.toDegrees(steer * speed / spec().turnRadius() * TICK);
+			if (server.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
+				setYRot(turned);
+			}
+		}
+		fall = onGround() ? -0.04 : Math.max(-3.0, fall - 0.08);
+		Vec3 before = position();
+		Vec3 want = ahead().scale(speed * TICK);
+		move(MoverType.SELF, new Vec3(want.x, fall, want.z));
+		setDeltaMovement(Vec3.ZERO);
+		double moved = Math.hypot(getX() - before.x, getZ() - before.z);
+		if (horizontalCollision && moved < want.horizontalDistance() * 0.3) {
+			speed = 0;   // into something it cannot climb
+		}
+		if (moved > 0.001) {
+			double sample = (getY() - before.y) * Math.signum(speed == 0 ? 1 : speed);
+			slope += (sample - slope * moved) / 10.0;
+			slope = Math.max(-0.5, Math.min(0.5, slope));
+		}
+		entityData.set(DATA_SPEED, (float) speed);
+		if (Math.abs(speed) > 1.0) {
+			strike(server);
+		}
+		work(server);
+		if (refresh-- <= 0 && (isVehicle() || Math.abs(speed) > 0.05 || busy())) {
+			refresh = ChunkRunner.REFRESH_TICKS;
+			ChunkRunner.refresh(server, blockPosition());
+			ChunkRunner.refresh(server, net.minecraft.core.BlockPos.containing(local(0, 0, spec().length())));
+		}
+	}
+
+	/** What it hits while moving is hurt (config/tailings-train.properties, truck_damage). */
+	private void strike(ServerLevel server) {
+		float amount = TrainHarm.truckDamageFor(server.getServer(), Platform.INSTANCE.configDir().resolve("tailings-train.properties"));
+		if (amount <= 0) {
+			return;
+		}
+		for (LivingEntity living : server.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(0.2), e -> !hasPassenger(e))) {
+			living.hurtServer(server, server.damageSources().generic(), amount);
+		}
+	}
+
+	// ---- the cab -----------------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected boolean canAddPassenger(Entity passenger) {
+		return getPassengers().isEmpty();
+	}
+
+	@Override
+	protected void positionRider(Entity passenger, MoveFunction move) {
+		Vec3 seat = seat();
+		Vec3 at = local(seat.x, seat.y, seat.z);
+		move.accept(passenger, at.x, at.y, at.z);
+	}
+
+	/** Out of the cab door, on the ground beside it. */
+	@Override
+	public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+		Vec3 seat = seat();
+		double side = Math.signum(seat.x == 0 ? -1 : seat.x) * (spec().width() / 2 + 1.0);
+		Vec3 out = local(side, 0, seat.z);
+		if (level().noCollision(passenger, passenger.getBoundingBox().move(out.subtract(passenger.position())))) {
+			return out;
+		}
+		return super.getDismountLocationForPassenger(passenger);
+	}
+
+	@Override
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
+		if (level().isClientSide()) {
+			return InteractionResult.SUCCESS;
+		}
+		if (player.isShiftKeyDown() || isVehicle()) {
+			player.sendOverlayMessage(readout());
+			return InteractionResult.SUCCESS;
+		}
+		player.startRiding(this);
+		return InteractionResult.SUCCESS;
+	}
+
+	public Component readout() {
+		return Component.literal(getType().getDescription().getString() + ": " + status + "; " + load.tonnes() + "; "
+				+ String.format(java.util.Locale.ROOT, "%.0f km/h", Math.abs(speed) * 3.6));
+	}
+
+	/** Only a sneaking hit with an empty hand breaks it, into its item and its load. */
+	@Override
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+		if (source.getEntity() instanceof Player player && player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
+			for (Map.Entry<String, Integer> e : load.wholeBlocks().entrySet()) {
+				for (int left = e.getValue(); left > 0; left -= 64) {
+					spawnAtLocation(level, Feeds.stack(e.getKey(), Math.min(64, left)));
+				}
+			}
+			load.clear();
+			spawnAtLocation(level, new ItemStack(item()));
+			ejectPassengers();
+			discard();
+			return true;
+		}
+		return false;
+	}
+
+	// ---- sound -------------------------------------------------------------------------------------------------------------------
+
+	@Override
+	public net.minecraft.sounds.@Nullable SoundEvent loop() {
+		if (!isVehicle() && Math.abs(entityData.get(DATA_SPEED)) < 0.05F && lift() == 0) {
+			return null;   // parked, engine off
+		}
+		return Math.abs(entityData.get(DATA_SPEED)) > 0.3F ? dev.wildcatter.WildcatterSounds.DIESEL_LOAD : dev.wildcatter.WildcatterSounds.DIESEL_IDLE;
+	}
+
+	@Override
+	public float soundPitch() {
+		return 0.8F + 0.03F * Math.abs(entityData.get(DATA_SPEED));
+	}
+
+	@Override
+	public float soundVolume() {
+		return 1.0F;
+	}
+
+	// ---- saving ------------------------------------------------------------------------------------------------------------------
+
+	@Override
+	protected void readAdditionalSaveData(ValueInput input) {
+		load.load(input.getStringOr("load", ""));
+		speed = input.getDoubleOr("speed", 0);
+		slope = input.getDoubleOr("slope", 0);
+		status = input.getStringOr("status", "standing");
+		setLift((float) input.getDoubleOr("lift", 0));
+		refreshLoad();
+	}
+
+	@Override
+	protected void addAdditionalSaveData(ValueOutput output) {
+		output.putString("load", load.save());
+		output.putDouble("speed", speed);
+		output.putDouble("slope", slope);
+		output.putString("status", status);
+		output.putDouble("lift", lift());
+	}
+}

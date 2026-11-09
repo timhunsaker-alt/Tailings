@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SIS",
+    "SSS"
+  ],
+  "key": {
+    "S": "minecraft:smooth_stone",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "tailings:truck_dump_wall",
+    "count": 1
+  }
+}

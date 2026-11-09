@@ -233,6 +233,32 @@ device. A PLC never overrides protection: a stalled motor, a tripped breaker and
   inputs. The machine reports to the junction its cable reaches.
 - **Pull cords** are Wildcatter's `pull_cord`, wired to a PLC input like any button.
 
+## The open pit (P1)
+
+Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
+
+- **Loose ground:** `mine.Settle` is the settle rule in plain Java (unit-tested in `SettleTest`): a let-go block falls, then rolls
+  toward a side where resting would leave a step of 2 or more, or 4 up in a run of 4 columns. Piles stand at 37 degrees (36 in the
+  test). `pit.Loose` places muck, soil and tipped loads in the world by it, at once, with no falling entities.
+- **Masses** (`pit.PitMass`): rock and ore 2.7 t a block; dirt and sand 1.6 t, gravel 1.9, clay 2.0, mud 1.8. A grass block digs as
+  dirt. Soil is dirt, coarse and rooted dirt, sand, red sand, gravel, clay and mud: it goes to dumps, never to the plant.
+- **Muck** (`block.MuckBlock`, `MuckBlockEntity`): holds quarters of a bank block of each item it was; a full block holds 3. It
+  settles again when its ground goes. Broken by hand it drops a quarter at a time by chance; it has no loot table.
+- **Driving** (`entity.PitVehicleEntity`, `pit.PitDrive`): the rider's keys come from the server's copy of their input
+  (`ServerPlayer.getLastClientInput`), so the vehicle moves on the server and the client follows it. Forward and back drive or brake
+  by the engine's power, left and right turn on its radius while it moves, jump works its body or bucket, sneak gets out. It steps
+  up 1 block. Its box is its real length and width, turned with it; it will not turn into a wall.
+- **The truck** (`HaulTruckEntity`): standing, jump raises the body over 13 s. At the top its load goes into a pit hopper under its
+  tail (`DumpBlockEntity.tip`: whole bank blocks, all or none; soil refused; FULL) or out 1.5 m behind it by `Loose.tip` (soil as its
+  own blocks, rock as muck at 4 quarters a bank block). What is under a whole block or quarter stays in the body.
+- **The loader** (`WheelLoaderEntity`): jump with the bucket empty digs up to 20.4 t from the face in front of the bucket (5 wide,
+  6 high from its own floor, 3 deep, top down), soft ground or muck; a pass is 25 s. Jump with the bucket full dumps it into the
+  nearest truck within 4 m of the bucket's lip; 15 s. Standing rock reads "hard rock: blast it first".
+- **The pit hopper** is a `DumpBlockEntity` (as the rail dump pocket) with its own capacity, so the apron feeder, sorter and ore
+  bins downstream work unchanged.
+- **Sound:** the vehicles use Wildcatter's `diesel_idle` and `diesel_load` loops while driven; tipping and loading use
+  `tailings:muck_tip` and `muck_load`.
+
 ## Config
 
 Only one file. It is not created for you.
@@ -243,6 +269,7 @@ Only one file. It is not created for you.
 |---|---|---|
 | `damage` | `true` | Whether the locomotive hurts living entities in the consist box |
 | `amount` | `8` | Damage per hit. A bad number falls back to 8 |
+| `truck_damage` | `8` | Damage per hit from a moving haul truck or wheel loader (over 1 m/s). `damage=false` turns it off too |
 
 There is no other Tailings config, and no Tailings gamerule.
 
@@ -285,6 +312,9 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `mine_stair` | None. The drill cuts it | Walkway stair |
 | `mine_landing` | None. The drill cuts it | Walkway landing |
 | `mine_floor` | None. The drill cuts it | Flat floor stone |
+| `truck_dump_wall` | Smooth stone around an iron ingot (placeholder) | 12 x 5 x 2: 3 m retaining wall and a 1.5 m bumper a reversing truck stops against |
+| `pit_hopper` | Iron, a hopper and smooth stone (placeholder) | 10 x 6 x 6, 400 t of bank blocks. A truck whose tail is over it tips in; the apron feeder touching it draws it out. It refuses soil |
+| `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
 
 Stamp mill:
 
@@ -346,5 +376,7 @@ Block items exist for every block above, including the ones with no crafting rec
 | `mine_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` | Drives its train: path, speed, direction, cars |
 | `mine_car` | `MineVehicleEntity` | `MineVehicleRenderer` | A car; its load, and whether it is loaded (synced) |
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
+| `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
+| `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |
 
 Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

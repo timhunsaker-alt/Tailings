@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ISS",
+    "IFI",
+    "BIB"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "S": "minecraft:iron_ingot",
+    "F": "minecraft:blast_furnace",
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "tailings:wheel_loader",
+    "count": 1
+  }
+}
