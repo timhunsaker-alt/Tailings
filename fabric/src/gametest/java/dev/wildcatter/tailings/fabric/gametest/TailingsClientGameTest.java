@@ -951,7 +951,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			drill.setPos(b.getX() + 44.5, b.getY() + 60, b.getZ() + 56.5);   // its mast over the pattern's first hole, x 44, z 50
 			drill.setYRot(0);
 			drill.setFuel(drill.tank());
-			drill.fast(20);
+			drill.fast(40);   // the film's speed-up: 12 holes in under 2 minutes (real: about 40 minutes); kept over a chunk reload
 			drill.setting("Rows", 3);
 			drill.setting("Columns", 4);
 			level.addFreshEntity(drill);
@@ -963,9 +963,14 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-pit-blast-bench");
 		Filming film = film(context, world, "pit_blast");
 		java.util.UUID drillId = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[0]).getUUID());
-		for (int t = 0; t < 600; t++) {
+		for (int t = 0; t < 1200; t++) {
 			context.waitTicks(10);
-			boolean running = server.computeOnServer(srv -> srv.overworld().getEntity(drillId) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d && d.running());
+			// done when it says so: a drill whose chunk is reloading is not found for a tick, which is not done
+			boolean running = server.computeOnServer(srv -> !(srv.overworld().getEntity(drillId) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d)
+					|| d.running() || !(d.status().startsWith("DONE") || d.status().contains("OUT OF FUEL") || d.status().contains("BLOCKED") || d.status().contains("NOT LEVEL")));
+			if (t % 50 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] pit_blast: drill at " + (srv.overworld().getEntity(drillId) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d ? d.status() + ", running " + d.running() : "not found")));
+			}
 			if (t == 20) {
 				context.takeScreenshot("tailings-pit-blast-drilling");
 			}
@@ -1000,6 +1005,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			return out;
 		});
 		System.out.println("[tailings-test] pit_blast: " + collars.size() + " holes primed");
+		require(collars.size() == 12, "the drill should leave 12 holes, found " + collars.size());
 		java.util.UUID truckId = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[1]).getUUID());
 		for (double standX : new double[] {38.5, 22.5}) {
 			server.runOnServer(srv -> {

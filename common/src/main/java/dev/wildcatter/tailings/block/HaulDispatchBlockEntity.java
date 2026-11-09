@@ -265,6 +265,15 @@ public class HaulDispatchBlockEntity extends BlockEntity implements BigPartEntit
 		}
 	}
 
+	/** Trucks find it as soon as it is in the world, not only once it has ticked (its chunk may not tick yet). */
+	@Override
+	public void clearRemoved() {
+		super.clearRemoved();
+		if (level instanceof ServerLevel server) {
+			OFFICES.computeIfAbsent(server, l -> new HashSet<>()).add(worldPosition.immutable());
+		}
+	}
+
 	@Override
 	public void setRemoved() {
 		if (level instanceof ServerLevel server) {

@@ -544,11 +544,17 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		facing = Direction.from2DDataValue(input.getIntOr("facing", 0));
 		next = input.getIntOr("next", 0);
 		holesDrilled = input.getIntOr("holes", 0);
-		// a hole half drilled when the world closed is finished short where it stood; the pattern goes on from the next
-		phase = running ? Phase.PIVOT_OUT : Phase.IDLE;
+		divisor = Math.max(1, input.getIntOr("fast", 1));
+		single = input.getBooleanOr("single", false);
+		// it goes on where it was: a hole half drilled when its chunk unloaded is finished, from the metre it had reached
+		phase = Phase.values()[Math.floorMod(input.getIntOr("phase", (running ? Phase.PIVOT_OUT : Phase.IDLE).ordinal()), Phase.values().length)];
 		long c = input.getLongOr("collar", Long.MIN_VALUE);
-		if (running && c != Long.MIN_VALUE) {
-			next++;
+		collar = c == Long.MIN_VALUE ? null : BlockPos.of(c);
+		metres = input.getIntOr("metres", 0);
+		depth = input.getIntOr("depth", 0);
+		ticks = input.getIntOr("ticks", 0);
+		if (phase == Phase.DRILL && collar == null) {
+			phase = running ? Phase.PIVOT_OUT : Phase.IDLE;
 		}
 	}
 
@@ -565,8 +571,14 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		output.putInt("facing", facing.get2DDataValue());
 		output.putInt("next", next);
 		output.putInt("holes", holesDrilled);
-		if (phase == Phase.DRILL && collar != null) {
+		output.putInt("fast", divisor);
+		output.putBoolean("single", single);
+		output.putInt("phase", phase.ordinal());
+		if (collar != null) {
 			output.putLong("collar", collar.asLong());
 		}
+		output.putInt("metres", metres);
+		output.putInt("depth", depth);
+		output.putInt("ticks", ticks);
 	}
 }
