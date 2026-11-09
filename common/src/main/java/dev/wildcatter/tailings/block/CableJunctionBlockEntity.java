@@ -18,6 +18,12 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * The cable junction on Wildcatter's grid: a 4.16 kV load whose draw is the TBM's at the far end of its trailing cable (its drives
  * are variable-frequency: a Wildcatter {@link DriveLoad} at power factor 0.95, proposed). The machine says what it draws each tick.
+ * <p>
+ * The reel gantry's transformer is a real part of the same circuit: three windings (Wildcatter's {@link Circuit#transformer}, the
+ * 150 kVA nameplate's impedance) from the medium-voltage side the cable brings in to an industrial-voltage secondary, its neutrals
+ * grounded, and the pump's and conveyor's motors a load on that secondary. Their current flows through it and shows on the
+ * junction's 4.16 kV side. The transformer is built here, at the cable's fixed end, because a circuit part is a block and the gantry
+ * moves; the trailing cable between them is not modelled.
  */
 public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart, Inspectable, dev.wildcatter.control.ControlDevice {
 	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(1);
@@ -107,14 +113,61 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 	private long until;
 	private boolean live;
 
+	/** The reel gantry's transformer: 150 kVA (proposed, tunnel-boring-machine.md), 4 % impedance (proposed, typical of the size). */
+	public static final double TRANSFORMER_VA = 150_000;
+	private static final double TRANSFORMER_PERCENT_Z = 4.0;
+	/** The pump's and conveyor's induction motors, started across the line (proposed). */
+	private static final double AUX_POWER_FACTOR = 0.85;
+	private static final Conductor[] PHASES = {Conductor.A, Conductor.B, Conductor.C};
+	private final int[] high = new int[3];
+	private final int[] low = new int[3];
+	private final int[] winding = {-1, -1, -1};
+	private final int[] auxBranch = {-1, -1, -1};
+	private int auxStar = -1;
+	private double auxDemand;
+	private double lowVolts;
+	private double auxAmps;
+	private double auxWatts;
+	private double highAmps;
+
 	public CableJunctionBlockEntity(BlockPos pos, BlockState state) {
 		super(TailingsBlocks.CABLE_JUNCTION_ENTITY, pos, state);
 	}
 
 	/** The machine draws {@code watts} through the junction for the next second. */
 	public void draw(double watts) {
-		demand = Math.max(0, watts);
+		draw(watts, 0);
+	}
+
+	/** The beam draws {@code beam} watts at 4.16 kV and the pump and conveyor {@code aux} through the reel gantry's transformer, for the next second. */
+	public void draw(double beam, double aux) {
+		demand = Math.max(0, beam);
+		auxDemand = Math.max(0, aux);
 		until = level == null ? 0 : level.getGameTime() + 20;
+	}
+
+	/** True while the transformer's secondary holds at least 80 % of its rated volts: the pump and conveyor can run. */
+	public boolean auxLive() {
+		return lowVolts > Voltage.INDUSTRIAL.lineToLine() * 0.8;
+	}
+
+	/** The secondary's line-to-line volts, at the last solve. */
+	public double transformerVolts() {
+		return lowVolts;
+	}
+
+	/** The pump's and conveyor's current on the secondary, and the watts they take, at the last solve. */
+	public double auxAmps() {
+		return auxAmps;
+	}
+
+	public double auxWatts() {
+		return auxWatts;
+	}
+
+	/** The transformer's primary current, on the 4.16 kV side. */
+	public double transformerPrimaryAmps() {
+		return highAmps;
 	}
 
 	/** True while 4.16 kV comes in. */
@@ -132,16 +185,64 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 		boolean drawing = level != null && level.getGameTime() < until;
 		load.setDemand(drawing ? demand : 0);
 		load.build(circuit, worldPosition, List.of(Direction.values()));
+		buildTransformer(circuit, drawing ? auxDemand : 0);
+	}
+
+	/** Wye-wye, both neutrals grounded, from the world's own medium and industrial voltages; its secondary load a constant-power star. */
+	private void buildTransformer(Circuit circuit, double aux) {
+		Voltage hv = Voltage.MEDIUM, lv = Voltage.INDUSTRIAL;
+		double ratio = hv.nominal() / lv.nominal();
+		double zBase = hv.nominal() * hv.nominal() / (TRANSFORMER_VA / 3);
+		double reactance = TRANSFORMER_PERCENT_Z / 100.0 * zBase;
+		double ohms = reactance / dev.wildcatter.Tuning.TRANSFORMER_X_OVER_R;
+		int highNeutral = circuit.node(), lowNeutral = circuit.node();
+		for (int k = 0; k < 3; k++) {
+			high[k] = circuit.node();
+			low[k] = circuit.node();
+			winding[k] = circuit.transformer(high[k], highNeutral, low[k], lowNeutral, ratio, ohms, reactance);
+		}
+		circuit.ground(highNeutral);
+		circuit.ground(lowNeutral);
+		for (Direction face : Direction.values()) {
+			for (int k = 0; k < 3; k++) {
+				circuit.port(worldPosition, face, PHASES[k], hv, high[k], dev.wildcatter.Tuning.CONTACT_OHMS / 2, false);
+			}
+		}
+		java.util.Arrays.fill(auxBranch, -1);
+		auxStar = -1;
+		if (aux > 1) {
+			double at = lowVolts > lv.lineToLine() * 0.5 ? lowVolts : lv.lineToLine();   // constant power, from the volts it saw last
+			double z = at * at / (aux / AUX_POWER_FACTOR);
+			auxStar = circuit.node();
+			for (int k = 0; k < 3; k++) {
+				auxBranch[k] = circuit.impedance(low[k], auxStar, z * AUX_POWER_FACTOR, z * Math.sqrt(1 - AUX_POWER_FACTOR * AUX_POWER_FACTOR));
+			}
+		}
 	}
 
 	@Override
 	public void apply(Circuit circuit, int ticks) {
 		load.apply(circuit, ticks);
 		live = load.volts() > 1 && !load.undervoltage();
+		lowVolts = (circuit.across(low[0], low[1]) + circuit.across(low[1], low[2]) + circuit.across(low[2], low[0])) / 3.0;
+		highAmps = 0;
+		for (int k = 0; k < 3; k++) {
+			highAmps = Math.max(highAmps, circuit.transformerCurrent(winding[k]));
+		}
+		auxAmps = 0;
+		auxWatts = 0;
+		for (int k = 0; k < 3; k++) {
+			if (auxBranch[k] >= 0) {
+				dev.wildcatter.solver.Complex i = circuit.currentPhasor(auxBranch[k]);
+				auxWatts += circuit.acrossPhasor(low[k], auxStar).times(i.conjugate()).re();
+				auxAmps = Math.max(auxAmps, i.abs());
+			}
+		}
 	}
 
 	@Override
 	public Component inspect() {
-		return Component.literal("Cable junction (4.16 kV to the TBM's trailing cable): " + (live ? "live" : "no 4.16 kV in") + "; " + load.describe());
+		return Component.literal("Cable junction (" + Voltage.MEDIUM.label() + " to the TBM's trailing cable): " + (live ? "live" : "no " + Voltage.MEDIUM.label() + " in") + "; " + load.describe()
+				+ String.format("; reel gantry transformer (%s / %s, 150 kVA): %.0f V, %.0f A, %.0f kW to the pump and conveyor", Voltage.MEDIUM.label(), Voltage.INDUSTRIAL.label(), lowVolts, auxAmps, auxWatts / 1000));
 	}
 }

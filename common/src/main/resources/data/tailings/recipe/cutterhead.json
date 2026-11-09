@@ -1,13 +1,14 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "ICI",
-    "III"
+    "SSS",
+    "WDW",
+    "SSS"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "S": "wildcatter:steel_ingot",
+    "W": "wildcatter:stator_winding",
+    "D": "wildcatter:drive_cabinet"
   },
   "result": {
     "id": "tailings:cutterhead",

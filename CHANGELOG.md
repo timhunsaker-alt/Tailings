@@ -4,6 +4,25 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### The TBM's gaps (2026-11-09, decided while Tim was away)
+
+- **The gantries run on their own wheels** on the twin track. Take a rail from under one and the machine stops, naming it; put it
+  back and it goes on. On the decline they now stand on their rails, half a block lower than before.
+- **Every car of a train loads:** the loading point reaches a whole 10-car train (29 rows behind the conveyor, was 13), and a train
+  indexes forward through it a car at a time.
+- **The trailing cable is drawn** from the reel gantry back to the cable junction, and the reel turns as it pays out.
+- **The reel gantry's transformer is on the circuit:** the pump's and conveyor's current flows through a 4.16 kV to 480 V, 150 kVA
+  transformer, shown on the junction's readout. The conveyor stops if its 480 V is out.
+- **The quench tank is on the pump gantry.** Breaking the pump gantry loses its water. Changed for existing worlds: water in an old
+  cab moves to its pump gantry.
+- **The cab's screen stays open** when the machine lifts and sets down.
+- **Real recipes** for the cutterhead, segment erector, main beam, track layer, cable junction and the three gantries, from steel and
+  Wildcatter's parts. Changed for existing players: the old iron-and-copper recipes are gone.
+- **Track too long for the solver** (over 4,000 nodes on one rectifier) is dead and says so: "TRACK TOO LONG".
+- **Fixed by Wildcatter 0.4.1, now proved:** busway straight onto the traction rectifier's motor box.
+- **Tests:** `tbm_gantry_derail`, `tbm_train_fills`, `tbm_quench_gantry`, `tbm_screen_follows`, `tbm_transformer`, `tbm_recipes`,
+  `track_too_long`, `rectifier_busway`; `GantryWheelsTest`.
+
 ### Round wheels (2026-11-09, Tim's request)
 
 - **The haul truck's and wheel loader's wheels are round**, as round as the pixel grid allows (a 1/16 m slice per row), with a steel

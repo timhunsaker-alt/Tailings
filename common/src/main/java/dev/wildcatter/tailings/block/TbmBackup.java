@@ -40,24 +40,60 @@ public final class TbmBackup {
 		return new double[] {-facing.getStepX() * row, -facing.getStepZ() * row};
 	}
 
-	/** Sets every gantry the machine has at its place, pitched to the floor under it. */
+	/**
+	 * Tows every gantry the machine has to its place: each runs on its own wheels along the twin track (GantryEntity#tow), and the rails
+	 * under it set its height and pitch. The reel gantry is told where its cable runs back to and how much is paid out.
+	 */
 	public static void place(ServerLevel level, TbmCab cab) {
-		TunnelDrill drill = cab.core().drill();
-		double slice = cab.machineSlice();
 		for (TbmGantry kind : TbmGantry.values()) {
 			UUID id = cab.core().gantry(kind);
 			if (id != null && level.getEntity(id) instanceof GantryEntity gantry) {
-				double front = slice - kind.row();
-				double rise = drill.floorExact(front - kind.length()) - drill.floorExact(front);
-				gantry.setAt(slot(cab, kind), cab.machineFacing(), (float) Math.toDegrees(Math.atan2(rise, kind.length())));
+				gantry.tow(slot(cab, kind), cab.machineFacing());
+				if (kind == TbmGantry.REEL) {
+					gantry.setCable(cab.core().junction(), (float) Math.max(0, cab.machineSlice() + 1));
+				}
 			}
 		}
 	}
 
-	/** What is wrong behind the machine, or null: a gantry not coupled or gone, or no track under one. */
+	/**
+	 * The quench tank rides the pump gantry: before the cab works this tick it takes the tank's water from there, and {@link
+	 * #storeTank} hands it back after. No pump gantry, no tank; a pump gantry broken takes its water with it. A pump gantry in an unloaded
+	 * chunk keeps what the cab last saw.
+	 */
+	public static @Nullable GantryEntity loadTank(ServerLevel level, TbmCab cab) {
+		TbmCore core = cab.core();
+		UUID id = core.gantry(TbmGantry.PUMP);
+		if (id == null) {
+			core.setTankAboard(false, 0);
+			return null;
+		}
+		if (level.getEntity(id) instanceof GantryEntity pump && pump.isAlive()) {
+			if (core.legacyTank() > 0) {
+				pump.setWater(Math.min(TbmCore.TANK_MAX, pump.water() + core.legacyTank()));   // a world saved with the tank in the cab
+				core.clearLegacyTank();
+			}
+			core.setTankAboard(true, pump.water());
+			return pump;
+		}
+		if (level.isPositionEntityTicking(BlockPos.containing(slot(cab, TbmGantry.PUMP)))) {
+			core.uncouple(TbmGantry.PUMP);   // its chunk is loaded and it is not there: it was broken, and its water with it
+			core.setTankAboard(false, 0);
+		} else {
+			core.setTankAboard(false, core.tank());
+		}
+		return null;
+	}
+
+	public static void storeTank(@Nullable GantryEntity pump, TbmCore core) {
+		if (pump != null && pump.isAlive()) {
+			pump.setWater(core.tank());
+		}
+	}
+
+	/** What is wrong behind the machine, or null: a gantry not coupled or gone, or off the track (its wheels found no rail under it). */
 	public static @Nullable String fault(ServerLevel level, TbmCore core) {
 		TunnelDrill drill = core.drill();
-		RailView view = new RailView(level);
 		for (TbmGantry kind : TbmGantry.values()) {
 			UUID id = core.gantry(kind);
 			if (id == null) {
@@ -72,13 +108,9 @@ public final class TbmBackup {
 				}
 				continue;
 			}
-			for (int row = kind.row(); row < kind.row() + kind.length(); row++) {
-				for (int across : new int[] {TbmGantry.LEFT_RAIL + 1, TbmGantry.RIGHT_RAIL + 1}) {
-					int back = -(row + 1);
-					if (view.at(drill.worldX(across, back), drill.worldY(1, back), drill.worldZ(across, back)) == null) {
-						return "track under the " + kind.displayName();
-					}
-				}
+			// its own wheels say whether the rails still carry it where it stands
+			if (!gantry.tow(gantry.position(), gantry.facing())) {
+				return "track under the " + kind.displayName();
 			}
 		}
 		return null;

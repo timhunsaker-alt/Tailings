@@ -155,6 +155,7 @@ public class TailingsGameTests {
 			helper.register(id("part_break"), loaded(TailingsGameTests::partBreak));
 			helper.register(id("not_built"), loaded(TailingsGameTests::notBuilt));
 			helper.register(id("terminal"), loaded(TailingsGameTests::terminal));
+			TbmGapsGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			helper.register(id("pit_settle"), loaded(PitGameTests::settle));
 			helper.register(id("pit_truck_tip"), loaded(PitGameTests::truckTip));
 			helper.register(id("pit_truck_body"), loaded(PitGameTests::truckBody));
@@ -178,11 +179,13 @@ public class TailingsGameTests {
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream)
+					// TAILINGS_SCENES=a,b runs only those scenes, for working on a few
+					.filter(name -> System.getenv("TAILINGS_SCENES") == null || java.util.Arrays.asList(System.getenv("TAILINGS_SCENES").split(",")).contains(name)).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,
-								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitHaulGameTests.padding(scene, 40))));
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,
+								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40)))));
 			}
 		});
 	}
@@ -267,7 +270,7 @@ public class TailingsGameTests {
 	}
 
 	/** Places a whole part as a player would: its main cell, then the rest grown into place. */
-	private static <T extends net.minecraft.world.level.block.entity.BlockEntity> T part(GameTestHelper helper, Block block, BlockPos pos, Class<T> entity) {
+	static <T extends net.minecraft.world.level.block.entity.BlockEntity> T part(GameTestHelper helper, Block block, BlockPos pos, Class<T> entity) {
 		BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, Direction.NORTH);
 		helper.setBlock(pos, state);
 		BigParts.grow(helper.getLevel(), helper.absolutePos(pos), helper.getLevel().getBlockState(helper.absolutePos(pos)));
@@ -840,13 +843,13 @@ public class TailingsGameTests {
 		}
 	}
 
-	private static MineVehicleEntity loco(GameTestHelper helper, BlockPos at, Heading heading) {
+	static MineVehicleEntity loco(GameTestHelper helper, BlockPos at, Heading heading) {
 		MineVehicleEntity loco = MineVehicleEntity.placeLocomotive(helper.getLevel(), helper.absolutePos(at), heading);
 		helper.assertTrue(loco != null, Component.literal("a locomotive should go on the rail at " + at));
 		return loco;
 	}
 
-	private static MineVehicleEntity car(GameTestHelper helper, BlockPos at, Heading heading) {
+	static MineVehicleEntity car(GameTestHelper helper, BlockPos at, Heading heading) {
 		MineVehicleEntity car = MineVehicleEntity.placeCar(helper.getLevel(), helper.absolutePos(at), heading);
 		helper.assertTrue(car != null, Component.literal("a car should go on the rail at " + at));
 		return car;
@@ -1246,7 +1249,7 @@ public class TailingsGameTests {
 	 * against the beam's tail, a cable junction behind, and a stone face 8 x 8 by {@code depth} ahead with stone under it. Returns
 	 * the cab, stocked and forced on, programmed to drive flat.
 	 */
-	private static DrillBlockEntity tbm(GameTestHelper helper, BlockPos c, int depth, boolean withTrackLayer) {
+	static DrillBlockEntity tbm(GameTestHelper helper, BlockPos c, int depth, boolean withTrackLayer) {
 		for (int z = 1; z <= depth; z++) {
 			for (int x = 0; x < 8; x++) {
 				for (int y = -1; y < 8; y++) {
@@ -1282,24 +1285,24 @@ public class TailingsGameTests {
 		return cab;
 	}
 
-	private static GantryEntity gantry(GameTestHelper helper, TbmCab cab, TbmGantry kind) {
+	static GantryEntity gantry(GameTestHelper helper, TbmCab cab, TbmGantry kind) {
 		return (GantryEntity) helper.getLevel().getEntity(cab.core().gantry(kind));
 	}
 
 	/** The running machine near {@code c}, or null. */
-	private static TbmEntity machine(GameTestHelper helper, BlockPos c) {
+	static TbmEntity machine(GameTestHelper helper, BlockPos c) {
 		List<TbmEntity> found = helper.getLevel().getEntitiesOfClass(TbmEntity.class, new AABB(helper.absolutePos(c)).inflate(20));
 		return found.isEmpty() ? null : found.get(0);
 	}
 
 	/** Starts the built machine at {@code ticks} ticks a block. */
-	private static void go(DrillBlockEntity cab, int ticks) {
+	static void go(DrillBlockEntity cab, int ticks) {
 		cab.core().setTestTicks(ticks);
 		cab.press(10, null);
 	}
 
 	/** Keeps the running machine's segments up: a ring is 28 of them, and a stack is 64. */
-	private static void feed(GameTestHelper helper, BlockPos c) {
+	static void feed(GameTestHelper helper, BlockPos c) {
 		helper.onEachTick(() -> {
 			TbmEntity machine = machine(helper, c);
 			if (machine != null) {
@@ -1646,8 +1649,13 @@ public class TailingsGameTests {
 			helper.assertTrue(machine.core().drill().advanceCount() >= 18, Component.literal("eighteen blocks down, at " + machine.core().readout()));
 			GantryEntity pump = gantry(helper, machine, TbmGantry.PUMP);
 			helper.assertTrue(pump.pitch() > 5, Component.literal("the pump gantry should be on the grade, pitch " + pump.pitch()));
-			double floor = machine.core().drill().floorExact(machine.machineSlice() - TbmGantry.PUMP.row());
-			helper.assertTrue(Math.abs(pump.getY() - floor) < 0.01, Component.literal("and on the floor: " + pump.getY() + " against " + floor));
+			// on its rails: its corner a block under the left rail's surface at its front edge (the north edge, facing north)
+			dev.wildcatter.tailings.block.RailView view = new dev.wildcatter.tailings.block.RailView(helper.getLevel());
+			BlockPos under = BlockPos.containing(pump.getX() + TbmGantry.LEFT_RAIL + 0.5, pump.getY() + 0.5, pump.getZ() + 0.5);
+			dev.wildcatter.tailings.haul.Track.Cell rail = view.at(under) != null ? view.at(under) : view.at(under.above());
+			helper.assertTrue(rail != null && pump.onTrack(), Component.literal("it should stand on its rails"));
+			double surface = rail.y() + dev.wildcatter.tailings.haul.Track.height(rail, 0.5, 0.0);
+			helper.assertTrue(Math.abs(pump.getY() - (surface - 1)) < 0.01, Component.literal("and on them: " + pump.getY() + " against the rail's " + surface));
 			helper.assertTrue(pump.getY() > machine.getY() + 1, Component.literal("and above the machine's nose"));
 		});
 	}
