@@ -248,11 +248,11 @@ block in two boxes breaks once.
 - Each with models on a contact sheet, NeoForge scenes, and the client film at the end of P3c.
 
 ## Sources
-- Atlas Copco/Epiroc PV-271 product page: 270 mm single pass, 16.8 m single pass, 32 m max, 34 t (75,000 lb) bit load.
+- A 271-class rotary drill's product page: 270 mm single pass, 16.8 m single pass, 32 m max, 34 t (75,000 lb) bit load.
 - AusIMM, *Rotary blast hole drills, a comparison* (Large Open Pit Mining Conference, Newman): 0.012 m/s scheduled penetration for a
   270 mm bit (43 m/h).
-- BME E-244 HC surface MMU product page: up to 300 kg/min delivery. US patent 6,165,297: MMU loading rates 70-1,000 kg/min.
-- Engineering News (2026-10-16), Enaex Africa: MMUs up to 28 t.
+- A surface MMU maker's product page: up to 300 kg/min delivery. US patent 6,165,297: MMU loading rates 70-1,000 kg/min.
+- Engineering News (2026-10-16): an explosives supplier's MMUs up to 28 t.
 - Mining lecture notes (stemming 20-35 d, burden 25-40 d, bottom charge 0.3-0.5 of burden plus subdrill): rules of thumb, *(proposed)*
   where used.
 - Delay timing and misfire waiting times were not found in a primary source: *(unverified)* where used.

@@ -167,8 +167,8 @@ and is to be checked before approval.
 ## Sources
 - R. Kaswalder, filter press paper (ACG Paste 2017 proceedings): one unit with 2,500 x 2,500 mm plates about 1,800 t/day (average
   filterability) to about 3,000 t/day.
-- A 2.5 m press sizing example (Diemme, ACG proceedings): filling 2.0, compacting 3.5, blowing 2.0, non-process 8.0 min.
+- A 2.5 m press maker's sizing example (ACG proceedings): filling 2.0, compacting 3.5, blowing 2.0, non-process 8.0 min.
 - UWA/ACG dry-stack design paper: cake moisture under 20 wt %.
 - US 30 CFR 56.9300(b): berms at least mid-axle height of the largest self-propelled mobile equipment that usually travels the roadway.
-- D10T2 dealer and Lectura data: 70,171 kg, C27 at 600 hp (447 kW) net forward, semi-U blade about 18.5 m³, top speed 11.7-12.7 km/h
+- D10-class dealer and spec-database data: 70,171 kg, C27 at 600 hp (447 kW) net forward, semi-U blade about 18.5 m³, top speed 11.7-12.7 km/h
   forward (the sources disagree).

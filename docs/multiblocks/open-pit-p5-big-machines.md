@@ -161,9 +161,9 @@ and is to be checked before approval.
 - **P5d:** the rope shovel (parts, contraption, cable).
 
 ## Sources
-- 797F technical specification (AEHQ5884-09, 12/2023) and dealer pages: 15,080 mm long; 9,529 mm over the tyres, 9,755 mm outside the
+- The 363 t truck's technical specification (12/2023) and dealer pages: 15,080 mm long; 9,529 mm over the tyres, 9,755 mm outside the
   body; 6,526 mm to the ROPS, 7,709 mm to the canopy, 15,701 mm raised; 6,998 mm loading height; C175-20, 2,983 kW gross, 2,828 kW net;
   67.6 km/h; 3,785 L fuel tank (4,542 L for the Tier 4 option).
-- EX2600-7 shovel product pages: 1,119 kW (QSKTA50); 258 t; 15.0-16.5 m³ heaped; 10,350 mm dump height; 14,060 mm reach; 3,720 mm dig
-  depth; 8,040 mm upper width; 6,000 mm undercarriage. EX2600-7E: 860 kW electric.
+- A 250 t class shovel maker's product pages: 1,119 kW (QSKTA50); 258 t; 15.0-16.5 m³ heaped; 10,350 mm dump height; 14,060 mm reach; 3,720 mm dig
+  depth; 8,040 mm upper width; 6,000 mm undercarriage. Its electric variant: 860 kW.
 - open-pit.md's sources for the 4100-class rope shovel.

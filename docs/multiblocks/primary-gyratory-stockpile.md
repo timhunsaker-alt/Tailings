@@ -116,6 +116,6 @@ and is to be checked before approval.
   belt weigher's setpoint, set to 50 t/h)*.
 
 ## Sources
-- Metso Superior MKIII primary gyratory crusher brochure (3794-10-18-EN-MNG): the 42-65, 120 t, 1,066 mm feed opening, 450 kW, 2,354-3,362
+- A current primary gyratory crusher maker's brochure (2018): the 42-65, 120 t, 1,066 mm feed opening, 450 kW, 2,354-3,362
   t/h at 152 mm open-side setting; the 60-89, 750 kW, up to 12,500 t/h. Capacities for a typical feed, SG 2.75, maximum eccentricity.
 - Live-to-total fractions of conical stockpiles, apron feeder sizes, belt and drive sizing: textbook values *(proposed)*.
