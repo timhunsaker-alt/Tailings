@@ -47,6 +47,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.FUEL_BAY) {
 			return new FuelBayBlockEntity(pos, state);
 		}
+		if (machine == Machine.HAUL_DISPATCH) {
+			return new HaulDispatchBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -57,6 +60,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		}
 		if (machine == Machine.FUEL_BAY) {
 			return createTickerHelper(type, TailingsBlocks.FUEL_BAY_ENTITY, FuelBayBlockEntity::tick);
+		}
+		if (machine == Machine.HAUL_DISPATCH) {
+			return createTickerHelper(type, TailingsBlocks.HAUL_DISPATCH_ENTITY, HaulDispatchBlockEntity::tick);
 		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
@@ -81,6 +87,12 @@ public class PlantMachineBlock extends TailingsPartBlock {
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+		if (level.getBlockEntity(main(pos, state)) instanceof HaulDispatchBlockEntity office) {
+			if (!level.isClientSide()) {
+				player.sendSystemMessage(office.inspect());
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
 			if (player.isShiftKeyDown() && plant.machine() == Machine.ORE_SORTER) {
 				if (!level.isClientSide() && plant.setWasteSide(hit.getDirection())) {

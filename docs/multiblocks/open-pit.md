@@ -243,7 +243,8 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
 - **The dispatch office** (`haul_dispatch`, a 3 x 3 x 3 building, *proposed*) is a Wildcatter `ControlDevice` on the control
   cable, so a PLC runs the fleet. It reaches trucks within **2 km** by radio *(proposed)*. Its points, for each route (up to 8):
   - RUN (command): trucks on the route run; off sends them to PARK;
-  - RUNNING, TRUCKS (count, 4-20 mA), LOADS (pulse each tipped load), TONNES (4-20 mA, the last hour);
+  - RUNNING, TRUCKS (count, 4-20 mA over **0-16 trucks**, 1 mA a truck *(proposed)*), LOADS (pulse each tipped load), TONNES
+    (4-20 mA over **0-2,000 t** tipped in the last hour *(proposed)*);
   - for the whole fleet: FUEL LOW (any truck under 15 %), BLOCKED (a truck stopped for an obstacle more than 30 s).
 - **Fuel bay** (`fuel_bay`, *proposed*): a diesel dispenser fed by Wildcatter pipe from a tank. A truck stopped at a FUEL stake fills.
 - **A player can take over** any self-driving truck by sitting in it. It drops off its route until it is given one again.
@@ -292,12 +293,32 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
 - **Readouts:** sneak-right-click a truck or loader for its fuel, route, stop and state.
 - **Stakes don't block:** a truck drives over a stake. **An end stake marks where the truck's tail stops**; at a DUMP POCKET it
   backs on up to 3 m past the stake *(proposed)* until the bumper stops it, so the hopper is under its tail. On a two-way leg a truck keeps **4 m right** of the stake line *(proposed: one lane each way)*.
-- **PARK** stakes wait for P2b's dispatch (RUN off sends trucks to PARK); in P2a a truck passes them.
+- **PARK** stakes wait for P2b's dispatch (RUN off sends trucks to PARK); in P2a a truck passes them. *(P2b: done, below.)*
 - **Chunks:** a truck on a route refreshes `tailings:runner` on its chunks and the next stake's.
 - **Game tests:** `pit_survey` (a 3-stake route; a 15 % leg and a blocked leg are written on the book), `pit_truck_haul` (spec: a
   truck on a route loads at a self-running loader, climbs a 10 % ramp, backs to the bumper, tips into the hopper and comes
   back), `pit_truck_obstacle`, `pit_truck_follow`, `pit_one_way`, `pit_fuel_burn`, `pit_fuel_bay`, `pit_out_of_fuel`,
   `pit_loader_auto`; the client film `pit_haul`.
+
+### P2b as built (2026-11-09, decided while Tim was away: docs/questions/p2b-dispatch.md)
+- **A route is registered** by clicking the office with the survey book (the next free route of 8); sneak-clicking takes it off. A
+  truck is on a route when its stakes are the same stakes, either way along them.
+- **Its selector** (Wildcatter's HAND / OFF / AUTO): HAND runs every route, as with no office; OFF parks them all; AUTO follows each
+  route's RUN while the PLC keeps writing it. **A PLC that stops** (RUN not refreshed for Wildcatter's stale time) parks the route
+  *(proposed: the safe state is trucks parked, not trucks running nobody can stop)*.
+- **Parking:** RUN off, a truck drives on along its route to the PARK stake and stops there with its engine off. If the PARK stake
+  is behind it, it finishes its trip (a loaded truck tips first) and parks on the way back. A truck filling at LOAD leaves at once.
+  A route with no PARK stake stops at the next stake.
+- **No radio** (the office unpowered, or the truck over 2 km off): the truck stops at its next stake and reads "no word from
+  dispatch" *(proposed: real autonomous trucks stop when they lose their dispatch link)*.
+- **Power:** the office is a **5 kW** *(proposed)* single-phase load on Wildcatter's low tier; under 85 % of nominal its radio is
+  dead and its loops read 0 mA (a failed loop).
+- **Points:** 43: five a route (RUN, RUNNING, TRUCKS, LOADS, TONNES), then FUEL LOW, BLOCKED and AUTO. RUNNING is on while a truck
+  on the route is working (not parked, halted or dry).
+- **Readout:** right-click the office with an empty hand: its selector, power, and each route's RUN or PARK, trucks, loads and
+  tonnes in the last hour.
+- **Game tests:** `pit_dispatch` (spec), `pit_dispatch_alarms` (FUEL LOW, BLOCKED), `pit_dispatch_fallback` (the PLC stops; HAND;
+  no power).
 
 ## Chunks
 A running truck, loader, shovel, drill or dragline refreshes the `tailings:runner` ticket on its chunks and the one ahead (R1).

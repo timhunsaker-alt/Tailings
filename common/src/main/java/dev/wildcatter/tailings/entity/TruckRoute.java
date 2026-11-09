@@ -1,6 +1,7 @@
 package dev.wildcatter.tailings.entity;
 
 import dev.wildcatter.tailings.block.FuelBayBlockEntity;
+import dev.wildcatter.tailings.block.HaulDispatchBlockEntity;
 import dev.wildcatter.tailings.block.PlantMachineBlock;
 import dev.wildcatter.tailings.block.SurveyStakeBlock;
 import dev.wildcatter.tailings.item.SurveyBookItem;
@@ -31,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  */
 final class TruckRoute {
 	enum Phase {
-		DRIVE, TURNING, BACKING, FILLING, TIPPING, FUELING, WAITING, HALTED
+		DRIVE, TURNING, BACKING, FILLING, TIPPING, FUELING, WAITING, HALTED, PARKED
 	}
 
 	/** Trucks on one-way legs: leg key to truck to (way along the leg, game time seen). */
@@ -48,6 +49,8 @@ final class TruckRoute {
 	static final int TURNING_TICKS = 60 * 20;
 	/** At a DUMP POCKET it backs up to this far past the stake, until the bumper stops it. */
 	static final double BUMPER_SEARCH = 3;
+	/** Backing in at an angle, a truck whose tail passes the end within this of the line stops there (P2b: it circled before). */
+	static final double PAST_END_ACROSS = 4;
 	/** A truck waits this far short of a one-way leg while a truck comes along it the other way (proposed). */
 	static final double ONE_WAY_HOLD = 40;
 
@@ -62,9 +65,19 @@ final class TruckRoute {
 	private long lastLoad = -1;
 	private double lastFuel;
 	String problem;
+	/** Dispatch (open-pit.md, P2b): its route's office, if one has it, as last looked up; whether it is to run, and why not. */
+	private HaulDispatchBlockEntity.@Nullable Link dispatch;
+	private boolean run = true;
+	private String parkWhy = "";
+	private long nextLook;
 
 	boolean active() {
 		return !stakes.isEmpty();
+	}
+
+	/** Parked by dispatch: its engine is off. */
+	boolean parked() {
+		return phase == Phase.PARKED;
 	}
 
 	void clear() {
@@ -72,6 +85,9 @@ final class TruckRoute {
 		legs.clear();
 		phase = Phase.DRIVE;
 		problem = null;
+		dispatch = null;
+		run = true;
+		nextLook = 0;
 	}
 
 	StopKind kind(ServerLevel level, int index) {
@@ -182,8 +198,73 @@ final class TruckRoute {
 		return new Vec3(start.x + ux * ahead, laneEnd.y, start.z + uz * ahead);
 	}
 
+	/** Its route's PARK stake, or -1. */
+	private int parkStake(ServerLevel level) {
+		for (int i = 0; i < stakes.size(); i++) {
+			if (kind(level, i) == StopKind.PARK) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Once a second it finds its route's dispatch office and reports to it (P2b): whether it works, is low on fuel or blocked. A
+	 * route no office has runs as in P2a. An office whose radio does not reach it (no power, over 2 km) stops it at its next stake.
+	 */
+	private void listen(ServerLevel level, HaulTruckEntity truck) {
+		long now = level.getGameTime();
+		if (now < nextLook) {
+			return;
+		}
+		nextLook = now + 20;
+		dispatch = HaulDispatchBlockEntity.find(level, stakes, truck.position());
+		if (dispatch == null) {
+			run = true;
+			return;
+		}
+		if (!dispatch.contact()) {
+			run = false;
+			parkWhy = dispatch.noContact();
+			return;
+		}
+		HaulDispatchBlockEntity office = dispatch.office();
+		int route = dispatch.route();
+		run = office.runs(route);
+		parkWhy = run ? "" : office.parkedWhy(route);
+		boolean working = run && phase != Phase.PARKED && phase != Phase.HALTED && !truck.outOfFuel();
+		office.report(route, truck.getUUID(), working, truck.fuel() < PitFuel.LOW * truck.tank(), blocked());
+	}
+
+	/** It tipped a load: its office counts it. */
+	void tipped(ServerLevel level, HaulTruckEntity truck, long kg) {
+		nextLook = 0;
+		listen(level, truck);
+		if (dispatch != null && dispatch.contact()) {
+			dispatch.office().tipped(dispatch.route(), kg);
+		}
+	}
+
+	/** Whether it is to stop at the stake it is heading for: told to stop, at the route's PARK stake, or the next stake if it has none or no radio. */
+	private boolean parkAt(ServerLevel level) {
+		if (run) {
+			return false;
+		}
+		int park = dispatch != null && dispatch.contact() ? parkStake(level) : -1;
+		return park < 0 || park == at;
+	}
+
 	/** This tick's controls. */
 	PitVehicleEntity.Drive drive(ServerLevel level, HaulTruckEntity truck) {
+		listen(level, truck);
+		if (phase == Phase.PARKED) {
+			if (run) {
+				phase = Phase.DRIVE;   // back to work: on from the stake it parked at
+			} else {
+				truck.setStatus("parked at stake " + (at + 1) + " (" + kind(level, at).label() + "): " + parkWhy);
+				return PitVehicleEntity.Drive.STAND;
+			}
+		}
 		if (truck.outOfFuel()) {
 			truck.setStatus("out of fuel");
 			return PitVehicleEntity.Drive.STAND;
@@ -239,7 +320,8 @@ final class TruckRoute {
 		int next = at + way;
 		boolean turnBeforeEnd = end(next);
 		boolean fuelStop = kind(level, at) == StopKind.FUEL && truck.fuel() < PitFuel.LOW * truck.tank();
-		boolean stopHere = turnBeforeEnd || fuelStop;
+		boolean parkStop = parkAt(level);
+		boolean stopHere = turnBeforeEnd || fuelStop || parkStop;
 		double target = truck.spec().topSpeed();
 		if (stopHere) {
 			target = Math.min(target, Autopilot.stoppingSpeed(distance - 0.5));
@@ -268,9 +350,19 @@ final class TruckRoute {
 			return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), 0, 1), 0, false);
 		}
 		if (arrived) {
+			if (parkStop) {
+				phase = Phase.PARKED;   // it stays heading for this stake, so it goes on from here
+				blockedFor = 0;
+				truck.setStatus("parked at stake " + (at + 1) + " (" + kind(level, at).label() + "): " + parkWhy);
+				return PitVehicleEntity.Drive.STAND;
+			}
 			return arrive(level, truck, fuelStop, turnBeforeEnd);
 		}
-		truck.setStatus(truck.load().total() > 0 ? "hauling to stake " + (at + 1) : "to stake " + (at + 1) + " empty");
+		if (!run) {
+			truck.setStatus((parkStop ? "to park at stake " : "to stake ") + (at + 1) + ", then PARK: " + parkWhy);
+		} else {
+			truck.setStatus(truck.load().total() > 0 ? "hauling to stake " + (at + 1) : "to stake " + (at + 1) + " empty");
+		}
 		double steer = Autopilot.steer(truck.getYRot(), truck.getX(), truck.getZ(), steerFor.x, steerFor.z, false, truck.speed(), truck.spec().turnRadius());
 		return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), target, 1), steer, false);
 	}
@@ -334,7 +426,19 @@ final class TruckRoute {
 		}
 		double distance = flat(tail, end);
 		double fromStake = flat(tail, stake);
-		double target = Math.min(truck.spec().reverseSpeed(), Autopilot.stoppingSpeed(distance - 0.3));
+		// its tail past the end along the line, close beside it: it came in at an angle and missed the stake; it stops there
+		boolean past = false;
+		int fromIndex = at - way;
+		if (fromIndex >= 0 && fromIndex < stakes.size()) {
+			Vec3 start = centre(stakes.get(fromIndex));
+			double dx = end.x - start.x, dz = end.z - start.z, run = Math.hypot(dx, dz);
+			if (run > 1e-6) {
+				double along = ((tail.x - start.x) * dx + (tail.z - start.z) * dz) / run;
+				double across = Math.abs((tail.x - start.x) * dz - (tail.z - start.z) * dx) / run;
+				past = along >= run - 0.3 && across < PAST_END_ACROSS;
+			}
+		}
+		double target = past ? 0 : Math.min(truck.spec().reverseSpeed(), Autopilot.stoppingSpeed(distance - 0.3));
 		target = Math.min(target, clearAhead(level, truck, true, distance + 2, null));
 		boolean stopped = Math.abs(truck.speed()) < 0.05;
 		stalled = stopped && target > 0.3 ? stalled + 1 : 0;
@@ -344,7 +448,7 @@ final class TruckRoute {
 			return PitVehicleEntity.Drive.STAND;
 		}
 		// at the stake, or stopped against a bumper close to it
-		if ((distance < 1.5 && stopped) || (stalled > 40 && fromStake < 5)) {
+		if ((distance < 1.5 && stopped) || (past && stopped) || (stalled > 40 && fromStake < 5)) {
 			StopKind kind = kind(level, at);
 			if (kind.fills()) {
 				phase = Phase.FILLING;
@@ -382,7 +486,7 @@ final class TruckRoute {
 			waited = 0;
 		}
 		waited++;
-		if (truck.load().room() <= 0 || (now > 0 && waited > FILL_PATIENCE)) {
+		if (truck.load().room() <= 0 || (now > 0 && waited > FILL_PATIENCE) || !run) {
 			leaveEnd();
 			return PitVehicleEntity.Drive.STAND;
 		}
@@ -550,7 +654,8 @@ final class TruckRoute {
 		if (!active()) {
 			return "";
 		}
-		return "route of " + stakes.size() + " stakes, to stake " + (at + 1) + " (" + kind(level, at).label() + ")";
+		String office = dispatch == null ? "" : "; dispatch route " + (dispatch.route() + 1) + (dispatch.contact() ? (run ? ", RUN" : ", PARK") : ", no radio");
+		return "route of " + stakes.size() + " stakes, to stake " + (at + 1) + " (" + kind(level, at).label() + ")" + office;
 	}
 
 	long[] save() {

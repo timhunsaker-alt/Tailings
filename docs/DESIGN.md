@@ -283,6 +283,32 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md), "P2a as planned".
 - **The fuel bay** (`block.FuelBayBlockEntity`): a 2,000 L day tank filled by Wildcatter pipe (`Lines.pull`, diesel) on any face;
   it fills the nearest stopped machine within 8 m at 10 L/s.
 
+## The open pit (P2b): the haul dispatch office
+
+Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md), "Haul roads, surveying and dispatch"; decisions taken while Tim was away are
+in [questions/p2b-dispatch.md](questions/p2b-dispatch.md).
+
+- **The office** (`haul_dispatch`, 3 x 3 x 3, `block.HaulDispatchBlockEntity`): a Wildcatter `ControlDevice` on the control cable, and
+  a 5 kW single-phase load on Wildcatter's low tier (whatever the world's standard makes it), landed on its electrical box on the
+  west face of its main cell. Under 85 % of the tier's nominal its radio is dead.
+- **Routes:** the survey book clicked on the office adds the book's route as the next free route of 8; sneak-clicked, it takes that
+  route off. A truck is on a route when its stakes are the same, either way along them. Once a second each truck on a route finds the
+  office (`HaulDispatchBlockEntity.find`), reports whether it works, is under 15 % fuel or BLOCKED, and reads whether to run. A
+  route no office has runs as in P2a.
+- **Points** (`pit.Dispatch`, 43): for each route RUN (out), RUNNING, TRUCKS (4-20 mA over 0-16 trucks, 1 mA a truck), LOADS (a pulse
+  counter, one a tipped load) and TONNES (4-20 mA over 0-2,000 t tipped in the last hour, 72,000 ticks); then FUEL LOW, BLOCKED and
+  AUTO. With no power the loops read 0 mA, a failed loop.
+- **The selector:** HAND runs every route, as with no office; OFF parks them all; AUTO runs a route while the PLC keeps writing its
+  RUN, and parks it when RUN goes off or stops coming (Wildcatter's stale time: a stopped PLC or a cut cable).
+- **Parking** (`entity.TruckRoute`): told to stop, a truck drives on to its route's PARK stake and stops there with its engine off
+  (no diesel burnt); a route with no PARK stake stops at the next stake. A truck filling at LOAD leaves at once; one turning, backing
+  or tipping at an end finishes first. A truck out of the office's radio (over 2 km, or the office unpowered) stops at its next stake
+  and reads "no word from dispatch" until the radio comes back. RUN on, it goes on from the stake it parked at.
+- **Chunks:** an office with routes keeps its own chunk working with the `tailings:runner` ticket; a parked truck keeps its chunks as
+  a truck on a route does, so RUN reaches it.
+- **Readouts:** right-click the office with an empty hand for its selector, power and each route's RUN or PARK, trucks, loads and
+  tonnes in the last hour, and the fleet's alarms.
+
 ## Config
 
 Only one file. It is not created for you.

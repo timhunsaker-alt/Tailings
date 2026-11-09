@@ -50,11 +50,11 @@ final class PitHaulGameTests {
 	}
 
 	static int ticks(String scene, int otherwise) {
-		return TICKS.getOrDefault(scene, otherwise);
+		return TICKS.getOrDefault(scene, PitDispatchGameTests.TICKS.getOrDefault(scene, otherwise));
 	}
 
 	static int padding(String scene, int otherwise) {
-		return PADDING.getOrDefault(scene, otherwise);
+		return PADDING.getOrDefault(scene, PitDispatchGameTests.PADDING.getOrDefault(scene, otherwise));
 	}
 
 	/** Chunks the long scenes reach, from the test's origin, in chunks. */
@@ -63,13 +63,13 @@ final class PitHaulGameTests {
 			case "pit_truck_follow" -> new int[] {-1, 3, -1, 9};
 			case "pit_one_way" -> new int[] {-1, 3, -1, 12};
 			case "pit_truck_haul" -> new int[] {-2, 8, -1, 5};
-			default -> new int[] {-1, 2, -1, 2};
+			default -> PitDispatchGameTests.reach(scene);
 		};
 	}
 
 	// ---- building ---------------------------------------------------------------------------------------------------------------
 
-	private static void floor(GameTestHelper helper, int x0, int x1, int y0, int y1, int z0, int z1) {
+	static void floor(GameTestHelper helper, int x0, int x1, int y0, int y1, int z0, int z1) {
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= z1; z++) {
 				for (int y = y0; y <= y1; y++) {
@@ -79,12 +79,12 @@ final class PitHaulGameTests {
 		}
 	}
 
-	private static BlockPos stake(GameTestHelper helper, int x, int y, int z, StopKind kind) {
+	static BlockPos stake(GameTestHelper helper, int x, int y, int z, StopKind kind) {
 		helper.setBlock(new BlockPos(x, y, z), TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(SurveyStakeBlock.KIND, kind));
 		return helper.absolutePos(new BlockPos(x, y, z));
 	}
 
-	private static <T extends PitVehicleEntity> T vehicle(GameTestHelper helper, EntityType<T> type, double x, int y, double z, float yaw) {
+	static <T extends PitVehicleEntity> T vehicle(GameTestHelper helper, EntityType<T> type, double x, int y, double z, float yaw) {
 		T v = type.create(helper.getLevel(), EntitySpawnReason.COMMAND);
 		BlockPos origin = helper.absolutePos(BlockPos.ZERO);
 		BlockPos at = helper.absolutePos(new BlockPos(0, y, 0));
@@ -94,7 +94,7 @@ final class PitHaulGameTests {
 		return v;
 	}
 
-	private static <T extends net.minecraft.world.level.block.entity.BlockEntity> T part(GameTestHelper helper, Block block, BlockPos pos, Class<T> entity) {
+	static <T extends net.minecraft.world.level.block.entity.BlockEntity> T part(GameTestHelper helper, Block block, BlockPos pos, Class<T> entity) {
 		BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, Direction.NORTH);
 		helper.setBlock(pos, state);
 		BigParts.grow(helper.getLevel(), helper.absolutePos(pos), helper.getLevel().getBlockState(helper.absolutePos(pos)));
@@ -113,15 +113,15 @@ final class PitHaulGameTests {
 		}
 	}
 
-	private static double relX(GameTestHelper helper, PitVehicleEntity v) {
+	static double relX(GameTestHelper helper, PitVehicleEntity v) {
 		return v.getX() - helper.absolutePos(BlockPos.ZERO).getX();
 	}
 
-	private static double relZ(GameTestHelper helper, PitVehicleEntity v) {
+	static double relZ(GameTestHelper helper, PitVehicleEntity v) {
 		return v.getZ() - helper.absolutePos(BlockPos.ZERO).getZ();
 	}
 
-	private static String where(GameTestHelper helper, PitVehicleEntity v) {
+	static String where(GameTestHelper helper, PitVehicleEntity v) {
 		return String.format(java.util.Locale.ROOT, "at %.1f, %.1f, speed %.1f, %s", relX(helper, v), relZ(helper, v), v.speed(), v.status());
 	}
 

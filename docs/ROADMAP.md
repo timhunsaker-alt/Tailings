@@ -173,7 +173,15 @@ haul trucks out and back with turning round and backing in, the self-running loa
 scenes `pit_survey`, `pit_loader_auto`, `pit_fuel_burn`, `pit_fuel_bay`, `pit_out_of_fuel`, `pit_truck_obstacle`, `pit_truck_follow`,
 `pit_one_way`, `pit_truck_haul`; unit tests `PitP2aTest`; the filmed client scene `pit_haul`.
 
-Next: **P2b**, the dispatch office on the PLC (RUN, PARK, LOADS, TONNES, FUEL LOW, BLOCKED). Then P3 (the ammonia plant
+## Open pit — P2b: the haul dispatch office on the PLC (2026-11-09)
+
+Built while Tim was away, on the best recommendation (decisions in [questions/p2b-dispatch.md](questions/p2b-dispatch.md)): the
+`haul_dispatch` office, a 3 x 3 x 3 `ControlDevice` on the control cable and a small load on the low tier, reaching trucks within
+2 km. Up to 8 routes, added with the survey book; per route RUN, RUNNING, TRUCKS, LOADS, TONNES; for the fleet FUEL LOW and BLOCKED.
+PARK stakes now work: RUN off sends a route's trucks to its PARK stake (or its next stake) with their engines off. NeoForge scenes
+`pit_dispatch`, `pit_dispatch_alarms`, `pit_dispatch_fallback`; unit tests `DispatchTest`.
+
+Next: P3 (the ammonia plant
 in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
 truck), P6 (the dragline), P7 (the pit-sized plant).
 
@@ -203,7 +211,17 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
   stake before an end (about 25 m). It does not find its own way round anything the survey missed between samples.
 - **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
   `Lines.pull` as the genset does.
-- **PARK stakes do nothing until P2b** (the dispatch office sends trucks to them).
+- **The dispatch office's model is a first pass (P2b):** a site office drawn in Wildcatter's materials (no new textures); its radio
+  mast is short, kept inside its 3 x 3 x 3 cells.
+- **A parked truck waits on the road (P2b):** it parks in its lane at the PARK stake, not off to the side in a parking bay, so park
+  a route's trucks on a stake clear of the road or on a spur.
+- **One office per route (P2b):** a route on two offices answers to the first whose radio reaches the truck. Trucks are not moved
+  between routes by dispatch: a truck's route is still set with the survey book.
+- **TONNES is the last hour of game time (P2b):** 72,000 ticks; it needs an hour's running to settle, and its loads are kept only
+  while the office is loaded (it keeps its own chunk while it has routes).
+- **Turning round on a straight road leaves a truck off the line (P2a, found in P2b):** after turning on full lock at the stake
+  before an end it is some 15 m to one side and backs in at an angle. A truck whose tail passes the end within 4 m of the line now
+  stops there (before, it circled behind the end for ever); it may tip up to a few metres past a DUMP POINT stake.
 - **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
 - **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
 - **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.

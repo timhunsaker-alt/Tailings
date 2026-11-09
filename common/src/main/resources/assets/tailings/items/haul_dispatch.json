@@ -1,0 +1,6 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/haul_dispatch/item"
+ }
+}

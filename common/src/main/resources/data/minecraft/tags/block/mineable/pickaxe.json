@@ -55,6 +55,7 @@
     "tailings:heap_pad",
     "tailings:truck_dump_wall",
     "tailings:pit_hopper",
-    "tailings:fuel_bay"
+    "tailings:fuel_bay",
+    "tailings:haul_dispatch"
   ]
 }

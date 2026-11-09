@@ -4,6 +4,17 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P2b — the haul dispatch office (2026-11-09)
+
+- **Haul Dispatch Office** (`haul_dispatch`, 3 x 3 x 3): a site office on Wildcatter's control cable that runs the pit's trucks by
+  radio within 2 km. Click it with a survey book to add the book's route (up to 8; sneak-click to take one off). Power it from the
+  low tier (5 kW).
+- **PLC points:** for each route RUN, RUNNING, TRUCKS (4-20 mA, 0-16), LOADS (a pulse a tipped load) and TONNES (4-20 mA, 0-2,000 t in
+  the last hour); for the fleet FUEL LOW and BLOCKED. Its selector: HAND runs every route, OFF parks them, AUTO follows the PLC.
+- **PARK stakes work:** RUN off sends a route's trucks to its PARK stake (or their next stake) to stand with their engines off; RUN
+  on sends them back to work. A PLC that stops parks the route; an office with no power stops its trucks at their next stake.
+- **Fix:** a self-driving truck backing in at an angle on a straight road no longer circles behind the end stake.
+
 ### Open pit P2a — survey stakes, self-driving trucks, the self-running loader, diesel and the fuel bay (2026-11-09)
 
 - **Survey stakes and the survey book:** mark a haul road's stops on stakes (LOAD, DUMP POCKET, DUMP POINT, FUEL, PARK), click

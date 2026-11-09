@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * The survey book (docs/multiblocks/open-pit.md, P2a): click survey stakes in order to make a haul route; each click surveys the leg
  * from the stake before and writes what is wrong. Click a haul truck to give it the route, or a wheel loader to set it to the route's
- * LOAD stake. Sneak-use in the air clears it.
+ * LOAD stake, or the haul dispatch office to add the route to it (sneaking, to take it off). Sneak-use in the air clears it.
  */
 public class SurveyBookItem extends Item {
 	public static final int MOST_STAKES = 32;
@@ -116,6 +116,14 @@ public class SurveyBookItem extends Item {
 	public InteractionResult useOn(UseOnContext context) {
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
+		if (dev.wildcatter.multiblock.BigParts.entity(level, pos) instanceof dev.wildcatter.tailings.block.HaulDispatchBlockEntity office) {
+			// the dispatch office: the book's route becomes its next route; sneaking, it is taken off (open-pit.md, P2b)
+			if (!level.isClientSide() && context.getPlayer() != null) {
+				List<BlockPos> route = route(context.getItemInHand());
+				context.getPlayer().sendSystemMessage(Component.literal("Haul Dispatch: " + (context.getPlayer().isShiftKeyDown() ? office.removeRoute(route) : office.addRoute(route))));
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (!(level.getBlockState(pos).getBlock() instanceof SurveyStakeBlock)) {
 			return InteractionResult.PASS;
 		}
