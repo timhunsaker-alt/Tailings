@@ -177,6 +177,16 @@ Next: **P2b**, the dispatch office on the PLC (RUN, PARK, LOADS, TONNES, FUEL LO
 in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
 truck), P6 (the dragline), P7 (the pit-sized plant).
 
+## Plant gaps (2026-11-09, closed while Tim was away)
+
+Tim (2026-11-09): "close all known gaps". Closed on the ore plant and dump, each with a NeoForge scene; decisions in
+[questions/plant-gaps.md](questions/plant-gaps.md): belts' transit time at 2 m/s (`belt_transit`); feed faces checked and the old layouts
+moved to them (`feed_face`, `crushing_circuit`, `playthrough_crushing`); the screen's gravel face and belts into hoppers or chests
+(`screen_gravel`); oversize on the pocket's grizzly (`pocket_oversize`); the train waits at the signal before the dump (`dump_signal`);
+lead and zinc concentrate mixed make a bulk cake (`bulk_concentrate`); the ore sorter's screen (`sorter_screen`); metal counted in kg in
+the assay. Kept as they are: concentrate as mineral only, and the old `fines_*` items. The waste bin's way out is written, not built
+into the playthrough.
+
 ## Later, not scheduled
 
 - Ventilation of the drive.
@@ -204,7 +214,7 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
   `Lines.pull` as the genset does.
 - **PARK stakes do nothing until P2b** (the dispatch office sends trucks to them).
-- **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
+- **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is set on its screen.
 - **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
 - **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.
 
@@ -225,16 +235,13 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one.
 - **Still staged in the playthrough (R10, 4d, 13i):** the PLC's control deck, its 24 V steam set and the control cable to each machine, placed rather than crafted (not in the bill), digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, the forced chunks, and peaceful difficulty (a creeper in the pit killed the player during the placing in one run). The plant's water is real now, from the process pump and the cell's decant.
 - **The scavengers' concentrate has its own thickener and filter in the playthrough (4d),** only as that was the shorter layout; a pipe to the main thickener works too.
-- **Concentrate is mineral only (R4b).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out.
-- **Fines items have no use now (R4b).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.
-- **The sorter's screen is clicks, not a screen (R4c).** A side is set by clicking it with a rock item; the waste side by a sneaking empty-hand click.
-- **The train waits over the pocket (R4c),** not at the signal before the ramp.
-- **No oversize on the pocket's grizzly (R4c).** Every rock passes its bars.
-- **Belts deliver at once (R4a).** A run's load reaches its head end without a transit time; the lumps are drawn moving.
-- **Feed faces are not checked (R4a).** A belt's head end feeds whatever part it touches, and a part takes rock through any face, not only the spec's feed face. Parts touching an output face take the product straight in, as a chute.
-- **No gravel face yet (R4a).** The screen's 6-40 mm gravel always goes round to the cone; the aggregate face in crushing-circuit.md is not built.
-- **Ingots in the assay (R4a).** The vanilla metals are counted in ingots, so an ingot's worth of metal counts as 1 kg in the slurry assay.
-- **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel.
+- **Concentrate is mineral only (R4b; kept, plant-gaps decision 10).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out. Since the assay is in kg (plant-gaps) its mass is the real mineral's.
+- **Fines items have no use now (R4b; kept, plant-gaps decision 11).** The plant makes fines slurry; the `fines_*` items stay registered for old worlds.
+- **A train waits over the pocket where no signal guards the dump (plant-gaps).** With a block signal whose section holds the dump it waits at the signal.
+- **The rock breaker is a pickaxe (plant-gaps).** Oversize on the pocket's grizzly is broken by a click with a pickaxe, or lifted off by hand; no powered breaker yet. The share, one item in a hundred, is proposed.
+- **A blocked belt stops at once (plant-gaps).** A run whose head end cannot deliver stops where its rock is; there is no spill or chute switch to reset.
+- **The sorter screen is drawn by code (plant-gaps):** flat panels, no texture, a "W" button a side.
+- **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel; the screen's gravel face takes 35 % of crushed (plant-gaps); an ingot counts 100 kg of metal in the assay (plant-gaps).
 - **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron.
 - **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in. A line split by unloaded chunks loses its far end until they load.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
@@ -244,9 +251,8 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **The locomotive and car skins are script-drawn placeholders (R9):** `mine_locomotive_placeholder`, `mine_car_placeholder`, from `tools/models/vehicles.py`, until they come from Ludo.
 - **What the playthrough still stages:** digging the pit, the gas and diesel in the generators, the mill's and cyclones' water, and handing over raw materials and reagents; the gensets and unit substations are set by helper, not by hand. Its chunks are force-loaded: the plant stops if its chunks unload (no ticket on plant parts). The individual film scenes still force-run their parts.
 - **A busway run straight onto the rectifier's motor box keeps its generator's breaker open (R10).** Sized cable works, and one train needs only about 110 A. Probably the solver failure fixed in Wildcatter 0.4.1, from the same symptom; not re-tested with the fix.
-- **The waste bin backs up in about 90 minutes of driving without a heap (R10).** 992 items in 11 game minutes against 8,192. A belt under it to a `heap_pad` is the way out, and the heap holds 100 blocks at a tenth of the plant's rate.
+- **The playthrough's waste bin backs up in about 90 minutes of driving (R10).** 992 items in 11 game minutes against 8,192. The ways out are built (DESIGN.md, "Dump and signals"): a belt under the bin to a `heap_pad` (100 blocks, leached at a tenth of the plant's rate) or to hoppers and chests at its head end, which take the rock as items. The playthrough runs 11.5 minutes and builds neither; a real waste dump waits for open pit P4.
 - **Selective flotation (4e) is not in the playthrough:** proved by unit tests, NeoForge scenes and a force-run film only. Its figures, 300 g/t of zinc sulfate above all, are proposed, and its recipes are placeholders.
-- **Nothing makes a selective plant keep its concentrates apart (4e):** both banks piped into one thickener and filter still pay clean lead and clean zinc. The spec gives each its own, but the filter does not check.
 - **The `zinc_sulfate` item borrows vanilla sugar's icon (4e),** as the other reagents borrow vanilla icons.
 - **Phase 4 parts' recipes are placeholders (4a-4c),** as the rest of the plant's: eight iron around a copper ingot. **By-product item icons are script-drawn placeholders.**
 
