@@ -248,6 +248,57 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
 - **Fuel bay** (`fuel_bay`, *proposed*): a diesel dispenser fed by Wildcatter pipe from a tank. A truck stopped at a FUEL stake fills.
 - **A player can take over** any self-driving truck by sitting in it. It drops off its route until it is given one again.
 
+### P2 decided with Tim (2026-11-09)
+- **Loading:** both. A player in the wheel loader fills a truck at a LOAD stake, or the loader runs itself: a loader set to a
+  LOAD stake (click it with the survey book) digs the face in front and fills each truck that pulls in, so a fleet runs with
+  nobody there.
+- **Fuel burns by engine work:** litres = the engine's work / (36 MJ/L x 0.38) *(diesel's 36 MJ/L is Wildcatter's
+  `LIQUID_FUEL_JOULES_PER_L`; 0.38 engine efficiency proposed)*: about 200 L/h for the truck flat out, near nothing parked. The
+  loader burns the same way.
+- **Refuelling only at a fuel bay** (no buckets).
+- **Two waves:** P2a stakes, the survey book, routes, self-driving trucks, the self-running loader, fuel and the fuel bay; P2b
+  the dispatch office on the PLC.
+
+### P2a as planned
+- **`survey_stake`** (a block): right-click with an empty hand steps its stop kind: none (a waypoint), LOAD, DUMP POCKET,
+  LOADOUT, DUMP POINT, FUEL, PARK; sneak-right-click reads it. It faces the way the player placed it.
+- **The survey book** (`survey_book`): click stakes in order to make a route (up to 32 stakes); sneak-use in the air clears it.
+  Each click surveys the leg to the stake before and writes what is wrong in the chat and on the book:
+  - grade over **10 %**;
+  - not clear: a solid block in a truck's box (6.2 m wide, 5.2 m high) along the leg;
+  - narrow: clear less than **3 truck widths** (18.6 m), so the leg is one-way (below).
+  A route with a problem is still saved; a truck given it stops at the leg's start and reads the problem.
+- **A route runs out and back** between its two end stakes, its ends being its stops (LOAD at one end, DUMP POCKET, LOADOUT or
+  DUMP POINT at the other). **A truck backs into an end stop** from the stake before it, as a truck backs up to a loader or a
+  dump: it drives forward to that stake, then reverses to the end stake, so lay the last leg off to one side of the road like a
+  Y. Stakes between are waypoints, or FUEL and PARK stops it takes when it needs them.
+- **Driving itself:** a truck clicked with a book takes its route (a player sitting in it takes it off). It steers for the next
+  stake, slows to **15 km/h** *(proposed)* for a turn of more than 30 degrees at a stake, keeps **50 m** from a truck ahead on its
+  route *(spec)*, and stops for any player, mob or vehicle within its stopping distance plus 5 m ahead *(proposed)*; stopped more
+  than 30 s, it reads BLOCKED. On a one-way leg it waits at the leg's start while a truck is on the leg coming the other way.
+- **At LOAD** it waits under the loader until it is full, or until 60 s *(proposed)* pass with nothing loaded once it has a load.
+  **At its dump stop** it tips (into a hopper under its tail, or out behind it), then goes back.
+- **The self-running loader:** set to a LOAD stake within 16 m *(proposed)*, it digs a pass whenever its bucket is empty and holds
+  the full bucket ready, as a loader does between trucks, and dumps when a truck is in reach; it stands where it is (moving it is the driver's job). It reads
+  "face worked out" when nothing is left in reach.
+- **Fuel:** the truck's tank **1,100 L** *(spec, proposed)*, the loader's **1,500 L** *(proposed)*; a new machine comes with
+  **10 %** *(proposed)*, enough to reach a fuel bay. The engine's work is its power at the wheels over 0.8, plus the body hoist at
+  **30 %** of rated power while it moves and the loader's passes at **60 %** *(proposed)*; it idles at **3 %** *(proposed)* with
+  a driver in or while it runs a route, and is off otherwise. Out of fuel it stops and reads "out of fuel". A self-driving truck
+  under **15 %** *(spec)* stops at the next FUEL stake on its route.
+- **`fuel_bay`** (a part, 4 x 3 x 2 m *(proposed)*: a dispenser island with a 2,000 L day tank *(proposed)*) takes diesel by
+  Wildcatter pipe on any face and fills a stopped truck or loader within 8 m *(proposed)* at **600 L/min** *(proposed: a
+  fast-fill nozzle)*.
+- **Readouts:** sneak-right-click a truck or loader for its fuel, route, stop and state.
+- **Stakes don't block:** a truck drives over a stake. **An end stake marks where the truck's tail stops**, or it stops against a
+  bumper first. On a two-way leg a truck keeps **4 m right** of the stake line *(proposed: one lane each way)*.
+- **PARK** stakes wait for P2b's dispatch (RUN off sends trucks to PARK); in P2a a truck passes them.
+- **Chunks:** a truck on a route refreshes `tailings:runner` on its chunks and the next stake's.
+- **Game tests:** `pit_survey` (a 3-stake route; a 15 % leg and a blocked leg are written on the book), `pit_truck_haul` (spec: a
+  truck on a route loads at a self-running loader, climbs a 10 % ramp, backs to the bumper, tips into the hopper and comes
+  back), `pit_truck_obstacle`, `pit_truck_follow`, `pit_one_way`, `pit_fuel_burn`, `pit_fuel_bay`, `pit_out_of_fuel`,
+  `pit_loader_auto`; the client film `pit_haul`.
+
 ## Chunks
 A running truck, loader, shovel, drill or dragline refreshes the `tailings:runner` ticket on its chunks and the one ahead (R1).
 A self-driving fleet keeps its route's chunks loaded only while trucks are on them.
@@ -276,7 +327,8 @@ A self-driving fleet keeps its route's chunks loaded only while trucks are on th
 
 ## Proposed waves (after approval)
 - **P1:** the settle rule, muck, the 100 t truck (driven), the truck dump (wall and hopper), the wheel loader on soft ground.
-- **P2:** survey stakes, routes, self-driving trucks, fuel bay, the dispatch office on the PLC.
+- **P2a:** survey stakes, the survey book, routes, self-driving trucks, the self-running loader, fuel, the fuel bay.
+- **P2b:** the dispatch office on the PLC.
 - **P3:** the ammonia plant (a Wildcatter wave), the drill, the emulsion truck, TNT boosters and detonators, the blast.
 - **P4:** the tailings filter, the load-out, waste dumps, berms, the track dozer.
 - **P5:** the pit switch house, the ultra-class truck, the hydraulic shovel, the rope shovel.
