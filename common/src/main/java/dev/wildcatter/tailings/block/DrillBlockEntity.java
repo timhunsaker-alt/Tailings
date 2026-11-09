@@ -235,6 +235,15 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 			retireOldCab();
 			return;
 		}
+		dev.wildcatter.tailings.entity.GantryEntity pump = level instanceof ServerLevel server ? TbmBackup.loadTank(server, this) : null;
+		try {
+			cabTick();
+		} finally {
+			TbmBackup.storeTank(pump, core);
+		}
+	}
+
+	private void cabTick() {
 		core.acceptBuckets();
 		core.tickLoading(level);
 		if (core.junction() == null && level.getGameTime() % 100 == 0) {

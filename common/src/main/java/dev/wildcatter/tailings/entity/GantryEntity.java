@@ -7,6 +7,7 @@ import dev.wildcatter.tailings.block.RailView;
 import dev.wildcatter.tailings.block.TbmBackup;
 import dev.wildcatter.tailings.block.TbmCab;
 import dev.wildcatter.tailings.block.TbmMachine;
+import dev.wildcatter.tailings.haul.Track;
 import dev.wildcatter.tailings.mine.TbmGantry;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +48,9 @@ public class GantryEntity extends Entity implements SoundingEntity {
 	private static final int WORK_HOLD_TICKS = 20;
 	private int workHold;
 	private static final EntityDataAccessor<Float> DATA_PITCH = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.FLOAT);
+	/** The reel's: the cable junction its trailing cable runs back to, and the metres paid out, for drawing the cable and turning the reel. */
+	private static final EntityDataAccessor<java.util.Optional<BlockPos>> DATA_JUNCTION = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+	private static final EntityDataAccessor<Float> DATA_PAID = SynchedEntityData.defineId(GantryEntity.class, EntityDataSerializers.FLOAT);
 	/** How far a gantry may stand from its place behind the machine and still couple. */
 	private static final double COUPLE_REACH = 8;
 	/** The track columns each gantry stood over last tick, per level. */
@@ -56,6 +60,10 @@ public class GantryEntity extends Entity implements SoundingEntity {
 	}
 
 	private boolean coupled;
+	/** Its wheels on the twin track. */
+	private final GantryWheels wheels = new GantryWheels();
+	/** The pump's: the quench tank's water, in buckets (m3). It rides here, not in the cab; it is lost with the gantry. */
+	private int water;
 
 	public GantryEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -106,6 +114,38 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		return coupled;
 	}
 
+	/** True while both its rails carry it. */
+	public boolean onTrack() {
+		return wheels.railed();
+	}
+
+	public int water() {
+		return water;
+	}
+
+	public void setWater(int buckets) {
+		water = Math.max(0, buckets);
+	}
+
+	/** The reel's cable: the junction it runs back to and the metres paid out. */
+	public void setCable(@Nullable BlockPos junction, float paid) {
+		java.util.Optional<BlockPos> at = java.util.Optional.ofNullable(junction);
+		if (!entityData.get(DATA_JUNCTION).equals(at)) {
+			entityData.set(DATA_JUNCTION, at);
+		}
+		if (Math.abs(entityData.get(DATA_PAID) - paid) > 1e-3) {
+			entityData.set(DATA_PAID, paid);
+		}
+	}
+
+	public @Nullable BlockPos cableJunction() {
+		return entityData.get(DATA_JUNCTION).orElse(null);
+	}
+
+	public float paidOut() {
+		return entityData.get(DATA_PAID);
+	}
+
 	/** The machine lets it go: it stands where it is. */
 	public void uncouple() {
 		coupled = false;
@@ -122,6 +162,7 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		BlockPos corner = view.at(pos.relative(across, gap)) != null ? pos.relative(across, -TbmGantry.LEFT_RAIL) : pos.relative(across, -TbmGantry.RIGHT_RAIL);
 		GantryEntity gantry = new GantryEntity(TailingsEntities.gantry(kind), level);
 		gantry.setAt(new Vec3(corner.getX(), corner.getY(), corner.getZ()), facing, 0);
+		gantry.railUnder(view);
 		level.addFreshEntity(gantry);
 		return gantry;
 	}
@@ -132,6 +173,61 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		entityData.set(DATA_PITCH, pitch);
 		setPos(at.x, at.y, at.z);
 		setBoundingBox(makeBoundingBox(at));
+	}
+
+	/** Lays its wheels on the rails under its front row, where it stands now. */
+	private boolean railUnder(Track.View view) {
+		Direction facing = facing();
+		Vec3 at = position();
+		BlockPos left = TbmMachine.offset(facing, TbmGantry.LEFT_RAIL, 0, 0), right = TbmMachine.offset(facing, TbmGantry.RIGHT_RAIL, 0, 0);
+		int y = (int) Math.floor(at.y + 1e-3);
+		for (int dy : new int[] {0, -1, 1}) {
+			int[] l = {(int) Math.floor(at.x + left.getX() + 1e-3), y + dy, (int) Math.floor(at.z + left.getZ() + 1e-3)};
+			int[] r = {(int) Math.floor(at.x + right.getX() + 1e-3), y + dy, (int) Math.floor(at.z + right.getZ() + 1e-3)};
+			if (wheels.rail(view, l, r, RailView.heading(facing))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * The machine tows it: its main cell's corner is to stand at {@code slot}, as far along the bore as the machine's course puts it.
+	 * Its wheels run along the twin track to that place, and the rails set where it stands, its height and its pitch. Off the track,
+	 * it stays where it is; returns false.
+	 */
+	public boolean tow(Vec3 slot, Direction facing) {
+		if (!(level() instanceof ServerLevel server)) {
+			return false;
+		}
+		RailView view = new RailView(server);
+		if (facing != facing()) {
+			entityData.set(DATA_FACING, facing.get3DDataValue());
+			wheels.derail();
+		}
+		dev.wildcatter.tailings.mine.Heading heading = RailView.heading(facing);
+		BlockPos left = TbmMachine.offset(facing, TbmGantry.LEFT_RAIL, 0, 0);
+		// the front edge of its front row, on the left rail's centreline
+		double along = (slot.x + left.getX() + 0.5) * heading.forwardX() + (slot.z + left.getZ() + 0.5) * heading.forwardZ() + 0.5;
+		if (!wheels.railed()) {
+			// put back on the track: its wheels go on the rails at its place
+			Vec3 was = position();
+			setPos(slot.x, slot.y, slot.z);
+			boolean railed = railUnder(view);
+			setPos(was.x, was.y, was.z);
+			if (!railed) {
+				return false;
+			}
+		}
+		double[] front = wheels.follow(view, along, kind().length(), heading);
+		if (front == null) {
+			return false;
+		}
+		// the rail cell under its front row, from the front edge's point; its corner, then the gantry's
+		double cellX = front[0] - 0.5 * heading.forwardX() - 0.5, cellZ = front[2] - 0.5 * heading.forwardZ() - 0.5;
+		float pitch = (float) Math.toDegrees(Math.atan2(front[3] - front[1], kind().length()));
+		setAt(new Vec3(cellX - left.getX(), front[1] - 1, cellZ - left.getZ()), facing, Math.abs(pitch) < 1e-4 ? 0 : pitch);
+		return true;
 	}
 
 	/** Couples to the machine whose next gantry this is and which it stands near; says what happened. */
@@ -192,6 +288,10 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		if (!(level() instanceof ServerLevel server)) {
 			SoundingEntity.Hook.start.accept(this);
 			return;
+		}
+		if (placedBeforeWheels) {
+			placedBeforeWheels = false;
+			railUnder(new RailView(server));
 		}
 		workHold = Math.max(0, workHold - 1);
 		entityData.set(DATA_WORKING, workHold > 0);
@@ -262,6 +362,8 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		builder.define(DATA_FACING, Direction.NORTH.get3DDataValue());
 		builder.define(DATA_PITCH, 0F);
 		builder.define(DATA_WORKING, false);
+		builder.define(DATA_JUNCTION, java.util.Optional.empty());
+		builder.define(DATA_PAID, 0F);
 	}
 
 	@Override
@@ -269,12 +371,21 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		entityData.set(DATA_FACING, input.getIntOr("facing", Direction.NORTH.get3DDataValue()));
 		entityData.set(DATA_PITCH, input.getFloatOr("pitch", 0F));
 		coupled = input.getBooleanOr("coupled", false);
+		water = input.getIntOr("water", 0);
+		wheels.load(input.getStringOr("wheels", ""));
+		if (!wheels.railed() && input.getStringOr("wheels", "").isEmpty()) {
+			placedBeforeWheels = true;   // a world saved before the gantries had wheels: they go on the rails under it
+		}
 	}
+
+	private boolean placedBeforeWheels;
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
 		output.putInt("facing", entityData.get(DATA_FACING));
 		output.putFloat("pitch", entityData.get(DATA_PITCH));
 		output.putBoolean("coupled", coupled);
+		output.putInt("water", water);
+		output.putString("wheels", wheels.save());
 	}
 }

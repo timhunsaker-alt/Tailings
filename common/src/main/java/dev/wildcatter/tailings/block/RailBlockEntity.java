@@ -163,8 +163,22 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart, dev.wil
 		return out;
 	}
 
+	/** The circuit it was last built into, and when: Wildcatter does not solve one of more than its node limit. */
+	private Circuit built;
+	private long builtAt;
+
+	/**
+	 * True when the circuit this rail is in has more nodes than Wildcatter solves (a node a metre of track, R5b): it is not simulated,
+	 * so the track is dead, and the trains say why.
+	 */
+	public boolean tooBig() {
+		return built != null && level != null && level.getGameTime() - builtAt <= 40 && built.nodes() > dev.wildcatter.Tuning.MAX_CIRCUIT_NODES;
+	}
+
 	@Override
 	public void build(Circuit circuit) {
+		built = circuit;
+		builtAt = level == null ? 0 : level.getGameTime();
 		node = circuit.node();
 		double half = Haul.CONDUCTOR_OHMS_PER_METRE / 2;
 		for (Direction face : Direction.values()) {
@@ -219,7 +233,7 @@ public class RailBlockEntity extends BlockEntity implements CircuitPart, dev.wil
 	}
 
 	public boolean conductorLive() {
-		return Conductor.live(powered);
+		return Conductor.live(powered) && !tooBig();
 	}
 
 	public BlockPos signal() {

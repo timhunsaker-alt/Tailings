@@ -44,7 +44,19 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 	}
 
 	public static void tick(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, RectifierBlockEntity rectifier) {
+		boolean big = rectifier.tooBig();
+		if (big && !rectifier.warned && !level.isClientSide()) {
+			// said once, to whoever is near, as it happens: the track is dead and nothing else says why
+			for (net.minecraft.world.entity.player.Player player : level.players()) {
+				if (player.blockPosition().closerThan(pos, 64)) {
+					player.sendSystemMessage(Component.literal("Traction rectifier at " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + ": " + tooBigWarning()));
+				}
+			}
+		}
+		rectifier.warned = big;
 	}
+
+	private boolean warned;
 
 	/** The game test runs it without building a grid: its DC side is on whatever the AC side does. */
 	public void forceRunning() {
@@ -89,8 +101,24 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 		return cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == ac.voltage() && role != Conductor.N;
 	}
 
+	private Circuit built;
+	private long builtAt;
+
+	/** True when its track's circuit has more nodes than Wildcatter solves: nothing on it is simulated (R5b). */
+	public boolean tooBig() {
+		return built != null && level != null && level.getGameTime() - builtAt <= 40 && built.nodes() > dev.wildcatter.Tuning.MAX_CIRCUIT_NODES;
+	}
+
+	/** What the player is told when its circuit is too big. */
+	public static String tooBigWarning() {
+		return "TRACK TOO LONG: this circuit has more than " + dev.wildcatter.Tuning.MAX_CIRCUIT_NODES
+				+ " nodes (a node a metre of track), more than the grid solver takes, so it is dead; give the far end its own rectifier, on track not joined to this";
+	}
+
 	@Override
 	public void build(Circuit circuit) {
+		built = circuit;
+		builtAt = level == null ? 0 : level.getGameTime();
 		ac.setDemand(volts * amps / Haul.RECTIFIER_EFFICIENCY);
 		ac.build(circuit, worldPosition, List.of(TailingsPartBlock.boxFace(getBlockState())));
 		plus = circuit.node();
@@ -137,7 +165,7 @@ public class RectifierBlockEntity extends BlockEntity implements CircuitPart, In
 
 	@Override
 	public Component inspect() {
-		String dc = tripped ? "DC breaker TRIPPED on overload: click to reset"
+		String dc = tooBig() ? tooBigWarning() : tripped ? "DC breaker TRIPPED on overload: click to reset"
 				: powered() ? String.format("%.0f V DC, %.0f A, %.0f kW to the track", volts, amps, volts * amps / 1000)
 				: "no 480 V in";
 		return Component.literal("Traction rectifier (300 kW, 250 V DC): " + dc + "; AC " + ac.describe());

@@ -444,7 +444,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			why = "held";
 		} else if (!fed) {
 			target = 0;
-			why = "NO POWER: the track under it is not fed";
+			why = rail != null && rail.tooBig() ? "NO POWER: " + dev.wildcatter.tailings.block.RectifierBlockEntity.tooBigWarning() : "NO POWER: the track under it is not fed";
 		} else if (under.cell().graded() && !under.cell().rack()) {
 			target = 0;
 			why = "NO RACK on the grade";

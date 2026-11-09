@@ -110,6 +110,7 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 		machine.dx = cutter.getX() - drill.originX();
 		machine.dz = cutter.getZ() - drill.originZ();
 		cab.releaseForLift();
+		dev.wildcatter.tailings.block.DrillMenu.rebind(level, cab, machine);   // a screen open on the cab stays open on the machine
 		int quiet = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
 		for (TbmMachine.Cell cell : TbmMachine.cells(facing)) {
 			level.setBlock(cutter.offset(cell.x(), cell.y(), cell.z()), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), quiet);
@@ -259,6 +260,17 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			SoundingEntity.Hook.start.accept(this);
 			return;
 		}
+		// the quench tank rides the pump gantry: its water comes in for this tick's work and goes back after
+		GantryEntity pump = TbmBackup.loadTank(server, this);
+		try {
+			serverTick(server);
+		} finally {
+			TbmBackup.storeTank(pump, core);
+		}
+	}
+
+	private void serverTick(ServerLevel server) {
+		core.setAuxPower(core.forced() || core.junction() != null && server.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity j && j.auxLive());
 		core.acceptBuckets();
 		core.tickLoading(server);
 		boolean cutting = core.running() && core.status() == DrillCodes.DRIVING;
@@ -280,7 +292,7 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			reporting.report(core, server, button -> core.press(button, server));
 		}
 		if (core.running() && core.junction() != null && server.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity junction) {
-			junction.draw(core.drawWatts());
+			junction.draw(TbmCore.BEAM_WATTS, core.auxWatts());
 		}
 		lockChunks(server);
 		if (core.waitTicks() > 0) {
@@ -357,6 +369,7 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			core.save(output);
 			cab.core().load(TagValueInput.create(ProblemReporter.DISCARDING, server.registryAccess(), output.buildResult()));
 			cab.setChanged();
+			dev.wildcatter.tailings.block.DrillMenu.rebind(server, this, cab);
 		}
 		core.slots().clear();
 		discard();

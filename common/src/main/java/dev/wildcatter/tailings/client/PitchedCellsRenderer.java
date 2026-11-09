@@ -39,6 +39,13 @@ public abstract class PitchedCellsRenderer<T extends Entity> extends EntityRende
 		float pitch;
 		final List<BlockModelRenderState> models = new ArrayList<>();
 		List<TbmMachine.Cell> cells = List.of();
+		/** The reel gantry's: its trailing cable as points from the entity's corner, {x, y, z} each, and how far the reel has turned. */
+		float[] cable = new float[0];
+		float reelTurn = Float.NaN;
+	}
+
+	/** More to draw, turned to the grade with the cells ({@code pitched}) or as the world stands. */
+	protected void submitMore(State state, PoseStack pose, SubmitNodeCollector collector, int light, boolean pitched) {
 	}
 
 	protected abstract List<TbmMachine.Cell> cells(T entity);
@@ -78,6 +85,7 @@ public abstract class PitchedCellsRenderer<T extends Entity> extends EntityRende
 	@Override
 	public void submit(State state, PoseStack pose, SubmitNodeCollector collector, CameraRenderState camera) {
 		int light = LightCoordsUtil.pack(Math.max(WORK_LIGHT, LightCoordsUtil.block(state.lightCoords)), LightCoordsUtil.sky(state.lightCoords));
+		submitMore(state, pose, collector, light, false);
 		pose.pushPose();
 		// its rear rises: about the axis across the heading
 		switch (state.facing) {
@@ -93,6 +101,7 @@ public abstract class PitchedCellsRenderer<T extends Entity> extends EntityRende
 			state.models.get(i).submit(pose, collector, light, OverlayTexture.NO_OVERLAY, 0);
 			pose.popPose();
 		}
+		submitMore(state, pose, collector, light, true);
 		pose.popPose();
 		super.submit(state, pose, collector, camera);
 	}
