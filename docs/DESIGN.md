@@ -234,12 +234,31 @@ device. A PLC never overrides protection: a stalled motor, a tripped breaker and
   and FILL (4-20 mA over a belt's hold) as analog inputs. A conveyor drive's FILL is a belt scale. **The ore sorter** adds SHUT NORTH,
   EAST, SOUTH and WEST GATE: a shut gate sends that side's rock to waste. Parts with no motor have no signals; the belts themselves
   run on their drive.
+- **The sorter's routing** (`plant.PlcScale`, `haul.Sorter.choose`): NORTH, EAST, SOUTH and WEST TAKES, one analog output a side
+  carrying a rock code, code *n* at 4 + *n*/4 mA. 0 takes nothing of its own; 1 to 38 are `Rock`'s list in order: cobblestone,
+  stone, granite, diorite, andesite, deepslate, tuff, sandstone (1-8), iron, copper and gold ore (9-11), then Wildcatter's ores:
+  uraninite 12, pitchblende 13, sulfur 14, halite 15, sylvite 16, fluorite 17, heavy mineral sand 18, bauxite 19, galena 20,
+  sphalerite 21, cassiterite 22, pentlandite 23, chromite 24, platinum 25, molybdenite 26, magnesite 27, dolomite 28, graphite 29,
+  borax 30, spodumene 31, barite 32, bentonite 33, silver (acanthite) 34, scheelite 35, cobaltite 36, pyrolusite 37, phosphate 38.
+  New rocks join at the end. In AUTO on a fresh loop a side takes its code's rock (its block item) over the screen's setting, which
+  is kept and comes back when the PLC stops, in HAND or OFF, or on a code with no rock. The waste side stays the waste side; two sides
+  on one rock, the first takes it. Gates and codes are refreshed every tick, so a quiet PLC opens its gates too.
+- **A slurry part** (`block.stage.SlurryGauge`; the mill, cyclones, spiral bank, the tanks, banks, thickeners, filter, leach tank,
+  electrowinning bank and heap pad) adds LEVEL, FLOW and DENSITY, 4-20 mA inputs. LEVEL is its feed tank (the inlet buffer it draws
+  into off the pipe; the mill, cyclones and heap pad read their discharge sump) over the hold it works to, so a part backed up by a
+  full outlet reads full. FLOW is what leaves it by pipe over the last second, 0-60 L/s. DENSITY is its feed tank's, 1.0-2.0 kg/L,
+  from each product's solids at 2.7 t/m3: mill discharge 70 % (1.79), fines, conditioned, tails and leach slurry 35 % (1.28),
+  concentrate 30 % (1.23), thickened concentrate 60 % (1.61), pregnant liquor as water. A transmitter clamped to it reads the same.
 - **`mine_switch`:** THROW in; THROWN and AUTO out. In HAND a switch is thrown by hand (a click with an empty hand). A train's path
   through a switch that is thrown under it is broken, so it stops.
 - **`block_signal`:** HOLD in, keeping the section closed even when it is clear; OCCUPIED and AUTO out.
 - **`cable_junction`:** the TBM's fixed point, as the machine moves. GO in (a rising edge starts the machine as its Go button does);
   RUNNING and AUTO out; ADVANCE PULSES (one a block advanced) on a counter; CABLE LEFT (4-20 mA over 400 m) and QUENCH TANK as analog
-  inputs. The machine reports to the junction its cable reaches.
+  inputs. The machine reports to the junction its cable reaches. **Its course:** TARGET Y (-64 at 4 mA to 320 at 20) and FLAT LENGTH
+  (0-400 m) as analog outputs, TARGET Y SET and FLAT LENGTH SET read back. The course takes only while the machine stands (a course
+  and a GO in one scan: the course first); while it drives, the course it started on holds. A target that would move floor already
+  cut is held (`PlcScale.allowedTarget`): any before the first advance, no higher than its floor while it declines, unchanged once
+  it has levelled out. Heading and grade are not signals: it bores the way it was built, at 1 in 2.
 - **Pull cords** are Wildcatter's `pull_cord`, wired to a PLC input like any button.
 
 ## The open pit (P1)

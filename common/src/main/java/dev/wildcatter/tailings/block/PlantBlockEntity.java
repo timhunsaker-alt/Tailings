@@ -54,7 +54,10 @@ import org.jspecify.annotations.Nullable;
 public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
 		WaterUser, dev.wildcatter.kinetic.Sounding, dev.wildcatter.control.ControlDevice, dev.wildcatter.control.Measurable {
 	/** Its HAND / OFF / AUTO: HAND runs on its own work as it always has, OFF holds it, and AUTO runs it while a PLC keeps enabling it (Wildcatter's plc.md). */
-	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(5);
+	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(9);
+	private static final String[] SIDE_POINTS = {"NORTH", "EAST", "SOUTH", "WEST"};
+	/** The sorter's points past the six every motor has: a gate a side, then a rock code a side. */
+	private static final int GATES = 6, CODES = 10;
 
 	private boolean plcAllows() {
 		return remote.hand() || level != null && remote.on(0, level.getGameTime());
@@ -65,7 +68,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return machine().name().replace('_', ' ');
 	}
 
-	/** Each motor-driven part: run, its feedback and its current. A sorter adds a diverter gate a side; a part with no motor has no signals. */
+	/**
+	 * Each motor-driven part: run, its feedback and its current. A sorter adds a diverter gate a side and the rock code each side takes;
+	 * a part that holds slurry adds its level, flow and density. A part with no motor has no signals.
+	 */
 	@Override
 	public java.util.List<Point> points() {
 		if (motor == null) {
@@ -74,9 +80,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		java.util.List<Point> out = new java.util.ArrayList<>(java.util.List.of(new Point("RUN", true), new Point("RUNNING", false), new Point("STALLED", false), new Point("AUTO", false),
 				new Point("AMPS 4-20 mA, 150 %", false, Signal.MA), new Point("FILL 4-20 mA", false, Signal.MA)));
 		if (machine() == Machine.ORE_SORTER) {
-			for (String side : java.util.List.of("NORTH", "EAST", "SOUTH", "WEST")) {
+			for (String side : SIDE_POINTS) {
 				out.add(new Point("SHUT " + side + " GATE", true));
 			}
+			for (String side : SIDE_POINTS) {
+				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
+			}
+		} else if (dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
+			out.add(new Point(String.format("FLOW 4-20 mA, %.0f L/s", dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH), false, Signal.MA));
+			out.add(new Point(String.format("DENSITY 4-20 mA, %.1f-%.1f kg/L", dev.wildcatter.tailings.plant.PlcScale.DENSITY_LOW, dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH), false, Signal.MA));
 		}
 		return out;
 	}
@@ -95,9 +108,40 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public void commandPoint(int point, boolean on, long gameTime) {
 		if (point == 0) {
 			remote.command(0, on, gameTime);
-		} else if (point >= 6 && point < 10) {
-			remote.command(point - 5, on, gameTime);
-			sorter.setGate(point - 6, remote.auto() && on);
+		} else if (machine() == Machine.ORE_SORTER && point >= GATES && point < CODES) {
+			remote.command(point - GATES + 1, on, gameTime);
+			sorter.setGate(point - GATES, remote.auto() && on);
+		}
+	}
+
+	@Override
+	public void commandMa(int point, double milliamps, long gameTime) {
+		if (machine() == Machine.ORE_SORTER && point >= CODES && point < CODES + dev.wildcatter.tailings.haul.Sorter.SIDES) {
+			remote.commandMa(point - CODES + 5, milliamps, gameTime);
+			if (level != null) {
+				routeBySignal(level.getGameTime());
+			}
+		}
+	}
+
+	/**
+	 * The sorter's sides as its PLC says, each tick: a gate shut while its command keeps coming, and each side taking the rock its code
+	 * names while in AUTO and the loop is fresh. Code 0 takes nothing of its own; a code with no rock, a stale loop or HAND or OFF leave
+	 * the side as its screen set it.
+	 */
+	private void routeBySignal(long now) {
+		for (int side = 0; side < dev.wildcatter.tailings.haul.Sorter.SIDES; side++) {
+			sorter.setGate(side, remote.on(side + 1, now));
+			double fraction = remote.fraction(side + 5, now, -1);
+			int code = fraction < 0 ? -1 : dev.wildcatter.tailings.plant.PlcScale.code(4 + 16 * fraction);
+			dev.wildcatter.tailings.rock.Rock rock = dev.wildcatter.tailings.plant.PlcScale.rock(code);
+			if (code == 0) {
+				sorter.choose(side, null);
+			} else if (rock != null) {
+				sorter.choose(side, Feeds.blockId(rock));
+			} else {
+				sorter.release(side);
+			}
 		}
 	}
 
@@ -106,7 +150,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (motor == null) {
 			return 0;
 		}
+		if (point >= 6 && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			return switch (point) {
+				case 6 -> 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.SlurryGauge.level(this));
+				case 7 -> dev.wildcatter.tailings.plant.PlcScale.ma(flowLitres, 0, dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH);
+				default -> dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.SlurryGauge.density(this), dev.wildcatter.tailings.plant.PlcScale.DENSITY_LOW,
+						dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH);
+			};
+		}
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
+	}
+
+	/** Litres a second of slurry leaving by pipe over the last second, and what has left in this one. */
+	private double flowLitres;
+	private double flowCounting;
+
+	/** Its discharge flow, L/s, over the last second. */
+	public double flow() {
+		return flowLitres;
 	}
 
 	@Override
@@ -122,7 +183,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case AMPS -> motor == null ? Double.NaN : motor.amps();
 			case SPEED -> motor == null ? Double.NaN : motor.output() * 100;
 			case WEIGHT -> hold.total();
-			case LEVEL -> hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
+			case LEVEL -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100
+					: hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
+			case FLOW -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? flowLitres : Double.NaN;
+			case DENSITY -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.density(this) : Double.NaN;
 			default -> Double.NaN;
 		};
 	}
@@ -186,6 +250,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	private void serverTick() {
 		demand = false;
+		if (level.getGameTime() % 20 == 0) {
+			flowLitres = flowCounting;
+			flowCounting = 0;
+		}
+		if (machine() == Machine.ORE_SORTER) {
+			routeBySignal(level.getGameTime());
+		}
 		intake();
 		stage().tick(this);
 		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
@@ -760,6 +831,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return 0;
 		}
 		double got = out.give(product, max);
+		flowCounting += got / dev.wildcatter.tailings.plant.PlcScale.density(product);
 		setChanged();
 		return got;
 	}
@@ -827,6 +899,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			}
 		}
+		if (motor != null && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			held.append(String.format("; slurry level %.0f %%, flow %.1f L/s, density %.2f kg/L", dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100, flowLitres,
+					dev.wildcatter.tailings.block.stage.SlurryGauge.density(this)));
+		}
 		if (stage().waterHold() > 0) {
 			held.append(String.format("; water %.0f/%.0f L", water, stage().waterHold()));
 		}
@@ -839,8 +915,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.ORE_SORTER) {
 			String[] names = {"north", "east", "south", "west"};
 			for (int side = 0; side < names.length; side++) {
-				String set = side == sorter.waste() ? "waste" : sorter.product(side);
-				if (set != null) {
+				String takes = sorter.takes(side);
+				String set = side == sorter.waste() ? (takes == null ? "waste" : takes + " and waste") : takes;
+				if (sorter.chosen(side)) {
+					held.append("; ").append(names[side]).append(" (PLC): ").append(set == null ? "nothing" : set);
+				} else if (set != null) {
 					held.append("; ").append(names[side]).append(": ").append(set);
 				}
 			}

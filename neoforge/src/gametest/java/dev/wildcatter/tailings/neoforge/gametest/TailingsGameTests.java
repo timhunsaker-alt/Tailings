@@ -159,6 +159,7 @@ public class TailingsGameTests {
 			helper.register(id("not_built"), loaded(TailingsGameTests::notBuilt));
 			helper.register(id("terminal"), loaded(TailingsGameTests::terminal));
 			TbmGapsGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			PlcSignalGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			helper.register(id("belt_transit"), loaded(TailingsGameTests::beltTransit));
 			helper.register(id("feed_face"), loaded(TailingsGameTests::feedFace));
 			helper.register(id("screen_gravel"), loaded(TailingsGameTests::screenGravel));
@@ -190,12 +191,12 @@ public class TailingsGameTests {
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b runs only those scenes, for working on a few
 					.filter(name -> System.getenv("TAILINGS_SCENES") == null || java.util.Arrays.asList(System.getenv("TAILINGS_SCENES").split(",")).contains(name)).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,
 								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40)))));
 			}
 		});
@@ -288,7 +289,7 @@ public class TailingsGameTests {
 		return entity == null ? null : helper.getBlockEntity(pos, entity);
 	}
 
-	private static PlantBlockEntity plant(GameTestHelper helper, Machine machine, BlockPos pos) {
+	static PlantBlockEntity plant(GameTestHelper helper, Machine machine, BlockPos pos) {
 		return part(helper, TailingsBlocks.plantBlock(machine), pos, PlantBlockEntity.class);
 	}
 
@@ -311,7 +312,7 @@ public class TailingsGameTests {
 		return TailingsBlocks.BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, axis);
 	}
 
-	private static void pipe(GameTestHelper helper, BlockPos... at) {
+	static void pipe(GameTestHelper helper, BlockPos... at) {
 		Block steel = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "gas_line"));
 		for (BlockPos pos : at) {
 			helper.setBlock(pos, steel);
@@ -471,13 +472,13 @@ public class TailingsGameTests {
 	}
 
 	/** A stand-in for the crushing circuit's overflow: cyclones holding fines slurry of this assay at their south face. */
-	private static PlantBlockEntity fines(GameTestHelper helper, BlockPos pos, double kg, java.util.Map<String, Double> assay) {
+	static PlantBlockEntity fines(GameTestHelper helper, BlockPos pos, double kg, java.util.Map<String, Double> assay) {
 		PlantBlockEntity source = plant(helper, Machine.CYCLONE, pos);
 		source.out().offer(Product.FINES_SLURRY, kg, dev.wildcatter.fluid.SlurryAssay.of(assay));
 		return source;
 	}
 
-	private static void reagents(GameTestHelper helper, PlantBlockEntity tank, Reagent... which) {
+	static void reagents(GameTestHelper helper, PlantBlockEntity tank, Reagent... which) {
 		for (Reagent reagent : which) {
 			helper.assertTrue(tank.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id(reagent.id())))),
 					Component.literal("the tank should take " + reagent.displayName()));
@@ -1039,7 +1040,7 @@ public class TailingsGameTests {
 		PlantBlockEntity sorter = plant(helper, Machine.ORE_SORTER, new BlockPos(12, 6, 1));
 		helper.assertTrue(drive.points().size() == 6, Component.literal("a part with a motor has its six signals: " + drive.points()));
 		helper.assertTrue(grizzly.points().isEmpty(), Component.literal("a part with no motor has none"));
-		helper.assertTrue(sorter.points().size() == 10, Component.literal("a sorter adds a gate a side: " + sorter.points()));
+		helper.assertTrue(sorter.points().size() == 14, Component.literal("a sorter adds a gate and a rock code a side: " + sorter.points()));
 		BlockPos cell = helper.absolutePos(new BlockPos(1, 6, 1));
 		helper.assertFalse(drive.readPoint(3), Component.literal("a new part is in HAND"));
 		drive.cycleHoa(cell);

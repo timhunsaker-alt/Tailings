@@ -14,8 +14,33 @@ public final class Sorter {
 	/** A diverter gate shut on a side, by a PLC: what would leave by it goes to waste. Not saved: it must keep coming. */
 	private final boolean[] gateShut = new boolean[SIDES];
 
+	/** What a PLC chose for each side, while it chooses: an item id, or null for nothing of its own. Not saved: it must keep coming. */
+	private final String[] chosen = new String[SIDES];
+	private final boolean[] choosing = new boolean[SIDES];
+
 	public void setGate(int side, boolean shut) {
 		gateShut[side] = shut;
+	}
+
+	/** A PLC sets {@code side} to take {@code itemId} (null: nothing of its own), over what its screen set, while it keeps saying so. */
+	public void choose(int side, String itemId) {
+		choosing[side] = true;
+		chosen[side] = itemId;
+	}
+
+	/** The side goes back to what its screen set. */
+	public void release(int side) {
+		choosing[side] = false;
+		chosen[side] = null;
+	}
+
+	public boolean chosen(int side) {
+		return choosing[side];
+	}
+
+	/** What {@code side} takes now: the PLC's choice while it chooses, else the screen's. */
+	public String takes(int side) {
+		return choosing[side] ? chosen[side] : product[side];
 	}
 
 	/** Sets {@code side} to take {@code itemId}; the side stops being waste, and no other side keeps that type. */
@@ -53,10 +78,10 @@ public final class Sorter {
 		return waste;
 	}
 
-	/** The side {@code itemId} leaves by, or -1 when it has none and there is no waste side. */
+	/** The side {@code itemId} leaves by, or -1 when it has none and there is no waste side. Two sides choosing one type: the first takes it. */
 	public int route(String itemId) {
 		for (int i = 0; i < SIDES; i++) {
-			if (itemId.equals(product[i])) {
+			if (itemId.equals(takes(i))) {
 				return gateShut[i] ? waste : i;
 			}
 		}

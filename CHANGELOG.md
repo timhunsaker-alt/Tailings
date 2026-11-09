@@ -4,6 +4,19 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### PLC 13i: the last signals (2026-11-09, decided while Tim was away)
+
+- **A PLC chooses which rock each side of the ore sorter takes:** one 4-20 mA output a side carrying a rock code (copper ore is code
+  10, 6.5 mA; the list is in DESIGN.md). The screen's setting comes back when the PLC stops saying. A gate the PLC shut now opens
+  when the PLC goes quiet (it stayed shut).
+- **A PLC programs the TBM's course** through its cable junction: TARGET Y and FLAT LENGTH, with read-backs. The course takes while
+  the machine stands, and never moves floor already cut.
+- **Slurry parts read LEVEL, FLOW and DENSITY** (4-20 mA): the feed tank's level, the flow out by pipe (0-60 L/s), and the slurry's
+  density from its solids (1.0-2.0 kg/L). Transmitters read them too.
+- **Changed for existing PLC programs:** the ore sorter has four more points (14, was 10); slurry parts have three more (9, was 6).
+  The old points keep their numbers.
+- **Tests:** `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`.
+
 ### The TBM's gaps (2026-11-09, decided while Tim was away)
 
 - **The gantries run on their own wheels** on the twin track. Take a rail from under one and the machine stops, naming it; put it

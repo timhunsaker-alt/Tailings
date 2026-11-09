@@ -159,6 +159,10 @@ junction are devices on Wildcatter's control cable (Wildcatter v0.5.1). See DESI
 `plc_plant`, `plc_switch`, `plc_signal`, `plc_tbm_go`. The playthrough starts the mine from a PLC: a generated structured-text program
 starts the machines downstream first, one a second, then sends GO to the TBM.
 
+The last signals (2026-11-09, decided while Tim was away, [questions/plc-13i.md](questions/plc-13i.md)): the sorter's routing by a
+rock code a side, the TBM's course (target Y and flat length) on its junction, and a slurry part's level, flow and density. NeoForge
+scenes `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`.
+
 ## Open pit — P1: loose ground, the haul truck, the truck dump, the wheel loader (2026-11-09)
 
 Spec [multiblocks/open-pit.md](multiblocks/open-pit.md), approved 2026-11-09, with Tim's P1 answers: soil goes to dumps, and the truck
@@ -236,9 +240,6 @@ into the playthrough.
 - **Turning round on a straight road leaves a truck off the line (P2a, found in P2b):** after turning on full lock at the stake
   before an end it is some 15 m to one side and backs in at an angle. A truck whose tail passes the end within 4 m of the line now
   stops there (before, it circled behind the end for ever); it may tip up to a few metres past a DUMP POINT stake.
-- **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
-- **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
-- **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.
 
 - **The old `dewatering_pump` is a legacy block (R6c):** no recipe, out of the creative tab, doing nothing. Kept until the release after the first one that ships it (no release yet; docs/questions/tbm-gaps.md 8).
 - **The running machine collides as one box (R6b),** not the parts' exact shapes, and it does not turn on the grade: the box is its outline, raised at the rear when pitched. Left with a plan (docs/questions/tbm-gaps.md 7): the game collides an entity by one box, and the bore is the machine's own 8 x 8 section, so it differs from the parts only beside the main beam and in the corners on the grade.

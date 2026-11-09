@@ -26,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * moves; the trailing cable between them is not modelled.
  */
 public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart, Inspectable, dev.wildcatter.control.ControlDevice {
-	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(1);
+	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(3);
 	/** The machine on its cable, which says so each tick: the junction stands still, and is how a control cable reaches a machine that moves. */
 	private TbmCore machine;
 	private long machineTick = -100;
@@ -37,6 +37,7 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 		machine = core;
 		machineTick = at.getGameTime();
 		long now = at.getGameTime();
+		program(core, at, now);
 		// go on the command's rise, as its cab's button: a machine that stopped itself, at its target or for want of stock, stays stopped until told again
 		if (goPending && !core.running()) {
 			press.accept(10);
@@ -44,6 +45,28 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 			press.accept(10);   // a stop, or a PLC gone quiet
 		}
 		goPending = false;
+	}
+
+	/**
+	 * The course from the PLC, while the machine stands, in AUTO, on fresh loops: TARGET Y and FLAT LENGTH set the program as the cab's
+	 * screen does, before a GO in the same scan starts it. While it drives, the course it started on holds. A target that would move floor
+	 * already cut is held to what it may be (PlcScale.allowedTarget); heading and grade are not signals: it bores the way it was built, at
+	 * 1 in 2.
+	 */
+	private void program(TbmCore core, Level at, long now) {
+		if (core.running()) {
+			return;
+		}
+		double target = remote.fraction(1, now, -1);
+		if (target >= 0) {
+			var drill = core.drill();
+			core.program().setTargetY(dev.wildcatter.tailings.plant.PlcScale.allowedTarget(dev.wildcatter.tailings.plant.PlcScale.targetY(target), drill.advanceCount(),
+					drill.declining(), drill.floorY(), core.program().targetY(), at.getMinY() + 1));
+		}
+		double flat = remote.fraction(2, now, -1);
+		if (flat >= 0) {
+			core.program().setFlatLength(dev.wildcatter.tailings.plant.PlcScale.flatLength(flat));
+		}
 	}
 
 	private TbmCore machine() {
@@ -57,7 +80,9 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 
 	@Override
 	public java.util.List<Point> points() {
-		return java.util.List.of(new Point("GO", true), new Point("RUNNING", false), new Point("AUTO", false), new Point("ADVANCE PULSES", false, Signal.PULSE), new Point("CABLE LEFT 4-20 mA, 400 m", false, Signal.MA), new Point("QUENCH TANK 4-20 mA", false, Signal.MA));
+		return java.util.List.of(new Point("GO", true), new Point("RUNNING", false), new Point("AUTO", false), new Point("ADVANCE PULSES", false, Signal.PULSE), new Point("CABLE LEFT 4-20 mA, 400 m", false, Signal.MA), new Point("QUENCH TANK 4-20 mA", false, Signal.MA),
+				new Point("TARGET Y 4-20 mA, -64 to 320", true, Signal.MA), new Point("FLAT LENGTH 4-20 mA, 400 m", true, Signal.MA), new Point("TARGET Y SET 4-20 mA", false, Signal.MA),
+				new Point("FLAT LENGTH SET 4-20 mA", false, Signal.MA));
 	}
 
 	@Override
@@ -85,7 +110,19 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 		if (core == null) {
 			return 0;   // no machine reporting: an open loop, as a real one with no signal
 		}
-		return 4 + 16 * Math.min(1.03, point == 4 ? core.cableLeft() / 400.0 : core.tank() / (double) TbmCore.TANK_MAX);
+		return switch (point) {
+			case 4 -> 4 + 16 * Math.min(1.03, core.cableLeft() / 400.0);
+			case 8 -> dev.wildcatter.tailings.plant.PlcScale.ma(core.program().targetY(), dev.wildcatter.tailings.plant.PlcScale.TARGET_Y_LOW, dev.wildcatter.tailings.plant.PlcScale.TARGET_Y_HIGH);
+			case 9 -> dev.wildcatter.tailings.plant.PlcScale.ma(core.program().flatLength(), 0, dev.wildcatter.tailings.plant.PlcScale.FLAT_HIGH);
+			default -> 4 + 16 * Math.min(1.03, core.tank() / (double) TbmCore.TANK_MAX);
+		};
+	}
+
+	@Override
+	public void commandMa(int point, double milliamps, long gameTime) {
+		if (point == 6 || point == 7) {
+			remote.commandMa(point - 5, milliamps, gameTime);
+		}
 	}
 
 	@Override

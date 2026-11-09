@@ -355,3 +355,20 @@ Tim (2026-11-09): "close all known gaps", decided on the best recommendation whi
   and recovery scenes feed real masses.
 - Kept: concentrate as mineral only, and the `fines_*` items. The waste bin's way out is written in DESIGN.md.
 - NeoForge scenes: **91 pass** (83 before, 8 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).
+
+## PLC 13i: the last signals (2026-11-09)
+
+Tim (2026-11-09): "close all known gaps", decided on the best recommendation while he was away
+([docs/questions/plc-13i.md](docs/questions/plc-13i.md), with two questions for him). The three 13i lines are gone from Known gaps.
+Wildcatter 0.5.1's API only (its AO4 module's `commandMa`). DESIGN.md, "PLC signals".
+- **The sorter's routing:** NORTH/EAST/SOUTH/WEST TAKES, a rock code a side on 4-20 mA (code *n* at 4 + *n*/4 mA; 0 nothing, 1-38
+  `Rock`'s list, copper ore 10). In AUTO on a fresh loop it overrides the screen, which comes back when the PLC stops. Found on the
+  way: a gate the PLC shut stayed shut when the PLC went quiet; gates are now refreshed every tick (`plc_sorter_route`).
+- **The TBM's course:** TARGET Y (-64 to 320) and FLAT LENGTH (0-400 m) on the cable junction, with read-backs. It takes while the
+  machine stands, before a GO in the same scan; a target that would move floor already cut is held (`plc_tbm_course`: a flat 3 m
+  drive set by the PLC over the screen's 32, holding while it drives though the PLC asks for 400).
+- **Slurry readings:** LEVEL (feed tank over its hold), FLOW (out by pipe, 0-60 L/s) and DENSITY (1.0-2.0 kg/L from the product's
+  solids) on every slurry part with a motor; Wildcatter's transmitters read them too (`plc_slurry`: the cyclone's flow at the tank's
+  31 L/s draw, 1.28 kg/L fines, the tank backing up to full).
+- Plain Java in `plant.PlcScale` and `block.stage.SlurryGauge`; `PlcScaleTest` pins the rock codes.
+- NeoForge scenes: **105 pass** (102 before, 3 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).
