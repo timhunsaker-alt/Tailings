@@ -89,10 +89,12 @@ public final class TailingsBlocks {
 	public static final Block TRUCK_DUMP_WALL = plant(Machine.TRUCK_DUMP_WALL, MapColor.STONE);
 	public static final Block PIT_HOPPER = plant(Machine.PIT_HOPPER, MapColor.METAL);
 	public static final Block FUEL_BAY = plant(Machine.FUEL_BAY, MapColor.COLOR_YELLOW);
+	public static final Block HAUL_DISPATCH = plant(Machine.HAUL_DISPATCH, MapColor.TERRACOTTA_WHITE);
 	/** A haul road's survey stake (open-pit.md, P2a): no collision, so trucks drive over it. */
 	public static final Block SURVEY_STAKE = block("survey_stake", props -> new dev.wildcatter.tailings.block.SurveyStakeBlock(props.mapColor(MapColor.COLOR_ORANGE)
 			.strength(0.5F, 1.0F).sound(SoundType.WOOD).noCollision().noOcclusion()));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.FuelBayBlockEntity> FUEL_BAY_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FuelBayBlockEntity::new, Set.of(FUEL_BAY));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.HaulDispatchBlockEntity> HAUL_DISPATCH_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.HaulDispatchBlockEntity::new, Set.of(HAUL_DISPATCH));
 	/** Broken rock (open-pit.md): falls and settles, holding what it was. Its drops are its contents, not a loot table. */
 	public static final Block MUCK = block("muck", props -> new dev.wildcatter.tailings.block.MuckBlock(props.mapColor(MapColor.STONE).strength(0.8F, 1.0F)
 			.sound(SoundType.GRAVEL).noLootTable()));
@@ -189,6 +191,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("muck"), MUCK_ENTITY);
 		add("survey_stake", SURVEY_STAKE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -224,6 +227,7 @@ public final class TailingsBlocks {
 			case TRUCK_DUMP_WALL -> TRUCK_DUMP_WALL;
 			case PIT_HOPPER -> PIT_HOPPER;
 			case FUEL_BAY -> FUEL_BAY;
+			case HAUL_DISPATCH -> HAUL_DISPATCH;
 		};
 	}
 

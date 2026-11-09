@@ -279,3 +279,22 @@ built of 1/16 m slices following the circle (`tools/models/pit_vehicles.py`), wi
 slices share one texture rectangle and use different corners of it, and the unpainted corners were transparent; the rectangles are
 now painted solid. Rail wheels: eight-sided at 4 px (`tools/models/vehicles.py`). Both pit scenes were filmed again with the display
 kept awake (`caffeinate -dimsu`).
+
+## Open pit P2b: the haul dispatch office on the PLC (2026-11-09)
+
+Spec `docs/multiblocks/open-pit.md` ("Haul roads, surveying and dispatch", "P2b as built"). Built while Tim was away; the open
+questions were decided on the best recommendation and logged in `docs/questions/p2b-dispatch.md`. DESIGN.md, "The open pit (P2b)".
+
+- **The office** (`haul_dispatch`, 3 x 3 x 3): a `ControlDevice` with 43 points (5 a route for 8 routes, then FUEL LOW, BLOCKED,
+  AUTO) and a 5 kW load on the low tier. The survey book adds a route to it; trucks on that route report once a second and read RUN.
+- **PARK stakes work:** RUN off sends a route's trucks on to its PARK stake (or the next stake), where they stand with their engines
+  off; RUN on sends them back to work. A stopped PLC parks the route; HAND runs it; with no power the trucks stop at their next stake.
+- **What building it found in P2a:** on a straight road a truck turning round at the stake before an end comes out about 15 m to the
+  side and backs in at an angle; it missed the end stake by more than 1.5 m and circled behind it for ever. A truck whose tail
+  passes the end within 4 m of the line now stops there (`TruckRoute.PAST_END_ACROSS`). `pit_truck_haul` (a bent road) is unchanged.
+- **Scenes:** `pit_dispatch` (spec: RUN on, the truck hauls and tips, LOADS pulses once, TRUCKS 5 mA, TONNES up; RUN off, it drives
+  back to the PARK stake and stands with its engine off burning nothing, RUNNING off; RUN on, it goes back to work),
+  `pit_dispatch_alarms` (FUEL LOW at 10 % and not at 50 %; BLOCKED after 30 s at an armour stand, clearing when it goes),
+  `pit_dispatch_fallback` (the PLC stops writing RUN and the truck parks at its next stake; HAND runs it again; the office's power off
+  stops it at its next stake with its loops at 0 mA; power back, it goes on). Unit tests `DispatchTest`.
+- NeoForge scenes: **86 pass** (83 before, 3 new).

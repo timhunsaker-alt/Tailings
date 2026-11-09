@@ -40,7 +40,8 @@ class MachineTest {
 			Map.entry(Machine.ORE_BIN, new int[] {3, 6, 3}),
 			Map.entry(Machine.TRUCK_DUMP_WALL, new int[] {12, 5, 2}),
 			Map.entry(Machine.PIT_HOPPER, new int[] {10, 6, 6}),
-			Map.entry(Machine.FUEL_BAY, new int[] {4, 3, 2}));
+			Map.entry(Machine.FUEL_BAY, new int[] {4, 3, 2}),
+			Map.entry(Machine.HAUL_DISPATCH, new int[] {3, 3, 3}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

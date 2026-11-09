@@ -1,10 +1,12 @@
 """The open pit's truck dump at true size (docs/multiblocks/open-pit.md, Truck dump), each part drawn facing north from its main cell:
 - truck_dump_wall, 12 x 5 x 2: the concrete retaining wall, 3 m below the pad, with its 1.5 m bumper on the hopper's edge above it (two rows of cells, so a truck that steps up a block cannot climb it);
 - pit_hopper, 10 x 6 x 6: the 400 t steel-lined concrete hopper below the wall's lip, its sloped liner falling to the feeder end;
-- fuel_bay, 4 x 3 x 2: the diesel island (P2a): a 2,000 L day tank on saddles, the dispenser with its hose, bollards and a canopy.
+- fuel_bay, 4 x 3 x 2: the diesel island (P2a): a 2,000 L day tank on saddles, the dispenser with its hose, bollards and a canopy;
+- haul_dispatch, 3 x 3 x 3: the dispatch office (P2b): a skid-mounted site office with windows on three sides, its door,
+  an air conditioner, the radio mast on its roof, and the power and control cable entry (the electrical box) on the west face.
 """
 import tlib
-from tlib import model, stepped
+from tlib import model, motor_box, stepped
 
 # ---- the truck dump wall ---------------------------------------------------------------------------------------------------------
 W = model("truck_dump_wall", 12, 5, 2, "concrete")
@@ -56,4 +58,25 @@ F.collide((0.2, 0.25, 0.4), (1.8, 1.55, 1.6))
 F.collide((2.5, 0.25, 0.6), (3.3, 2.0, 1.4))
 F.collide((0.0, 2.85, 0.0), (4.0, 3.0, 2.0))
 
-MODELS = [W, H, F]
+# ---- the haul dispatch office ---------------------------------------------------------------------------------------------------
+D = model("haul_dispatch", 3, 3, 3, "grey")
+D.box((0.0, 0.0, 0.1), (3.0, 0.2, 0.3), "iron")                           # the skids
+D.box((0.0, 0.0, 2.7), (3.0, 0.2, 2.9), "iron")
+D.box((0.0, 0.2, 0.0), (3.0, 0.35, 3.0), "checker")                        # the floor
+D.box((0.05, 0.35, 0.05), (2.95, 2.35, 2.95), "grey")                      # the walls
+D.box((0.0, 2.35, 0.0), (3.0, 2.5, 3.0), "galv")                           # the roof
+for x0, x1 in ((0.3, 1.3), (1.7, 2.7)):
+	D.box((x0, 1.1, -0.01), (x1, 1.9, 0.05), "dark")                       # the windows over the pit, north
+D.box((-0.01, 1.1, 1.4), (0.05, 1.9, 2.6), "dark")                         # west
+D.box((2.95, 1.1, 0.4), (3.01, 1.9, 1.6), "dark")                          # east
+D.box((1.8, 0.35, 2.95), (2.6, 2.1, 3.01), "blue")                         # the door, south
+D.box((2.45, 1.15, 3.01), (2.52, 1.25, 3.05), "steel")                     # its handle
+D.box((0.3, 0.6, 2.95), (1.1, 1.3, 3.0), "engine")                         # the air conditioner through the wall
+D.box((0.35, 0.65, 3.0), (1.05, 1.25, 3.02), "louvre")
+motor_box(D, y=0.6, z=0.2, h=0.7, w=0.6)                                   # the electrical box: low-tier power and the control cable
+D.box((2.4, 2.5, 0.4), (2.6, 2.6, 0.6), "steel")                           # the radio mast's foot
+D.box((2.47, 2.6, 0.47), (2.53, 3.0, 0.53), "galv")                        # its mast, to the top of its cells
+D.decal((1.2, 1.95, -0.02), (1.8, 2.25, -0.01), "nameplate", "north", "grey")
+D.collide((0.0, 0.0, 0.0), (3.0, 2.5, 3.0))
+
+MODELS = [W, H, F, D]

@@ -111,6 +111,11 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		return false;
 	}
 
+	/** Its engine idles while it stands: by default whenever it runs by itself; a truck parked by dispatch shuts it off. */
+	protected boolean engineIdles() {
+		return selfRunning();
+	}
+
 	/** Extra engine power for its body hoist or bucket, as a fraction of rated, beyond driving. */
 	protected double workFraction() {
 		return 0;
@@ -348,7 +353,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	private void burn(boolean driven, double throttle, double before) {
 		double extra = workFraction();
 		boolean moving = Math.abs(speed) > 0.05 || Math.abs(before) > 0.05 || throttle != 0;
-		engineOn = !outOfFuel() && (driven || selfRunning() || moving || extra > 0);
+		engineOn = !outOfFuel() && (driven || engineIdles() || moving || extra > 0);
 		if (!engineOn) {
 			return;
 		}

@@ -172,10 +172,13 @@ public class TailingsGameTests {
 			helper.register(id("pit_truck_follow"), wide("pit_truck_follow", PitHaulGameTests::truckFollow));
 			helper.register(id("pit_one_way"), wide("pit_one_way", PitHaulGameTests::oneWay));
 			helper.register(id("pit_truck_haul"), wide("pit_truck_haul", PitHaulGameTests::truckHaul));
+			helper.register(id("pit_dispatch"), wide("pit_dispatch", PitDispatchGameTests::dispatch));
+			helper.register(id("pit_dispatch_alarms"), wide("pit_dispatch_alarms", PitDispatchGameTests::alarms));
+			helper.register(id("pit_dispatch_fallback"), wide("pit_dispatch_fallback", PitDispatchGameTests::fallback));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
+			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
 						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,

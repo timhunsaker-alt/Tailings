@@ -65,6 +65,17 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return route.active();
 	}
 
+	/** Parked by its dispatch office, its engine is off (open-pit.md, P2b). */
+	@Override
+	protected boolean engineIdles() {
+		return route.active() && !route.parked();
+	}
+
+	/** Parked by its dispatch office, for tests. */
+	public boolean parked() {
+		return route.parked();
+	}
+
 	/** Its route's stakes, for tests. */
 	public java.util.List<BlockPos> routeStakes() {
 		return java.util.List.copyOf(route.stakes);
@@ -167,6 +178,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	/** Where its load goes as the body comes up: the hopper under its tail, or the ground behind it. Public for tests. */
 	public void tip(ServerLevel level) {
 		Player driver = getFirstPassenger() instanceof Player p ? p : null;
+		long before = load.total();
 		DumpBlockEntity hopper = hopperBehind(level);
 		if (hopper != null) {
 			String refused = hopper.tip(load);
@@ -179,6 +191,10 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			say(driver, "tipped " + placed + " blocks" + (load.empty() ? "" : ", some left in the body"));
 		}
 		level.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 3F, 0.8F);
+		long tipped = before - load.total();
+		if (tipped > 0 && route.active()) {
+			route.tipped(level, this, tipped);   // its dispatch office counts the load
+		}
 	}
 
 	/** A pit hopper under the body's tail: up to 3 m behind it, across its width, down to 8 m. */
