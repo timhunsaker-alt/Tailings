@@ -1094,10 +1094,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			System.out.println("[tailings-test] pit_dry_stack: truck " + t.takeRoute(level, route));
 			truck[0] = t;
 			var d = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
-			d.setPos(b.getX() + 2.5, b.getY() + 59, b.getZ() - 3.5);
-			d.setYRot(-90);   // along the crest, heading east, the crest on its left
+			// along the crest, heading east, the crest on its left; the berm (a block a metre) must run past the stake at x 19 across
+			// the whole tail (x 16 to 22), so it starts at x 6 with blocks to spare
+			d.setPos(b.getX() + 6.5, b.getY() + 59, b.getZ() - 3.5);
+			d.setYRot(-90);
 			d.setFuel(d.tank());
-			d.loadBlade(dev.wildcatter.tailings.pit.PitMass.DRY_TAILS, 18);
+			d.loadBlade(dev.wildcatter.tailings.pit.PitMass.DRY_TAILS, 24);
 			level.addFreshEntity(d);
 			dozer[0] = d;
 		});
