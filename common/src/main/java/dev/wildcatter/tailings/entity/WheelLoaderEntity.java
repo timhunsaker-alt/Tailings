@@ -41,6 +41,11 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 	private boolean dumping;
 	/** A game test's shorter passes. */
 	private int passDivisor = 1;
+	/** The LOAD stake it works at by itself, or null when it is driven (open-pit.md, P2a). */
+	private @Nullable BlockPos autoStake;
+	private int retryIn;
+	/** It works by itself within 16 m of its LOAD stake (approved). */
+	public static final double AUTO_REACH = 16;
 
 	public WheelLoaderEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -54,6 +59,93 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 	@Override
 	protected Item item() {
 		return TailingsItems.WHEEL_LOADER;
+	}
+
+	@Override
+	public double tank() {
+		return dev.wildcatter.tailings.pit.PitFuel.LOADER_TANK_L;
+	}
+
+	@Override
+	protected double workFraction() {
+		return passLeft > 0 ? dev.wildcatter.tailings.pit.PitFuel.PASS : 0;
+	}
+
+	@Override
+	public boolean selfRunning() {
+		return autoStake != null;
+	}
+
+	public @Nullable BlockPos autoStake() {
+		return autoStake;
+	}
+
+	/** Sets it to work by itself at the route's LOAD stake within 16 m; why not, or null. Public for tests. */
+	public @Nullable String setAuto(ServerLevel level, java.util.List<BlockPos> stakes) {
+		if (stakes.isEmpty()) {
+			autoStake = null;
+			status = "driven by hand";
+			return null;
+		}
+		for (BlockPos stake : stakes) {
+			if (dev.wildcatter.tailings.block.SurveyStakeBlock.kind(level.getBlockState(stake)) == dev.wildcatter.tailings.pit.StopKind.LOAD
+					&& Math.hypot(stake.getX() + 0.5 - getX(), stake.getZ() + 0.5 - getZ()) <= AUTO_REACH) {
+				autoStake = stake.immutable();
+				status = "working by itself at the LOAD stake " + stake.toShortString();
+				return null;
+			}
+		}
+		return "no LOAD stake on the route within " + (int) AUTO_REACH + " m of the loader";
+	}
+
+	@Override
+	protected void onSurveyBook(ServerLevel level, Player player, net.minecraft.world.item.ItemStack book) {
+		String why = setAuto(level, dev.wildcatter.tailings.item.SurveyBookItem.route(book));
+		say(player, why == null ? status : why);
+	}
+
+	@Override
+	protected void takenOver() {
+		autoStake = null;
+		status = "driven by hand";
+	}
+
+	@Override
+	protected String routeInfo() {
+		return autoStake == null ? "" : "working by itself at " + autoStake.toShortString();
+	}
+
+	/** By itself: dig when the bucket is empty, hold it full, dump when a truck is in reach. */
+	private void workAlone(ServerLevel level) {
+		if (autoStake == null || passLeft > 0 || outOfFuel() || isVehicle()) {
+			if (outOfFuel() && autoStake != null) {
+				status = "out of fuel";
+			}
+			return;
+		}
+		if (dev.wildcatter.tailings.block.SurveyStakeBlock.kind(level.getBlockState(autoStake)) != dev.wildcatter.tailings.pit.StopKind.LOAD) {
+			status = "its LOAD stake is gone";
+			return;
+		}
+		if (load.empty()) {
+			if (retryIn-- > 0) {
+				return;
+			}
+			dig(level, null);
+			if (load.empty()) {
+				status = "face worked out: nothing left in reach";
+				retryIn = 200;
+			}
+			return;
+		}
+		HaulTruckEntity truck = truckInReach(level);
+		if (truck != null && truck.load().room() > 0 && !truck.busy() && Math.abs(truck.speed()) < 0.05) {
+			dumping = true;
+			passLeft = DUMP_TICKS / passDivisor;
+			status = "dumping";
+		} else {
+			status = "bucket full: waiting for a truck";
+		}
 	}
 
 	@Override
@@ -181,6 +273,7 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 
 	@Override
 	protected void work(ServerLevel level) {
+		workAlone(level);
 		if (passLeft <= 0) {
 			return;
 		}
@@ -211,6 +304,8 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 		super.readAdditionalSaveData(input);
 		passLeft = input.getIntOr("pass_left", 0);
 		dumping = input.getBooleanOr("dumping", false);
+		long stake = input.getLongOr("auto_stake", Long.MIN_VALUE);
+		autoStake = stake == Long.MIN_VALUE ? null : BlockPos.of(stake);
 	}
 
 	@Override
@@ -218,5 +313,8 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 		super.addAdditionalSaveData(output);
 		output.putInt("pass_left", passLeft);
 		output.putBoolean("dumping", dumping);
+		if (autoStake != null) {
+			output.putLong("auto_stake", autoStake.asLong());
+		}
 	}
 }

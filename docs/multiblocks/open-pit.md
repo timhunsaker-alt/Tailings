@@ -270,12 +270,12 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   A route with a problem is still saved; a truck given it stops at the leg's start and reads the problem.
 - **A route runs out and back** between its two end stakes, its ends being its stops (LOAD at one end, DUMP POCKET, LOADOUT or
   DUMP POINT at the other). **A truck backs into an end stop** from the stake before it, as a truck backs up to a loader or a
-  dump: it drives forward to that stake, then reverses to the end stake, so lay the last leg off to one side of the road like a
-  Y. Stakes between are waypoints, or FUEL and PARK stops it takes when it needs them.
+  dump: it stops at that stake, turns round there until its nose points away from the end (as on a dump's turning area: give it
+  about 25 m of open ground), then reverses to the end stake. It drives out forward. Stakes between are waypoints, or FUEL and PARK stops it takes when it needs them.
 - **Driving itself:** a truck clicked with a book takes its route (a player sitting in it takes it off). It steers for the next
   stake, slows to **15 km/h** *(proposed)* for a turn of more than 30 degrees at a stake, keeps **50 m** from a truck ahead on its
   route *(spec)*, and stops for any player, mob or vehicle within its stopping distance plus 5 m ahead *(proposed)*; stopped more
-  than 30 s, it reads BLOCKED. On a one-way leg it waits at the leg's start while a truck is on the leg coming the other way.
+  than 30 s, it reads BLOCKED. Before a one-way leg it waits **40 m** short of the leg's start *(proposed after approval, to keep the junction clear)* while a truck is on the leg coming the other way.
 - **At LOAD** it waits under the loader until it is full, or until 60 s *(proposed)* pass with nothing loaded once it has a load.
   **At its dump stop** it tips (into a hopper under its tail, or out behind it), then goes back.
 - **The self-running loader:** set to a LOAD stake within 16 m *(proposed)*, it digs a pass whenever its bucket is empty and holds
@@ -290,8 +290,8 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   Wildcatter pipe on any face and fills a stopped truck or loader within 8 m *(proposed)* at **600 L/min** *(proposed: a
   fast-fill nozzle)*.
 - **Readouts:** sneak-right-click a truck or loader for its fuel, route, stop and state.
-- **Stakes don't block:** a truck drives over a stake. **An end stake marks where the truck's tail stops**, or it stops against a
-  bumper first. On a two-way leg a truck keeps **4 m right** of the stake line *(proposed: one lane each way)*.
+- **Stakes don't block:** a truck drives over a stake. **An end stake marks where the truck's tail stops**; at a DUMP POCKET it
+  backs on up to 3 m past the stake *(proposed)* until the bumper stops it, so the hopper is under its tail. On a two-way leg a truck keeps **4 m right** of the stake line *(proposed: one lane each way)*.
 - **PARK** stakes wait for P2b's dispatch (RUN off sends trucks to PARK); in P2a a truck passes them.
 - **Chunks:** a truck on a route refreshes `tailings:runner` on its chunks and the next stake's.
 - **Game tests:** `pit_survey` (a 3-stake route; a 15 % leg and a blocked leg are written on the book), `pit_truck_haul` (spec: a

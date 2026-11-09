@@ -113,6 +113,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit")) {
 				pit(context, world, server);
 			}
+			if (only("pit_haul")) {
+				pitHaul(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -810,6 +813,117 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.waitTicks(20);
 		context.takeScreenshot("tailings-pit-loader-close");
 		heard("pit", "wildcatter:diesel_idle", "tailings:muck_load", "tailings:muck_tip", "tailings:apron_feeder");
+	}
+
+
+	/**
+	 * The open pit's P2a haul, filmed (docs/multiblocks/open-pit.md): a truck on a 7-stake survey route turns round and backs to a
+	 * self-running loader, is filled, climbs a 10 % ramp, turns round and backs to the truck dump's bumper, tips into the hopper and
+	 * comes back, with nobody driving. The camera follows the truck. The same layout as the server scene pit_truck_haul.
+	 */
+	private void pitHaul(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(40, y + 8, 1000).offset(0, -59, 0);   // b + (x, 59, z) is the dump pad's road level
+		dev.wildcatter.tailings.entity.PitVehicleEntity[] v = new dev.wildcatter.tailings.entity.PitVehicleEntity[2];
+		dev.wildcatter.tailings.block.DumpBlockEntity[] hopper = new dev.wildcatter.tailings.block.DumpBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -14; x <= 128; x++) {
+				for (int z = -8; z <= 80; z++) {
+					int top = x <= 60 ? (z >= 12 ? 58 : 51) : x <= 70 ? 57 : x <= 80 ? 56 : 55;
+					if (x <= 90 && x > 60 && z < 12) {
+						top = 51;
+					}
+					for (int yy = 50; yy <= 75; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= top ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.PIT_HOPPER, b.offset(2, 53, 4));
+			part(level, TailingsBlocks.TRUCK_DUMP_WALL, b.offset(1, 56, 10));
+			hopper[0] = (dev.wildcatter.tailings.block.DumpBlockEntity) level.getBlockEntity(b.offset(2, 53, 4));
+			for (int x = 98; x <= 102; x++) {
+				for (int z = 18; z <= 21; z++) {
+					for (int yy = 56; yy <= 58; yy++) {
+						BlockPos at = b.offset(x, yy, z);
+						level.setBlock(at, TailingsBlocks.MUCK.defaultBlockState(), Block.UPDATE_ALL);
+						((dev.wildcatter.tailings.block.MuckBlockEntity) level.getBlockEntity(at)).set(java.util.Map.of((x + yy + z) % 3 == 0 ? "minecraft:copper_ore" : "minecraft:cobblestone", 3));
+					}
+				}
+			}
+			int[][] stakes = {{93, 56, 15}, {93, 56, 58}, {88, 56, 52}, {55, 59, 52}, {40, 59, 42}, {14, 59, 42}, {7, 59, 13}};
+			dev.wildcatter.tailings.pit.StopKind[] kinds = {dev.wildcatter.tailings.pit.StopKind.LOAD, null, null, null, null, null, dev.wildcatter.tailings.pit.StopKind.DUMP_POCKET};
+			ItemStack book = new ItemStack(dev.wildcatter.tailings.TailingsItems.SURVEY_BOOK);
+			java.util.List<BlockPos> route = new java.util.ArrayList<>();
+			for (int i = 0; i < stakes.length; i++) {
+				BlockPos at = b.offset(stakes[i][0], stakes[i][1], stakes[i][2]);
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SurveyStakeBlock.KIND,
+						kinds[i] == null ? dev.wildcatter.tailings.pit.StopKind.WAYPOINT : kinds[i]), Block.UPDATE_ALL);
+				System.out.println("[tailings-test] pit_haul: " + dev.wildcatter.tailings.item.SurveyBookItem.addStake(level, book, at));
+				route.add(at);
+			}
+			var loader = dev.wildcatter.tailings.TailingsEntities.WHEEL_LOADER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			loader.setPos(b.getX() + 100.5, b.getY() + 56, b.getZ() + 28);
+			loader.setYRot(180);
+			loader.fastPasses(8);
+			loader.setFuel(loader.tank());
+			level.addFreshEntity(loader);
+			System.out.println("[tailings-test] pit_haul: loader " + loader.setAuto(level, route));
+			var truck = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(b.getX() + 93.5, b.getY() + 56, b.getZ() + 62);
+			truck.setYRot(0);
+			truck.setFuel(truck.tank());
+			level.addFreshEntity(truck);
+			System.out.println("[tailings-test] pit_haul: truck " + truck.takeRoute(level, route));
+			v[0] = loader;
+			v[1] = truck;
+		});
+		server.runCommand("tp @p " + (b.getX() + 120) + " " + (b.getY() + 95) + " " + (b.getZ() + 95) + " 130 35");
+		context.waitTicks(60);
+		java.util.UUID[] ids = server.computeOnServer(srv -> new java.util.UUID[] {v[0].getUUID(), v[1].getUUID()});
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			for (int i = 0; i < 2; i++) {
+				if (srv.overworld().getEntity(ids[i]) instanceof dev.wildcatter.tailings.entity.PitVehicleEntity e) {
+					v[i] = e;
+				}
+			}
+		});
+		fresh.run();
+		context.takeScreenshot("tailings-pit-haul-route");
+		Filming film = film(context, world, "pit_haul");
+		java.util.Set<String> shot = new java.util.HashSet<>();
+		boolean tipped = false;
+		for (int t = 0; t < 900; t++) {
+			fresh.run();
+			String status = server.computeOnServer(srv -> v[1].status());
+			double[] at = server.computeOnServer(srv -> new double[] {v[1].getX(), v[1].getZ(), v[1].getYRot(), v[1].lift(), v[1].load().total()});
+			// the camera: behind and above the truck's right side, looking at it
+			double yaw = Math.toRadians(at[2]);
+			double cx = at[0] + Math.cos(yaw) * 22 + Math.sin(yaw) * 14, cz = at[1] + Math.sin(yaw) * 22 - Math.cos(yaw) * 14;
+			double look = Math.toDegrees(Math.atan2(-(at[0] - cx), at[1] - cz));
+			if (t % 4 == 0) {
+				server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.1f %.1f %.1f %.0f 30", cx, b.getY() + 74.0, cz, look));
+			}
+			context.waitTicks(10);
+			String key = status.startsWith("turning round to back in to LOAD") ? "turn-load" : status.startsWith("backing in to LOAD") ? "back-load"
+					: status.startsWith("loading") ? "loading" : status.startsWith("hauling") && at[0] < b.getX() + 80 && at[0] > b.getX() + 58 ? "ramp"
+					: status.startsWith("backing in to DUMP") ? "back-dump" : at[3] > 0.6 ? "tipping" : tipped && at[0] > b.getX() + 30 ? "back" : null;
+			if (key != null && shot.add(key)) {
+				context.takeScreenshot("tailings-pit-haul-" + key);
+				System.out.println("[tailings-test] pit_haul: " + key + " at tick " + t * 10 + ": " + status);
+			}
+			if (at[3] > 0.6) {
+				tipped = true;
+			}
+			if (tipped && at[0] > b.getX() + 30 && at[4] == 0) {
+				break;
+			}
+		}
+		film.stop();
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_haul: truck " + v[1].status() + "; fuel " + Math.round(v[1].fuel()) + " L; hopper " + hopper[0].pocket()
+				+ " blocks; loader " + v[0].status() + "; fuel " + Math.round(v[0].fuel()) + " L"));
+		require(server.computeOnServer(srv -> hopper[0].pocket() >= 33), "the truck should tip a full load into the hopper");
+		require(shot.contains("back"), "the truck should come back after tipping");
+		heard("pit_haul", "wildcatter:diesel_load", "tailings:muck_load", "tailings:muck_tip");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

@@ -242,3 +242,31 @@ DESIGN.md, "The open pit (P1)".
     kept, then 1.7 t more makes the 21st block).
   - The scene itself first failed for its own reasons: it was built below a flat world's floor, it held entities that their chunks had
     reloaded as new ones, and its key presses were shorter than the server's tick. All three are fixed in the scene.
+
+## Open pit P2a: survey, self-driving trucks, the self-running loader, diesel and the fuel bay (2026-11-09)
+
+Spec `docs/multiblocks/open-pit.md` ("P2 decided with Tim", "P2a as planned"), numbers approved 2026-11-09. DESIGN.md, "The open
+pit (P2a)".
+
+- **What building it changed in the plan** (each in the spec, marked proposed where it adds a number):
+  - **Turning round:** a truck reaching the stake before an end mostly faces the end, so it cannot back straight in. It now turns
+    round in the open at that stake (about 25 m) until its nose points away from the end, then backs in, as on a dump's turning
+    area. Laying the road out as a Y is no longer needed.
+  - **Steering on a look-ahead point** 15 m on along its lane: steering for the far stake's lane point left trucks off their lane
+    for most of a leg, and two trucks going opposite ways stopped for each other (found writing `pit_one_way`).
+  - **One-way legs:** a truck waits 40 m short of the leg (not at the stake, where it blocked the truck coming off the leg); only a
+    truck going its way is kept 50 m behind (an oncoming truck counted too, and both stopped); obstacles are looked for along the
+    path it is steering for, as far as the next stake.
+  - **Backing in** follows the line from the turn stake to the end (the first try came off the turn 2.4 m wide and caught the
+    loader's side, and stopping there counted as arriving); stuck 5 m or more short of the stake for 30 s it stops and says so.
+  - **At a DUMP POCKET** it backs on up to 3 m past the stake until the bumper stops it: with the stake 2.5 m short of the bumper
+    the hopper was out of reach of its tail, and it tipped on the pad.
+- **Diesel:** flat out the truck burns 201 L/h (`PitP2aTest`); 5 s of driving burns under 0.28 L, and parked with nobody in it
+  nothing (`pit_fuel_burn`). A whole filmed haul cycle used 3 L of the truck's 1,100 and 6 L of the loader's 1,500.
+- **The haul** (`pit_truck_haul`, server, about 2 minutes of game time): backs 40 m to the self-running loader, is loaded in five
+  passes, climbs the 9 % ramp loaded at 5-6 m/s, turns round at the turn stake, backs to the bumper, tips 33 blocks into the hopper,
+  and drives back.
+- **The filmed scene** (`pit_haul`, Fabric client): the same cycle with the camera on the truck. Its stills show it backing beside
+  the loader and loaded, on the ramp full, tipping over the bumper into the hopper, and going back empty past the stakes. The film's
+  first run ended before the truck came back: the scene's own loop was too short (fixed).
+- NeoForge scenes: **83 pass** (74 before, 9 new).

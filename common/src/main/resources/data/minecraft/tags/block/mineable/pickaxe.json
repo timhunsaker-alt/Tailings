@@ -54,6 +54,7 @@
     "tailings:byproduct_plant",
     "tailings:heap_pad",
     "tailings:truck_dump_wall",
-    "tailings:pit_hopper"
+    "tailings:pit_hopper",
+    "tailings:fuel_bay"
   ]
 }

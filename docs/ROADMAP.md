@@ -165,7 +165,15 @@ the truck dump wall and 400 t pit hopper feeding the existing apron feeder, and 
 scenes `pit_settle`, `pit_truck_tip`, `pit_truck_body`, `pit_hopper`, `pit_truck_drive`, `pit_loader_soft`, `pit_loader_hard`,
 `pit_loader_muck`; unit tests `SettleTest`, `PitDriveTest`; the filmed client scene `pit`.
 
-Next: **P2**, survey stakes, routes, self-driving trucks, the fuel bay and the dispatch office on the PLC. Then P3 (the ammonia plant
+## Open pit — P2a: survey, self-driving trucks, the self-running loader, fuel (2026-11-09)
+
+Tim's P2 answers (2026-11-09): the loader can run itself as well as be driven; fuel burns by the engine's work; refuelling only at a
+fuel bay; P2 in two waves. Built: survey stakes and the survey book, routes surveyed for grade, clearance and width, self-driving
+haul trucks out and back with turning round and backing in, the self-running loader, diesel by work, and the fuel bay. NeoForge
+scenes `pit_survey`, `pit_loader_auto`, `pit_fuel_burn`, `pit_fuel_bay`, `pit_out_of_fuel`, `pit_truck_obstacle`, `pit_truck_follow`,
+`pit_one_way`, `pit_truck_haul`; unit tests `PitP2aTest`; the filmed client scene `pit_haul`.
+
+Next: **P2b**, the dispatch office on the PLC (RUN, PARK, LOADS, TONNES, FUEL LOW, BLOCKED). Then P3 (the ammonia plant
 in Wildcatter, the drill, the emulsion truck, the blast), P4 (dry tails and dumps, the dozer), P5 (the big shovels and the ultra
 truck), P6 (the dragline), P7 (the pit-sized plant).
 
@@ -187,9 +195,15 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
   `muck_placeholder` are drawn by script.
 - **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
-- **Trucks burn no fuel yet (P1).** The fuel tank and fuel bay come with P2.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
-  without driving between; the driver moves it.
+  without driving between; the driver moves it. A self-running loader stands where it was left too.
+- **The open pit's P2a art is placeholder:** `survey_stake_*_placeholder` (the post and its flag colours) and
+  `survey_book_placeholder` are drawn by script.
+- **A truck's route is only as good as its stakes (P2a):** it drives straight between stakes and turns round in the open at the
+  stake before an end (about 25 m). It does not find its own way round anything the survey missed between samples.
+- **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
+  `Lines.pull` as the genset does.
+- **PARK stakes do nothing until P2b** (the dispatch office sends trucks to them).
 - **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
 - **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
 - **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.

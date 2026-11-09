@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "tailings:block/survey_stake_waypoint"
+  }
+}

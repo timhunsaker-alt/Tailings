@@ -40,6 +40,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.FLOAT);
 	/** The truck's body or the loader's bucket arm, 0 down to 1 up. */
 	private static final EntityDataAccessor<Float> DATA_LIFT = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Boolean> DATA_ENGINE = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	protected static final double TICK = 1.0 / 20;
 
@@ -53,10 +54,73 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	protected String status = "standing";
 	/** A game test's keys, when no player drives. */
 	private Input testInput = Input.EMPTY;
+	/** Diesel in its tank, litres (open-pit.md, P2a). */
+	private double fuel;
+	private boolean engineOn;
 
 	protected PitVehicleEntity(EntityType<?> type, Level level) {
 		super(type, level);
 		this.load = new PitLoad(spec().ratingKg());
+		this.fuel = tank() * dev.wildcatter.tailings.pit.PitFuel.NEW_FILL;
+	}
+
+	/** Its fuel tank, litres. */
+	public abstract double tank();
+
+	public double fuel() {
+		return fuel;
+	}
+
+	public void addFuel(double litres) {
+		fuel = Math.max(0, Math.min(tank(), fuel + litres));
+	}
+
+	/** Test hook. */
+	public void setFuel(double litres) {
+		fuel = Math.max(0, Math.min(tank(), litres));
+	}
+
+	public boolean outOfFuel() {
+		return fuel <= 0;
+	}
+
+	/** Whether its engine ran this tick. */
+	public boolean engineOn() {
+		return engineOn;
+	}
+
+	/** What drives it when no player is in the cab: a self-driving route, or null to stand. */
+	public record Drive(double throttle, double steer, boolean jump) {
+		public static final Drive STAND = new Drive(0, 0, false);
+	}
+
+	/** Its autopilot's controls this tick, or null when it has none (the default). */
+	protected @Nullable Drive autopilot(ServerLevel level) {
+		return null;
+	}
+
+	/** It runs by itself: its engine idles and its chunks stay loaded. */
+	public boolean selfRunning() {
+		return false;
+	}
+
+	/** Extra engine power for its body hoist or bucket, as a fraction of rated, beyond driving. */
+	protected double workFraction() {
+		return 0;
+	}
+
+	/** Clicked with the survey book: take its route, or what the book sets. */
+	protected void onSurveyBook(ServerLevel level, Player player, ItemStack book) {
+		player.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": the survey book has nothing to set here"));
+	}
+
+	/** A player sat in the cab: a self-driving machine drops off its route. */
+	protected void takenOver() {
+	}
+
+	/** Its route and stop for the readout, or empty. */
+	protected String routeInfo() {
+		return "";
 	}
 
 	public abstract PitDrive.Spec spec();
@@ -97,6 +161,10 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		return status;
 	}
 
+	void setStatus(String status) {
+		this.status = status;
+	}
+
 	public float lift() {
 		return entityData.get(DATA_LIFT);
 	}
@@ -128,6 +196,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		builder.define(DATA_SPEED, 0F);
 		builder.define(DATA_LIFT, 0F);
 		builder.define(DATA_LOADED, false);
+		builder.define(DATA_ENGINE, false);
 	}
 
 	// ---- its frame: ahead and to its right ---------------------------------------------------------------------------------------
@@ -205,14 +274,33 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			SoundingEntity.Hook.start.accept(this);
 			return;
 		}
-		Input keys = keys();
-		if (keys.jump() && !lastJump) {
-			jump(server, getFirstPassenger() instanceof Player p ? p : null);
+		boolean driven = getFirstPassenger() instanceof ServerPlayer;
+		Drive drive = null;
+		if (driven) {
+			if (selfRunning()) {
+				takenOver();
+			}
+		} else {
+			drive = autopilot(server);
 		}
+		Input keys = keys();
+		boolean jumpNow = drive != null ? drive.jump() : keys.jump() && !lastJump;
 		lastJump = keys.jump();
-		double throttle = busy() ? 0 : keys.forward() ? 1 : keys.backward() ? -1 : 0;
+		boolean dry = outOfFuel();
+		if (jumpNow) {
+			if (dry) {
+				status = "out of fuel";
+				if (getFirstPassenger() instanceof Player p) {
+					p.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": out of fuel"));
+				}
+			} else {
+				jump(server, getFirstPassenger() instanceof Player p ? p : null);
+			}
+		}
+		double throttle = busy() || dry ? 0 : drive != null ? drive.throttle() : keys.forward() ? 1 : keys.backward() ? -1 : 0;
+		double speedBefore = speed;
 		speed = busy() ? 0 : PitDrive.next(spec(), massKg(), speed, throttle, slope, TICK);
-		double steer = keys.left() ? 1 : keys.right() ? -1 : 0;
+		double steer = drive != null ? drive.steer() : keys.left() ? 1 : keys.right() ? -1 : 0;
 		if (Math.abs(speed) > 0.05 && steer != 0) {
 			float turned = getYRot() - (float) Math.toDegrees(steer * speed / spec().turnRadius() * TICK);
 			if (server.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
@@ -234,15 +322,31 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			slope = Math.max(-0.5, Math.min(0.5, slope));
 		}
 		entityData.set(DATA_SPEED, (float) speed);
+		entityData.set(DATA_ENGINE, engineOn);
 		if (Math.abs(speed) > 1.0) {
 			strike(server);
 		}
 		work(server);
-		if (refresh-- <= 0 && (isVehicle() || Math.abs(speed) > 0.05 || busy())) {
+		burn(driven, throttle, speedBefore);
+		if (refresh-- <= 0 && (isVehicle() || selfRunning() || Math.abs(speed) > 0.05 || busy())) {
 			refresh = ChunkRunner.REFRESH_TICKS;
 			ChunkRunner.refresh(server, blockPosition());
 			ChunkRunner.refresh(server, net.minecraft.core.BlockPos.containing(local(0, 0, spec().length())));
 		}
+	}
+
+	/** Diesel by the engine's work (open-pit.md, P2a): off when nobody drives it, it runs no route and does no work. */
+	private void burn(boolean driven, double throttle, double before) {
+		double extra = workFraction();
+		boolean moving = Math.abs(speed) > 0.05 || Math.abs(before) > 0.05 || throttle != 0;
+		engineOn = !outOfFuel() && (driven || selfRunning() || moving || extra > 0);
+		if (!engineOn) {
+			return;
+		}
+		double watts = moving ? dev.wildcatter.tailings.pit.PitFuel.drivingWatts(spec(), massKg(), before, speed, slope, TICK)
+				: spec().watts() * dev.wildcatter.tailings.pit.PitFuel.IDLE;
+		watts = Math.min(spec().watts(), watts + extra * spec().watts());
+		fuel = Math.max(0, fuel - dev.wildcatter.tailings.pit.PitFuel.litres(watts, TICK));
 	}
 
 	/** What it hits while moving is hurt (config/tailings-train.properties, truck_damage). */
@@ -287,6 +391,11 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		if (level().isClientSide()) {
 			return InteractionResult.SUCCESS;
 		}
+		ItemStack held = player.getItemInHand(hand);
+		if (held.getItem() instanceof dev.wildcatter.tailings.item.SurveyBookItem && level() instanceof ServerLevel server) {
+			onSurveyBook(server, player, held);
+			return InteractionResult.SUCCESS;
+		}
 		if (player.isShiftKeyDown() || isVehicle()) {
 			player.sendOverlayMessage(readout());
 			return InteractionResult.SUCCESS;
@@ -296,8 +405,9 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	}
 
 	public Component readout() {
+		String route = routeInfo();
 		return Component.literal(getType().getDescription().getString() + ": " + status + "; " + load.tonnes() + "; "
-				+ String.format(java.util.Locale.ROOT, "%.0f km/h", Math.abs(speed) * 3.6));
+				+ String.format(java.util.Locale.ROOT, "%.0f km/h; fuel %.0f of %.0f L", Math.abs(speed) * 3.6, fuel, tank()) + (route.isEmpty() ? "" : "; " + route));
 	}
 
 	/** Only a sneaking hit with an empty hand breaks it, into its item and its load. */
@@ -322,7 +432,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 
 	@Override
 	public net.minecraft.sounds.@Nullable SoundEvent loop() {
-		if (!isVehicle() && Math.abs(entityData.get(DATA_SPEED)) < 0.05F && lift() == 0) {
+		if (!isVehicle() && !entityData.get(DATA_ENGINE) && Math.abs(entityData.get(DATA_SPEED)) < 0.05F && lift() == 0) {
 			return null;   // parked, engine off
 		}
 		return Math.abs(entityData.get(DATA_SPEED)) > 0.3F ? dev.wildcatter.WildcatterSounds.DIESEL_LOAD : dev.wildcatter.WildcatterSounds.DIESEL_IDLE;
@@ -347,6 +457,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		slope = input.getDoubleOr("slope", 0);
 		status = input.getStringOr("status", "standing");
 		setLift((float) input.getDoubleOr("lift", 0));
+		fuel = input.getDoubleOr("fuel", tank() * dev.wildcatter.tailings.pit.PitFuel.NEW_FILL);
 		refreshLoad();
 	}
 
@@ -357,5 +468,6 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		output.putDouble("slope", slope);
 		output.putString("status", status);
 		output.putDouble("lift", lift());
+		output.putDouble("fuel", fuel);
 	}
 }

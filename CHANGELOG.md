@@ -4,6 +4,18 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P2a — survey stakes, self-driving trucks, the self-running loader, diesel and the fuel bay (2026-11-09)
+
+- **Survey stakes and the survey book:** mark a haul road's stops on stakes (LOAD, DUMP POCKET, DUMP POINT, FUEL, PARK), click
+  them in order with the book; each leg is surveyed for grade (10 % most), a truck's clearance, and width (narrow legs are one-way).
+- **Self-driving haul trucks:** click a truck with the book. It runs out and back between the route's ends, turns round and backs
+  in to the loader and to the truck dump's bumper, fills, tips, keeps right on two-way legs, waits for one-way legs, keeps 50 m from
+  the truck ahead, stops for anything in its way (BLOCKED after 30 s), and stops at a FUEL stake when low. Sit in it to take over.
+- **The loader runs itself:** click it with a book whose route has a LOAD stake within 16 m; it digs and loads trucks that pull in.
+- **Diesel:** trucks and loaders burn it by the engine's work (about 200 L/h flat out, nothing parked) and stop when dry.
+- **Fuel Bay:** a dispenser island with a 2,000 L day tank, filled by Wildcatter pipe; it fills a stopped machine within 8 m at
+  600 L/min.
+
 ### Open pit P1 — the haul truck, the truck dump and the wheel loader (2026-11-09)
 
 - **Haul truck** (100 t class, 91 t payload, true size): right-click to drive it with the movement keys, by its 765 kW against its

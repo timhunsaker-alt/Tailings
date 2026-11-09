@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:compass",
+    "minecraft:orange_dye"
+  ],
+  "result": {
+    "id": "tailings:survey_book",
+    "count": 1
+  }
+}

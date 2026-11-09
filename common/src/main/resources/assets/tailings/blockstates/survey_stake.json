@@ -1,0 +1,109 @@
+{
+  "variants": {
+    "facing=north,kind=waypoint": {
+      "model": "tailings:block/survey_stake_waypoint"
+    },
+    "facing=east,kind=waypoint": {
+      "model": "tailings:block/survey_stake_waypoint",
+      "y": 90
+    },
+    "facing=south,kind=waypoint": {
+      "model": "tailings:block/survey_stake_waypoint",
+      "y": 180
+    },
+    "facing=west,kind=waypoint": {
+      "model": "tailings:block/survey_stake_waypoint",
+      "y": 270
+    },
+    "facing=north,kind=load": {
+      "model": "tailings:block/survey_stake_load"
+    },
+    "facing=east,kind=load": {
+      "model": "tailings:block/survey_stake_load",
+      "y": 90
+    },
+    "facing=south,kind=load": {
+      "model": "tailings:block/survey_stake_load",
+      "y": 180
+    },
+    "facing=west,kind=load": {
+      "model": "tailings:block/survey_stake_load",
+      "y": 270
+    },
+    "facing=north,kind=dump_pocket": {
+      "model": "tailings:block/survey_stake_dump_pocket"
+    },
+    "facing=east,kind=dump_pocket": {
+      "model": "tailings:block/survey_stake_dump_pocket",
+      "y": 90
+    },
+    "facing=south,kind=dump_pocket": {
+      "model": "tailings:block/survey_stake_dump_pocket",
+      "y": 180
+    },
+    "facing=west,kind=dump_pocket": {
+      "model": "tailings:block/survey_stake_dump_pocket",
+      "y": 270
+    },
+    "facing=north,kind=loadout": {
+      "model": "tailings:block/survey_stake_loadout"
+    },
+    "facing=east,kind=loadout": {
+      "model": "tailings:block/survey_stake_loadout",
+      "y": 90
+    },
+    "facing=south,kind=loadout": {
+      "model": "tailings:block/survey_stake_loadout",
+      "y": 180
+    },
+    "facing=west,kind=loadout": {
+      "model": "tailings:block/survey_stake_loadout",
+      "y": 270
+    },
+    "facing=north,kind=dump_point": {
+      "model": "tailings:block/survey_stake_dump_point"
+    },
+    "facing=east,kind=dump_point": {
+      "model": "tailings:block/survey_stake_dump_point",
+      "y": 90
+    },
+    "facing=south,kind=dump_point": {
+      "model": "tailings:block/survey_stake_dump_point",
+      "y": 180
+    },
+    "facing=west,kind=dump_point": {
+      "model": "tailings:block/survey_stake_dump_point",
+      "y": 270
+    },
+    "facing=north,kind=fuel": {
+      "model": "tailings:block/survey_stake_fuel"
+    },
+    "facing=east,kind=fuel": {
+      "model": "tailings:block/survey_stake_fuel",
+      "y": 90
+    },
+    "facing=south,kind=fuel": {
+      "model": "tailings:block/survey_stake_fuel",
+      "y": 180
+    },
+    "facing=west,kind=fuel": {
+      "model": "tailings:block/survey_stake_fuel",
+      "y": 270
+    },
+    "facing=north,kind=park": {
+      "model": "tailings:block/survey_stake_park"
+    },
+    "facing=east,kind=park": {
+      "model": "tailings:block/survey_stake_park",
+      "y": 90
+    },
+    "facing=south,kind=park": {
+      "model": "tailings:block/survey_stake_park",
+      "y": 180
+    },
+    "facing=west,kind=park": {
+      "model": "tailings:block/survey_stake_park",
+      "y": 270
+    }
+  }
+}

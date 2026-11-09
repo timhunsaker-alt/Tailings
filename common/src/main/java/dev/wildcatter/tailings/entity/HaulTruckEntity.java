@@ -30,6 +30,11 @@ public class HaulTruckEntity extends PitVehicleEntity {
 
 	/** 1 raising, -1 lowering, 0 still. */
 	private int raising;
+	/** Its surveyed route when it drives itself (open-pit.md, P2a). */
+	private final TruckRoute route = new TruckRoute();
+	private long[] savedRoute;
+	private int savedAt, savedWay;
+	private String savedPhase = "DRIVE";
 
 	public HaulTruckEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -43,6 +48,71 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	@Override
 	protected Item item() {
 		return TailingsItems.HAUL_TRUCK;
+	}
+
+	@Override
+	public double tank() {
+		return dev.wildcatter.tailings.pit.PitFuel.TRUCK_TANK_L;
+	}
+
+	@Override
+	protected double workFraction() {
+		return raising != 0 ? dev.wildcatter.tailings.pit.PitFuel.HOIST : 0;
+	}
+
+	@Override
+	public boolean selfRunning() {
+		return route.active();
+	}
+
+	/** Its route's stakes, for tests. */
+	public java.util.List<BlockPos> routeStakes() {
+		return java.util.List.copyOf(route.stakes);
+	}
+
+	public boolean blocked() {
+		return route.blocked();
+	}
+
+	@Override
+	protected @Nullable Drive autopilot(ServerLevel level) {
+		if (savedRoute != null) {
+			route.load(level, this, savedRoute, savedAt, savedWay, savedPhase);
+			savedRoute = null;
+		}
+		return route.active() ? route.drive(level, this) : null;
+	}
+
+	/** Gives it the survey book's route; why not, or null. Public for tests. */
+	public @Nullable String takeRoute(ServerLevel level, java.util.List<BlockPos> stakes) {
+		String why = route.set(level, this, stakes);
+		if (why == null) {
+			setStatus("given a route of " + stakes.size() + " stakes");
+		}
+		return why;
+	}
+
+	@Override
+	protected void onSurveyBook(ServerLevel level, Player player, net.minecraft.world.item.ItemStack book) {
+		java.util.List<BlockPos> stakes = dev.wildcatter.tailings.item.SurveyBookItem.route(book);
+		if (stakes.isEmpty()) {
+			route.clear();
+			say(player, "off its route: drive it by hand");
+			return;
+		}
+		String why = takeRoute(level, stakes);
+		say(player, why == null ? "driving itself on a route of " + stakes.size() + " stakes" : why);
+	}
+
+	@Override
+	protected void takenOver() {
+		route.clear();
+		status = "driven by hand";
+	}
+
+	@Override
+	protected String routeInfo() {
+		return level() instanceof ServerLevel server ? route.describe(server) : "";
 	}
 
 	@Override
@@ -134,11 +204,25 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	protected void readAdditionalSaveData(ValueInput input) {
 		super.readAdditionalSaveData(input);
 		raising = input.getIntOr("raising", 0);
+		String saved = input.getStringOr("route", "");
+		long[] stakes = saved.isEmpty() ? new long[0] : java.util.Arrays.stream(saved.split(",")).mapToLong(Long::parseLong).toArray();
+		if (stakes.length > 0) {
+			savedRoute = stakes;   // set again on its first tick, when the level can survey it
+			savedAt = input.getIntOr("route_at", 0);
+			savedWay = input.getIntOr("route_way", 1);
+			savedPhase = input.getStringOr("route_phase", "DRIVE");
+		}
 	}
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
 		super.addAdditionalSaveData(output);
 		output.putInt("raising", raising);
+		if (route.active()) {
+			output.putString("route", java.util.Arrays.stream(route.save()).mapToObj(Long::toString).collect(java.util.stream.Collectors.joining(",")));
+			output.putInt("route_at", route.at);
+			output.putInt("route_way", route.way);
+			output.putString("route_phase", route.phase.name());
+		}
 	}
 }

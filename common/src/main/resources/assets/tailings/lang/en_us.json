@@ -293,5 +293,8 @@
   "item.tailings.haul_truck": "Haul Truck",
   "item.tailings.wheel_loader": "Wheel Loader",
   "entity.tailings.haul_truck": "Haul Truck",
-  "entity.tailings.wheel_loader": "Wheel Loader"
+  "entity.tailings.wheel_loader": "Wheel Loader",
+  "block.tailings.fuel_bay": "Fuel Bay",
+  "block.tailings.survey_stake": "Survey Stake",
+  "item.tailings.survey_book": "Survey Book"
 }

@@ -44,7 +44,9 @@ public enum Machine {
 	/** The truck dump's concrete retaining wall: 3 m of wall below the pad and its 1.5 m bumper above, in two rows (open-pit.md). */
 	TRUCK_DUMP_WALL("truck_dump_wall", "Truck Dump Wall", 12, 5, 2, 0, Supply.NONE),
 	/** The truck dump's 400 t hopper, drawn by an apron feeder touching it (open-pit.md). */
-	PIT_HOPPER("pit_hopper", "Pit Hopper", 10, 6, 6, 0, Supply.NONE);
+	PIT_HOPPER("pit_hopper", "Pit Hopper", 10, 6, 6, 0, Supply.NONE),
+	/** The pit's diesel dispenser island and its 2,000 L day tank, fed by pipe (open-pit.md, P2a). */
+	FUEL_BAY("fuel_bay", "Fuel Bay", 4, 3, 2, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

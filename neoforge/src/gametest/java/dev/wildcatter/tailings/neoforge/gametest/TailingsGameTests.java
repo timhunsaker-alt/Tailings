@@ -163,14 +163,23 @@ public class TailingsGameTests {
 			helper.register(id("pit_loader_soft"), loaded(PitGameTests::loaderSoft));
 			helper.register(id("pit_loader_hard"), loaded(PitGameTests::loaderHard));
 			helper.register(id("pit_loader_muck"), loaded(PitGameTests::loaderMuck));
+			helper.register(id("pit_survey"), wide("pit_survey", PitHaulGameTests::survey));
+			helper.register(id("pit_loader_auto"), wide("pit_loader_auto", PitHaulGameTests::loaderAuto));
+			helper.register(id("pit_fuel_burn"), wide("pit_fuel_burn", PitHaulGameTests::fuelBurn));
+			helper.register(id("pit_fuel_bay"), wide("pit_fuel_bay", PitHaulGameTests::fuelBay));
+			helper.register(id("pit_out_of_fuel"), wide("pit_out_of_fuel", PitHaulGameTests::outOfFuel));
+			helper.register(id("pit_truck_obstacle"), wide("pit_truck_obstacle", PitHaulGameTests::truckObstacle));
+			helper.register(id("pit_truck_follow"), wide("pit_truck_follow", PitHaulGameTests::truckFollow));
+			helper.register(id("pit_one_way"), wide("pit_one_way", PitHaulGameTests::oneWay));
+			helper.register(id("pit_truck_haul"), wide("pit_truck_haul", PitHaulGameTests::truckHaul));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.concat(java.util.Arrays.stream(SCENES), java.util.Arrays.stream(PitGameTests.SCENES)).toList()) {
+			for (String scene : java.util.stream.Stream.of(SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES).flatMap(java.util.Arrays::stream).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400, 1, true,
-								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, 40)));
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) ? 1600 : 400), 1, true,
+								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitHaulGameTests.padding(scene, 40))));
 			}
 		});
 	}
@@ -184,6 +193,20 @@ public class TailingsGameTests {
 			ChunkPos origin = ChunkPos.containing(helper.absolutePos(BlockPos.ZERO));
 			for (int dx = -1; dx <= 2; dx++) {
 				for (int dz = -1; dz <= 2; dz++) {
+					helper.getLevel().setChunkForced(origin.x() + dx, origin.z() + dz, true);
+				}
+			}
+			scene.accept(helper);
+		};
+	}
+
+	/** As {@link #loaded}, over the chunks a long pit scene reaches. */
+	private static Consumer<GameTestHelper> wide(String name, Consumer<GameTestHelper> scene) {
+		int[] reach = PitHaulGameTests.reach(name);
+		return helper -> {
+			ChunkPos origin = ChunkPos.containing(helper.absolutePos(BlockPos.ZERO));
+			for (int dx = reach[0]; dx <= reach[1]; dx++) {
+				for (int dz = reach[2]; dz <= reach[3]; dz++) {
 					helper.getLevel().setChunkForced(origin.x() + dx, origin.z() + dz, true);
 				}
 			}

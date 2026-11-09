@@ -44,6 +44,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 
 	@Override
 	protected BlockEntity createMain(BlockPos pos, BlockState state) {
+		if (machine == Machine.FUEL_BAY) {
+			return new FuelBayBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -51,6 +54,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	protected <T extends BlockEntity> @Nullable BlockEntityTicker<T> mainTicker(Level level, BlockState state, BlockEntityType<T> type) {
 		if (level.isClientSide()) {
 			return dev.wildcatter.tailings.TailingsSounds.loop(machine) == null ? null : (at, pos, cell, entity) -> dev.wildcatter.kinetic.Sounding.Hook.start.accept(entity);
+		}
+		if (machine == Machine.FUEL_BAY) {
+			return createTickerHelper(type, TailingsBlocks.FUEL_BAY_ENTITY, FuelBayBlockEntity::tick);
 		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);

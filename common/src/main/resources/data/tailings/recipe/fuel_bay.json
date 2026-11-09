@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "BHB",
+    "SCS"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:bucket",
+    "H": "minecraft:hopper",
+    "S": "minecraft:smooth_stone",
+    "C": "minecraft:cauldron"
+  },
+  "result": {
+    "id": "tailings:fuel_bay",
+    "count": 1
+  }
+}

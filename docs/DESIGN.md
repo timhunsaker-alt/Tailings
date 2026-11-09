@@ -250,14 +250,38 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
   up 1 block. Its box is its real length and width, turned with it; it will not turn into a wall.
 - **The truck** (`HaulTruckEntity`): standing, jump raises the body over 13 s. At the top its load goes into a pit hopper under its
   tail (`DumpBlockEntity.tip`: whole bank blocks, all or none; soil refused; FULL) or out 1.5 m behind it by `Loose.tip` (soil as its
-  own blocks, rock as muck at 4 quarters a bank block). What is under a whole block or quarter stays in the body.
+  own blocks, rock as muck at 4 quarters a bank block). On the ground, what is under a whole block or quarter stays in the body; the
+  hopper keeps what is under a whole block of each ore and makes it up with the next load, so the truck comes away empty.
 - **The loader** (`WheelLoaderEntity`): jump with the bucket empty digs up to 20.4 t from the face in front of the bucket (5 wide,
   6 high from its own floor, 3 deep, top down), soft ground or muck; a pass is 25 s. Jump with the bucket full dumps it into the
   nearest truck within 4 m of the bucket's lip; 15 s. Standing rock reads "hard rock: blast it first".
 - **The pit hopper** is a `DumpBlockEntity` (as the rail dump pocket) with its own capacity, so the apron feeder, sorter and ore
   bins downstream work unchanged.
-- **Sound:** the vehicles use Wildcatter's `diesel_idle` and `diesel_load` loops while driven; tipping and loading use
+- **Sound:** the vehicles use Wildcatter's `diesel_idle` and `diesel_load` loops while their engines run; tipping and loading use
   `tailings:muck_tip` and `muck_load`.
+
+## The open pit (P2a): survey, self-driving trucks, fuel
+
+Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md), "P2a as planned".
+
+- **Survey** (`pit.Survey`, plain Java, unit-tested in `PitP2aTest`): a leg between two stakes is steep over 10 %, blocked where a
+  solid block is in a 6.2 x 5.2 m truck's box along it, and one-way where 3 widths (18.6 m) are not clear. `block.SurveyStakeBlock`
+  holds its stop kind (`pit.StopKind`) and facing in its block state and has no collision. `item.SurveyBookItem` keeps the route as
+  block positions and the legs' problems in its custom data.
+- **The autopilot** (`pit.Autopilot`, plain Java; `entity.TruckRoute` in the world): a truck with a route drives itself when nobody
+  sits in it, through the same `PitDrive` physics a player's keys use (`PitVehicleEntity.autopilot` returns throttle, steer and
+  jump). It steers for a point 15 m ahead on its lane (4 m right of the stake line on two-way legs), slows to 15 km/h for turns over
+  30 degrees, stops for any player, mob or machine within its stopping distance plus 5 m along its path (as far as the next stake),
+  keeps 50 m from a truck ahead going its way, and waits 40 m short of a one-way leg with a truck coming along it. At the stake
+  before an end it turns round until its nose points away from the end, then backs in along the line, at a DUMP POCKET on to the
+  bumper. Out and back between the ends; a FUEL stake when it is under 15 %.
+- **The self-running loader** (`WheelLoaderEntity.setAuto`): at a LOAD stake within 16 m it digs whenever its bucket is empty and
+  dumps into a stopped truck in reach.
+- **Diesel** (`pit.PitFuel`): litres = work / (36 MJ/L x 0.38). Driving, the engine's output is the power at the wheels over 0.8,
+  between 3 % idle and rated; the truck's hoist adds 30 %, a loader's pass 60 %. The engine is off with nobody in it, no route and no
+  work. Tanks 1,100 L and 1,500 L; a new machine comes with 10 %. Dry, it will not drive, tip or dig.
+- **The fuel bay** (`block.FuelBayBlockEntity`): a 2,000 L day tank filled by Wildcatter pipe (`Lines.pull`, diesel) on any face;
+  it fills the nearest stopped machine within 8 m at 10 L/s.
 
 ## Config
 
