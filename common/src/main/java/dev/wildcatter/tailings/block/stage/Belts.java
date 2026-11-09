@@ -143,8 +143,9 @@ final class Belts {
 	private static net.minecraft.world.@Nullable Container container(PlantBlockEntity part, Scan scan) {
 		BlockPos head = scan.head();
 		for (BlockPos at : new BlockPos[] {head.below(), head.relative(scan.way()), head.relative(scan.way()).below()}) {
-			if (BigParts.entity(part.getLevel(), at) == null && part.getLevel().getBlockEntity(at) instanceof net.minecraft.world.Container box
-					&& !(part.getLevel().getBlockEntity(at) instanceof BeltBlockEntity)) {
+			// a vanilla container: never a part (a plant part is a container for hoppers, but takes rock only through its feed face)
+			if (part.getLevel().getBlockEntity(at) instanceof net.minecraft.world.Container box && !(box instanceof PlantBlockEntity)
+					&& !(BigParts.entity(part.getLevel(), at) instanceof PlantBlockEntity)) {
 				return box;
 			}
 		}

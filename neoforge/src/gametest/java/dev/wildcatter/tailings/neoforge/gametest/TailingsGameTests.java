@@ -20,6 +20,8 @@ import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.MineRailBlock;
 import dev.wildcatter.tailings.block.MineSwitchBlock;
 import dev.wildcatter.tailings.block.RailBlockEntity;
+import dev.wildcatter.tailings.block.BeltBlockEntity;
+import dev.wildcatter.tailings.plant.Selective;
 import dev.wildcatter.tailings.block.RectifierBlockEntity;
 import dev.wildcatter.tailings.block.HandMillBlockEntity;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
@@ -82,11 +84,12 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal"};
+	private static final String[] SCENES = {"plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal",
+			"belt_transit", "feed_face", "screen_gravel", "pocket_oversize", "dump_signal", "bulk_concentrate", "sorter_screen"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("plc_switch", "haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation", "dump_signal", "bulk_concentrate", "screen_gravel");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -155,6 +158,13 @@ public class TailingsGameTests {
 			helper.register(id("part_break"), loaded(TailingsGameTests::partBreak));
 			helper.register(id("not_built"), loaded(TailingsGameTests::notBuilt));
 			helper.register(id("terminal"), loaded(TailingsGameTests::terminal));
+			helper.register(id("belt_transit"), loaded(TailingsGameTests::beltTransit));
+			helper.register(id("feed_face"), loaded(TailingsGameTests::feedFace));
+			helper.register(id("screen_gravel"), loaded(TailingsGameTests::screenGravel));
+			helper.register(id("pocket_oversize"), loaded(TailingsGameTests::pocketOversize));
+			helper.register(id("dump_signal"), loaded(TailingsGameTests::dumpSignal));
+			helper.register(id("bulk_concentrate"), loaded(TailingsGameTests::bulkConcentrate));
+			helper.register(id("sorter_screen"), loaded(TailingsGameTests::sorterScreen));
 			helper.register(id("pit_settle"), loaded(PitGameTests::settle));
 			helper.register(id("pit_truck_tip"), loaded(PitGameTests::truckTip));
 			helper.register(id("pit_truck_body"), loaded(PitGameTests::truckBody));
@@ -1883,6 +1893,243 @@ public class TailingsGameTests {
 			dropped += item.getItem().getCount();
 		}
 		helper.assertTrue(dropped == 3, Component.literal("the tank's 3 lime should drop, got " + dropped));
+		helper.succeed();
+	}
+
+	// ---- the plant's known gaps, closed (docs/questions/plant-gaps.md) ------------------------------------------------------------------
+
+	/** A 20 m run carries a block of rock to its head end in 10 s at 2 m/s, and draws the load where it rides. */
+	private static void beltTransit(GameTestHelper helper) {
+		int y = 6;
+		for (int x = 0; x < 20; x++) {
+			helper.setBlock(new BlockPos(x, y, 2), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity drive = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(20, y, 2));
+		PlantBlockEntity grizzly = plant(helper, Machine.GRIZZLY, new BlockPos(18, y - 2, 1));
+		drive.forceRunning();
+		long[] put = {-1};
+		long[] arrived = {-1};
+		helper.onEachTick(() -> {
+			if (put[0] >= 0 && arrived[0] < 0 && !grizzly.hold().isEmpty()) {
+				arrived[0] = helper.getTick();
+			}
+		});
+		helper.startSequence()
+				.thenExecuteAfter(25, () -> {
+					RockLoad block = new RockLoad();
+					block.add(Rock.COBBLESTONE, null, PlantRates.BLOCK_KG);
+					drive.receive(block);   // onto the tail end
+					put[0] = helper.getTick();
+				})
+				.thenExecuteAfter(100, () -> {
+					helper.assertTrue(grizzly.hold().isEmpty(), Component.literal("after 5 s the rock should still be on the belt: " + drive.status()));
+					helper.assertTrue(drive.status().contains("s from its head end"), Component.literal("the drive should say it is carrying: " + drive.status()));
+					float head = helper.getBlockEntity(new BlockPos(19, y, 2), BeltBlockEntity.class).fill();
+					float middle = helper.getBlockEntity(new BlockPos(9, y, 2), BeltBlockEntity.class).fill() + helper.getBlockEntity(new BlockPos(10, y, 2), BeltBlockEntity.class).fill()
+							+ helper.getBlockEntity(new BlockPos(11, y, 2), BeltBlockEntity.class).fill() + helper.getBlockEntity(new BlockPos(8, y, 2), BeltBlockEntity.class).fill();
+					helper.assertTrue(head == 0 && middle > 0, Component.literal("the lumps should be drawn half way along, head " + head + ", middle " + middle));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(arrived[0] >= 0, Component.literal("the rock should reach the grizzly: " + drive.status())))
+				.thenExecute(() -> {
+					double seconds = (arrived[0] - put[0]) / 20.0;
+					helper.assertTrue(seconds > 9 && seconds < 11.5, Component.literal("20 m at 2 m/s should take about 10 s, took " + seconds));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * A part takes rock only through its feed face (crushing-circuit.md, "Nozzles and faces"): a belt ending against the screen's side
+	 * delivers nothing and says so, one ending over its north (feed) end delivers, and a cone touching the screen's oversize face takes
+	 * nothing straight in.
+	 */
+	private static void feedFace(GameTestHelper helper) {
+		int y = 6;
+		PlantBlockEntity screen = plant(helper, Machine.SCREEN, new BlockPos(5, y, 4));
+		PlantBlockEntity cone = plant(helper, Machine.CONE, new BlockPos(5, y, 10));
+		// against its west face
+		for (int x = 1; x <= 4; x++) {
+			helper.setBlock(new BlockPos(x, y + 1, 6), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity side = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(0, y + 1, 5));
+		// over its north end
+		for (int x = 1; x <= 6; x++) {
+			helper.setBlock(new BlockPos(x, y + 3, 4), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity top = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(7, y + 3, 3));
+		for (PlantBlockEntity p : new PlantBlockEntity[] {screen, cone, side, top}) {
+			p.forceRunning();
+		}
+		helper.startSequence()
+				.thenExecuteAfter(25, () -> {
+					for (PlantBlockEntity drive : new PlantBlockEntity[] {side, top}) {
+						RockLoad crushed = new RockLoad();
+						crushed.add(Rock.GRANITE, SizeClass.CRUSHED, 200);
+						drive.receive(crushed);
+					}
+				})
+				.thenWaitUntil(() -> {
+					helper.assertTrue(side.status().contains("nowhere") && side.hold().total() > 199, Component.literal("a belt against the screen's side should deliver nothing: " + side.status()));
+					helper.assertTrue(top.hold().isEmpty(), Component.literal("a belt over its north end should deliver: " + top.status()));
+					helper.assertTrue(screen.status().contains("nowhere") && screen.status().contains("south face"),
+							Component.literal("the cone touching its south face is no chute: the screen needs a belt there, got " + screen.status()));
+					helper.assertTrue(cone.hold().isEmpty(), Component.literal("the cone should take nothing straight from the screen"));
+				})
+				.thenSucceed();
+	}
+
+	/** A belt on the screen's gravel face takes the 6-40 mm out as aggregate, and a chest at its head end gets it as gravel items. */
+	private static void screenGravel(GameTestHelper helper) {
+		int y = 6;
+		PlantBlockEntity screen = plant(helper, Machine.SCREEN, new BlockPos(5, y, 4));
+		// the oversize belt off its south face (to nothing: it only has to take)
+		for (int z = 10; z <= 12; z++) {
+			helper.setBlock(new BlockPos(6, y, z), belt(Direction.Axis.Z));
+		}
+		PlantBlockEntity oversize = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(7, y, 12));
+		helper.setBlock(new BlockPos(6, y - 1, 12), Blocks.CHEST);
+		// the gravel face: the west face of its south end, a belt west over a chest
+		for (int x = 4; x >= 1; x--) {
+			helper.setBlock(new BlockPos(x, y, 9), belt(Direction.Axis.X));
+		}
+		PlantBlockEntity gravel = plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(0, y, 9));
+		helper.setBlock(new BlockPos(1, y - 1, 9), Blocks.CHEST);
+		for (PlantBlockEntity p : new PlantBlockEntity[] {screen, oversize, gravel}) {
+			p.forceRunning();
+		}
+		helper.assertTrue(screen.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("crushed_granite")))), Component.literal("the screen should take crushed granite"));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(gravel.hold().total((rock, size) -> size == SizeClass.GRAVEL) > 0 || chestHas(helper, new BlockPos(1, y - 1, 9), "tailings:gravel_granite"),
+						Component.literal("the gravel face should take 6-40 mm gravel: screen " + screen.status() + "; gravel belt " + gravel.status())))
+				.thenExecute(() -> {
+					RockLoad block = new RockLoad();
+					block.add(Rock.GRANITE, SizeClass.GRAVEL, PlantRates.BLOCK_KG);
+					gravel.receive(block);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(chestHas(helper, new BlockPos(1, y - 1, 9), "tailings:gravel_granite"),
+						Component.literal("a block's worth of gravel should go into the chest as an item: " + gravel.status())))
+				.thenSucceed();
+	}
+
+	private static boolean chestHas(GameTestHelper helper, BlockPos at, String id) {
+		if (!(helper.getBlockEntity(at, net.minecraft.world.level.block.entity.BlockEntity.class) instanceof net.minecraft.world.Container box)) {
+			return false;
+		}
+		for (int i = 0; i < box.getContainerSize(); i++) {
+			if (BuiltInRegistries.ITEM.getKey(box.getItem(i).getItem()).toString().equals(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Rock over the pocket's 300 mm bars stays on them; enough of it chokes the grizzly until it is broken through or lifted off. */
+	private static void pocketOversize(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 12);
+		DumpBlockEntity pocket = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, y - 3, 3), DumpBlockEntity.class);
+		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, y, 3), PlantBlockEntity.class);
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 4), Heading.NORTH);
+		MineVehicleEntity car = car(helper, new BlockPos(3, y, 7), Heading.NORTH);
+		car.load().add("minecraft:cobblestone", Haul.CAR_ITEMS);
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0, Component.literal("the car should tip: " + loco.status())))
+				.thenExecute(() -> {
+					helper.assertTrue(pocket.oversize() == 5 && pocket.pocket() == Haul.CAR_ITEMS - 5,
+							Component.literal("576 tipped should leave 5 on the bars, got " + pocket.oversize() + " on them and " + pocket.pocket() + " through"));
+					helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", 3000)), Component.literal("the pocket should take more"));
+					helper.assertTrue(pocket.choked() && !pocket.takes(1), Component.literal("35 on the bars should choke the grizzly, got " + pocket.oversize()));
+					helper.assertTrue(pocket.inspect().getString().contains("CHOKED"), Component.literal("it should say so: " + pocket.inspect().getString()));
+					for (int i = 0; i < 4; i++) {
+						helper.assertTrue("minecraft:cobblestone".equals(pocket.breakOne()), Component.literal("a piece breaks through"));
+					}
+					helper.assertTrue(!pocket.choked() && pocket.takes(1), Component.literal("31 on the bars no longer choke it"));
+					helper.assertTrue(pocket.liftOff().getOrDefault("minecraft:cobblestone", 0) == 31 && pocket.oversize() == 0,
+							Component.literal("lifting it off returns the rest"));
+				})
+				.thenSucceed();
+	}
+
+	/** With the pocket full, a loaded train waits at the signal before the dump's section, not over the pocket, and goes on when it has room. */
+	private static void dumpSignal(GameTestHelper helper) {
+		int y = 60;
+		track(helper, y, 30);
+		DumpBlockEntity pocket = part(helper, TailingsBlocks.DUMP_POCKET, new BlockPos(2, y - 3, 3), DumpBlockEntity.class);
+		part(helper, TailingsBlocks.DUMP_RAMP, new BlockPos(4, y, 3), PlantBlockEntity.class);
+		// the signal beside the track at the section's near end; the section runs on over the dump
+		BlockPos signalAt = new BlockPos(2, y, 13);
+		helper.setBlock(signalAt, TailingsBlocks.BLOCK_SIGNAL.defaultBlockState());
+		for (int z = 0; z <= 13; z++) {
+			helper.getBlockEntity(new BlockPos(3, y, z), RailBlockEntity.class).setSignal(helper.absolutePos(signalAt));
+		}
+		SignalBlockEntity signal = helper.getBlockEntity(signalAt, SignalBlockEntity.class);
+		helper.assertTrue(signal.dumpPocket() == pocket, Component.literal("the signal should find the dump in its section"));
+		helper.assertTrue(pocket.offer(java.util.Map.of("minecraft:cobblestone", Haul.POCKET_ITEMS)), Component.literal("fill the pocket"));
+		pocket.liftOff();
+		MineVehicleEntity loco = loco(helper, new BlockPos(3, y, 22), Heading.NORTH);
+		MineVehicleEntity car = car(helper, new BlockPos(3, y, 25), Heading.NORTH);
+		car.load().add("minecraft:cobblestone", 64);
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(loco.status().contains("signal before the dump") && loco.speed() < 0.01 && relZ(helper, loco) < 21,
+						Component.literal("the train should stop at the signal, got " + loco.status())))
+				.thenExecuteAfter(40, () -> {
+					helper.assertTrue(loco.status().contains("signal before the dump"), Component.literal("the train should wait at the signal, got " + loco.status()));
+					helper.assertTrue(relZ(helper, loco) > 14 && loco.speed() < 0.01, Component.literal("short of the dump's section, at z " + relZ(helper, loco)));
+					helper.assertTrue(car.load().total() == 64, Component.literal("with its load"));
+					pocket.draw(Haul.POCKET_ITEMS);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(car.load().total() == 0, Component.literal("with room, it runs on and tips: " + loco.status())))
+				.thenSucceed();
+	}
+
+	/** Lead and zinc concentrate piped into one filter make a bulk cake that pays the lead and loses the bank's zinc; zinc on its own pays. */
+	private static void bulkConcentrate(GameTestHelper helper) {
+		int y = 4;
+		var galena = dev.wildcatter.tailings.rock.Mineral.GALENA;
+		var sphalerite = dev.wildcatter.tailings.rock.Mineral.SPHALERITE;
+		PlantBlockEntity lead = plant(helper, Machine.THICKENER, new BlockPos(0, y, 0));
+		lead.out().offer(Product.THICKENED_CONCENTRATE, 400, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(galena.mineralItemId(), fourNuggets(galena) / 400)));
+		PlantBlockEntity zinc = plant(helper, Machine.THICKENER, new BlockPos(8, y, 0));
+		zinc.out().offer(Product.THICKENED_CONCENTRATE, 400, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(Selective.ZINC_CONCENTRATE, fourNuggets(sphalerite) / 400)));
+		pipe(helper, new BlockPos(6, y, 8), new BlockPos(7, y, 8), new BlockPos(8, y, 8));
+		PlantBlockEntity mixed = plant(helper, Machine.FILTER, new BlockPos(6, y, 9));
+		PlantBlockEntity alone = plant(helper, Machine.THICKENER, new BlockPos(0, y, 20));
+		alone.out().offer(Product.THICKENED_CONCENTRATE, 400, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(Selective.ZINC_CONCENTRATE, fourNuggets(sphalerite) / 400)));
+		pipe(helper, new BlockPos(0, y, 28));
+		PlantBlockEntity clean = plant(helper, Machine.FILTER, new BlockPos(0, y, 29));
+		mixed.forceRunning();
+		clean.forceRunning();
+		boolean[] bulk = {false};
+		helper.onEachTick(() -> bulk[0] |= mixed.status().contains("BULK"));
+		helper.succeedWhen(() -> {
+			helper.assertTrue(lead.out().held(Product.THICKENED_CONCENTRATE) < 1 && zinc.out().held(Product.THICKENED_CONCENTRATE) < 1
+					&& alone.out().held(Product.THICKENED_CONCENTRATE) < 1, Component.literal("the filters should take all of it: " + mixed.status() + "; " + clean.status()));
+			helper.assertTrue(nuggets(mixed, galena) == 4, Component.literal("the bulk cake should pay its lead, got " + nuggets(mixed, galena)));
+			helper.assertTrue(nuggets(mixed, sphalerite) == 0, Component.literal("and lose the bank's zinc, got " + nuggets(mixed, sphalerite)));
+			helper.assertTrue(bulk[0], Component.literal("the filter should say its cake is bulk"));
+			helper.assertTrue(nuggets(clean, sphalerite) == 4, Component.literal("zinc concentrate kept apart pays, got " + nuggets(clean, sphalerite)));
+		});
+	}
+
+	/** The ore sorter's screen sets a side from the item in hand without taking it, clears it, and makes a side the waste side. */
+	private static void sorterScreen(GameTestHelper helper) {
+		helper.assertTrue(BuiltInRegistries.MENU.containsKey(Tailings.id("ore_sorter")), Component.literal("the sorter's menu should be registered"));
+		PlantBlockEntity sorter = plant(helper, Machine.ORE_SORTER, new BlockPos(1, 6, 1));
+		net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+		dev.wildcatter.tailings.block.SorterMenu menu = new dev.wildcatter.tailings.block.SorterMenu(1, player.getInventory(), sorter);
+		ItemStack ore = new ItemStack(Blocks.COPPER_ORE, 5);
+		menu.setCarried(ore);
+		menu.clicked(1, 0, net.minecraft.world.inventory.ContainerInput.PICKUP, player);
+		helper.assertTrue("minecraft:copper_ore".equals(sorter.sorter().product(1)), Component.literal("the east side should take copper ore: " + sorter.sorter().save()));
+		helper.assertTrue(menu.getCarried().getCount() == 5, Component.literal("and the ore stays in hand"));
+		menu.broadcastChanges();
+		helper.assertTrue(menu.slots.get(1).getItem().is(Items.COPPER_ORE), Component.literal("the east slot shows copper ore"));
+		helper.assertTrue(menu.clickMenuButton(player, dev.wildcatter.tailings.block.SorterMenu.WASTE + 2) && sorter.sorter().waste() == 2 && menu.waste() == 2,
+				Component.literal("the south side should take the waste"));
+		helper.assertTrue(sorter.sorter().route("minecraft:cobblestone") == 2 && sorter.sorter().route("minecraft:copper_ore") == 1,
+				Component.literal("cobble to waste, copper ore east"));
+		menu.setCarried(ItemStack.EMPTY);
+		menu.clicked(1, 0, net.minecraft.world.inventory.ContainerInput.PICKUP, player);
+		helper.assertTrue(sorter.sorter().product(1) == null, Component.literal("an empty hand clears the east side"));
 		helper.succeed();
 	}
 }

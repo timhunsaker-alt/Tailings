@@ -579,7 +579,8 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 				if (pocket != null && !pocket.takes(loaded)) {
 					signalWhy = pocket.choked() ? "waiting at the signal before the dump: the grizzly is choked with oversize"
 							: "waiting at the signal before the dump: the pocket is full";
-					return direction > 0 ? start - end : end - stop;
+					// a little short of the section, so the train standing there is not in it
+					return Math.max(0, (direction > 0 ? start - end : end - stop) - 0.1);
 				}
 			}
 		}
