@@ -85,11 +85,11 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 @Mod("tailings_gametest")
 public class TailingsGameTests {
 	private static final String[] SCENES = {"plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal",
-			"belt_transit", "feed_face", "screen_gravel", "pocket_oversize", "dump_signal", "bulk_concentrate", "sorter_screen"};
+			"belt_transit", "feed_face", "screen_gravel", "pocket_oversize", "dump_signal", "bulk_concentrate", "sorter_screen", "playthrough_crushing"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
 	private static final java.util.Set<String> LONG = java.util.Set.of("plc_switch", "haul", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm",
-			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation", "dump_signal", "bulk_concentrate", "screen_gravel");
+			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation", "dump_signal", "bulk_concentrate", "screen_gravel", "playthrough_crushing");
 
 	public TailingsGameTests(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
@@ -165,6 +165,7 @@ public class TailingsGameTests {
 			helper.register(id("dump_signal"), loaded(TailingsGameTests::dumpSignal));
 			helper.register(id("bulk_concentrate"), loaded(TailingsGameTests::bulkConcentrate));
 			helper.register(id("sorter_screen"), loaded(TailingsGameTests::sorterScreen));
+			helper.register(id("playthrough_crushing"), loaded(TailingsGameTests::playthroughCrushing));
 			helper.register(id("pit_settle"), loaded(PitGameTests::settle));
 			helper.register(id("pit_truck_tip"), loaded(PitGameTests::truckTip));
 			helper.register(id("pit_truck_body"), loaded(PitGameTests::truckBody));
@@ -2131,5 +2132,67 @@ public class TailingsGameTests {
 		menu.clicked(1, 0, net.minecraft.world.inventory.ContainerInput.PICKUP, player);
 		helper.assertTrue(sorter.sorter().product(1) == null, Component.literal("an empty hand clears the east side"));
 		helper.succeed();
+	}
+
+	/**
+	 * The playthrough's crushing layout (Playthrough.crushing, fabric client test), part for part and belt for belt, force-run: so a change
+	 * to it is proved here before the 15-minute filmed run. Ore from its bin reaches the cyclones as fines, the cone gets the screen's
+	 * oversize, and the cone's gravel comes round onto the jaw's belt.
+	 */
+	private static void playthroughCrushing(GameTestHelper helper) {
+		BlockPos o = new BlockPos(11, 3, 2);
+		java.util.function.BiFunction<Machine, int[], PlantBlockEntity> at = (machine, xyz) -> plant(helper, machine, o.offset(xyz[0], xyz[1], xyz[2]));
+		PlantBlockEntity bin = at.apply(Machine.ORE_BIN, new int[] {-10, 0, 1});
+		PlantBlockEntity jaw = at.apply(Machine.JAW, new int[] {0, 0, 0});
+		PlantBlockEntity grizzly = at.apply(Machine.GRIZZLY, new int[] {0, 4, 0});
+		PlantBlockEntity screen = at.apply(Machine.SCREEN, new int[] {6, 3, 0});
+		PlantBlockEntity cone = at.apply(Machine.CONE, new int[] {6, -1, 7});
+		PlantBlockEntity mill = at.apply(Machine.BALL_MILL, new int[] {11, -1, 0});
+		PlantBlockEntity cyclone = at.apply(Machine.CYCLONE, new int[] {9, -1, 2});
+		int[][] x = {{-9, -1, 2}, {-8, -1, 2}, {-7, 0, 2}, {-6, 1, 2}, {-5, 2, 2}, {-4, 3, 2}, {-3, 4, 2}, {-2, 5, 2}, {-1, 6, 2}, {0, 6, 2}, {1, 6, 2},
+				{3, 5, 1}, {4, 6, 1}, {5, 6, 1}, {6, 6, 1},
+				{0, 0, 4}, {1, 1, 4}, {2, 2, 4}, {3, 3, 4}, {4, 4, 4}, {5, 5, 4}, {6, 6, 4},
+				{9, 3, 1}, {10, 3, 1}, {11, 3, 1},
+				{8, -1, 10}, {7, -1, 10}, {6, -1, 10}, {5, -1, 10}, {4, -1, 10}};
+		int[][] z = {{7, 6, 4}, {7, 6, 3}, {7, 6, 2}, {7, 6, 1}, {7, 3, 6}, {7, 3, 7}, {3, -1, 10}, {3, 0, 9}, {3, 1, 8}, {3, 2, 7}, {3, 3, 6}, {3, 4, 5}};
+		for (int[] c : x) {
+			helper.setBlock(o.offset(c[0], c[1], c[2]), belt(Direction.Axis.X));
+		}
+		for (int[] c : z) {
+			helper.setBlock(o.offset(c[0], c[1], c[2]), belt(Direction.Axis.Z));
+		}
+		java.util.Map<String, PlantBlockEntity> drives = new java.util.LinkedHashMap<>();
+		int[][] d = {{2, 6, 1}, {6, 7, 0}, {6, 7, 3}, {7, 6, -1}, {12, 3, 0}, {7, 3, 8}, {4, 0, 10}, {3, 5, 5}};
+		String[] names = {"bin", "bypass", "jaw", "feed", "sand", "oversize", "cone", "return"};
+		for (int i = 0; i < d.length; i++) {
+			drives.put(names[i], at.apply(Machine.CONVEYOR_DRIVE, d[i]));
+		}
+		java.util.List<BlockPos> line = new java.util.ArrayList<>();
+		for (int i = 11; i >= 7; i--) {
+			line.add(o.offset(i, -1, 6));
+		}
+		for (int i = 5; i >= 1; i--) {
+			line.add(o.offset(7, -1, i));
+		}
+		line.add(o.offset(8, -1, 1));
+		line.add(o.offset(9, -1, 1));
+		pipe(helper, line.toArray(new BlockPos[0]));
+		for (PlantBlockEntity p : new PlantBlockEntity[] {jaw, screen, cone, mill, cyclone}) {
+			p.forceRunning();
+		}
+		drives.values().forEach(PlantBlockEntity::forceRunning);
+		boolean[] round = {false};
+		helper.onEachTick(() -> {
+			mill.addWater(1000);
+			cyclone.addWater(1000);
+			round[0] |= drives.get("jaw").hold().total((rock, size) -> size == SizeClass.GRAVEL) > 0;
+		});
+		helper.assertTrue(bin.offer(new ItemStack(Blocks.COPPER_ORE, 3)), Component.literal("the bin should take copper ore"));
+		helper.succeedWhen(() -> {
+			StringBuilder all = new StringBuilder("grizzly " + grizzly.status() + "; jaw " + jaw.status() + "; screen " + screen.status() + "; cone " + cone.status() + "; mill " + mill.status());
+			drives.forEach((name, p) -> all.append("; ").append(name).append(" belt ").append(p.status()));
+			helper.assertTrue(cyclone.out().held(Product.FINES_SLURRY) > 0, Component.literal("fines should leave the cyclones: " + all));
+			helper.assertTrue(round[0], Component.literal("the cone's gravel should come round onto the jaw's belt: " + all));
+		});
 	}
 }

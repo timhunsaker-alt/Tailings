@@ -320,28 +320,35 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
+			// every part fed only through its feed face (crushing-circuit.md, "Nozzles and faces"); the NeoForge scene crushing_circuit has the same layout
 			PlantBlockEntity jaw = plant(level, Machine.JAW, o);
 			PlantBlockEntity grizzly = plant(level, Machine.GRIZZLY, o.offset(0, 4, 0));
-			for (BlockPos at : new BlockPos[] {o.offset(0, 0, 4), o.offset(1, 0, 4), o.offset(2, 0, 4), o.offset(3, 0, 4), o.offset(4, 1, 4), o.offset(5, 2, 4)}) {
+			PlantBlockEntity screen = plant(level, Machine.SCREEN, o.offset(5, 0, 4));
+			PlantBlockEntity cone = plant(level, Machine.CONE, o.offset(5, 0, 14));
+			PlantBlockEntity mill = plant(level, Machine.BALL_MILL, o.offset(9, -2, 4));
+			PlantBlockEntity cyclone = plant(level, Machine.CYCLONE, o.offset(13, -2, 6));
+			PlantBlockEntity bypassDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(3, 3, 3));
+			PlantBlockEntity jawDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(7, 3, 3));
+			PlantBlockEntity oversizeDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(6, 4, 15));
+			PlantBlockEntity sandDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(11, 2, 4));
+			// the jaw's discharge up over the screen's north end; the sand off its east face over the mill's north end
+			for (BlockPos at : new BlockPos[] {o.offset(0, 0, 4), o.offset(1, 0, 4), o.offset(2, 0, 4), o.offset(3, 1, 4), o.offset(4, 2, 4), o.offset(5, 3, 4), o.offset(6, 3, 4),
+					o.offset(8, 2, 5), o.offset(9, 2, 5), o.offset(10, 2, 5)}) {
 				level.setBlock(at, belt(Direction.Axis.X), Block.UPDATE_ALL);
 			}
-			PlantBlockEntity jawDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(6, 2, 4));
-			PlantBlockEntity screen = plant(level, Machine.SCREEN, o.offset(3, 3, 0));
-			PlantBlockEntity cone = plant(level, Machine.CONE, o.offset(3, 3, 6));
-			for (int x = 6; x <= 8; x++) {
-				level.setBlock(o.offset(x, 3, 1), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			// the grizzly's undersize down onto the jaw's belt; the screen's oversize up over the cone
+			for (BlockPos at : new BlockPos[] {o.offset(3, 4, 1), o.offset(3, 3, 2), o.offset(3, 2, 3),
+					o.offset(6, 0, 10), o.offset(6, 1, 11), o.offset(6, 2, 12), o.offset(6, 3, 13), o.offset(6, 4, 14)}) {
+				level.setBlock(at, belt(Direction.Axis.Z), Block.UPDATE_ALL);
 			}
-			PlantBlockEntity sandDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(9, 3, 1));
-			PlantBlockEntity mill = plant(level, Machine.BALL_MILL, o.offset(7, -1, 0));
-			PlantBlockEntity cyclone = plant(level, Machine.CYCLONE, o.offset(11, -1, 2));
-			pipe(level, o.offset(10, -1, 6), o.offset(11, -1, 6), o.offset(12, -1, 6), o.offset(13, -1, 6), o.offset(13, -1, 5), o.offset(13, -1, 4),
-					o.offset(13, -1, 3), o.offset(13, -1, 2), o.offset(13, -1, 1), o.offset(12, -1, 1));
-			for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, jawDrive, sandDrive, mill, cyclone}) {
+			pipe(level, o.offset(12, -2, 10), o.offset(13, -2, 10), o.offset(14, -2, 10), o.offset(15, -2, 10), o.offset(15, -2, 9), o.offset(15, -2, 8),
+					o.offset(15, -2, 7), o.offset(15, -2, 6), o.offset(15, -2, 5), o.offset(14, -2, 5));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, bypassDrive, jawDrive, oversizeDrive, sandDrive, mill, cyclone}) {
 				part.forceRunning();
 			}
 			parts[0] = new PlantBlockEntity[] {grizzly, jaw, screen, cone, mill, cyclone};
 		});
-		server.runCommand("tp @p 19 " + (y + 11) + " 358 135 22");
+		server.runCommand("tp @p 22 " + (y + 12) + " 362 135 25");
 		context.waitTicks(40);
 		Filming film = film(context, world, "crushing");
 		context.takeScreenshot("tailings-crushing-built");
