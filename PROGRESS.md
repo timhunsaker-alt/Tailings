@@ -279,3 +279,25 @@ built of 1/16 m slices following the circle (`tools/models/pit_vehicles.py`), wi
 slices share one texture rectangle and use different corners of it, and the unpainted corners were transparent; the rectangles are
 now painted solid. Rail wheels: eight-sided at 4 px (`tools/models/vehicles.py`). Both pit scenes were filmed again with the display
 kept awake (`caffeinate -dimsu`).
+
+## TBM gaps: the gantries, the trains and the machine's loose ends (2026-11-09)
+
+Tim was away and asked for all known gaps closed on the best recommendation; the choices are in
+[docs/questions/tbm-gaps.md](docs/questions/tbm-gaps.md).
+- **Gantries on wheels:** each runs on a `TrainPath` along each of its two rails; a rail gone under one stops the machine, and it goes
+  back on by itself when the rail is back. On the grade they now stand on their rails, half a block lower than the course's line.
+- **Every car loads:** the loading point reaches a whole 10-car train, so a train indexes forward through it.
+- **The trailing cable** is drawn from the reel back to the junction, and bars on the reel turn as it pays out.
+- **The transformer** (4.16 kV to 480 V, 150 kVA) is a real part of the junction's circuit; the pump and conveyor draw through it.
+- **The quench tank** rides the pump gantry and is lost with it.
+- **The cab's screen** stays open across the lift and set-down.
+- **Recipes:** steel and Wildcatter's parts for the machine and its gantries.
+- **Track too long** for Wildcatter's solver (over 4,000 nodes) is dead and says so; it used to keep its last volts silently.
+- **Busway straight onto the rectifier** works on Wildcatter 0.5.1 (`rectifier_busway`): the R10 gap is closed.
+- **Left:** per-part boxes for the running machine (a plan in the questions file); the legacy parts are kept, as no release has
+  shipped yet.
+
+**Tests:** `GantryWheelsTest`; NeoForge scenes `tbm_gantry_derail`, `tbm_train_fills`, `tbm_quench_gantry`, `tbm_screen_follows`,
+`tbm_transformer`, `tbm_recipes`, `track_too_long`, `rectifier_busway`; `tbm_gantries_decline` now checks the pump gantry on its
+rails. 91 NeoForge scenes pass. `TAILINGS_SCENES=a,b` runs only those scenes. The client films were not re-shot: `tbm`, `haul` and
+`hand` show the changes.

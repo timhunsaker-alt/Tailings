@@ -231,7 +231,8 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 - **As blocks, on the flat:** breaking any part breaks that part and drops its item and contents (R1). The machine reads NOT BUILT
   until the part is back.
 - **As a contraption:** its parts cannot be broken one by one; it is dismantled whole from the cab (above).
-- **A gantry:** breaking it uncouples it and drops it. The machine stops, reading the missing gantry.
+- **A gantry:** breaking it uncouples it and drops it. The machine stops, reading the missing gantry. Breaking the pump gantry loses the
+  water in its quench tank.
 
 ## Left out (ROADMAP)
 - A round bore: the face is square.
@@ -255,7 +256,7 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
 
 ## Added while building R6c
 - **Rows behind the cutterhead:** the track layer lays the last rail at row 11; the pump gantry stands on rows 12 to 14, the reel on 15 to 18, the conveyor on 19 to 26. So the player's twin rail must run at least 16 rows back from the track layer before starting.
-- **The loading point** is the 13 rows just behind the conveyor's tail, on both tracks: a stopped train's locomotive and its first four cars at real length (R9). A train waits there while a car has room and the machine has muck.
+- **The loading point** is the 29 rows just behind the conveyor's tail, on both tracks: a whole 10-car train at real length (it was 13 rows, the first four cars, until the TBM gaps). A train waits while a car in reach has room and the machine has muck, so it indexes forward a car at a time and every car loads.
 - **A train stops short of a gantry** and turns back there, as at the end of the line.
 - **Coupling** is from within 8 blocks of the gantry's place, in order, and snaps it into place. It works on the machine as blocks, running or parked.
 - **Power:** 1 MW for the beam, 75 kW more while the pump pumps or quenches, 7.5 kW more while the conveyor moves muck, all through the junction.
@@ -292,3 +293,12 @@ The machine's 1 MW comes on all at once at the junction.
 - One 1 MW gas set trips on frequency (56.3 Hz).
 - Two sets paralleled onto one 1 MVA unit substation overload it (112 %), and 1,350 A burns through 800 A busway in about 2 minutes.
 - **What works:** two 1 MW gas sets, each through its own unit substation run backward, joined on the 4.16 kV side (each 660 A at 51 %). A grid connection would do as well.
+
+## Added while closing the TBM gaps (2026-11-09, decided while Tim was away: docs/questions/tbm-gaps.md)
+- **The gantries run on their own wheels** along the twin track; a rail gone under one stops the machine ("needs the track under
+  the ..."), and it goes back on when the rail is back.
+- **The quench tank is on the pump gantry,** as drawn; buckets in the cab's water slot go to it.
+- **The reel gantry's transformer is on the circuit:** the pump's and conveyor's current flows through it.
+- **The trailing cable is drawn** from the reel back to the junction, and the reel turns as it pays out.
+- **The cab's screen stays open** across the lift and set-down.
+- **Recipes:** steel and Wildcatter's parts (windings, a drive cabinet, MV cable, a process water pump), in place of iron and copper.

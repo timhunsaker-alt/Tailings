@@ -103,4 +103,14 @@ changed when Tim goes through them (PROGRESS.md, "TBM gaps").
 
 ### 11. Busway straight onto the rectifier
 - **Chosen:** re-tested on Wildcatter 0.5.1 with a server scene (`rectifier_busway`): a 500 kW set with 480 V busway straight onto
-  the rectifier's motor box. See PROGRESS for the result.
+  the rectifier's motor box. It works: the set runs with its breaker closed, the rectifier is fed, and a train's 74 kW on its track
+  comes through (over 150 A DC). The gap is closed; it was the solver failure fixed in Wildcatter 0.4.1.
+- **Alternatives:** none; if it comes back in the playthrough, the scene is where to look first.
+
+### 12. The gantries' height on the grade
+- **Chosen:** a gantry stands a block under its left rail's surface at its front edge, on the grade as on the flat. That is half a
+  block lower on the grade than the course's smooth floor line put it before, which ran half a block above the rails there. The
+  machine's body still follows the course.
+- **Why:** the gantries now stand on their rails, and the trains on the same rails stand by the same surface.
+- **Alternatives:** keep the course's height for the gantries (they float half a block over their rails on the grade). To be checked
+  in the `tbm` and `haul` films.
