@@ -4,6 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
+
+- **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a
+  motor that stopped the moment its hold emptied restarted direct on line on every few kilograms: in the playthrough the cone's
+  4/0 cable burnt out at its motor box and the ball mill's 1 MW set tripped on stator overcurrent, both within 30 s of the first ore.
+  It never starts without work, and a PLC's run or the hand switch still stops it at once.
+- **The playthrough fails fast:** a burnt power cable, a tripped generator, a machine dark for a minute, or a TBM it cannot find stops
+  the run with the reason. It follows the TBM when it sets itself down as blocks at the end of its course (it read "machine not
+  found"). `TAILINGS_FEED=1` stages ore in the ore bin for a quick diagnostic. Decisions in `docs/questions/playthrough.md`.
+
 ### PLC 13i: the last signals (2026-11-09, decided while Tim was away)
 
 - **A PLC chooses which rock each side of the ore sorter takes:** one 4-20 mA output a side carrying a rock code (copper ore is code
