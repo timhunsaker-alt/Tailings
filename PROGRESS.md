@@ -328,3 +328,30 @@ Tim was away and asked for all known gaps closed on the best recommendation; the
 `tbm_transformer`, `tbm_recipes`, `track_too_long`, `rectifier_busway`; `tbm_gantries_decline` now checks the pump gantry on its
 rails. 91 NeoForge scenes pass. `TAILINGS_SCENES=a,b` runs only those scenes. The client films were not re-shot: `tbm`, `haul` and
 `hand` show the changes.
+
+## Plant gaps: the ore plant's and dump's known gaps closed (2026-11-09)
+
+Tim (2026-11-09): "close all known gaps", decided on the best recommendation while he was away
+([docs/questions/plant-gaps.md](docs/questions/plant-gaps.md)). Each closed gap has a NeoForge scene.
+- **Belts have a transit time:** rock rides at the spec's 2 m/s from where it dropped on (`plant.BeltTravel`): a 20 m run delivers in
+  10 s (`belt_transit`), and the lumps are drawn on the metres the rock is riding. A run whose head end is blocked stops.
+- **Feed faces are checked:** the grizzly, cone and heap pad take rock over their top, the screen and mill over their north (feed) end;
+  the jaw only from its grizzly; a part beside an output face is no chute (`feed_face`). The old layouts broke the spec in three
+  places, all moved to belts: the screen's oversize went straight into a cone touching it (the R3 sketch, the crushing scenes), and the
+  playthrough fed the screen through its west face and from under it. The playthrough's crushing layout is rebuilt (the undersize and
+  the jaw's product onto a feed belt over the screen's north end; the oversize by belt over the cone, now on the floor; the cone's
+  product round onto the jaw's belt), and a server scene builds it block for block (`playthrough_crushing`) so it is proved before the
+  15-minute film. Its power drops were re-planned with it and checked cell by cell for clashes; the playthrough itself was not run.
+- **The screen's gravel face:** a belt on the west face of its south end takes the 6-40 mm out as aggregate, and a hopper or chest at a
+  belt's head end takes rock as items, so gravel ends as `gravel_*` items (`screen_gravel`).
+- **Oversize on the pocket's grizzly:** one item in a hundred tipped stays on the bars; 32 choke it; a pickaxe breaks a piece through,
+  a sneaking empty-hand click lifts them off (`pocket_oversize`; `dump_station` breaks its one piece through).
+- **The train waits at the signal before the dump** while the pocket cannot take its load (`dump_signal`).
+- **Bulk concentrate:** lead and zinc concentrate piped into one filter pay the lead and lose the bank's zinc (`bulk_concentrate`,
+  `SelectiveTest`).
+- **The ore sorter has a screen** on both loaders (`SorterMenu`, `SorterScreen`; `sorter_screen`); the playthrough sets its sorter
+  through it.
+- **Metal in kg:** the assay counts the vanilla metals in kg, an ingot 100 kg (`CrushingRatesTest`, `BeltTravelTest`); the flotation
+  and recovery scenes feed real masses.
+- Kept: concentrate as mineral only, and the `fines_*` items. The waste bin's way out is written in DESIGN.md.
+- NeoForge scenes: **91 pass** (83 before, 8 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).

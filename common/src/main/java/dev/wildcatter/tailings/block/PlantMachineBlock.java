@@ -71,6 +71,17 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
+		if (level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0
+				&& stack.is(net.minecraft.tags.ItemTags.PICKAXES)) {
+			// a pickaxe breaks a piece of oversize through the grizzly's bars, as a rock breaker does
+			if (!level.isClientSide()) {
+				String broke = pocket.breakOne();
+				stack.hurtAndBreak(1, player, hand);
+				player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("broke " + Feeds.stack(broke, 1).getHoverName().getString()
+						+ " through the grizzly; " + pocket.oversize() + " oversize left on its bars"));
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
 			if (plant.machine() == Machine.ORE_SORTER) {
 				if (!level.isClientSide() && plant.setSide(hit.getDirection(), stack)) {
@@ -93,10 +104,24 @@ public class PlantMachineBlock extends TailingsPartBlock {
 			}
 			return InteractionResult.SUCCESS;
 		}
+		if (player.isShiftKeyDown() && level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0) {
+			// lifting the oversize off the grizzly by hand: it comes back to the player
+			if (!level.isClientSide()) {
+				pocket.liftOff().forEach((id, n) -> {
+					for (int left = n; left > 0; left -= 64) {
+						player.getInventory().placeItemBackInInventory(Feeds.stack(id, Math.min(64, left)), net.minecraft.util.Prediction.SERVER_ONLY);
+					}
+				});
+				player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("lifted the oversize off the grizzly"));
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
-			if (player.isShiftKeyDown() && plant.machine() == Machine.ORE_SORTER) {
-				if (!level.isClientSide() && plant.setWasteSide(hit.getDirection())) {
-					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+			if (plant.machine() == Machine.ORE_SORTER) {
+				// its screen: each side's type, and the waste side
+				if (!level.isClientSide()) {
+					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new SorterMenu(id, inventory, plant),
+							net.minecraft.network.chat.Component.literal(plant.machine().displayName())));
 				}
 				return InteractionResult.SUCCESS;
 			}

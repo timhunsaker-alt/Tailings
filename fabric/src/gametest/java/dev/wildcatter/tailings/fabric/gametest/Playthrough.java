@@ -456,16 +456,17 @@ final class Playthrough {
 			ServerLevel level = srv.overworld();
 			PlantBlockEntity sorter = (PlantBlockEntity) level.getBlockEntity(parts.get("sorter"));
 			ServerPlayer player = srv.getPlayerList().getPlayers().get(0);
-			// clicking the sorter's faces, as a player sets it: its east side with the ore, its south side empty-handed and sneaking
+			// the sorter's screen, opened with an empty hand as a player does: the ore on its east side, its south side the waste side
 			BlockPos cell = parts.get("sorter").offset(2, 1, 1);
-			ItemStack ore = new ItemStack(item(oreId));
-			player.setItemInHand(InteractionHand.MAIN_HAND, ore);
-			player.gameMode.useItemOn(player, level, ore, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(cell), Direction.EAST, cell, false));
 			player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-			player.setShiftKeyDown(true);
-			BlockPos south = parts.get("sorter").offset(1, 1, 2);
-			player.gameMode.useItemOn(player, level, ItemStack.EMPTY, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(south), Direction.SOUTH, south, false));
-			player.setShiftKeyDown(false);
+			player.gameMode.useItemOn(player, level, ItemStack.EMPTY, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(cell), Direction.EAST, cell, false));
+			require(player.containerMenu instanceof dev.wildcatter.tailings.block.SorterMenu, "an empty hand should open the sorter's screen, got " + player.containerMenu);
+			var menu = player.containerMenu;
+			menu.setCarried(new ItemStack(item(oreId)));
+			menu.clicked(1, 0, net.minecraft.world.inventory.ContainerInput.PICKUP, player);   // the east side's slot
+			menu.setCarried(ItemStack.EMPTY);
+			menu.clickMenuButton(player, dev.wildcatter.tailings.block.SorterMenu.WASTE + 2);   // south: waste
+			player.closeContainer();
 			log("sorter: " + sorter.inspect().getString());
 		});
 	}
@@ -551,32 +552,42 @@ final class Playthrough {
 		bigPart(srv, TailingsBlocks.TRACTION_RECTIFIER, c.offset(0, 1, 36));
 	}
 
+	/**
+	 * The crushing circuit, every part fed through its feed face (crushing-circuit.md, "Nozzles and faces"; plant-gaps): the grizzly's
+	 * undersize and the jaw's product onto belts over the screen's north end, the screen's oversize by belt over the cone's top, the cone's
+	 * product round onto the jaw's belt, the sand over the mill's north end. Until plant-gaps the screen took the undersize through its
+	 * west face and the jaw's belt from under it, and the cone sat against its south face as a chute: the spec never allowed those.
+	 */
 	private void crushing(MinecraftServer srv) {
 		part(srv, "jaw", Machine.JAW, at(0, 0, 0));
 		part(srv, "grizzly", Machine.GRIZZLY, at(0, 4, 0));
 		part(srv, "screen", Machine.SCREEN, at(6, 3, 0));
-		part(srv, "cone", Machine.CONE, at(6, 3, 6));
+		part(srv, "cone", Machine.CONE, at(6, -1, 7));
 		part(srv, "mill", Machine.BALL_MILL, at(11, -1, 0));
 		part(srv, "cyclone", Machine.CYCLONE, at(9, -1, 2));
 		// the ore bin's belt: under the bin, up and over the grizzly
 		belts(srv, Direction.Axis.X, new int[][] {{-9, -1, 2}, {-8, -1, 2}, {-7, 0, 2}, {-6, 1, 2}, {-5, 2, 2}, {-4, 3, 2}, {-3, 4, 2}, {-2, 5, 2}, {-1, 6, 2}, {0, 6, 2}, {1, 6, 2}});
 		part(srv, "binDrive", Machine.CONVEYOR_DRIVE, at(2, 6, 1));
-		// the grizzly's undersize to the screen
-		belts(srv, Direction.Axis.X, new int[][] {{3, 4, 1}, {4, 4, 1}, {5, 4, 1}});
-		part(srv, "bypassDrive", Machine.CONVEYOR_DRIVE, at(5, 4, -1));
-		// the jaw's product up under the screen
-		belts(srv, Direction.Axis.X, new int[][] {{0, 0, 4}, {1, 0, 4}, {2, 0, 4}, {3, 0, 4}, {4, 1, 4}, {5, 2, 4}, {6, 2, 4}, {7, 2, 4}});
-		part(srv, "jawDrive", Machine.CONVEYOR_DRIVE, at(8, 2, 3));
-		// sand off the screen's east face into the mill's feed end
+		// the grizzly's undersize, off its east face up onto the screen's feed belt
+		belts(srv, Direction.Axis.X, new int[][] {{3, 5, 1}, {4, 6, 1}, {5, 6, 1}, {6, 6, 1}});
+		part(srv, "bypassDrive", Machine.CONVEYOR_DRIVE, at(6, 7, 0));
+		// the jaw's product, along its south face and up beside the screen
+		belts(srv, Direction.Axis.X, new int[][] {{0, 0, 4}, {1, 1, 4}, {2, 2, 4}, {3, 3, 4}, {4, 4, 4}, {5, 5, 4}, {6, 6, 4}});
+		part(srv, "jawDrive", Machine.CONVEYOR_DRIVE, at(6, 7, 3));
+		// the screen's feed belt, north along its top to its north (feed) end
+		belts(srv, Direction.Axis.Z, new int[][] {{7, 6, 4}, {7, 6, 3}, {7, 6, 2}, {7, 6, 1}});
+		part(srv, "feedDrive", Machine.CONVEYOR_DRIVE, at(7, 6, -1));
+		// sand off the screen's east face over the mill's feed end
 		belts(srv, Direction.Axis.X, new int[][] {{9, 3, 1}, {10, 3, 1}, {11, 3, 1}});
 		part(srv, "sandDrive", Machine.CONVEYOR_DRIVE, at(12, 3, 0));
-		// the cone's product round to the top of the screen: three runs, as belts run straight
-		belts(srv, Direction.Axis.X, new int[][] {{7, 3, 9}, {8, 3, 9}});
-		part(srv, "coneDrive", Machine.CONVEYOR_DRIVE, at(8, 3, 10));
-		belts(srv, Direction.Axis.Z, new int[][] {{9, 3, 9}, {9, 4, 8}, {9, 5, 7}, {9, 6, 6}, {9, 6, 5}, {9, 6, 4}});
-		part(srv, "returnDrive", Machine.CONVEYOR_DRIVE, at(9, 7, 4));
-		belts(srv, Direction.Axis.X, new int[][] {{9, 6, 3}, {8, 6, 3}});
-		part(srv, "topDrive", Machine.CONVEYOR_DRIVE, at(7, 6, 2));
+		// the screen's oversize off its south face over the cone's top
+		belts(srv, Direction.Axis.Z, new int[][] {{7, 3, 6}, {7, 3, 7}});
+		part(srv, "oversizeDrive", Machine.CONVEYOR_DRIVE, at(7, 3, 8));
+		// the cone's product off its south face, west, then north and up onto the jaw's belt: two runs, as belts run straight
+		belts(srv, Direction.Axis.X, new int[][] {{8, -1, 10}, {7, -1, 10}, {6, -1, 10}, {5, -1, 10}, {4, -1, 10}});
+		part(srv, "coneDrive", Machine.CONVEYOR_DRIVE, at(4, 0, 10));
+		belts(srv, Direction.Axis.Z, new int[][] {{3, -1, 10}, {3, 0, 9}, {3, 1, 8}, {3, 2, 7}, {3, 3, 6}, {3, 4, 5}});
+		part(srv, "returnDrive", Machine.CONVEYOR_DRIVE, at(3, 5, 5));
 		// mill discharge round to the cyclone's north face
 		String pipe = "wildcatter:gas_line";
 		line(srv, pipe, at(11, -1, 6), at(7, -1, 6), at(7, -1, 1), at(9, -1, 1));
@@ -699,14 +710,15 @@ final class Playthrough {
 		line(srv, bus, crushers.east(), up, new BlockPos(up.getX(), ytop, trunkA), new BlockPos(at(14, 0, 0).getX(), ytop, trunkA));
 		size = dev.wildcatter.energy.ConductorSize.AWG_4_0;
 		drop(srv, lv, at(-1, 0, 0), ytop, trunkA);    // the jaw, 165 A
-		drop(srv, lv, at(5, 3, 6), ytop, trunkA);     // the cone, 200 A
+		// the cone, 200 A: west under its belts to a column of its own
+		line(srv, lv, at(5, -1, 7), at(0, -1, 7), new BlockPos(at(0, 0, 0).getX(), ytop, at(0, 0, 7).getZ()), new BlockPos(at(0, 0, 0).getX(), ytop, trunkA));
 		size = null;
-		for (BlockPos box : new BlockPos[] {parts.get("feeder").west(), parts.get("sorter").west(), at(1, 6, 1), at(4, 4, -1), at(7, 3, 10), at(8, 7, 4), at(6, 6, 2), at(11, 3, 0)}) {
+		// the screen's box, and the drives' (each a drive's west cell)
+		for (BlockPos box : new BlockPos[] {parts.get("feeder").west(), parts.get("sorter").west(), at(5, 3, 0), at(1, 6, 1), at(5, 7, 0), at(5, 7, 3), at(6, 6, -1), at(11, 3, 0),
+				at(6, 3, 8), at(3, 0, 10), at(2, 5, 5)}) {
 			drop(srv, lv, box, ytop, trunkA);
 		}
-		// three drops that can't come straight down
-		line(srv, lv, at(5, 3, 0), at(4, 3, 0), at(4, 4, 0));
-		line(srv, lv, at(7, 2, 3), at(5, 2, 3), new BlockPos(at(5, 0, 3).getX(), ytop, at(0, 0, 3).getZ()), new BlockPos(at(5, 0, 0).getX(), ytop, trunkA));
+		// the cyclones' drop, which can't come straight down
 		line(srv, lv, at(8, -1, 2), at(8, 0, 2), at(4, 0, 2), new BlockPos(at(4, 0, 0).getX(), ytop, at(0, 0, 2).getZ()), new BlockPos(at(4, 0, 0).getX(), ytop, trunkA));
 		// the flotation plant: its own 1 MW gas set and busway
 		BlockPos floats = skid(srv, at(31, py - o.getY(), 5), true);

@@ -21,6 +21,30 @@ public interface Stage {
 		return false;
 	}
 
+	/**
+	 * True if rock from a belt's head end or a part's output face may come in at this face: its feed face as the spec draws it
+	 * (crushing-circuit.md, "Nozzles and faces"). {@code at} is the cell in the part's own frame and {@code localSide} the face, turned
+	 * with the part. A part with no feed face takes rock only by hand, hopper, or from the part it is built into (the jaw from its grizzly).
+	 */
+	default boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+		return false;
+	}
+
+	/** A conveyor drive's metres from {@code belt} to its run's head end, where rock dropped on there starts its ride; 0 for other parts. */
+	default double dropAt(PlantBlockEntity part, net.minecraft.core.BlockPos belt) {
+		return 0;
+	}
+
+	/** The top of the cells at the north (feed) end: the first third of the part's length, at least one row. */
+	static boolean feedEndTop(PlantBlockEntity part, int[] at, Direction localSide) {
+		return localSide == Direction.UP && at[1] == part.machine().height() - 1 && at[2] < Math.max(1, part.machine().depth() / 3);
+	}
+
+	/** The top of any cell. */
+	static boolean top(PlantBlockEntity part, int[] at, Direction localSide) {
+		return localSide == Direction.UP && at[1] == part.machine().height() - 1;
+	}
+
 	/** How much dry rock it holds, kg. */
 	default double holdKg() {
 		return PlantRates.DRY_HOLD_KG;

@@ -19,6 +19,8 @@ public final class TailingsFabric implements ModInitializer {
 		Tailings.register(Wildcatter.MOD_ID);
 		MenuType<DrillMenu> menu = new ExtendedMenuType<>((id, inventory, pos) -> new DrillMenu(id, inventory, pos), BlockPos.STREAM_CODEC);
 		DrillMenus.DRILL = Registry.register(BuiltInRegistries.MENU, Tailings.id("tunnel_drill"), menu);
+		DrillMenus.SORTER = Registry.register(BuiltInRegistries.MENU, Tailings.id("ore_sorter"),
+				new MenuType<>(dev.wildcatter.tailings.block.SorterMenu::new, net.minecraft.world.flag.FeatureFlags.VANILLA_SET));
 		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, Tailings.id("tailings"), FabricCreativeModeTab.builder()
 				.title(Tailings.tabTitle())
 				.icon(Tailings::tabIcon)

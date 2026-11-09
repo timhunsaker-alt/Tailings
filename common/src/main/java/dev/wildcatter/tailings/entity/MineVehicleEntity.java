@@ -458,10 +458,10 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			stop = Math.min(stop, 0);
 			why = held;
 		}
-		double signal = signalAhead(server);
+		double signal = signalAhead(server, train);
 		if (signal >= 0 && signal < stop) {
 			stop = signal;
-			why = "waiting at a signal";
+			why = signalWhy;
 		}
 		double other = otherTrainAhead(server);
 		if (other >= 0 && other < stop) {
@@ -537,8 +537,8 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			MineVehicleEntity car = train.get(i);
 			BlockPos rail = RailView.pos(path.stepAt(carPlace(i - 1)).cell());
 			DumpBlockEntity pocket = DumpBlockEntity.under(server, rail);
-			if (pocket != null && car.load.total() > 0 && pocket.pocket() + car.load.total() > Haul.POCKET_ITEMS) {
-				return "waiting at the dump: the pocket is full";
+			if (pocket != null && car.load.total() > 0 && !pocket.takes(car.load.total())) {
+				return pocket.choked() ? "waiting at the dump: the grizzly is choked with oversize" : "waiting at the dump: the pocket is full";
 			}
 			dev.wildcatter.tailings.block.TbmCore drill = dev.wildcatter.tailings.block.TbmCore.loadingAt(server, rail);
 			if (drill != null && car.load.room() > 0 && drill.hasMuck()) {
@@ -548,8 +548,18 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		return null;
 	}
 
-	/** The distance to the next signal section it may not enter, or -1. */
-	private double signalAhead(ServerLevel server) {
+	/** Why the last signal ahead held it. */
+	private String signalWhy = "waiting at a signal";
+
+	/**
+	 * The distance to the next signal section it may not enter, or -1: another train holds it, or it is the dump's section and the pocket
+	 * cannot take this train's load (dump-station.md: "the train waits at the signal before the ramp").
+	 */
+	private double signalAhead(ServerLevel server, List<MineVehicleEntity> train) {
+		int loaded = 0;
+		for (int i = 1; i < train.size(); i++) {
+			loaded += train.get(i).load.total();
+		}
 		double end = direction > 0 ? frontEnd() : tailEnd();
 		List<Track.Step> steps = path.steps();
 		for (int i = 0; i < steps.size(); i++) {
@@ -562,7 +572,15 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 					&& !sections.contains(rail.signal()) && server.getBlockEntity(rail.signal()) instanceof SignalBlockEntity signal) {
 				String holder = signal.occupant();
 				if (holder != null && !holder.isEmpty() && !holder.equals(getUUID().toString())) {
+					signalWhy = "waiting at a signal";
 					return direction > 0 ? start - end : end - stop;
+				}
+				DumpBlockEntity pocket = loaded > 0 ? signal.dumpPocket() : null;
+				if (pocket != null && !pocket.takes(loaded)) {
+					signalWhy = pocket.choked() ? "waiting at the signal before the dump: the grizzly is choked with oversize"
+							: "waiting at the signal before the dump: the pocket is full";
+					// a little short of the section, so the train standing there is not in it
+					return Math.max(0, (direction > 0 ? start - end : end - stop) - 0.1);
 				}
 			}
 		}

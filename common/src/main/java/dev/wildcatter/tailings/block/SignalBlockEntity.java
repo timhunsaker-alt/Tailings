@@ -72,6 +72,39 @@ public class SignalBlockEntity extends BlockEntity implements dev.wildcatter.con
 		return section.occupant(SELF);
 	}
 
+	/**
+	 * The rail dump pocket under a rail of this section, beside its ramp, or null: a loaded train waits at this signal while the pocket
+	 * cannot take its load. It follows the section's rails from the signal, up to 32 of them.
+	 */
+	public @org.jspecify.annotations.Nullable DumpBlockEntity dumpPocket() {
+		if (level == null) {
+			return null;
+		}
+		java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+		java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.values()) {
+			queue.add(worldPosition.relative(side));
+		}
+		int rails = 0;
+		while (!queue.isEmpty() && rails < 32) {
+			BlockPos at = queue.poll();
+			if (!seen.add(at) || !(level.getBlockEntity(at) instanceof RailBlockEntity rail) || !rail.signal().equals(worldPosition)) {
+				continue;
+			}
+			rails++;
+			DumpBlockEntity pocket = DumpBlockEntity.under(level, at);
+			if (pocket != null && !pocket.pit()) {
+				return pocket;
+			}
+			for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+				for (int dy = -1; dy <= 1; dy++) {
+					queue.add(at.relative(side).above(dy));
+				}
+			}
+		}
+		return null;
+	}
+
 	@Override
 	protected void saveAdditional(ValueOutput output) {
 		super.saveAdditional(output);

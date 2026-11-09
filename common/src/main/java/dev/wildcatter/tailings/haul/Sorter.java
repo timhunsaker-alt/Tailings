@@ -31,6 +31,14 @@ public final class Sorter {
 		}
 	}
 
+	/** Clears {@code side}: it takes no one type and is not the waste side. */
+	public void clear(int side) {
+		product[side] = null;
+		if (waste == side) {
+			waste = -1;
+		}
+	}
+
 	/** Sets {@code side} as the waste side; it takes no one type any more. */
 	public void setWaste(int side) {
 		product[side] = null;

@@ -23,6 +23,22 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 - **Tests:** `tbm_gantry_derail`, `tbm_train_fills`, `tbm_quench_gantry`, `tbm_screen_follows`, `tbm_transformer`, `tbm_recipes`,
   `track_too_long`, `rectifier_busway`; `GantryWheelsTest`.
 
+### Plant gaps closed (2026-11-09)
+
+- **Belts take time:** rock rides a belt at 2 m/s, so a 20 m run takes 10 s, and the lumps are drawn where the rock is. A belt whose
+  head end is blocked stops.
+- **Parts take rock only through their feed face:** grizzly, cone and heap pad from a belt over their top; screen and ball mill over
+  their north (feed) end; the jaw only from its grizzly. A part beside another's output face no longer takes it as a chute: lay a belt.
+  Existing layouts that relied on that need a belt there.
+- **Gravel aggregate:** a belt on the west face of the screen's south end takes the 6-40 mm gravel out; a hopper or chest at a belt's
+  head end takes rock as items.
+- **Oversize on the dump pocket's grizzly:** about one item in a hundred stays on the bars; 32 choke it and no car tips. Break pieces
+  through with a pickaxe, or sneak-click with an empty hand to lift them off.
+- **Trains wait at the signal before the dump** while its pocket is full, when a block signal guards the dump.
+- **Bulk concentrate:** lead and zinc concentrate piped into one filter pay the lead only, the zinc going to slag.
+- **The ore sorter has a screen:** click it with an empty hand; put a rock on a side's slot to set it, W makes it the waste side.
+- **Assays count metal in kg:** an ingot is 100 kg of copper, iron or gold in a slurry's assay. Payouts are unchanged.
+
 ### Round wheels (2026-11-09, Tim's request)
 
 - **The haul truck's and wheel loader's wheels are round**, as round as the pixel grid allows (a 1/16 m slice per row), with a steel

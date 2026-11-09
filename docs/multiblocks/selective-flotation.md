@@ -61,6 +61,9 @@ The added parts come to about **470 kW**: bank 360, blower 75, tank 15, thickene
 - **The setting** is a sneaking click with an empty hand on the conditioning tank. It reads BULK or SELECTIVE, and a new tank is BULK.
 - **Any mix counts as bulk,** down to the traces in country rock, and the rule lives in the bank: a bank fed plain galena and plain sphalerite together loses the sphalerite it floats. The scavengers do not have this rule, so their shares pay as before.
 - **The tank has a fifth reagent slot,** so copper sulfate left in it cannot block zinc sulfate.
+- **Concentrates kept apart (plant-gaps, 2026-11-09):** lead and zinc concentrate piped into one thickener or filter make a bulk cake:
+  the lead pays and the bank's zinc goes to slag, as on a bank fed both. A bank's floated sphalerite travels as
+  `tailings:floated_sphalerite` so the filter can tell it from the scavengers', which still pays beside lead. Scene `bulk_concentrate`.
 - **Proved by:** unit tests, five NeoForge scenes and a force-run film. The playthrough runs a plain bank on copper feed and did not build this circuit; it still pays the same.
 
 ## Left out (ROADMAP)

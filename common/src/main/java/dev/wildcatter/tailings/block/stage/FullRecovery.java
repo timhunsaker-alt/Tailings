@@ -247,7 +247,7 @@ final class FullRecovery {
 			for (String id : taken.assay().minerals()) {
 				Mineral mineral = Assays.mineral(id);
 				if (mineral != null) {
-					part.cake().add(mineral, taken.assay().get(id) * taken.kg() * FullRecoveryRates.topRungPay(mineral));
+					part.cake().addKg(mineral, taken.assay().get(id) * taken.kg() * FullRecoveryRates.topRungPay(mineral));
 				}
 			}
 			part.say("plating");
@@ -312,6 +312,12 @@ final class FullRecovery {
 		@Override
 		public double holdKg() {
 			return 100 * PlantRates.BLOCK_KG;
+		}
+
+		/** Waste rock by a belt over it, tipped onto the pad. */
+		@Override
+		public boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+			return Stage.top(part, at, localSide);
 		}
 
 		@Override

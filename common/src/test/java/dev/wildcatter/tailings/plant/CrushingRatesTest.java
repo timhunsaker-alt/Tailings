@@ -70,7 +70,9 @@ class CrushingRatesTest {
 	@Test
 	void aRocksAssayIsTheMineralItHolds() {
 		SlurryAssay copper = Assays.dry(Rock.COPPER);
-		assertEquals(Rock.COPPER.contained(Mineral.COPPER).doubleValue() / PlantRates.BLOCK_KG, copper.get("minecraft:copper_ingot"), 1e-12);
+		// metal in kg, not ingots: copper ore's four ingots are 400 kg of copper in its 2.7 t
+		assertEquals(Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.INGOT_KG / PlantRates.BLOCK_KG, copper.get("minecraft:copper_ingot"), 1e-12);
+		assertEquals(400 / PlantRates.BLOCK_KG, copper.get("minecraft:copper_ingot"), 1e-12);
 		SlurryAssay granite = Assays.dry(Rock.GRANITE);
 		assertEquals(8 / PlantRates.BLOCK_KG, granite.get(Mineral.ZIRCON.mineralItemId()), 1e-12);
 		assertEquals(Mineral.ZIRCON, Assays.mineral(Mineral.ZIRCON.mineralItemId()));
