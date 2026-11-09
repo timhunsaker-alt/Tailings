@@ -34,10 +34,10 @@ public class MineLocomotiveModel extends EntityModel<EntityRenderState> {
 		root.addOrReplaceChild("coupler", CubeListBuilder.create().texOffs(203, 52).addBox(-1F, 20F, 25F, 2F, 2F, 3F), PartPose.ZERO);
 		root.addOrReplaceChild("pinion", CubeListBuilder.create().texOffs(214, 52).addBox(-1F, 21F, -3F, 2F, 3F, 6F), PartPose.ZERO);
 		root.addOrReplaceChild("shoe", CubeListBuilder.create().texOffs(231, 52).addBox(7F, 21F, -2F, 2F, 2F, 4F), PartPose.ZERO);
-		root.addOrReplaceChild("wheel_fl", CubeListBuilder.create().texOffs(244, 52).addBox(-7F, 20F, -18F, 1F, 4F, 4F), PartPose.ZERO);
-		root.addOrReplaceChild("wheel_fr", CubeListBuilder.create().texOffs(0, 85).addBox(6F, 20F, -18F, 1F, 4F, 4F), PartPose.ZERO);
-		root.addOrReplaceChild("wheel_rl", CubeListBuilder.create().texOffs(11, 85).addBox(-7F, 20F, 14F, 1F, 4F, 4F), PartPose.ZERO);
-		root.addOrReplaceChild("wheel_rr", CubeListBuilder.create().texOffs(22, 85).addBox(6F, 20F, 14F, 1F, 4F, 4F), PartPose.ZERO);
+		root.addOrReplaceChild("wheel_fl", CubeListBuilder.create().texOffs(244, 52).addBox(-7F, 20F, -17F, 1F, 1F, 2F).addBox(-7F, 21F, -18F, 1F, 1F, 4F).addBox(-7F, 22F, -18F, 1F, 1F, 4F).addBox(-7F, 23F, -17F, 1F, 1F, 2F), PartPose.ZERO);
+		root.addOrReplaceChild("wheel_fr", CubeListBuilder.create().texOffs(0, 85).addBox(6F, 20F, -17F, 1F, 1F, 2F).addBox(6F, 21F, -18F, 1F, 1F, 4F).addBox(6F, 22F, -18F, 1F, 1F, 4F).addBox(6F, 23F, -17F, 1F, 1F, 2F), PartPose.ZERO);
+		root.addOrReplaceChild("wheel_rl", CubeListBuilder.create().texOffs(11, 85).addBox(-7F, 20F, 15F, 1F, 1F, 2F).addBox(-7F, 21F, 14F, 1F, 1F, 4F).addBox(-7F, 22F, 14F, 1F, 1F, 4F).addBox(-7F, 23F, 15F, 1F, 1F, 2F), PartPose.ZERO);
+		root.addOrReplaceChild("wheel_rr", CubeListBuilder.create().texOffs(22, 85).addBox(6F, 20F, 15F, 1F, 1F, 2F).addBox(6F, 21F, 14F, 1F, 1F, 4F).addBox(6F, 22F, 14F, 1F, 1F, 4F).addBox(6F, 23F, 15F, 1F, 1F, 2F), PartPose.ZERO);
 		return LayerDefinition.create(mesh, 256, 256);
 	}
 }

@@ -270,3 +270,12 @@ pit (P2a)".
   the loader and loaded, on the ramp full, tipping over the bumper into the hopper, and going back empty past the stakes. The film's
   first run ended before the truck came back: the scene's own loop was too short (fixed).
 - NeoForge scenes: **83 pass** (74 before, 9 new).
+
+## Round wheels and the films again (2026-11-09)
+
+Tim: "make the wheels round as possible and redo the videos, the screen was asleep". Each pit wheel is now its own group on its axle,
+built of 1/16 m slices following the circle (`tools/models/pit_vehicles.py`), with hub and nuts, turned by the distance rolled
+(`PitVehicleEntity.rolled`, from the synced speed on the client). The first film showed see-through gaps in the loader's wheel: the
+slices share one texture rectangle and use different corners of it, and the unpainted corners were transparent; the rectangles are
+now painted solid. Rail wheels: eight-sided at 4 px (`tools/models/vehicles.py`). Both pit scenes were filmed again with the display
+kept awake (`caffeinate -dimsu`).

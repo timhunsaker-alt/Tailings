@@ -4,6 +4,12 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Round wheels (2026-11-09, Tim's request)
+
+- **The haul truck's and wheel loader's wheels are round**, as round as the pixel grid allows (a 1/16 m slice per row), with a steel
+  hub and six wheel nuts, and they **roll** as the machine moves. The mine locomotive's and car's 0.25 m wheels are eight-sided, as
+  round as 4 px allows.
+
 ### Open pit P2a — survey stakes, self-driving trucks, the self-running loader, diesel and the fuel bay (2026-11-09)
 
 - **Survey stakes and the survey book:** mark a haul road's stops on stakes (LOAD, DUMP POCKET, DUMP POINT, FUEL, PARK), click

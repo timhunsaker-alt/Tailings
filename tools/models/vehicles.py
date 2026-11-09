@@ -103,8 +103,14 @@ def paint(boxes, name):
         face(img, u + sz, v + sz, sx, sy, colour, pattern if pattern != "louvres" else "plate", rng)
         face(img, u + sz + sx, v + sz, sz, sy, scale(colour, 0.88), pattern, rng)
         face(img, u + sz + sx + sz, v + sz, sx, sy, scale(colour, 0.92), pattern if pattern != "louvres" else "plate", rng)
-        lines.append(f'root.addOrReplaceChild({part!r}, CubeListBuilder.create().texOffs({u}, {v})'
-                     f'.addBox({x}F, {y}F, {z}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);'.replace("'", '"'))
+        if part.startswith("wheel_"):
+            # as round as 4 px allows: the whole rectangle solid (the slices use parts of it), then four slices, 2-4-4-2 long
+            face(img, u, v, w, h, colour, "flat", rng)
+            boxes_ = "".join(f".addBox({x}F, {y + j}F, {z + (sz - n) // 2}F, {sx}F, 1F, {n}F)" for j, n in enumerate((2, 4, 4, 2)))
+            lines.append(f'root.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({u}, {v}){boxes_}, PartPose.ZERO);')
+        else:
+            lines.append(f'root.addOrReplaceChild({part!r}, CubeListBuilder.create().texOffs({u}, {v})'
+                         f'.addBox({x}F, {y}F, {z}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);'.replace("'", '"'))
         u += w + 1
         row = max(row, h)
     img.save(OUT + name + "_placeholder.png")   # drawn by script: a placeholder until the art comes from Ludo

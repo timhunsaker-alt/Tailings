@@ -50,6 +50,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
+		state.roll = entity.rolled(partialTick);
 	}
 
 	@Override
@@ -68,5 +69,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public boolean loaded;
 		public float lift;
 		public float yaw;
+		/** Metres its wheels have rolled. */
+		public float roll;
 	}
 }

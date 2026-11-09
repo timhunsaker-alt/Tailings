@@ -57,6 +57,8 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	/** Diesel in its tank, litres (open-pit.md, P2a). */
 	private double fuel;
 	private boolean engineOn;
+	/** On the client: how far its wheels have rolled, in metres, now and a tick ago, for drawing them turning. */
+	private double rolled, rolledBefore;
 
 	protected PitVehicleEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -66,6 +68,11 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 
 	/** Its fuel tank, litres. */
 	public abstract double tank();
+
+	/** How far its wheels have rolled, between ticks, on the client. */
+	public float rolled(float partialTick) {
+		return (float) (rolledBefore + (rolled - rolledBefore) * partialTick);
+	}
 
 	public double fuel() {
 		return fuel;
@@ -272,6 +279,8 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		super.tick();
 		if (!(level() instanceof ServerLevel server)) {
 			SoundingEntity.Hook.start.accept(this);
+			rolledBefore = rolled;
+			rolled += entityData.get(DATA_SPEED) * TICK;
 			return;
 		}
 		boolean driven = getFirstPassenger() instanceof ServerPlayer;
