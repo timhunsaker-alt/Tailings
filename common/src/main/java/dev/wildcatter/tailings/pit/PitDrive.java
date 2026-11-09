@@ -39,6 +39,15 @@ public final class PitDrive {
 	 */
 	public static final Spec LOADER = new Spec(15.0, 4.5, 6.0, 106_000, 20_400, 607_000, 20 / 3.6, 3.0, 9.0);
 
+	/**
+	 * The track dozer (open-pit-p4-dry-stack.md): 70.2 t, 447 kW net, 8.8 x 4.9 x 4.6 m with its blade (unverified), 12.2 km/h forward
+	 * (the sources give 11.7-12.7) and 15 back. Its "rating" is the blade's 18 blocks of rock. A crawler turns nearly on the spot: 4 m
+	 * (proposed).
+	 */
+	public static final Spec DOZER = new Spec(8.8, 4.9, 4.6, 70_200, 18L * PitMass.ROCK_KG, 447_000, 12.2 / 3.6, 15 / 3.6, 4.0);
+	/** Pushing a load or cutting, it goes at 3.5 km/h (proposed). */
+	public static final double DOZING_SPEED = 3.5 / 3.6;
+
 	private PitDrive() {
 	}
 

@@ -56,6 +56,10 @@
     "tailings:truck_dump_wall",
     "tailings:pit_hopper",
     "tailings:fuel_bay",
-    "tailings:haul_dispatch"
+    "tailings:haul_dispatch",
+    "tailings:tailings_thickener",
+    "tailings:tailings_filter",
+    "tailings:loadout_frame",
+    "tailings:loadout_bin"
   ]
 }

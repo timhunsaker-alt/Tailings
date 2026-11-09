@@ -17,6 +17,9 @@ public final class PitFuel {
 	/** Tanks: the truck 1,100 L (spec), the loader 1,500 L (approved). */
 	public static final double TRUCK_TANK_L = 1_100;
 	public static final double LOADER_TANK_L = 1_500;
+	/** The dozer: about 1,200 L (unverified), dozing at 80 % of its rated power (proposed). */
+	public static final double DOZER_TANK_L = 1_200;
+	public static final double DOZING = 0.80;
 	/** A new machine comes with a tenth of its tank (approved). */
 	public static final double NEW_FILL = 0.10;
 	/** A self-driving truck under this goes to fuel (spec). */

@@ -157,6 +157,25 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	protected void work(ServerLevel level) {
 	}
 
+	/** Each server tick before it moves, with its speed for this tick set: the dozer's blade works the ground in front here. */
+	protected void beforeMove(ServerLevel level) {
+	}
+
+	/** A tick it runs itself instead (a truck going over a crest); true when it did. */
+	protected boolean ownTick(ServerLevel level) {
+		return false;
+	}
+
+	/** The fastest it may go now, m/s (the dozer pushing a load); its top speed otherwise. */
+	protected double speedCap() {
+		return Double.MAX_VALUE;
+	}
+
+	/** Its speed, set by what it struck (the dozer's blade at hard rock). */
+	protected void stop() {
+		speed = 0;
+	}
+
 	public PitLoad load() {
 		return load;
 	}
@@ -175,6 +194,14 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 
 	void setStatus(String status) {
 		this.status = status;
+	}
+
+	protected boolean engineSynced() {
+		return entityData.get(DATA_ENGINE);
+	}
+
+	protected float syncedSpeed() {
+		return entityData.get(DATA_SPEED);
 	}
 
 	public float lift() {
@@ -275,7 +302,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 
 	// ---- driving -----------------------------------------------------------------------------------------------------------------
 
-	private Input keys() {
+	protected Input keys() {
 		return getFirstPassenger() instanceof ServerPlayer driver ? driver.getLastClientInput() : testInput;
 	}
 
@@ -286,6 +313,9 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			SoundingEntity.Hook.start.accept(this);
 			rolledBefore = rolled;
 			rolled += entityData.get(DATA_SPEED) * TICK;
+			return;
+		}
+		if (ownTick(server)) {
 			return;
 		}
 		boolean driven = getFirstPassenger() instanceof ServerPlayer;
@@ -314,6 +344,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		double throttle = busy() || dry ? 0 : drive != null ? drive.throttle() : keys.forward() ? 1 : keys.backward() ? -1 : 0;
 		double speedBefore = speed;
 		speed = busy() ? 0 : PitDrive.next(spec(), massKg(), speed, throttle, slope, TICK);
+		speed = Math.max(-speedCap(), Math.min(speedCap(), speed));
 		double steer = drive != null ? drive.steer() : keys.left() ? 1 : keys.right() ? -1 : 0;
 		if (Math.abs(speed) > 0.05 && steer != 0) {
 			float turned = getYRot() - (float) Math.toDegrees(steer * speed / spec().turnRadius() * TICK);
@@ -321,6 +352,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 				setYRot(turned);
 			}
 		}
+		beforeMove(server);
 		fall = onGround() ? -0.04 : Math.max(-3.0, fall - 0.08);
 		Vec3 before = position();
 		Vec3 want = ahead().scale(speed * TICK);

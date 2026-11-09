@@ -17,6 +17,21 @@ All notable changes are the merged pull requests on `main`. The mod version is s
   The old points keep their numbers.
 - **Tests:** `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`.
 
+### Open pit P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09, decided while Tim was away)
+
+- **New parts:** the tailings thickener (15 m, tails to 60 % solids, its overflow water back on a water pipe), the tailings filter (a
+  plate press dropping 15 t of dry tails every 15 minutes), and the truck load-out: a 400 t bin on a frame over a drive-through lane,
+  filling a truck under its gate at 2 t/s.
+- **Dry tails**, a new block: the press's cake, 1.8 t a block, falling like sand. The pit hopper refuses it: it goes to the dump.
+- **LOADOUT stakes work:** a self-driving truck drives through the load-out, is filled under the gate, loops round and hauls to its
+  dump stop.
+- **Dumps, crests and berms:** at a DUMP POINT on a crest a truck backs to the berm and tips over it, and the load runs down the face;
+  with no berm it will not back up (NO BERM, and BLOCKED in dispatch). With no crest it tips on the flat. A berm stops a truck backed
+  by hand; a truck backed over a crest with no berm goes over and is wrecked, leaving its item and load at the bottom.
+- **The track dozer:** a 70 t crawler. Blade CARRY, CUT (to level, 5, 8 or 10 %) or RAISED; it pushes loose ground and muck, cuts
+  ramps, pushes loads over a crest and pushes up berms along it. Hard rock stops it.
+- **Tests:** 12 NeoForge scenes (`pit_thickener` to `pit_dozer_push`), `DryStackTest`; the client scene `pit_dry_stack`.
+
 ### The TBM's gaps (2026-11-09, decided while Tim was away)
 
 - **The gantries run on their own wheels** on the twin track. Take a rail from under one and the machine stops, naming it; put it

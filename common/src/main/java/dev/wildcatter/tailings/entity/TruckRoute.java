@@ -32,8 +32,16 @@ import org.jspecify.annotations.Nullable;
  */
 final class TruckRoute {
 	enum Phase {
-		DRIVE, TURNING, BACKING, FILLING, TIPPING, FUELING, WAITING, HALTED, PARKED
+		DRIVE, TURNING, BACKING, FILLING, TIPPING, FUELING, WAITING, HALTED, PARKED,
+		/** P4: driving through a load-out to its gate, out the far side, and round a balloon loop back onto the line. */
+		THROUGH, EXITING, LOOP_OUT, LOOP_BACK,
+		/** P4: stopped before a DUMP POINT whose crest has no berm. */
+		NO_BERM
 	}
+
+	/** Through a load-out it keeps to 15 km/h (proposed), and drives out 15 m past the gate before it loops round. */
+	static final double THROUGH_SPEED = 15 / 3.6;
+	static final double EXIT_PAST = 15;
 
 	/** Trucks on one-way legs: leg key to truck to (way along the leg, game time seen). */
 	private static final Map<ServerLevel, Map<String, Map<UUID, long[]>>> ONE_WAY = new WeakHashMap<>();
@@ -85,6 +93,8 @@ final class TruckRoute {
 		legs.clear();
 		phase = Phase.DRIVE;
 		problem = null;
+		bermLook = null;
+		noBermFor = 0;
 		dispatch = null;
 		run = true;
 		nextLook = 0;
@@ -118,6 +128,7 @@ final class TruckRoute {
 		for (int i = 0; i + 1 < route.size(); i++) {
 			legs.add(SurveyBookItem.survey(level, route.get(i), route.get(i + 1)));
 		}
+		ends(level);
 		// start at the nearest stake, heading for the end it wants: the dump end loaded, the load end empty
 		int nearest = 0;
 		double best = Double.MAX_VALUE;
@@ -164,7 +175,7 @@ final class TruckRoute {
 	private Vec3 aim(boolean reverse) {
 		Vec3 target = centre(stakes.get(at));
 		int from = at - way;
-		if (reverse || from < 0 || from >= stakes.size() || leg(currentLeg()).oneWay()) {
+		if (reverse || from < 0 || from >= stakes.size() || leg(currentLeg()).oneWay() || singleFile(currentLeg())) {
 			return target;
 		}
 		Vec3 start = centre(stakes.get(from));
@@ -175,6 +186,18 @@ final class TruckRoute {
 		// its right, going from start to target: yaw from the heading, right() = (-cos, -sin)
 		double yaw = Math.toRadians(Autopilot.yawToward(start.x, start.z, target.x, target.z));
 		return target.add(-Math.cos(yaw) * Autopilot.LANE_OFFSET, 0, -Math.sin(yaw) * Autopilot.LANE_OFFSET);
+	}
+
+	/** Load-out ends: the leg into a load-out is single file, on the line through its lane, both ways (P4). */
+	private boolean firstLoadout, lastLoadout;
+
+	private boolean singleFile(int leg) {
+		return (leg == 0 && firstLoadout) || (leg == legs.size() - 1 && lastLoadout);
+	}
+
+	private void ends(ServerLevel level) {
+		firstLoadout = kind(level, 0) == StopKind.LOADOUT;
+		lastLoadout = kind(level, stakes.size() - 1) == StopKind.LOADOUT;
 	}
 
 	/** Steering looks this far ahead along its lane (proposed), so it is in its lane soon after a junction. */
@@ -292,6 +315,18 @@ final class TruckRoute {
 			case BACKING -> {
 				return back(level, truck);
 			}
+			case THROUGH -> {
+				return through(level, truck);
+			}
+			case EXITING -> {
+				return exit(level, truck);
+			}
+			case LOOP_OUT, LOOP_BACK -> {
+				return loop(level, truck);
+			}
+			case NO_BERM -> {
+				return noBerm(level, truck);
+			}
 			default -> {
 				return forward(level, truck);
 			}
@@ -299,6 +334,10 @@ final class TruckRoute {
 	}
 
 	private PitVehicleEntity.Drive forward(ServerLevel level, HaulTruckEntity truck) {
+		if (end(at) && kind(level, at) == StopKind.LOADOUT) {
+			phase = Phase.THROUGH;   // a load-out is driven through forward (P4-3)
+			return through(level, truck);
+		}
 		if (end(at)) {
 			phase = Phase.TURNING;   // given its route beside an end: turn round and back into it
 			waited = 0;
@@ -318,7 +357,7 @@ final class TruckRoute {
 		Vec3 aim = aim(false);
 		double distance = flat(truck.position(), aim);
 		int next = at + way;
-		boolean turnBeforeEnd = end(next);
+		boolean turnBeforeEnd = end(next) && kind(level, next) != StopKind.LOADOUT;
 		boolean fuelStop = kind(level, at) == StopKind.FUEL && truck.fuel() < PitFuel.LOW * truck.tank();
 		boolean parkStop = parkAt(level);
 		boolean stopHere = turnBeforeEnd || fuelStop || parkStop;
@@ -378,9 +417,139 @@ final class TruckRoute {
 		if (turnBeforeEnd) {
 			phase = Phase.TURNING;
 			waited = 0;
+			if (kind(level, at) == StopKind.DUMP_POINT && look(level, truck).kind() == dev.wildcatter.tailings.pit.Crest.Kind.NO_BERM) {
+				phase = Phase.NO_BERM;   // it will not back to a crest with no berm (P4-4)
+			}
 			return PitVehicleEntity.Drive.STAND;
 		}
 		return PitVehicleEntity.Drive.STAND;
+	}
+
+	/** The unit way from the turn stake to the end stake it backs into. */
+	private Vec3 inward() {
+		Vec3 stake = centre(stakes.get(at));
+		int from = at - way;
+		if (from < 0 || from >= stakes.size()) {
+			return new Vec3(0, 0, 1);
+		}
+		Vec3 start = centre(stakes.get(from));
+		Vec3 along = new Vec3(stake.x - start.x, 0, stake.z - start.z);
+		return along.length() < 1e-6 ? new Vec3(0, 0, 1) : along.normalize();
+	}
+
+	/** What is behind the DUMP POINT it is heading for: a paddock, a bermed crest, or a crest with no berm. */
+	dev.wildcatter.tailings.pit.Crest.Look look(ServerLevel level, HaulTruckEntity truck) {
+		BlockPos stake = stakes.get(at);
+		Vec3 in = inward();
+		return dev.wildcatter.tailings.pit.Crest.look(HaulTruckEntity.crestGround(level), stake.getX() + 0.5, stake.getY(), stake.getZ() + 0.5, in.x, in.z,
+				truck.spec().width(), dev.wildcatter.tailings.pit.DryStack.bermBlocks(dev.wildcatter.tailings.pit.DryStack.TRUCK_WHEEL_RADIUS));
+	}
+
+	private int noBermFor;
+
+	/** Waits at the stake before a DUMP POINT with no berm, reading NO BERM, BLOCKED in dispatch after 30 s; goes on once a berm is up. */
+	private PitVehicleEntity.Drive noBerm(ServerLevel level, HaulTruckEntity truck) {
+		if (++noBermFor % 20 == 0 && look(level, truck).kind() != dev.wildcatter.tailings.pit.Crest.Kind.NO_BERM) {
+			phase = Phase.TURNING;
+			noBermFor = 0;
+			waited = 0;
+			return PitVehicleEntity.Drive.STAND;
+		}
+		truck.setStatus("NO BERM at the DUMP POINT (stake " + (at + 1) + "): push one up along the crest");
+		return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), 0, 1), 0, false);
+	}
+
+	/**
+	 * The load-out's gate: the stake stands at the mouth of its lane (the frame's cells fill the lane), so the gate is that of the
+	 * load-out frame within 16 m on along the line; with none, the stake itself.
+	 */
+	private Vec3 gate(ServerLevel level) {
+		BlockPos stake = stakes.get(at);
+		Vec3 in = inward();
+		for (int k = 0; k <= 16; k++) {
+			for (int up = 0; up <= 1; up++) {
+				BlockPos pos = BlockPos.containing(stake.getX() + 0.5 + in.x * k, stake.getY() + up, stake.getZ() + 0.5 + in.z * k);
+				net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+				if (state.getBlock() instanceof PlantMachineBlock block && block.machine() == Machine.LOADOUT_FRAME
+						&& level.getBlockEntity(PlantMachineBlock.mainOf(pos, state)) instanceof dev.wildcatter.tailings.block.PlantBlockEntity frame) {
+					Vec3 g = frame.loadoutGate();
+					// on the line, abreast of the gate
+					Vec3 s0 = centre(stake);
+					double t = (g.x - s0.x) * in.x + (g.z - s0.z) * in.z;
+					return s0.add(in.scale(t));
+				}
+			}
+		}
+		return centre(stake);
+	}
+
+	/** Drives forward along the line through the load-out's lane and stops with its body under the gate. */
+	private PitVehicleEntity.Drive through(ServerLevel level, HaulTruckEntity truck) {
+		Vec3 stake = gate(level);
+		Vec3 in = inward();
+		Vec3 body = truck.bodyCentre();
+		double toGo = (stake.x - body.x) * in.x + (stake.z - body.z) * in.z;
+		if (toGo < 0.4 && Math.abs(truck.speed()) < 0.1) {
+			phase = Phase.FILLING;
+			lastLoad = truck.load().total();
+			waited = 0;
+			return PitVehicleEntity.Drive.STAND;
+		}
+		double target = toGo < 0.4 ? 0 : Math.min(THROUGH_SPEED, Math.max(0.8, Autopilot.stoppingSpeed(toGo - 0.5)));
+		target = Math.min(target, clearAhead(level, truck, false, Math.max(0, toGo) + 5, null));
+		truck.setStatus("driving through the load-out to its gate");
+		double t = (truck.getX() - stake.x) * in.x + (truck.getZ() - stake.z) * in.z;
+		Vec3 aim = stake.add(in.scale(t + 8));   // a point on the line 8 m ahead of it, so it runs straight through the lane
+		double steer = Autopilot.steer(truck.getYRot(), truck.getX(), truck.getZ(), aim.x, aim.z, false, truck.speed(), truck.spec().turnRadius());
+		return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), target, 1), steer, false);
+	}
+
+	/** Filled at the load-out, it drives on out of the far side of the lane. */
+	private PitVehicleEntity.Drive exit(ServerLevel level, HaulTruckEntity truck) {
+		Vec3 stake = gate(level);
+		Vec3 in = inward();
+		double past = (truck.getX() - stake.x) * in.x + (truck.getZ() - stake.z) * in.z;
+		if (past >= EXIT_PAST) {
+			phase = Phase.LOOP_OUT;
+			loopFrom = Autopilot.yawToward(0, 0, in.x, in.z);
+			return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), TURNING_SPEED, 1), 0, false);
+		}
+		truck.setStatus("loaded: out of the load-out");
+		Vec3 aim = stake.add(in.scale(past + 8));
+		double target = Math.min(THROUGH_SPEED, clearAhead(level, truck, false, 12, null));
+		double steer = Autopilot.steer(truck.getYRot(), truck.getX(), truck.getZ(), aim.x, aim.z, false, truck.speed(), truck.spec().turnRadius());
+		return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), target, 1), steer, false);
+	}
+
+	private double loopFrom;
+
+	/**
+	 * The balloon loop past a load-out (proposed): a quarter turn one way, then three quarters the other at full lock, which brings it
+	 * back onto the line it came out on, heading back, about 25 m further out.
+	 */
+	private PitVehicleEntity.Drive loop(ServerLevel level, HaulTruckEntity truck) {
+		double turned = Autopilot.wrap(truck.getYRot() - loopFrom);
+		double target = Math.min(TURNING_SPEED, clearAhead(level, truck, false, 12, null));
+		truck.setStatus("looping round at the load-out");
+		if (++waited > TURNING_TICKS * 3) {
+			phase = Phase.HALTED;
+			problem = "can't loop round past the load-out: give it 40 m of open ground beyond the gate";
+			return PitVehicleEntity.Drive.STAND;
+		}
+		if (phase == Phase.LOOP_OUT) {
+			// yaw rate = -steer · v / R: steer -1 turns its yaw up
+			if (turned >= 90) {
+				phase = Phase.LOOP_BACK;
+			}
+			return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), target, 1), -1, false);
+		}
+		// back round the other way until it heads back along the line
+		if (Math.abs(Autopilot.wrap(turned - 180)) < 4) {
+			waited = 0;
+			leaveEnd();
+			return PitVehicleEntity.Drive.STAND;
+		}
+		return new PitVehicleEntity.Drive(Autopilot.throttle(truck.speed(), target, 1), 1, false);
 	}
 
 	/**
@@ -416,6 +585,16 @@ final class TruckRoute {
 		Vec3 end = stake;
 		Vec3 tail = truck.local(0, 0, -truck.spec().length() / 2);
 		int turnStake = at - way;
+		if (kind(level, at) == StopKind.DUMP_POINT) {
+			if (bermLook == null) {
+				bermLook = look(level, truck);
+			}
+			if (bermLook.kind() == dev.wildcatter.tailings.pit.Crest.Kind.BERM) {
+				// its tail stops 1 m short of the berm, as at a bumper (P4-4)
+				stake = stake.add(inward().scale(bermLook.bermAt() - dev.wildcatter.tailings.pit.DryStack.BERM_STOP));
+				end = stake;
+			}
+		}
 		if (kind(level, at) == StopKind.DUMP_POCKET && turnStake >= 0 && turnStake < stakes.size()) {
 			// at a truck dump it backs on until the bumper stops it, up to 3 m past the stake
 			Vec3 from = centre(stakes.get(turnStake));
@@ -487,6 +666,11 @@ final class TruckRoute {
 		}
 		waited++;
 		if (truck.load().room() <= 0 || (now > 0 && waited > FILL_PATIENCE) || !run) {
+			if (kind(level, at) == StopKind.LOADOUT) {
+				phase = Phase.EXITING;   // out of the far side, not back the way it came
+				waited = 0;
+				return PitVehicleEntity.Drive.STAND;
+			}
 			leaveEnd();
 			return PitVehicleEntity.Drive.STAND;
 		}
@@ -638,6 +822,7 @@ final class TruckRoute {
 	}
 
 	private int blockedFor;
+	private dev.wildcatter.tailings.pit.Crest.@Nullable Look bermLook;
 
 	private void stalledOn(HaulTruckEntity truck) {
 		blockedFor++;
@@ -647,7 +832,7 @@ final class TruckRoute {
 	}
 
 	boolean blocked() {
-		return blockedFor > BLOCKED_TICKS;
+		return blockedFor > BLOCKED_TICKS || (phase == Phase.NO_BERM && noBermFor > BLOCKED_TICKS);
 	}
 
 	String describe(ServerLevel level) {
@@ -677,6 +862,7 @@ final class TruckRoute {
 			for (int i = 0; i + 1 < route.size(); i++) {
 				legs.add(SurveyBookItem.survey(level, route.get(i), route.get(i + 1)));
 			}
+			ends(level);
 			this.at = Math.max(0, Math.min(stakes.size() - 1, at));
 			this.way = way >= 0 ? 1 : -1;
 			try {

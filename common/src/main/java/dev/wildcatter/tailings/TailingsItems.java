@@ -29,6 +29,7 @@ public final class TailingsItems {
 	public static Item CAR;
 	public static Item HAUL_TRUCK;
 	public static Item WHEEL_LOADER;
+	public static Item TRACK_DOZER;
 	public static Item SURVEY_BOOK;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
@@ -51,6 +52,7 @@ public final class TailingsItems {
 		CAR = item("mine_car");
 		HAUL_TRUCK = vehicle("haul_truck", () -> TailingsEntities.HAUL_TRUCK);
 		WHEEL_LOADER = vehicle("wheel_loader", () -> TailingsEntities.WHEEL_LOADER);
+		TRACK_DOZER = vehicle("track_dozer", () -> TailingsEntities.TRACK_DOZER);
 		ResourceKey<Item> book = ResourceKey.create(Registries.ITEM, Tailings.id("survey_book"));
 		SURVEY_BOOK = Registry.register(BuiltInRegistries.ITEM, book, new dev.wildcatter.tailings.item.SurveyBookItem(new Item.Properties().setId(book).stacksTo(1)));
 		for (TbmGantry gantry : TbmGantry.values()) {

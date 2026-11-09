@@ -188,10 +188,22 @@ public class TailingsGameTests {
 			helper.register(id("pit_dispatch"), wide("pit_dispatch", PitDispatchGameTests::dispatch));
 			helper.register(id("pit_dispatch_alarms"), wide("pit_dispatch_alarms", PitDispatchGameTests::alarms));
 			helper.register(id("pit_dispatch_fallback"), wide("pit_dispatch_fallback", PitDispatchGameTests::fallback));
+			helper.register(id("pit_thickener"), wide("pit_thickener", PitDryStackGameTests::thickener));
+			helper.register(id("pit_filter_cycle"), wide("pit_filter_cycle", PitDryStackGameTests::filterCycle));
+			helper.register(id("pit_loadout"), wide("pit_loadout", PitDryStackGameTests::loadout));
+			helper.register(id("pit_loadout_haul"), wide("pit_loadout_haul", PitDryStackGameTests::loadoutHaul));
+			helper.register(id("pit_berm"), wide("pit_berm", PitDryStackGameTests::bermScene));
+			helper.register(id("pit_no_berm"), wide("pit_no_berm", PitDryStackGameTests::noBerm));
+			helper.register(id("pit_over_crest"), wide("pit_over_crest", PitDryStackGameTests::overCrest));
+			helper.register(id("pit_dump_advance"), wide("pit_dump_advance", PitDryStackGameTests::dumpAdvance));
+			helper.register(id("pit_dozer_cut"), wide("pit_dozer_cut", PitDryStackGameTests::dozerCut));
+			helper.register(id("pit_dozer_berm"), wide("pit_dozer_berm", PitDryStackGameTests::dozerBerm));
+			helper.register(id("pit_dozer_hard"), wide("pit_dozer_hard", PitDryStackGameTests::dozerHard));
+			helper.register(id("pit_dozer_push"), wide("pit_dozer_push", PitDryStackGameTests::dozerPush));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b runs only those scenes, for working on a few
 					.filter(name -> System.getenv("TAILINGS_SCENES") == null || java.util.Arrays.asList(System.getenv("TAILINGS_SCENES").split(",")).contains(name)).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),

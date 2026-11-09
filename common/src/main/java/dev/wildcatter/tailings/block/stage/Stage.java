@@ -89,6 +89,10 @@ public interface Stage {
 			case TAILINGS_POND -> Flotation.POND;
 			case APRON_FEEDER -> Dump.FEEDER;
 			case ORE_SORTER -> Dump.SORTER;
+			case TAILINGS_THICKENER -> DryStackStages.THICKENER;
+			case TAILINGS_FILTER -> DryStackStages.FILTER;
+			case LOADOUT_BIN -> DryStackStages.BIN;
+			case LOADOUT_FRAME -> DryStackStages.FRAME;
 			default -> Idle.INSTANCE;
 		};
 	}

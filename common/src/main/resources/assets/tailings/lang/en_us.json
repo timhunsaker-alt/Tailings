@@ -297,5 +297,12 @@
   "block.tailings.fuel_bay": "Fuel Bay",
   "block.tailings.haul_dispatch": "Haul Dispatch Office",
   "block.tailings.survey_stake": "Survey Stake",
-  "item.tailings.survey_book": "Survey Book"
+  "item.tailings.survey_book": "Survey Book",
+  "block.tailings.tailings_thickener": "Tailings Thickener",
+  "block.tailings.tailings_filter": "Tailings Filter",
+  "block.tailings.loadout_frame": "Load-Out Frame",
+  "block.tailings.loadout_bin": "Load-Out Bin",
+  "block.tailings.dry_tails": "Dry Tails",
+  "item.tailings.track_dozer": "Track Dozer",
+  "entity.tailings.track_dozer": "Track Dozer"
 }
