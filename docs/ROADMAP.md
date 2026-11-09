@@ -190,12 +190,6 @@ truck), P6 (the dragline), P7 (the pit-sized plant).
 - **Trucks burn no fuel yet (P1).** The fuel tank and fuel bay come with P2.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
   without driving between; the driver moves it.
-- **A hopper leaves part of a block in the truck (P1, put to Tim 2026-11-09):** the pit hopper takes whole bank blocks (2.7 t) of
-  each ore, so what is under a block of each stays in the body: 4.6 t after the filmed 91 t tip. It rides on to the next load, and
-  the body is drawn full while it holds anything.
-
-These are in the current build on purpose, or because the art and tests have not caught up. They are not phase 4 work unless a later change says so.
-
 - **The sorter's routing is not on a signal (13i).** A PLC can shut a side's gate, sending it to waste, but not choose which rock a side takes: that is still clicks.
 - **The TBM's program is not on a signal (13i).** GO starts it; its course is set on its cab's screen.
 - **A slurry part's level, flow and density have no reading yet (13i).** FILL reads what a dry part or belt holds.

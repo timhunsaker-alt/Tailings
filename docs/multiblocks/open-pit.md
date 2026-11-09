@@ -203,8 +203,8 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   into it.
 - **Downstream:** the hopper is drawn by the existing apron feeder touching it, then the ore sorter and ore bins, as the rail dump
   pocket is (dump-station.md), and so to the jaw crusher at its rate (or, by Decision 1, the gyratory).
-- It takes whole bank blocks: a load's rock and ore go in as items (2.7 t each), and what is left under a whole block stays in
-  the truck. It refuses soil.
+- It takes whole bank blocks: a load's rock and ore go in as items (2.7 t each). What is under a whole block of each ore the
+  hopper keeps, and the next load makes it up; the truck comes away empty (decided with Tim, 2026-11-09). It refuses soil.
 - Reads FULL when a truck could not tip its load into it, and a self-driving truck waits.
 - **The coarse-ore stockpile** moves to P7 with the gyratory: at 50 t/h a 400 t hopper already holds 8 hours of feed.
 - PLC points: LEVEL (4-20 mA), FULL.

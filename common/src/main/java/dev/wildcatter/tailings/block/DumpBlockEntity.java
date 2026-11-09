@@ -22,6 +22,8 @@ import net.minecraft.world.level.storage.ValueOutput;
  */
 public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspectable {
 	private final Map<String, Integer> held = new LinkedHashMap<>();
+	/** The pit hopper's part blocks: what a truck tipped under a whole block of each ore, kept for the next load (Tim, 2026-11-09). */
+	private final dev.wildcatter.tailings.pit.PitLoad part = new dev.wildcatter.tailings.pit.PitLoad(Long.MAX_VALUE);
 	private boolean grown;
 
 	/** The truck dump's hopper (docs/multiblocks/open-pit.md): 400 t. */
@@ -42,31 +44,39 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	}
 
 	/**
-	 * A truck tips its load in (open-pit.md, Truck dump): its rock and ore as whole bank blocks, all or none. What is under a whole
-	 * block stays in the truck. Returns null when it took the load, or why not: soil goes to a dump, never to the plant (decided with
-	 * Tim, 2026-11-09).
+	 * A truck tips its load in (open-pit.md, Truck dump), all or none, and comes away empty: its rock and ore go in as whole bank
+	 * blocks, and what is under a whole block of each is kept here and made up by the next load (decided with Tim, 2026-11-09).
+	 * Returns null when it took the load, or why not: soil goes to a dump, never to the plant (decided with Tim, 2026-11-09).
 	 */
 	public @org.jspecify.annotations.Nullable String tip(dev.wildcatter.tailings.pit.PitLoad load) {
 		if (load.hasSoil()) {
 			return "not rock: tip it on a dump";
 		}
-		Map<String, Integer> whole = load.wholeBlocks();
+		dev.wildcatter.tailings.pit.PitLoad all = new dev.wildcatter.tailings.pit.PitLoad(Long.MAX_VALUE);
+		part.contents().forEach(all::add);
+		load.contents().forEach(all::add);
+		Map<String, Integer> whole = all.wholeBlocks();
 		int sum = 0;
 		for (int n : whole.values()) {
 			sum += n;
-		}
-		if (sum == 0) {
-			return null;
 		}
 		if (pocket() + sum > capacity()) {
 			return "FULL";
 		}
 		whole.forEach((id, n) -> {
 			held.merge(id, n, Integer::sum);
-			load.take(id, (long) n * dev.wildcatter.tailings.pit.PitMass.kg(id));
+			all.take(id, (long) n * dev.wildcatter.tailings.pit.PitMass.kg(id));
 		});
+		part.clear();
+		all.contents().forEach(part::add);
+		load.clear();
 		setChanged();
 		return null;
+	}
+
+	/** Kilograms kept under a whole block, by item. */
+	public Map<String, Long> part() {
+		return part.contents();
 	}
 
 	public static void tick(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, DumpBlockEntity dump) {
@@ -201,6 +211,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		StringBuilder out = new StringBuilder();
 		held.forEach((id, n) -> out.append(out.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("held", out.toString());
+		output.putString("part", part.save());
 	}
 
 	@Override
@@ -208,6 +219,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		super.loadAdditional(input);
 		grown = input.getBooleanOr("grown", false);
 		held.clear();
+		part.load(input.getStringOr("part", ""));
 		// a pocket saved before R4c sorted into nine slots: its items come back into the pocket
 		net.minecraft.core.NonNullList<net.minecraft.world.item.ItemStack> old = net.minecraft.core.NonNullList.withSize(9, net.minecraft.world.item.ItemStack.EMPTY);
 		net.minecraft.world.ContainerHelper.loadAllItems(input, old);

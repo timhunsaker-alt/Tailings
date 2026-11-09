@@ -166,7 +166,7 @@ final class PitGameTests {
 		helper.assertTrue(sorter.setWasteSide(Direction.NORTH), Component.literal("the sorter's north side should take the waste"));
 		// backing up from the pad: the bumper stops the wheels with the body over the hopper
 		HaulTruckEntity truck = vehicle(helper, TailingsEntities.HAUL_TRUCK, 7.0, 59, 20.0, 0);
-		truck.load().add("minecraft:cobblestone", 54_000);
+		truck.load().add("minecraft:cobblestone", 55_000);   // 20 bank blocks and 1 t
 		truck.refreshLoad();
 		truck.testDrive(BACK);
 		helper.startSequence()
@@ -177,11 +177,15 @@ final class PitGameTests {
 					helper.assertTrue(relZ(helper, truck) > 15.9, Component.literal("the bumper should stop the truck, at z " + relZ(helper, truck)));
 					helper.assertTrue(truck.hopperBehind(helper.getLevel()) == hopper, Component.literal("the hopper should be under the truck's tail"));
 					truck.tip(helper.getLevel());
-					helper.assertTrue(hopper.pocket() == 20, Component.literal("54 t of cobble is 20 bank blocks in the hopper, got " + hopper.pocket()));
-					helper.assertTrue(truck.load().empty(), Component.literal("the truck should be empty: " + truck.load().save()));
+					helper.assertTrue(hopper.pocket() == 20, Component.literal("55 t of cobble is 20 bank blocks in the hopper, got " + hopper.pocket()));
+					helper.assertTrue(truck.load().empty() && !truck.loaded(), Component.literal("the truck should come away empty: " + truck.load().save()));
+					helper.assertTrue(hopper.part().getOrDefault("minecraft:cobblestone", 0L) == 1_000, Component.literal("the hopper keeps the 1 t under a block, got " + hopper.part()));
+					truck.load().add("minecraft:cobblestone", 1_700);
+					truck.tip(helper.getLevel());
+					helper.assertTrue(hopper.pocket() == 21 && hopper.part().isEmpty(), Component.literal("the next 1.7 t makes up a block: " + hopper.pocket() + " blocks, " + hopper.part()));
 					truck.load().add("minecraft:sand", 16_000);
 					truck.tip(helper.getLevel());
-					helper.assertTrue(truck.status().contains("not rock") && hopper.pocket() == 20,
+					helper.assertTrue(truck.status().contains("not rock") && hopper.pocket() == 21,
 							Component.literal("the hopper should refuse soil, got " + truck.status()));
 					truck.load().clear();
 					helper.assertTrue(hopper.offer(Map.of("minecraft:cobblestone", hopper.capacity() - hopper.pocket() - 5)), Component.literal("fill the hopper"));

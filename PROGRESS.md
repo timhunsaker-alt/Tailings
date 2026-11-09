@@ -237,6 +237,8 @@ DESIGN.md, "The open pit (P1)".
   - **The cabs were blind:** the window pixels were opaque, so from the seat the driver saw only the cab's inside. They are now clear
     (the cutout drops them), and from the loader's seat the plant and the truck show through.
   - **What a hopper leaves:** the hopper takes whole bank blocks of each ore, so after a 91 t tip 4.6 t stays in the body (2.0 t of
-    copper ore, 2.6 t of cobble), and the body is drawn full. Put to Tim (ROADMAP Known gaps).
+    copper ore, 2.6 t of cobble), and the body is drawn full. Tim chose (2026-11-09) that the hopper keeps it: what is under a block of
+    each ore stays in the hopper and the next load makes it up, and the truck comes away empty (`pit_hopper` checks 55 t in, 1 t
+    kept, then 1.7 t more makes the 21st block).
   - The scene itself first failed for its own reasons: it was built below a flat world's floor, it held entities that their chunks had
     reloaded as new ones, and its key presses were shorter than the server's tick. All three are fixed in the scene.
