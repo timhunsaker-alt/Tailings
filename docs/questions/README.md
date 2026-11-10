@@ -39,12 +39,16 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |
 | Tailings | `art-wave.md` | 5 | the Ludo art and the vehicle skins |
+| Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
+| Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
 | Wildcatter | `protection-gaps.md` | 28 | relays, switchgear, poles, service drops |
 | Wildcatter | `plant-crane-gaps.md` | 16 | plants and cranes |
 | Wildcatter | `art-wave.md` | 7 | the Ludo art |
+| Wildcatter | `plc-gaps.md` | 12 | PLC gaps: cable cores, the 24 V supply, rack owners, ladder jumps, FBD wire routing, every signal run in the world |
+| Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.
