@@ -12,7 +12,7 @@ import mlib
 import tlib
 from tlib import model, motor_box
 
-TEX = tlib.TEX
+TEX = dict(tlib.TEX)   # a copy: the duct texture must not leak into modules built after this one
 TEX["duct"] = "block/vent_duct"
 
 # ---- the ventilation fan ----------------------------------------------------------------------------------------------------------
