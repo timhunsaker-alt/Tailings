@@ -44,6 +44,13 @@ These are the only items that wait on you; everything else is built and only nee
 13. **The XRT sorter** (`l8-xrt.md` #3, #5, #6): the default threshold (Zeff 12.0) sits just above deepslate (11.96) and below
     silver ore (12.08); light ores (graphite, bauxite, borax) read below quartz and go to waste unless a reverse mode is added; it has
     its own 160 kW compressor because Wildcatter's is a small instrument-air unit.
+14. **The walking dragline** (branch `p5-big-machines`, `p6-dragline.md` #1, #3, #18): the boom is five 15 m parts, not ten of 7.5 m
+    (a cell is a whole metre); its house fills its whole 5,760-cell box (a hollow shell would save about 15,000 block states); and its PLC
+    points are on its switch house outlet, not its tub, since the tub lifts and walks.
+15. **The pit line** (branch `p5-big-machines`, `p7-pit-line.md` #11, #14, #21, #27): three close reclaim feeders draw 41 % of a pile
+    (one draws 26 %); the weigher's 50 t/h step; whether a big mill should refuse a direct start or just trip its breaker; whether
+    Wildcatter should get a large-bore slurry pipe. P7c (pit flotation) is a plan, not built: the 45 m thickener needs the model tool
+    changed first. P5, P6 and P7 pass all 200 server scenes together and merge to main after the Wildcatter v0.6.0 release.
 
 ## Every file, by wave
 
@@ -68,6 +75,8 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
+| Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
+| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 32 | the gyratory and stockpile (P7a), the SAG line (P7b); P7c left as a plan |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
