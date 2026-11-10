@@ -469,7 +469,10 @@ was decided on the best recommendation and logged in `docs/questions/p5-big-mach
 - **Scenes:** NeoForge `pit_switch_house`, `pit_switch_house_fed`, `pit_cable_end`, `pit_low_voltage`, `pit_ultra_haul`,
   `pit_ultra_loader`, `pit_hyd_shovel`, `pit_hyd_electric`, `pit_rope_shovel_built`, `pit_rope_shovel`, `pit_shovel_edge`: **138 pass**
   (127 with P3 and main merged, 11 new). Unit tests: 132 pass (`PitPowerTest` new). The Fabric client film `pit_big`
-  (`TAILINGS_ONLY=pit_big`).
+  (`TAILINGS_ONLY=pit_big`) was filmed once (`fabric/build/scene-videos/pit_big.mov`): the parts, the lift, 4 passes into the
+  ultra (362.5 t), the ultra driving off. That run failed only its sound check (the dig sounds at the face, out of the camera's hearing:
+  it now checks the dump's `muck_tip`), and it found a freshly closed outlet read 0 V as LOW VOLTAGE and held 10 s (fixed: only a real
+  sag latches). Not re-filmed after the fixes.
 - **Known gaps (P5):** script-drawn item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder`,
   `hydraulic_shovel_placeholder` (`tools/models/p5_assets.py`); the rope shovel's PLC points are planned, not built; the drill is still one
   machine (its parts planned); the cable is drawn straight; the rest are in ROADMAP's Known gaps.

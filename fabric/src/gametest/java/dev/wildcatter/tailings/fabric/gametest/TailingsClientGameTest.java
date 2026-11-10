@@ -1759,6 +1759,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-pit-big-away");
 		film.stop();
 		require(loaded.startsWith("362") || loaded.startsWith("363"), "the rope shovel should fill the ultra: " + loaded);
-		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_load");
+		// the dipper's dig sounds at the face, out of the camera's hearing; the dump into the truck is heard
+		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_tip");
 	}
 }

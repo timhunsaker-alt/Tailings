@@ -252,6 +252,7 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 			case TRIPPED -> "TRIPPED at the switch house";
 			case OPEN -> "OUTLET " + (i + 1) + " OPEN at the switch house";
 			case CLOSED -> !fed() ? "NO POWER: nothing on the switch house's " + Voltage.MEDIUM.label() + " in" + (busTripped ? " (incoming TRIPPED)" : "")
+					: o.volts < 1 ? "OUTLET " + (i + 1) + " CLOSING"
 					: !PitPower.enough(o.volts, Voltage.MEDIUM.lineToLine()) ? String.format(Locale.ROOT, "LOW VOLTAGE: %.0f V", o.volts) : "";
 		};
 	}

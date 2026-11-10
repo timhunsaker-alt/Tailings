@@ -137,7 +137,8 @@ public final class CableLink {
 		long now = level.getGameTime();
 		volts = h.volts(outlet);
 		String said = h.noPower(outlet);
-		if (said.startsWith("LOW VOLTAGE")) {
+		// a real sag, not an outlet closed since the last solve (which reads 0 V until it is solved)
+		if (said.startsWith("LOW VOLTAGE") && volts > Voltage.MEDIUM.lineToLine() * 0.5) {
 			// its drives trip on undervoltage and stay stopped a while before trying again, rather than hunting on the cable's drop
 			lowUntil = now + LOW_VOLTAGE_HOLD;
 			why = String.format(Locale.ROOT, "LOW VOLTAGE: %.0f of %.0f V at the machine", volts, Voltage.MEDIUM.lineToLine());
