@@ -75,6 +75,14 @@ public final class TailingsEntities {
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("track_dozer")));
 
+	/** A shaft skip on its rope (shaft-and-hoist.md, L4): its box is its own (ShaftSkipEntity). */
+	public static final EntityType<dev.wildcatter.tailings.entity.ShaftSkipEntity> SKIP = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.ShaftSkipEntity>of(dev.wildcatter.tailings.entity.ShaftSkipEntity::new, MobCategory.MISC)
+			.sized(2F, 4F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("skip")));
+
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
 	public static final EntityType<GantryEntity> CONVEYOR_GANTRY = gantryType(TbmGantry.CONVEYOR);
@@ -109,6 +117,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("haul_truck"), HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("wheel_loader"), WHEEL_LOADER);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("track_dozer"), TRACK_DOZER);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("skip"), SKIP);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

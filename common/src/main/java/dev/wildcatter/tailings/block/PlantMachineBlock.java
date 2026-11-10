@@ -95,6 +95,20 @@ public class PlantMachineBlock extends TailingsPartBlock {
 			}
 			return InteractionResult.SUCCESS;
 		}
+		if (machine == Machine.HEADFRAME && stack.getItem() == dev.wildcatter.tailings.TailingsItems.SKIP
+				&& level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity headframe) {
+			// a skip hangs on the next free rope, at the dump (shaft-and-hoist.md, L4)
+			if (level instanceof net.minecraft.server.level.ServerLevel server) {
+				var skip = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(server, ShaftLayout.Frame.of(headframe));
+				if (skip == null) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("both ropes have their skips"));
+				} else {
+					stack.consume(1, player);
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("hung a skip in the " + (skip.compartment() == 0 ? "west" : "east") + " compartment"));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity plant) {
 			if (plant.machine() == Machine.ORE_SORTER) {
 				if (!level.isClientSide() && plant.setSide(hit.getDirection(), stack)) {

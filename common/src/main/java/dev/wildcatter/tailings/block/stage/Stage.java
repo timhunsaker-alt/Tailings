@@ -95,6 +95,9 @@ public interface Stage {
 			case LOADOUT_FRAME -> DryStackStages.FRAME;
 			case VENT_FAN -> Vent.FAN;
 			case BOOSTER_FAN -> Vent.BOOSTER;
+			case HOIST_HOUSE -> Shaft.HOIST;
+			case MEASURING_FLASK -> Shaft.FLASK;
+			case HEADFRAME_BIN -> Shaft.BIN;
 			default -> Idle.INSTANCE;
 		};
 	}

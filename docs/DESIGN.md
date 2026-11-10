@@ -427,6 +427,33 @@ building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The f
   `tools/models/pit_vehicles.py` in Ludo's materials, on tracks: treads over a round idler and sprocket a side, its blade group raised
   and lowered by the blade's position.
 
+## The shaft and hoist (L4)
+
+Spec: [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md) (draft, decided on recommendation); the choices made building it
+are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft.Hoisting` and the skips' state in `shaft.Winder`
+(unit-tested); where the pieces stand is `block.ShaftLayout`; the stages are `block.stage.Shaft`.
+
+- **The parts:** `headframe` (9 x 30 x 9, unpowered; the shaft its middle 5 x 5, x and z 2 to 6 in its own frame, empty of collision,
+  with gate rails round the collar), `hoist_house` (10 x 8 x 12, a 450 kW Wildcatter `Motor` at the medium-voltage tier, its box on the
+  west face of its main cell), `headframe_bin` (4 x 5 x 4, 100 t), `measuring_flask` (2 x 3 x 2, 3 t).
+- **Built:** the hoist house reads NOT BUILT until it finds, looking out of each side along its centre line within 60 m, a headframe
+  that it stands behind (the headframe's own south, the ropes' side); a headframe bin touching the headframe; a measuring flask with a
+  cell in the ring round the shaft, down to 200 m; both compartments (x 2-3 and 5-6, z 3-4) clear of anything with collision from the
+  flask's bottom to the collar; and a skip on each rope.
+- **Skips** (`entity.ShaftSkipEntity`, the `skip` item clicked on the headframe; a sneaking empty-hand hit takes one off): the hoist sets
+  each in its compartment every tick at the loading stop (the flask's bottom) plus its height, skip 1 at the travel less skip 0's. The
+  travel is the depth to the flask's bottom plus 18 m to the dump. Their loads ride in the winder, saved on the hoist house; a skip
+  taken off loses its load. `client.SkipRenderer` draws its block model, its load, and its rope to the sheave top and back to the drum.
+- **Winding:** 0.75 m/s² up to 10 m/s times the motor's output, braked on the stopping curve, the last metres at 0.5 m/s. Then 10 s at
+  rest; then the top skip dumps into the bin (if it has room: else BIN FULL) and the bottom skip takes the flask's 3 t (if it has them:
+  else WAITING FOR ORE), and it winds when the bottom skip is loaded and the top one empty. The motor is wanted while it winds and runs on
+  60 s as every plant motor; without it the brakes hold the skips where they are (STOPPED). A 150 m shaft lifts about 270 t/h.
+- **The flask:** the apron feeder whose tail end touches it (and no ore sorter) drops a rock item's 2.7 t into its surge when the surge is
+  empty, once a second; it fills from the surge at 300 kg/s to exactly 3 t. It takes nothing by hand or hopper.
+- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate.
+- **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
+- **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -490,6 +517,11 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
 | `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
 | `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |
+| `headframe` | Iron blocks and iron bars (placeholder) | 9 x 30 x 9 over a 5 x 5 shaft; its sheaves and dump (L4) |
+| `headframe_bin` | Iron around a hopper (placeholder) | 4 x 5 x 4, 100 t; the skips dump into it, it feeds a belt under it (L4) |
+| `hoist_house` | Iron blocks round a copper block (placeholder) | 10 x 8 x 12, the double-drum hoist, 450 kW at the medium-voltage tier (L4) |
+| `measuring_flask` | Iron and a hopper (placeholder) | 2 x 3 x 2, measures each skip's 3 t at the shaft bottom (L4) |
+| `skip` | None: its looks only | The skip entity's model; never placed (L4) |
 | `dry_tails` | None. The tailings filter makes it | The filter's cake, 1.8 t a block: falls like sand, tipped on dumps, dug and pushed as soft ground (P4) |
 
 Stamp mill:
@@ -542,6 +574,7 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
 - **Ventilation items (L1):** `vent_duct_cassette` (100 m of duct for the reel gantry: 8 duct round an iron block), `gas_detector`.
+- **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
 Block items exist for every block above, including the ones with no crafting recipe.
 
@@ -554,6 +587,7 @@ Block items exist for every block above, including the ones with no crafting rec
 | `mine_car` | `MineVehicleEntity` | `MineVehicleRenderer` | A car; its load, and whether it is loaded (synced) |
 | `battery_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` (`BatteryLocomotiveModel`) | Drives its train on its own battery (L2) |
 | `bottom_dump_car` | `MineVehicleEntity` | `MineVehicleRenderer` (`BottomDumpCarModel`) | A car that dumps through its floor over a track grizzly; its doors synced (L3) |
+| `skip` | `ShaftSkipEntity` | `SkipRenderer` | A 3 t skip on its rope in a headframe's compartment; the hoist house sets its height (L4) |
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 | `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
 | `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |

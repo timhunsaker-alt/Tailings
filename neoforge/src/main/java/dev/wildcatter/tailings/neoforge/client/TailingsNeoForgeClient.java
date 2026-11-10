@@ -44,6 +44,7 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.PUMP_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.REEL_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CONVEYOR_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.SKIP, dev.wildcatter.tailings.client.SkipRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.TRACK_DOZER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);

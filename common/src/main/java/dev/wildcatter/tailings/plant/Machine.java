@@ -66,7 +66,15 @@ public enum Machine {
 	/** The drive's forcing fan at the portal (ventilation.md, L1): a 1.8 m axial fan with its silencer and inlet bell, 75 kW; its outlet on its south face. */
 	VENT_FAN("vent_fan", "Ventilation Fan", 3, 3, 5, 75_000, Supply.INDUSTRIAL),
 	/** An in-line booster in the duct for long drives (ventilation.md, L1), 30 kW (proposed): in at its north face, out at its south. */
-	BOOSTER_FAN("booster_fan", "Booster Fan", 2, 2, 3, 30_000, Supply.INDUSTRIAL);
+	BOOSTER_FAN("booster_fan", "Booster Fan", 2, 2, 3, 30_000, Supply.INDUSTRIAL),
+	/** A steel four-post headframe over a 5 x 5 shaft, its two head sheaves at the top and the skip dump scroll (shaft-and-hoist.md, L4; proposed: 30 m high). */
+	HEADFRAME("headframe", "Headframe", 9, 30, 9, 0, Supply.NONE),
+	/** The 100 t steel bin beside the headframe that the skips dump into, feeding a belt under it (L4, proposed). */
+	HEADFRAME_BIN("headframe_bin", "Headframe Bin", 4, 5, 4, 0, Supply.NONE),
+	/** The hoist house: a double-drum hoist, drums about 3 m across, on a 450 kW motor at the medium-voltage tier (L4, proposed). */
+	HOIST_HOUSE("hoist_house", "Hoist House", 10, 8, 12, dev.wildcatter.tailings.shaft.Hoisting.MOTOR_WATTS, Supply.MEDIUM),
+	/** The loading pocket's measuring flask beside the shaft bottom: it fills to one skip's 3 t and empties into the skip (L4). */
+	MEASURING_FLASK("measuring_flask", "Measuring Flask", 2, 3, 2, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

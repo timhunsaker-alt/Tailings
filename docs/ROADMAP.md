@@ -241,13 +241,26 @@ existing drives run as before (questions #1, #2 for Tim). NeoForge scenes `vent_
   return airway (with L4, shaft-and-hoist.md, Later); heat from the rock at depth and refrigeration; real gases (methane, blasting
   fumes, diesel particulate) and the diesel rule (0.06 m³/s a kW) for when a diesel machine goes below; the battery bay's hydrogen
   (L2). A per-world rule in place of the config file (questions #2).
+## Later — L4: the shaft and hoist (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md), decisions in
+[questions/l4-shaft.md](questions/l4-shaft.md), branch `l4-shaft`. The `headframe` (9 x 30 x 9) stands over a 5 x 5 shaft; the
+`hoist_house` (10 x 8 x 12, a 450 kW motor at the medium-voltage tier) stands behind it within 60 m and winds two 3 t `skip`s in
+balance at up to 10 m/s between the `measuring_flask` at the shaft bottom and the dump in the headframe, into the 100 t `headframe_bin`
+beside it, which feeds a belt. The L3 bottom-dump station's apron feeder feeds the flask. About 270-280 t/h from 150 m. Reads STOPPED,
+WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPED. NeoForge scenes `shaft_hoist`, `shaft_not_built`,
+`shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; unit tests `HoistingTest`; the client film `shaft_hoist`.
+- **Still to build, planned (the spec's "Still to build"):** L4b the raise borer (pilot and ream, cuttings into the drive); L4c the cage
+  on the second drum (CAGE mode, riding, two landings); the shaft as the drive's return airway (with L1 ventilation); then the spec's
+  "Left out": Koepe hoists, rope stretch and inspection, overwind, sinking by drill and blast, several levels, lowering the TBM down
+  the shaft.
 
 ## Later, not scheduled
 
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
-- A shaft and hoist (headframe, skip) instead of the decline.
+- A shaft and hoist (headframe, skip) instead of the decline: built as L4 (above); the raise borer and the cage are still to build.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
 - Bottom-dump cars over a grizzly: built as L3 (above).
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
@@ -271,6 +284,14 @@ existing drives run as before (questions #1, #2 for Tim). NeoForge scenes `vent_
   4 m.
 - **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
 - **The battery locomotive has no PLC points of its own (L2):** only the charger has (CHARGING, FULL, CHARGE).
+- **No raise borer and no cage yet (L4):** the shaft is dug by hand; the hoist only checks the skips' compartments are clear
+  (questions/l4-shaft.md, 1, 2). Planned in shaft-and-hoist.md, "Still to build".
+- **The hoist motor draws its full 450 kW while it runs (L4):** Wildcatter 0.5.1's motor has no part load, so the real lift (346 kW,
+  less between winds) is not modelled (questions/l4-shaft.md, 8).
+- **A 3 t skip against a 1,555 t car (L4):** the hoist is right in tonnes but takes over five hours to lift one car's 576 items
+  (questions/l4-shaft.md, 20).
+- **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
+- **The headframe bin feeds belts only (L4):** a hopper under it takes nothing (questions/l4-shaft.md, 12).
 
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).

@@ -317,5 +317,12 @@
   "block.tailings.booster_fan": "Booster Fan",
   "block.tailings.vent_duct": "Ventilation Duct",
   "item.tailings.vent_duct_cassette": "Duct Cassette",
-  "item.tailings.gas_detector": "Gas Detector"
+  "item.tailings.gas_detector": "Gas Detector",
+  "block.tailings.headframe": "Headframe",
+  "block.tailings.headframe_bin": "Headframe Bin",
+  "block.tailings.hoist_house": "Hoist House",
+  "block.tailings.measuring_flask": "Measuring Flask",
+  "block.tailings.skip": "Skip",
+  "item.tailings.skip": "Skip",
+  "entity.tailings.skip": "Skip"
 }
