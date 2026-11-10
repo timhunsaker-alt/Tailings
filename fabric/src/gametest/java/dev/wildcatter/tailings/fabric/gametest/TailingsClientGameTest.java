@@ -952,7 +952,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	 * 60 m off arms, sounds its siren and fires; the bench breaks to muck spilled off the face; a loader digs it into a truck.
 	 */
 	private void pitBlast(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
-		BlockPos b = new BlockPos(300, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is the bench top; its face north at z 43
+		BlockPos b = new BlockPos(300, y + 8, 1400).offset(0, -45, 0);   // b + (x, 59, z) is the bench top, b + (x, 45, z) the pit floor (on the world, not below its floor); the face north at z 43
 		Object[] v = new Object[4];
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
@@ -1098,7 +1098,8 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			truck.setPos(b.getX() + 38.5, b.getY() + 46, b.getZ() + 28.5);
 			truck.setYRot(90);
 			truck.setFuel(truck.tank());
-			level.addFreshEntity(truck);
+			boolean added = level.addFreshEntity(truck);
+			System.out.println("[tailings-test] pit_blast: spawned loader " + loader.isAlive() + " at " + loader.blockPosition() + " in " + level.getBlockState(loader.blockPosition()) + ", truck " + added);
 			v[2] = loader;
 			v[3] = truck;
 		});
@@ -1108,8 +1109,15 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			server.runOnServer(srv -> {
 				if (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity loader && !loader.busy()) {
 					loader.pressJump(srv.overworld());
+					// nothing in reach of an empty bucket: its driver edges into the pile, as a loader works into a muck pile
+					boolean edge = !loader.busy() && loader.bucket().empty() && loader.status().startsWith("nothing in reach");
+					loader.testDrive(edge ? new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false) : net.minecraft.world.entity.player.Input.EMPTY);
 				}
 			});
+			if (t % 30 == 0) {
+				int at = t;
+				server.runOnServer(srv -> System.out.println("[tailings-test] pit_blast: t " + at + " loader " + (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity l ? l.blockPosition() + " " + l.status() : "gone (removal " + ((net.minecraft.world.entity.Entity) v[2]).getRemovalReason() + ")")));
+			}
 			if (t == 30) {
 				context.takeScreenshot("tailings-pit-blast-loading");
 			}

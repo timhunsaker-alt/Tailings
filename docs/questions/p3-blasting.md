@@ -127,3 +127,17 @@ recommendation and is open for Tim. New numbers are marked *(proposed)* in the s
   on GitHub.
 - **Why:** the fill point takes Wildcatter's matrix by pipe; it does not exist before 0.6.0.
 - **Alternatives:** none: P3c needs it.
+
+### 20. The blasting machine keeps its own chunk running (found filming, by the lead)
+- **Chosen:** from FIRE until the shot is done, the machine holds a runner ticket on its own chunk (as it already did on the holes').
+- **Why:** the film showed a siren that never ended: the firing point stood 120 m from the bench, out of simulation distance while
+  the camera watched the bench, so the machine never ticked and never fired. Real firing points stand well back, and the shot must
+  not depend on where the player looks.
+- **Alternatives:** require the player within simulation distance of the machine (the countdown would freeze when they walk off).
+
+### 21. A self-running loader does not edge into its face (left as a gap)
+- **Chosen:** not changed. In the film the loader is driven by hand and its driver edges forward when nothing is in reach. A
+  self-running loader (LOAD stake) still reads "face worked out" once the toe is a few metres off.
+- **Plan:** edge forward up to 5 m past its LOAD stake along its heading, a metre at a time, while the path is clear; then
+  "face worked out". Recommended for P5 with the shovels, which work a face the same way.
+- **Alternatives:** the player moves the LOAD stake (today's way).
