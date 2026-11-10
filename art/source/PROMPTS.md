@@ -83,3 +83,14 @@ Items, `item-icon`, each "..., game item icon, plain white background, no text" 
 | blast_logger (a) | A single rugged handheld blast logger: a yellow rubber-armoured handheld unit with a small dark green screen and a black keypad, front view, generic, no brand names |
 | blasting_key (a) | A single brass key for a blasting machine's key switch, a chunky brass key with a round bow and a red plastic tag on its ring, lying flat, generic, no brand names |
 | track_dozer (a) | A single large yellow crawler track dozer seen from the side at three-quarter view, wide steel blade at the front, black steel tracks, cab on top, generic, no brand names |
+
+## Open pit P5 icons (2026-11-09)
+The same: Ludo `createImage`, model klimt, art_style `Photorealistic 3D`, 2 variations each, the better kept (decisions in
+`docs/questions/p5-big-machines.md`, 36). Items, `item-icon`, each "..., game item icon, plain white background, no text" (returned
+on transparency):
+
+| File | Prompt |
+|---|---|
+| trailing_cable (a) | A single steel reel wound with thick black rubber-jacketed mining trailing cable, the cable's end hanging off it with a heavy yellow coupler plug, generic, no brand names |
+| ultra_haul_truck (b) | A single huge yellow 360 tonne ultra-class rigid mining haul truck seen from the side at three-quarter view, very large black tyres, high dump body with a long canopy reaching over the cab, stairway at the front, generic, no brand names |
+| hydraulic_shovel (b) | A single large yellow hydraulic mining front shovel seen from the side at three-quarter view, on black crawler tracks, boom and stick with a big steel front bucket facing forward, cab at its front left, generic, no brand names |

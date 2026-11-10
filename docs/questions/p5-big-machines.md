@@ -272,3 +272,31 @@ best recommendation while Tim was away. Nothing here is final until he has been 
   way; real operators crowd the face as it retreats.
 - **Alternatives:** the player moves the LOAD stake (the old way); edge further (a machine wandering off its loading point would leave
   its trucks' stake behind).
+
+## Closing P5's gaps (Tim: "close all known gaps")
+
+### 36. The three P5 icons are Ludo art
+- **Chosen:** the art wave's method (`docs/questions/art-wave.md`, `art-p3.md`): Ludo `createImage`, klimt, `Photorealistic 3D`,
+  `item-icon`, 2 variations each; `tools/process_art.py` crops, squares and box-filters them to 16 px. Kept: the reel (a), more cable
+  showing; the ultra (b), seen from behind its body so it reads long and high and not as the 100 t truck's icon (front three-quarter);
+  the hydraulic shovel (b), its boom raised and bucket out ahead, where (a) at 16 px read as a dozer. The textures lose `_placeholder`;
+  `tools/models/p5_assets.py` now writes only the item definitions and models. 3 Ludo jobs, 3 credits.
+- **Why:** one look across the mod; the icons were the last script-drawn textures.
+- **Alternatives:** keep the script-drawn icons (a known gap left open).
+
+### 37. A truck's empty body showed its tyres through the floor
+- **Chosen:** the floor raised above the rear tyres' tops (the ultra's from 3.0-3.5 m to 4.05-4.45 m over 4.0 m tyre tops; the 100 t's
+  from 2.0-2.3 m to 2.75-3.05 m over 2.7 m), its sides, front wall and load raised with it, and two dark rails under the floor down to
+  the frame so the body does not float. Both trucks had the fault: the tyre tops stood up through the floor and showed as dark holes
+  from above (the `pit_big` film, `0003_tailings-pit-big-dumping.png`). The loading heights (the sides' tops) are unchanged.
+- **Why:** a real body's floor sits on the frame above the tyres; the boxes overlapped because the floor had been set from the hinge.
+- **Alternatives:** cut the tyres' tops off under the body (wheels are discs of slices that roll; a cut wheel would show when turned).
+
+### 38. The shovel's stripes and louvres at range
+- **Chosen:** on a face 3 m and more each way the generator draws hazard stripes 1 m wide (16 px, not 4 px) and the louvres as a
+  bank of 3-px slats every 0.5 m across the face's top third, the rest plain plate with panel seams every 3 m. Smaller faces (the
+  trucks' hoods, the hydraulic shovel's counterweight) keep their fine pattern; only the rope shovel's skin changed.
+- **Why:** entity skins are not mipmapped, so 1-px lines every 4 px alias into moire as the machine shrinks on screen (the shimmer in
+  `0005_tailings-pit-big-away.png` was the house's louvres, 7 m of them, and the counterweight's stripes).
+- **Alternatives:** stripes only on the edges (the counterweight is a hazard all over on a real shovel); a bigger-pixel skin for the
+  whole machine (would blur every detail).

@@ -261,8 +261,7 @@ into the playthrough.
   (crawlers, deck, mast, dust collector) built and lifted as the rope shovel's are (`RopeShovelBlockEntity` is the pattern: a layout
   class, a check naming the missing part, RUN lifts into the existing `BlastholeDrillEntity`, STOP sets down), and its PLC points on
   its switch house outlet as the rope shovel's below.
-- **Placeholder art (P5):** the item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder` and
-  `hydraulic_shovel_placeholder` are drawn by script (`tools/models/p5_assets.py`). The switch house and the rope shovel's six parts are
+- **Two paints on the rope shovel (P5):** the switch house and the rope shovel's six parts are
   drawn in Wildcatter's materials; the ultra's, the hydraulic shovel's and the lifted rope shovel's skins are painted by
   `tools/models/pit_vehicles.py` in Ludo's materials. So the rope shovel standing as its parts and running as one machine look alike in
   shape but not in paint.
@@ -306,7 +305,8 @@ into the playthrough.
   gravel, sand, clay, iron nugget, raw iron, gold nugget) across every rock; they were never on this list and are a wave of their own
   (`docs/questions/art-wave.md`, 5). P3's and P4's art followed in the same way (`docs/questions/art-p3.md`): the blasting items,
   blocks and collars, `dry_tails` and the dozer's icon are Ludo art, and the drill's and emulsion truck's skins are painted in the
-  swatches (white paint added for the truck). The matrix fill point and P4's four parts use Wildcatter's materials.
+  swatches (white paint added for the truck). The matrix fill point and P4's four parts use Wildcatter's materials. P5's three
+  icons (the trailing cable, the ultra truck, the hydraulic shovel) are Ludo art too (`docs/questions/p5-big-machines.md`, 36).
 - **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,

@@ -35,7 +35,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `p2b-dispatch.md` | 12 | the haul dispatch office |
 | Tailings | `p4-dry-stack.md` | 20 | the tailings filter, the load-out, dumps, berms, the track dozer |
 | Tailings | `p3-blasting.md` (branch `p3-blasting`) | 19 | the blasthole drill, charging, the blasting machine, the shot |
-| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
+| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 38 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
 | Tailings | `tbm-gaps.md` | 12 | the TBM, its gantries and the mine trains |
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |

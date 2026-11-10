@@ -477,8 +477,9 @@ in `PitPowerTest`), the rope shovel's parts in `pit.RopeShovelLayout`.
   degrees, the dipper hoisted; its hoist and suspension ropes drawn as lines.
 - **Models:** the switch house and the rope shovel's parts in Wildcatter's materials (`tools/models/pit.py`); the ultra, the hydraulic
   shovel and the lifted rope shovel by `tools/models/pit_vehicles.py` in Ludo's materials (its groups may now hang from other groups,
-  each on its own hinge); the item icons for the reel, the ultra and the hydraulic shovel drawn by `tools/models/p5_assets.py`
-  (`*_placeholder`). Electric machines sound Wildcatter's `motor_hum` instead of their diesel.
+  each on its own hinge; a truck's body floor sits above its rear tyres, on two rails; on a face 3 m and more each way the
+  hazard stripes are 1 m wide and the louvres a coarse bank across its top third, so they do not shimmer at range); the item icons
+  for the reel, the ultra and the hydraulic shovel are Ludo art (`art/source/PROMPTS.md`, `tools/process_art.py`). Electric machines sound Wildcatter's `motor_hum` instead of their diesel.
 
 ## Config
 

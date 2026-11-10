@@ -45,12 +45,15 @@ TRUCK = [
 	("bumper", None, (-2.0, 2.0), (1.2, 1.6), (-5.2, -4.9), YELLOW, "hazard"),
 	("deck", None, (-3.1, 3.1), (3.0, 3.15), (-5.0, -2.4), DARK, "plate"),
 	("cab", None, (-3.0, -1.3), (3.15, 5.0), (-4.6, -2.6), YELLOW, "cab"),
-	("floor", "body", (-2.75, 2.75), (2.0, 2.3), (-2.4, 4.9), YELLOW, "plate"),
-	("side_l", "body", (-2.75, -2.55), (2.3, 4.6), (-2.4, 4.5), YELLOW, "ribs"),
-	("side_r", "body", (2.55, 2.75), (2.3, 4.6), (-2.4, 4.5), YELLOW, "ribs"),
-	("front_wall", "body", (-2.75, 2.75), (2.3, 5.0), (-2.6, -2.4), YELLOW, "plate"),
+	# the body's floor clears the rear tyres' tops (2.7 m), so no tyre shows through an empty body; it rests on two rails on the frame
+	("rail_l", "body", (-1.3, -0.9), (2.0, 2.75), (-2.4, 4.6), DARK, "plate"),
+	("rail_r", "body", (0.9, 1.3), (2.0, 2.75), (-2.4, 4.6), DARK, "plate"),
+	("floor", "body", (-2.75, 2.75), (2.75, 3.05), (-2.4, 4.9), YELLOW, "plate"),
+	("side_l", "body", (-2.75, -2.55), (3.05, 4.6), (-2.4, 4.5), YELLOW, "ribs"),
+	("side_r", "body", (2.55, 2.75), (3.05, 4.6), (-2.4, 4.5), YELLOW, "ribs"),
+	("front_wall", "body", (-2.75, 2.75), (2.75, 5.0), (-2.6, -2.4), YELLOW, "plate"),
 	("canopy", "body", (-3.1, 3.1), (5.0, 5.2), (-5.0, -2.4), YELLOW, "plate"),
-	("load", "body", (-2.55, 2.55), (2.3, 4.4), (-2.4, 4.4), ROCK, "rock"),
+	("load", "body", (-2.55, 2.55), (3.05, 4.4), (-2.4, 4.4), ROCK, "rock"),
 ]
 
 # wheels: name, (x0, x1) across, centre height, centre along, radius, the side its hub faces (-1 left, 1 right, 0 an inner dual)
@@ -135,12 +138,15 @@ ULTRA = [
 	("deck", None, (-4.7, 4.7), (4.6, 4.8), (-7.5, -3.9), DARK, "plate"),
 	("stairway", None, (1.9, 3.5), (2.0, 4.6), (-7.75, -7.55), DARK, "ribs"),
 	("cab", None, (-4.5, -2.2), (4.8, 7.0), (-7.2, -4.4), YELLOW, "cab"),
-	("floor", "body", (-4.88, 4.88), (3.0, 3.5), (-3.7, 7.54), YELLOW, "plate"),
-	("side_l", "body", (-4.88, -4.6), (3.5, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
-	("side_r", "body", (4.6, 4.88), (3.5, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
-	("front_wall", "body", (-4.88, 4.88), (3.5, 7.5), (-4.0, -3.7), YELLOW, "plate"),
+	# the body's floor clears the rear tyres' tops (4.0 m), so no tyre shows through an empty body; it rests on two rails on the frame
+	("rail_l", "body", (-1.6, -1.0), (2.9, 4.05), (-3.7, 6.3), DARK, "plate"),
+	("rail_r", "body", (1.0, 1.6), (2.9, 4.05), (-3.7, 6.3), DARK, "plate"),
+	("floor", "body", (-4.88, 4.88), (4.05, 4.45), (-3.7, 7.54), YELLOW, "plate"),
+	("side_l", "body", (-4.88, -4.6), (4.45, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
+	("side_r", "body", (4.6, 4.88), (4.45, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
+	("front_wall", "body", (-4.88, 4.88), (4.05, 7.5), (-4.0, -3.7), YELLOW, "plate"),
 	("canopy", "body", (-4.88, 4.88), (7.5, 7.71), (-7.54, -3.7), YELLOW, "plate"),
-	("load", "body", (-4.6, 4.6), (3.5, 6.8), (-3.7, 7.0), ROCK, "rock"),
+	("load", "body", (-4.6, 4.6), (4.45, 6.8), (-3.7, 7.0), ROCK, "rock"),
 ]
 
 ULTRA_WHEELS = [
@@ -254,6 +260,9 @@ def disc(radius_px):
 def face(img, x, y, w, h, colour, pattern, rng, k=1.0):
 	"""One face of a box, top left at (x, y) on the skin: its colour's material, shaded by k, with the pattern's details."""
 	mat = MATERIAL[colour]
+	# on a big face (3 m and more each way) fine stripes and louvres alias into moire at range: there the hazard stripes are 1 m
+	# wide, and the louvres are a bank of coarser slats across the face's top third, the rest plain plate with panel seams
+	coarse = min(w, h) >= 48
 	for j in range(h):
 		for i in range(w):
 			X, Y = x + i, y + j
@@ -261,7 +270,7 @@ def face(img, x, y, w, h, colour, pattern, rng, k=1.0):
 			edge = i == 0 or j == 0 or i == w - 1 or j == h - 1
 			if pattern == "plate" and edge and w > 2 and h > 2:
 				c = sample(mat, X, Y, k * 0.78)
-			elif pattern == "hazard" and (i + j) % 8 < 4:
+			elif pattern == "hazard" and (i + j) % (32 if coarse else 8) < (16 if coarse else 4):
 				c = sample("steel_dark", X, Y, 0.55)
 			elif pattern == "ribs" and i % 16 == 7:
 				c = sample(mat, X, Y, k * 1.18)
@@ -269,8 +278,12 @@ def face(img, x, y, w, h, colour, pattern, rng, k=1.0):
 				c = sample("steel_rust", X, Y, k)
 			elif pattern == "tread" and (j % 6 < 2):
 				c = sample(mat, X, Y, k * 1.6)
-			elif pattern == "louvres" and j % 4 == 1 and 1 < i < w - 2 and 1 < j < h - 2:
+			elif pattern == "louvres" and not coarse and j % 4 == 1 and 1 < i < w - 2 and 1 < j < h - 2:
 				c = sample("steel_dark", X, Y, 0.35)
+			elif pattern == "louvres" and coarse and 4 <= j < h // 3 and j % 8 < 3 and 4 <= i < w - 4:
+				c = sample("steel_dark", X, Y, 0.45)
+			elif pattern == "louvres" and coarse and (edge or i % 48 == 0):
+				c = sample(mat, X, Y, k * 0.78)
 			elif pattern == "cab" and h > 8 and 0.15 * h < j < 0.55 * h and 2 < i < w - 3:
 				c = None
 			# the windows are clear: the cutout drops these pixels, so from the seat the driver sees out
