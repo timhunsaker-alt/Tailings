@@ -591,3 +591,29 @@ Built while Tim was away on the draft spec `docs/multiblocks/xrt-ore-sorter.md`;
 - **Art:** two models in Wildcatter's materials (`tools/models/xrt.py`); no placeholders, no Ludo credits.
 - **Scenes:** NeoForge `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`: **the full suite passes, 154 required
   tests** (5 new). Unit tests `XrtSortingTest` (7) and `MachineTest`: 165 pass. The Fabric client film `xrt` (`TAILINGS_ONLY=xrt`).
+
+## Open pit P6: the walking dragline (2026-11-10, branch `p6-dragline`)
+
+Spec `docs/multiblocks/dragline.md` (approved by Tim; "As built" at its end). Built while Tim was away on branch `p6-dragline` (from
+`p5-big-machines`, needs Wildcatter 0.6.0); what the spec left open was decided on the best recommendation and logged in
+`docs/questions/p6-dragline.md` (20 decisions). DESIGN.md, "The open pit (P6)".
+
+- **The parts:** `dragline_tub`, `dragline_house` (24 x 12 x 20), two `dragline_shoe`, `dragline_mast`, five `dragline_boom_section`
+  (15 m each: the 75 m boom) and `dragline_bucket`, laid out as the rope shovel's (`pit.DraglineLayout`) and drawn in Wildcatter's
+  materials (`tools/models/dragline.py`). The tub's panel sets the strip (width, length, seam depth, cast side); RUN checks the parts
+  and the cable and lifts them into one `dragline` machine; STOP finishes its cycle and sets it down.
+- **The machine** (`entity.DraglineEntity`, figures in `pit.Dragline`): a 55 s cycle drags 25 bank blocks or 55 t out of its strip
+  within 65 m, top down, and casts them beyond the strip's far edge onto the lowest ground, where they settle; it stops at the seam's
+  depth and at any ore; rock reads BLOCKED, blast it first. With its reach dug out it walks 2 m a minute; at the end, DONE. 6 MW while
+  the bucket fills, 1.2 MW the rest, 2.5 MW walking. Drawn by `DraglineModel` (`pit_vehicles.py`, Ludo's materials, shared skin
+  patches for the lattice boom), its house swinging with its shoes on their cams, the bucket placed by its job, its hoist, drag and
+  suspension ropes as lines.
+- **The switch house** carries each outlet's machine's PLC points (MACHINE RUN, RUNNING, DONE, CYCLES, POWER) after its own; the
+  dragline answers them. **A reel clicked on a pit machine** now couples it or adds 400 m (P5's `onMachine` was never called).
+- **What building it found:** with 4 m of clearance and no lean, 3 m³ of a strip's spoil rolled back into the cut and was dug twice:
+  spoil now lands 6 m beyond the strip's edge, leaned away from it. Facing north, sin 180 degrees (1.2e-16) put the strip's first row a
+  hair behind its start and DONE left it standing (found by the film's strip check): the strip's frame is rounded to whole axes. The
+  model generator's skin did not fit a 75 m boom: boxes of one size can share a patch (opt-in; other skins unchanged).
+- **Scenes:** NeoForge `dragline_built`, `dragline_cycle`, `dragline_strip`, `dragline_walk`, `dragline_hard`, `dragline_plc`. Unit
+  tests: `DraglineTest`, `MachineTest` (sizes). Client film `dragline` (`TAILINGS_ONLY=dragline`,
+  `fabric/build/scene-videos/dragline.mov`).

@@ -253,17 +253,24 @@ final class DraglineGameTests {
 				.thenSucceed();
 	}
 
-	/** With nothing in its reach it walks on 2 m at a step, digs what comes into reach, and reads DONE at the strip's end. */
+	/**
+	 * A 10 m strip 70 m long, 3 m to the seam, uncovered already in its middle: it digs the near end, then with nothing left in its reach
+	 * walks on 2 m at a step until the far end is in reach, digs it, and reads DONE with the whole strip uncovered.
+	 */
 	static void walk(GameTestHelper helper) {
 		bench(helper, 90, 112);
-		// a 10 m strip 66 m long, dug to its seam a metre down but for its far end, 64 m on: out of its 65 m reach where it starts
+		// along = z - 30: the near end, along 0-11, and the far end, along 64-69, 3 m of sand; between, dug to the seam
 		for (int x = 33; x <= 42; x++) {
-			for (int z = 30; z <= 95; z++) {
-				helper.setBlock(x, BENCH - 1, z, z >= 94 ? Blocks.SAND : Blocks.AIR);
+			for (int z = 30; z <= 99; z++) {
+				boolean over = z <= 41 || z >= 94;
+				for (int yy = BENCH - 3; yy <= BENCH - 1; yy++) {
+					helper.setBlock(x, yy, z, over ? Blocks.SAND : Blocks.AIR);
+				}
+				helper.setBlock(x, BENCH - 4, z, bauxite());
 			}
 		}
 		PitSwitchHouseBlockEntity house = house(helper);
-		DraglineEntity d = dragline(helper, house, 10, 66, 1, 20);
+		DraglineEntity d = dragline(helper, house, 10, 70, 3, 20);
 		double[] firstWalk = {-1};
 		helper.onEachTick(() -> {
 			if (firstWalk[0] < 0 && d.walking()) {
@@ -275,12 +282,24 @@ final class DraglineGameTests {
 				.thenExecute(() -> helper.assertTrue(house.close(0) == null, Component.literal("its outlet should close")))
 				.thenWaitUntil(() -> helper.assertTrue(d.mode() == DraglineEntity.Mode.DONE, Component.literal("DONE: " + d.status())))
 				.thenExecute(() -> {
-					int left = count(helper, Blocks.SAND, 33, 42, BENCH - 1, BENCH - 1, 94, 95);
-					System.out.printf(Locale.ROOT, "[tailings-test] dragline_walk: %d steps, walked %.1f m, %d cycles, %d sand left; first step after %.0f cycles; %s%n",
-							d.steps(), d.walked(), d.cycles(), left, firstWalk[0], d.status());
-					helper.assertTrue(firstWalk[0] == 0, Component.literal("it walks first: nothing is in reach where it starts"));
+					StringBuilder where = new StringBuilder();
+					int left = 0;
+					for (int x = 33; x <= 42; x++) {
+						for (int z = 30; z <= 99; z++) {
+							for (int yy = BENCH - 3; yy <= BENCH - 1; yy++) {
+								if (!helper.getBlockState(new BlockPos(x, yy, z)).isAir()) {
+									if (left++ < 6) {
+										where.append(' ').append(x).append(',').append(yy).append(',').append(z);
+									}
+								}
+							}
+						}
+					}
+					System.out.printf(Locale.ROOT, "[tailings-test] dragline_walk: %d steps, walked %.1f m, %d cycles, %.0f bank m3; %d left%s; first step after %.0f cycles; %s%n",
+							d.steps(), d.walked(), d.cycles(), d.bankM3(), left, where, firstWalk[0], d.status());
+					helper.assertTrue(firstWalk[0] > 0, Component.literal("it digs the near end first, then walks"));
 					helper.assertTrue(d.steps() >= 2 && Math.abs(d.walked() - 2.0 * d.steps()) < 0.01, Component.literal("2 m a step: " + d.walked() + " in " + d.steps()));
-					helper.assertTrue(left == 0 && d.cycles() >= 1, Component.literal("it dug the far end once in reach: " + left + " left"));
+					helper.assertTrue(left == 0 && d.bankM3() == 540, Component.literal("the whole strip uncovered: " + left + " left," + where));
 				})
 				.thenSucceed();
 	}

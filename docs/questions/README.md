@@ -45,6 +45,10 @@ These are the only items that wait on you; everything else is built and only nee
     silver ore (12.08); light ores (graphite, bauxite, borax) read below quartz and go to waste unless a reverse mode is added; it has
     its own 160 kW compressor because Wildcatter's is a small instrument-air unit.
 
+14. **The walking dragline** (`p6-dragline.md` #1, #3, #18): the boom is five 15 m parts, not ten of 7.5 m (a cell is a whole metre);
+    its house fills its whole 5,760-cell box (a hollow shell would save about 15,000 block states); and its PLC points are on its
+    switch house outlet, not its tub, since the tub lifts and walks.
+
 ## Every file, by wave
 
 | Mod | File | Entries | What |
@@ -55,6 +59,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `p4-dry-stack.md` | 20 | the tailings filter, the load-out, dumps, berms, the track dozer |
 | Tailings | `p3-blasting.md` (branch `p3-blasting`) | 19 | the blasthole drill, charging, the blasting machine, the shot |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 38 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
+| Tailings | `p6-dragline.md` (branch `p6-dragline`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
 | Tailings | `tbm-gaps.md` | 12 | the TBM, its gantries and the mine trains |
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |

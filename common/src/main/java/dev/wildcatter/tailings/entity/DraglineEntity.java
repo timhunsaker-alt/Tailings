@@ -163,7 +163,7 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 
 	/** Metres it has walked along its strip from where it started. */
 	public double walked() {
-		Vec3 f = ahead();
+		Vec3 f = square(ahead());
 		return (getX() - originX) * f.x + (getZ() - originZ) * f.z;
 	}
 
@@ -285,14 +285,21 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		return (int) Math.floor(getY() + 0.5);
 	}
 
+	private static Vec3 square(Vec3 v) {
+		return new Vec3(Math.round(v.x), 0, Math.round(v.z));
+	}
+
 	/** Its cast side's unit vector: to its right, or its left. */
 	private Vec3 castSide() {
 		return job.castRight() ? right() : right().scale(-1);
 	}
 
-	/** A world column's centre in the strip's frame: {across, along}. */
+	/**
+	 * A world column's centre in the strip's frame: {across, along}. It always faces square to the grid, so its axes are rounded to whole
+	 * ones (sin 180 degrees is 1.2e-16, which put the strip's first row a hair behind its start, facing north).
+	 */
 	private double[] frame(double x, double z) {
-		Vec3 f = ahead(), s = castSide();
+		Vec3 f = square(ahead()), s = square(castSide());
 		double dx = x - originX, dz = z - originZ;
 		return new double[] {dx * s.x + dz * s.z, dx * f.x + dz * f.z};
 	}
@@ -551,7 +558,7 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 
 	/** Starts a 2 m step along its strip, if the way ahead is clear and there is ground under it. */
 	private void startWalk(ServerLevel level) {
-		Vec3 to = position().add(ahead().scale(Dragline.STEP_M));
+		Vec3 to = position().add(square(ahead()).scale(Dragline.STEP_M));
 		if (!level.noCollision(this, boxAt(to, getYRot()).deflate(0.05))) {
 			blocked("the way ahead is blocked");
 			return;
@@ -573,7 +580,7 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		walkTick = Math.min(Dragline.STEP_TICKS, walkTick + divisor);
 		entityData.set(DATA_WALK, walkTick / (float) Dragline.STEP_TICKS);
 		double moved = Dragline.stepMoved(walkTick) * Dragline.STEP_M;
-		Vec3 f = ahead();
+		Vec3 f = square(ahead());
 		setPos(walkFromX + f.x * moved, getY(), walkFromZ + f.z * moved);
 		if (walkTick >= Dragline.STEP_TICKS) {
 			walkTick = -1;

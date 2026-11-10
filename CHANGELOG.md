@@ -4,6 +4,21 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P6 — the walking dragline (2026-11-10)
+
+Built while Tim was away on the approved spec `docs/multiblocks/dragline.md`; decisions in `docs/questions/p6-dragline.md`.
+
+- **Walking Dragline:** build its parts (`dragline_tub`, `dragline_house`, two `dragline_shoe`, `dragline_mast`, five
+  `dragline_boom_section`, `dragline_bucket`), couple a trailing cable to the tub, set its strip on the tub's panel (width, length, the
+  seam's depth, the side to cast to) and press RUN: it lifts into one machine with a 75 m boom and a 33 m³ bucket. Each 55 s cycle it
+  drags 25 bank blocks of overburden out of the strip, top down, and casts them beyond it, where the spoil settles; it leaves the seam
+  for loaders and trucks, and stops at rock that needs blasting. When its reach is dug out it walks on 2 m a minute; at the strip's
+  end it reads DONE. It draws 6 MW as the bucket fills, about 2.5 MW on average. STOP sets it back down as its parts.
+- **Pit Switch House:** each outlet now carries its machine's PLC points too: RUN, RUNNING, DONE, CYCLES and POWER. The house's own
+  points keep their numbers.
+- **Trailing Cable:** a reel clicked on a pit machine (the drill, the hydraulic shovel, a lifted rope shovel or dragline) now couples it,
+  adds 400 m, or (sneaking) takes the cable off.
+
 ### Open pit P5 — the pit switch house, trailing cables, the ultra truck and the big shovels (2026-11-09)
 
 Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-machines.md`.

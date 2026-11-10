@@ -148,7 +148,7 @@ public final class Dragline {
 
 	/** True if a cell centred {@code across} out and {@code along} is in the strip. */
 	public static boolean inStrip(double across, double along, int width, int length) {
-		return across >= standoff() && across < farEdge(width) && along >= 0 && along < length;
+		return across >= standoff() - 1e-6 && across < farEdge(width) - 1e-6 && along >= -1e-6 && along < length - 1e-6;
 	}
 
 	/** True if a point {@code dx, dz} metres from its centre is within its reach. */

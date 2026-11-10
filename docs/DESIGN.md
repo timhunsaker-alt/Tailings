@@ -491,8 +491,11 @@ in `PitPowerTest`), the rope shovel's parts in `pit.RopeShovelLayout`.
   on a ground fault. Trips hold until **Reset trips**. Its panel (right-click): each outlet open or closed, the reset, and a line of
   every outlet's machine, amps, kW and cable; sneak-right-click for the full readout. A PLC device: per outlet CLOSE in, CLOSED,
   TRIPPED, AMPS (4-20 mA over 1,200 A) out, then AUTO; HAND works from the panel, OFF holds every outlet open, AUTO follows CLOSE.
+  Since P6, after those, each outlet's machine on its cable's control pair: MACHINE RUN in, MACHINE RUNNING, DONE, CYCLES (a pulse a
+  cycle) and POWER (4-20 mA over its peak) out, answered by the machine each tick (the dragline does; the rope shovel not yet).
 - **Trailing cables** (`trailing_cable`, a 400 m reel; `entity.CableLink`): a reel clicked on a switch house takes its first free
-  outlet, then clicked on a machine with a reel (the drill, the hydraulic shovel, the rope shovel's crawlers) couples it; another reel
+  outlet, then clicked on a machine with a reel (the drill, the hydraulic shovel, the rope shovel's crawlers, the dragline's tub, or any
+  lifted machine: clicking a pit machine with a reel works since P6) couples it; another reel
   adds 400 m; sneak-click with a reel takes it off and gives the reels back. What is paid out is the path driven (reeled in coming back,
   never under the straight line); past its length the move is refused, CABLE END. A jump of over 8 m tears it out (a ground fault).
   Each tick the machine answers its outlet with what it draws and its peak, and has power while its outlet is closed and its end is at
@@ -526,6 +529,41 @@ in `PitPowerTest`), the rope shovel's parts in `pit.RopeShovelLayout`.
   each on its own hinge; a truck's body floor sits above its rear tyres, on two rails; on a face 3 m and more each way the
   hazard stripes are 1 m wide and the louvres a coarse bank across its top third, so they do not shimmer at range); the item icons
   for the reel, the ultra and the hydraulic shovel are Ludo art (`art/source/PROMPTS.md`, `tools/process_art.py`). Electric machines sound Wildcatter's `motor_hum` instead of their diesel.
+## The open pit (P6): the walking dragline
+
+Spec: [multiblocks/dragline.md](multiblocks/dragline.md) (approved); the choices made building it are in
+[questions/p6-dragline.md](questions/p6-dragline.md). Its figures are in `pit.Dragline` (unit-tested in `DraglineTest`), its parts in
+`pit.DraglineLayout`.
+
+- **The parts** (`dragline_tub` 15 x 2 x 15, `dragline_house` 24 x 12 x 20, two `dragline_shoe` 3 x 3 x 14, `dragline_mast` 6 x 20 x 4,
+  five `dragline_boom_section` 4 x 4 x 15, `dragline_bucket` 5 x 4 x 6; `block.DraglineBlockEntity` at the tub's main cell): the tub on the
+  ground, a shoe each side of it, the house on the tub a metre up, overhanging the shoes, the mast on its roof at the front, and laid on
+  the ground ahead from the house's front the five boom sections and the bucket. The tub holds its reel, its panel and its job.
+- **Its panel** (on the tub, or sneak-click the lifted machine with an empty hand): **Strip width m** (10-40 by 5, default 30), **Strip
+  length m** (10-400 by 10, default 100), **Seam depth m** (under its tub's floor, 1-35, default 10), **Cast right** (1 right, 0 left);
+  RUN and STOP. RUN on the tub checks the parts (NOT BUILT names the missing one, a shoe by its side, a boom section by its place), the
+  cable (NO CABLE) and that the strip leaves room to cast, then lifts it into one `dragline` machine (`entity.DraglineEntity`), its
+  cells going to air. STOP finishes its cycle or step, then sets the parts down where it stands if every cell is free and its bucket is
+  empty; else it stands STOPPED and says why. RUN starts it again.
+- **Its strip:** from where it was lifted, ahead along its walk, on its cast side from 12.5 m (its tub's radius plus 5 m) out across the
+  width. **A cycle** (55 s): the bucket drags in 15 s, filling with 25 bank blocks or 55 t from the strip within 65 m of its centre, top
+  down (the topmost layer first, nearest the strip's start and its walk line); it hoists and swings out 17 s, casts 3 s and swings back
+  20 s. It digs soil and soft ground whole, muck by the quarter, and strips grass and flowers; down each column it stops at standing
+  rock, at any ore block (the seam) and at another machine's block. With only rock left in reach: BLOCKED, "hard overburden: blast it
+  first". **The spoil** lands by the settle rule on the lowest ground beyond the strip's far edge plus 6 m, within 64 m of its centre (a
+  column 4 m farther out counts as a metre lower, so the pile leans away from the cut); none on a machine's block, none more than 34 m
+  over its tub. **Walking:** with nothing left in reach, it walks if the strip runs on past its reach along the far edge: a 2 m step a
+  minute (the shoes out and down, the tub moved, the shoes lifted), the boom swung to point along its walk; a step needs its box clear
+  and ground ahead. At the strip's end: DONE. At its cable's end it stands, CABLE END, until another reel is clicked onto it.
+- **Its power:** 6 MW while the bucket fills, 1.2 MW the rest of the cycle (2.51 MW on average), 2.5 MW walking, 0.3 MW standing in its
+  job, none stopped or DONE; its outlet trips at 1.25 x 6 MW for 1 s.
+- **PLC:** its points are on its switch house outlet (above): in AUTO, a fresh MACHINE RUN off stops it at the end of its cycle and on
+  starts it; it answers RUNNING, DONE, a pulse a cycle and its draw.
+- **Drawn** with its own model (`DraglineModel`, `tools/models/pit_vehicles.py`, Ludo's materials; boxes of one size share a patch of its
+  2048 skin): the tub, the house swinging with its shoes on their cams, the mast, the 75 m lattice boom at 32 degrees, and the bucket
+  placed out and up by its job; its hoist, drag and suspension ropes drawn as lines. Its parts in Wildcatter's materials
+  (`tools/models/dragline.py`). Its box is the house over the tub, 24 x 20 x 15 m.
+
 ## The shaft and hoist (L4)
 
 Spec: [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md) (draft, decided on recommendation); the choices made building it
@@ -820,5 +858,6 @@ Block items exist for every block above, including the ones with no crafting rec
 | `ultra_haul_truck` | `UltraHaulTruckEntity` | `PitVehicleRenderer` (`UltraHaulTruckModel`) | The 360 t truck: the 100 t's class with its figures (P5b) |
 | `hydraulic_shovel` | `HydraulicShovelEntity` | `PitVehicleRenderer` (`HydraulicShovelModel`) | 27 t bucket; digs, swings and loads either side; diesel or on its cable (P5c) |
 | `rope_shovel` | `RopeShovelEntity` | `PitVehicleRenderer` (`RopeShovelModel`) | The lifted rope shovel: 100 t dipper on its trailing cable; no item, built from six parts (P5d) |
+| `dragline` | `DraglineEntity` | `PitVehicleRenderer` (`DraglineModel`) | The lifted walking dragline: a 33 m³ bucket on its trailing cable, working its strip; no item, built from eleven parts (P6) |
 
 Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

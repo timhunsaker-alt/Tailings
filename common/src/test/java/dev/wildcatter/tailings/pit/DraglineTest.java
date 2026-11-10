@@ -45,6 +45,7 @@ class DraglineTest {
 		assertFalse(Dragline.fits(50));
 		assertTrue(Dragline.inStrip(12.5, 0, 30, 100));
 		assertFalse(Dragline.inStrip(12.4, 10, 30, 100), "the highwall it stands on");
+		assertTrue(Dragline.inStrip(13, -1.6e-15, 30, 100), "its first row, facing north (sin 180 degrees is not quite 0)");
 		assertFalse(Dragline.inStrip(42.5, 10, 30, 100), "the spoil side");
 		assertFalse(Dragline.inStrip(20, 100, 30, 100), "past the strip's end");
 		assertTrue(Dragline.inReach(39, 52));
