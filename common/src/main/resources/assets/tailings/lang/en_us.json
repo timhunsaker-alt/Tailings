@@ -324,5 +324,12 @@
   "block.tailings.measuring_flask": "Measuring Flask",
   "block.tailings.skip": "Skip",
   "item.tailings.skip": "Skip",
-  "entity.tailings.skip": "Skip"
+  "entity.tailings.skip": "Skip",
+  "block.tailings.paste_filter": "Paste Filter",
+  "block.tailings.paste_mixer": "Paste Mixer",
+  "block.tailings.paste_pump": "Paste Pump",
+  "block.tailings.fill_bulkhead": "Fill Bulkhead",
+  "block.tailings.fill_outlet": "Fill Outlet",
+  "block.tailings.paste_fill": "Paste Fill",
+  "item.tailings.cement": "Cement"
 }

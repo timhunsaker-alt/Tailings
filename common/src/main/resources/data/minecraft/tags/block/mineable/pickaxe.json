@@ -69,6 +69,12 @@
     "tailings:headframe",
     "tailings:headframe_bin",
     "tailings:hoist_house",
-    "tailings:measuring_flask"
+    "tailings:measuring_flask",
+    "tailings:paste_filter",
+    "tailings:paste_mixer",
+    "tailings:paste_pump",
+    "tailings:fill_bulkhead",
+    "tailings:fill_outlet",
+    "tailings:paste_fill"
   ]
 }

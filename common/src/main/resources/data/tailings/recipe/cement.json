@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:lime",
+    "minecraft:clay_ball"
+  ],
+  "result": {
+    "id": "tailings:cement",
+    "count": 1
+  }
+}

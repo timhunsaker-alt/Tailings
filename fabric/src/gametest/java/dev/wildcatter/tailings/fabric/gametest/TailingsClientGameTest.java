@@ -131,6 +131,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("vent")) {
 				vent(context, world, server);
 			}
+			if (only("paste")) {
+				paste(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -398,6 +401,109 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-vent-paid-out");
 		film.stop();
 		heard("vent", "wildcatter:fan");
+	}
+
+	/**
+	 * Paste backfill (L5): the disc filter, the mixer and the piston pump on a hill of stone, their fill line down into a closed 10 x 6 x 6
+	 * drive branch inside it, one of its walls glass to see it fill from the bottom up. The plant pumps for real (sped up); the outlet is
+	 * also handed paste, a cubic metre a tick, so the branch fills in about 20 s rather than eleven hours.
+	 */
+	private void paste(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x0 = 600, z0 = 600;
+		int g = server.computeOnServer(srv -> srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0, z0));
+		PlantBlockEntity[] parts = new PlantBlockEntity[3];
+		dev.wildcatter.tailings.block.FillOutletBlockEntity[] outlet = new dev.wildcatter.tailings.block.FillOutletBlockEntity[1];
+		SlurryAssay thickened = SlurryAssay.of(java.util.Map.of(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY, dev.wildcatter.tailings.pit.DryStack.UNDERFLOW_SOLIDS));
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = x0 - 6; x <= x0 + 40; x++) {
+				for (int z = z0 - 6; z <= z0 + 30; z++) {
+					for (int yy = g; yy <= g + 24; yy++) {
+						boolean hill = x >= x0 && x <= x0 + 15 && z >= z0 && z <= z0 + 15 && yy <= g + 12;
+						level.setBlock(new BlockPos(x, yy, z), hill ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			// the drive branch inside the hill, its mouth closed by fill bulkheads, its east wall glass to look in
+			for (int x = x0 + 5; x <= x0 + 14; x++) {
+				for (int yy = g + 2; yy <= g + 7; yy++) {
+					for (int z = z0 + 5; z <= z0 + 10; z++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+					level.setBlock(new BlockPos(x, yy, z0 + 4), TailingsBlocks.FILL_BULKHEAD.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+			for (int yy = g + 2; yy <= g + 7; yy++) {
+				for (int z = z0 + 4; z <= z0 + 11; z++) {
+					level.setBlock(new BlockPos(x0 + 15, yy, z), Blocks.GLASS.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+			int top = g + 13;
+			parts[0] = plant(level, Machine.PASTE_FILTER, new BlockPos(x0 + 1, top, z0 + 1));
+			parts[1] = plant(level, Machine.PASTE_MIXER, new BlockPos(x0 + 6, top, z0 + 1));
+			parts[2] = plant(level, Machine.PASTE_PUMP, new BlockPos(x0 + 6, top, z0 + 8));
+			for (PlantBlockEntity p : parts) {
+				p.forceRunning();
+				p.fastCycle(40);
+			}
+			parts[1].offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.CEMENT, 64));
+			for (int i = 0; i < 39; i++) {
+				parts[1].offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.CEMENT, 1));
+			}
+			pipe(level, new BlockPos(x0 + 7, top, z0 + 6), new BlockPos(x0 + 7, top, z0 + 7));
+			// the fill line: out of the pump's south face and down a borehole into the branch's roof
+			pipe(level, new BlockPos(x0 + 7, top, z0 + 14), new BlockPos(x0 + 7, top - 1, z0 + 14), new BlockPos(x0 + 7, top - 2, z0 + 14));
+			for (int yy = g + 8; yy <= top - 3; yy++) {
+				pipe(level, new BlockPos(x0 + 7, yy, z0 + 14));
+			}
+			for (int z = z0 + 9; z <= z0 + 13; z++) {
+				pipe(level, new BlockPos(x0 + 7, g + 8, z));
+			}
+			BlockPos at = new BlockPos(x0 + 7, g + 7, z0 + 9);
+			level.setBlock(at, TailingsBlocks.FILL_OUTLET.defaultBlockState(), Block.UPDATE_ALL);
+			pipe(level, at.above());
+			outlet[0] = (dev.wildcatter.tailings.block.FillOutletBlockEntity) level.getBlockEntity(at);
+		});
+		server.runCommand("tp @p " + (x0 + 30) + " " + (g + 16) + " " + (z0 + 22) + " 130 25");
+		context.waitTicks(60);
+		Filming film = film(context, world, "paste");
+		context.takeScreenshot("tailings-paste-plant");
+		for (int t = 0; t < 200; t++) {
+			context.waitTicks(2);
+			if (t == 30) {
+				server.runCommand("tp @p " + (x0 + 24) + " " + (g + 5) + " " + (z0 + 8) + " 90 5");
+			}
+			int tick = t;
+			server.runOnServer(srv -> {
+				if (parts[0].back().held(Product.TAILS_SLURRY) < 200) {
+					parts[0].back().offer(Product.TAILS_SLURRY, 200, thickened);
+				}
+				if (parts[1].back().held(Product.TAILS_SLURRY) < 200) {
+					parts[1].back().offer(Product.TAILS_SLURRY, 200, thickened);
+				}
+				if (tick >= 30) {
+					outlet[0].receive(2 * dev.wildcatter.tailings.paste.PasteFill.PASTE_KG_PER_M3);
+				}
+				if (tick % 40 == 0) {
+					System.out.println("[tailings-test] paste: " + parts[0].status() + " / " + parts[1].status() + " / " + parts[2].status() + " / " + outlet[0].status());
+				}
+			});
+			if (t == 110) {
+				context.takeScreenshot("tailings-paste-filling");
+			}
+		}
+		for (int t = 0; t < 200 && !server.computeOnServer(srv -> outlet[0].scan() != null && outlet[0].scan().full()); t++) {
+			context.waitTicks(2);
+			server.runOnServer(srv -> outlet[0].receive(2 * dev.wildcatter.tailings.paste.PasteFill.PASTE_KG_PER_M3));
+		}
+		context.waitTicks(30);
+		context.takeScreenshot("tailings-paste-full");
+		film.stop();
+		long filled = server.computeOnServer(srv -> outlet[0].filled());
+		String status = server.computeOnServer(srv -> outlet[0].status());
+		System.out.println("[tailings-test] paste end: " + filled + " m3; " + status);
+		require(filled >= 300, "the branch should fill with paste, got " + filled + " m3: " + status);
+		heard("paste", "wildcatter:motor_hum");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {

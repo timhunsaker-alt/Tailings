@@ -454,6 +454,40 @@ are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft
 - **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
 - **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
 
+## Paste backfill (L5)
+
+Spec: [multiblocks/paste-backfill.md](multiblocks/paste-backfill.md) (draft, decided on recommendation); the choices made building it are
+in [questions/l5-paste.md](questions/l5-paste.md). The figures are in `paste.PasteFill`, the void scan in `paste.FillVoid` (unit-tested);
+the stages are `block.stage.Paste`.
+
+- **The paste filter** (`paste_filter`, 5 x 5 x 8, 75 kW): a vacuum disc filter. Thickened tails (60 %, a tailings thickener's
+  underflow) in at the north face of its front cells, at up to 50 t/h of solids; plain tails or paste read NOT THICKENED. It holds up to
+  5 t of 80 % cake for the paste mixer touching it (FULL when none takes it); its filtrate, about 0.42 L a kg of solids, goes back on a
+  water pipe at its east face, as the thickener's overflow does.
+- **The paste mixer** (`paste_mixer`, 3 x 3 x 5, 75 kW): takes the touching filter's cake, trims it with thickened tails from the pipe
+  at its north face (0.21 kg a kg of cake solids) and binds it with cement at 5 % of the tails' solids from its hopper (`cement`, a 50
+  kg bag, by a click or a hopper above it; it holds 40 bags), to paste at 78 % solids. The paste goes on the pipe at its south face as
+  tails slurry marked with its solids and binder (`tailings:solids` 0.78, `tailings:binder` 0.05). NOT BUILT without a filter touching
+  it, NO FEED without cake or trim, NO CEMENT.
+- **The paste pump** (`paste_pump`, 3 x 3 x 6, 110 kW): a piston pump, 35 m³/h at up to 8 MPa. It draws paste at its north face
+  (anything else reads NOT PASTE) and, once a second, follows the steel pipe from its south face (up to 1,500 m) to the first
+  `fill_outlet` on it, then pushes paste straight into the outlet while the outlet's void is closed and not full. The line's pressure
+  is 8 kPa a metre of pipe less 19.6 kPa a metre the outlet is below the pump; past 8 MPa it reads LINE PRESSURE. NO OUTLET without
+  one. PLC: the motor's six points, FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa).
+- **The fill outlet** (`fill_outlet`): reads its void every 5 s and when clicked: every cell it reaches through air, water and paste,
+  any other block a wall. NOT ENCLOSED if a cell is open to the sky (at or above its column's surface height), the void runs into
+  unloaded ground, or it is over 20,000 cells. It holds 4 t of paste; each 2.0 t becomes a block of wet `paste_fill` in the void's
+  lowest open cell no higher than the outlet (on one level the nearest first), displacing water; FULL when none is left. Its readout:
+  the void's m³, open, wet and set, and the m³ it has placed.
+- **Paste fill** (`paste_fill`, no item): wet when placed (`cure` 0-7): no collision, it slows what wades in it (half speed across, 40 %
+  down), does not suffocate. A scheduled step every 3,000 ticks; the eighth (one game day) sets it (`cure` 8): a solid block, mined by
+  pickaxe or shovel. It drops nothing either way.
+- **The fill bulkhead** (`fill_bulkhead`): a metre of shotcrete barricade, a wall to the void like any block. Removed by any means with
+  wet paste touching the gap, the wet paste joined to it at or above the gap's floor (all of it, for a gap under it) runs out at once,
+  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays.
+- **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
+  and pump hum with Wildcatter's motor hum, the mixer with the agitator.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -522,6 +556,12 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `hoist_house` | Iron blocks round a copper block (placeholder) | 10 x 8 x 12, the double-drum hoist, 450 kW at the medium-voltage tier (L4) |
 | `measuring_flask` | Iron and a hopper (placeholder) | 2 x 3 x 2, measures each skip's 3 t at the shaft bottom (L4) |
 | `skip` | None: its looks only | The skip entity's model; never placed (L4) |
+| `paste_filter` | Steel, white wool, a bucket, industrial cable (placeholder) | 5 x 5 x 8 vacuum disc filter, 75 kW: thickened tails to an 80 % cake (L5) |
+| `paste_mixer` | Steel, a hopper, copper, industrial cable (placeholder) | 3 x 3 x 5 twin-shaft mixer, 75 kW: cake, a trim and 5 % cement to 78 % paste (L5) |
+| `paste_pump` | Steel, a piston, steel pipe, industrial cable (placeholder) | 3 x 3 x 6 piston pump, 110 kW, 35 m³/h at 8 MPa (L5) |
+| `fill_outlet` | Steel pipe, iron, iron bars (placeholder) | The open end of the fill line inside the void (L5) |
+| `fill_bulkhead` | 4 cement, 5 gravel → 2 | A metre of shotcrete barricade closing a void (L5) |
+| `paste_fill` | None, and no item. The fill outlet places it | Paste fill, wet then set after a game day (L5) |
 | `dry_tails` | None. The tailings filter makes it | The filter's cake, 1.8 t a block: falls like sand, tipped on dumps, dug and pushed as soft ground (P4) |
 
 Stamp mill:
@@ -574,9 +614,10 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
 - **Ventilation items (L1):** `vent_duct_cassette` (100 m of duct for the reel gantry: 8 duct round an iron block), `gas_detector`.
+- **Paste fill items (L5):** `cement` (a 50 kg bag: one quicklime and one clay ball, shapeless, a placeholder until a cement kiln).
 - **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
-Block items exist for every block above, including the ones with no crafting recipe.
+Block items exist for every block above, including the ones with no crafting recipe, except `skip` and `paste_fill`.
 
 ## Entities
 

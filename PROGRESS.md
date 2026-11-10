@@ -459,3 +459,17 @@ Built while Tim was away on the draft spec `docs/multiblocks/shaft-and-hoist.md`
 - **Scenes:** NeoForge `shaft_hoist` (150 m: a measured cycle of 39.75 s against 40.1 s, 272 t/h), `shaft_not_built`, `shaft_flask_feed`,
   `shaft_bin_full`, `shaft_power`: **130 NeoForge scenes pass** (125 before, 5 new). Unit tests `HoistingTest` (7) and `MachineTest`:
   127 pass. The Fabric client film `shaft_hoist` (`TAILINGS_ONLY=shaft_hoist`).
+
+## L5: paste backfill (2026-11-10, branch `l5-paste`)
+Built while Tim was away on the draft spec `docs/multiblocks/paste-backfill.md`; decisions in `docs/questions/l5-paste.md` (22 entries;
+#8, #14 and #19 most need Tim's eye). Nothing in an existing world changes.
+- **Built:** the `paste_filter` (5 x 5 x 8, 75 kW vacuum disc filter: thickened tails to an 80 % cake), the `paste_mixer` (3 x 3 x 5,
+  75 kW: the cake, a trim of thickened tails and 5 % `cement` to paste at 78 % solids), the `paste_pump` (3 x 3 x 6, 110 kW, 35 m³/h at
+  8 MPa), the `fill_outlet` (reads its void: up to 20,000 m³, NOT ENCLOSED if open to the sky, FULL to its level), the
+  `fill_bulkhead` (shotcrete; broken with wet paste behind it, the paste runs out by the settle rule) and `paste_fill` (wet, then set
+  in a game day). LINE PRESSURE past 8 MPa (1 km of line on the flat, less where it falls). PLC: the pump's FLOW and PRESSURE.
+- **Art:** three models in Wildcatter's materials and the outlet (`tools/models/paste.py`); four Ludo pictures (4 credits: cement, the
+  shotcrete, wet and set paste). No placeholders.
+- **Scenes:** NeoForge `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+  `paste_line_pressure`: **143 NeoForge scenes pass** (136 before, 7 new). Unit tests `PasteFillTest` (7), `FillVoidTest` (9) and
+  `MachineTest`: 152 pass. The Fabric client film `paste` (`TAILINGS_ONLY=paste`).

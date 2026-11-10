@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GCG",
+    "CGC",
+    "GCG"
+  ],
+  "key": {
+    "G": "minecraft:gravel",
+    "C": "tailings:cement"
+  },
+  "result": {
+    "id": "tailings:fill_bulkhead",
+    "count": 2
+  }
+}

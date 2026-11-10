@@ -106,6 +106,19 @@ public final class TailingsBlocks {
 	public static final Block HEADFRAME_BIN = plant(Machine.HEADFRAME_BIN, MapColor.METAL);
 	public static final Block HOIST_HOUSE = plant(Machine.HOIST_HOUSE, MapColor.COLOR_GRAY);
 	public static final Block MEASURING_FLASK = plant(Machine.MEASURING_FLASK, MapColor.METAL);
+	public static final Block PASTE_FILTER = plant(Machine.PASTE_FILTER, MapColor.COLOR_GRAY);
+	public static final Block PASTE_MIXER = plant(Machine.PASTE_MIXER, MapColor.COLOR_GRAY);
+	public static final Block PASTE_PUMP = plant(Machine.PASTE_PUMP, MapColor.COLOR_YELLOW);
+	/** A shotcrete fill bulkhead (paste-backfill.md, L5): a metre of the barricade that closes a void's opening for paste fill. */
+	public static final Block FILL_BULKHEAD = block("fill_bulkhead", props -> new dev.wildcatter.tailings.block.FillBulkheadBlock(props.mapColor(MapColor.STONE)
+			.strength(2.0F, 6.0F).sound(SoundType.STONE).requiresCorrectToolForDrops()));
+	/** The open end of the paste fill line inside the void (L5). */
+	public static final Block FILL_OUTLET = block("fill_outlet", props -> new dev.wildcatter.tailings.block.FillOutletBlock(props.mapColor(MapColor.METAL)
+			.strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.FillOutletBlockEntity> FILL_OUTLET_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FillOutletBlockEntity::new, Set.of(FILL_OUTLET));
+	/** Placed paste fill (L5): wet when placed, set after a game day. A cubic metre of tails and cement: it drops nothing. */
+	public static final Block PASTE_FILL = block("paste_fill", props -> new dev.wildcatter.tailings.block.PasteFillBlock(props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY)
+			.strength(1.0F, 3.0F).sound(SoundType.MUD).noLootTable().isSuffocating((state, getter, pos) -> false)));
 	/** A skip's looks (shaft-and-hoist.md, L4), drawn by its entity: the block itself has no item and is never placed. */
 	public static final Block SKIP = block("skip", props -> new dev.wildcatter.tailings.block.SkipPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F)
 			.sound(SoundType.METAL).noOcclusion().noLootTable()));
@@ -126,7 +139,8 @@ public final class TailingsBlocks {
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
-					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK));
+					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
+					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -217,6 +231,10 @@ public final class TailingsBlocks {
 		add("survey_stake", SURVEY_STAKE);
 		add("dry_tails", DRY_TAILS);
 		add("vent_duct", VENT_DUCT);
+		add("fill_bulkhead", FILL_BULKHEAD);
+		add("fill_outlet", FILL_OUTLET);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fill_outlet"), FILL_OUTLET_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK, Tailings.id("paste_fill"), PASTE_FILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("battery_charger"), BATTERY_CHARGER_ENTITY);
@@ -269,6 +287,9 @@ public final class TailingsBlocks {
 			case HEADFRAME_BIN -> HEADFRAME_BIN;
 			case HOIST_HOUSE -> HOIST_HOUSE;
 			case MEASURING_FLASK -> MEASURING_FLASK;
+			case PASTE_FILTER -> PASTE_FILTER;
+			case PASTE_MIXER -> PASTE_MIXER;
+			case PASTE_PUMP -> PASTE_PUMP;
 		};
 	}
 

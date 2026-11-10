@@ -67,3 +67,14 @@ Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the bet
 | vent_duct (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: bright yellow PVC-coated polyester fabric of a flexible mine ventilation duct, slightly glossy, with a faint woven texture, a stitched seam and light dust, plain, no text |
 | vent_duct_cassette (b) | item-icon | A single cassette of folded yellow lay-flat ventilation duct for a tunnel boring machine: a steel drum frame holding concertina-folded yellow fabric duct, game item icon, plain white background, no text |
 | gas_detector (a) | item-icon | A single handheld personal multi-gas detector for underground mining: a small rugged yellow and black plastic case with a dark display window and a clip, generic, no brand names, game item icon, plain white background, no text |
+
+## L5 paste backfill (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the first (a) kept (4 credits). The wet paste is darkened to 78 %
+in `tools/process_art.py` so it reads wetter than the set paste.
+
+| File | Kind | Prompt |
+|---|---|---|
+| cement (a) | item-icon | A single grey paper sack of portland cement, 50 kg bag, folded top, light grey powder dust on it, plain unbranded, game item icon, plain white background, no text |
+| fill_bulkhead (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: rough grey sprayed shotcrete concrete wall of an underground mine bulkhead, bumpy sprayed surface with small aggregate, slightly damp, plain, no text |
+| paste_fill_wet (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: wet fresh cemented paste fill, smooth glossy pale grey-brown mud like thick toothpaste with a wet sheen and soft ripples, plain, no text |
+| paste_fill_set (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: cured cemented paste backfill, dry matte pale grey-beige weak rock with fine grain, faint layering and tiny pores, plain, no text |

@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "tailings:muck",
-    "tailings:dry_tails"
+    "tailings:dry_tails",
+    "tailings:paste_fill"
   ]
 }

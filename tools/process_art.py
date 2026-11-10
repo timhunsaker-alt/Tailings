@@ -22,13 +22,14 @@ TEX = "common/src/main/resources/assets/tailings/textures"
 BLOCK, ITEM, VEHICLE = 16, 16, 32
 
 BLOCKS = {"muck": "muck", "stake_post": "survey_stake_post", "stamp_mill": "stamp_mill", "hand_screen": "hand_screen",
-	"shaking_table": "shaking_table", "magnetic_separator": "magnetic_separator", "vent_duct": "vent_duct"}
+	"shaking_table": "shaking_table", "magnetic_separator": "magnetic_separator", "vent_duct": "vent_duct",
+	"fill_bulkhead": "fill_bulkhead", "paste_fill_wet": "paste_fill_wet", "paste_fill_set": "paste_fill_set"}
 # each stake's flag colour, as the placeholder flags had them (docs/multiblocks/open-pit.md)
 FLAGS = {"load": (63, 173, 73), "loadout": (76, 136, 206), "dump_point": (155, 75, 45), "dump_pocket": (209, 69, 59),
 	"park": (137, 137, 147), "fuel": (240, 210, 50), "waypoint": (225, 115, 25)}
 ITEMS = ("survey_book", "haul_truck", "wheel_loader", "indium", "rhenium", "cobalt", "cadmium", "rare_earth_oxide",
 	"copper_sulfate", "lime", "mibc", "xanthate", "zinc_sulfate", "battery_locomotive", "bottom_dump_car", "loco_battery",
-	"vent_duct_cassette", "gas_detector")
+	"vent_duct_cassette", "gas_detector", "cement")
 VEHICLE_MATS = ("paint_yellow", "rubber_tread", "steel_dark", "steel_worn", "steel_rust")
 
 
@@ -87,7 +88,10 @@ def save(img, kind, name, copy=True):
 
 
 for src, name in BLOCKS.items():
-	save(tile(src, BLOCK), "block", name)
+	img = tile(src, BLOCK)
+	if src == "paste_fill_wet":   # wet paste reads darker than set paste: the water in it
+		img = ImageEnhance.Brightness(img).enhance(0.78)
+	save(img, "block", name)
 flag = tile("stake_flag", BLOCK)
 for role, colour in FLAGS.items():
 	save(dye(flag.copy(), colour), "block", f"survey_stake_{role}")

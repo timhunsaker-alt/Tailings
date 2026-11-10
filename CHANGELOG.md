@@ -4,6 +4,21 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### L5: paste backfill (2026-11-10, decided while Tim was away)
+
+- **Paste filter, mixer and pump:** a 75 kW vacuum disc filter takes a tailings thickener's underflow to an 80 % cake; the 75 kW
+  paste mixer touching it trims the cake with thickened tails and binds it with 5 % cement to paste at 78 % solids; the 110 kW piston
+  pump pushes it at up to 35 m³/h down a steel fill line to a fill outlet. About 34 m³ an hour from all of the plant's tails.
+- **Fill outlet, bulkheads, paste:** put the outlet in any closed underground void (up to 20,000 m³; close its openings with fill
+  bulkheads); the paste lands in its lowest cells as wet paste fill, soft to wade in, and sets to a mineable weak rock in a game day.
+  Break a bulkhead while the paste behind it is wet and the paste runs out.
+- **Cement:** a 50 kg bag from quicklime and a clay ball (a placeholder until a cement kiln); a bag a tonne of tails.
+- **Reads:** NO FEED, NOT THICKENED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE (past 8 MPa: about 1 km of line on the flat, less
+  where the line falls). PLC: the pump's FLOW and PRESSURE.
+- **Nothing changes in existing worlds.**
+- **Tests:** `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+  `paste_line_pressure`; `PasteFillTest`, `FillVoidTest`; the client film `paste`. Decisions in `docs/questions/l5-paste.md`.
+
 ### L1: ventilation of the drive (2026-11-09, decided while Tim was away)
 
 - **Ventilation fan and duct:** a 75 kW `vent_fan` at the portal blows through `vent_duct` (laid like pipe) to the drive; a 30 kW

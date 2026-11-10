@@ -255,6 +255,19 @@ WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPE
   "Left out": Koepe hoists, rope stretch and inspection, overwind, sinking by drill and blast, several levels, lowering the TBM down
   the shaft.
 
+## Later — L5: paste backfill (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/paste-backfill.md](multiblocks/paste-backfill.md), decisions in
+[questions/l5-paste.md](questions/l5-paste.md), branch `l5-paste`. The `paste_filter` (75 kW) takes thickened tails to an 80 % cake; the
+`paste_mixer` (75 kW) trims it with thickened tails and binds it with 5 % `cement` (a 50 kg bag, a placeholder recipe) to 78 % paste; the
+`paste_pump` (110 kW, 35 m³/h at 8 MPa) pushes it down a steel fill line to a `fill_outlet` in any closed underground void (up to 20,000
+m³, its openings closed with `fill_bulkhead`s), where it lands as wet `paste_fill`, lowest first, and sets in a game day. A broken
+bulkhead lets the wet paste run out. Reads NO FEED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE; PLC FLOW and PRESSURE on the pump.
+NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+`paste_line_pressure`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`.
+- **Left out, planned (the spec's "Left out"):** uncemented hydraulic and rock fill; fill strength and exposing a fill wall; boreholes
+  and their wear; paste rheology; a real cement kiln (cement is a crafted placeholder).
+
 ## Later, not scheduled
 
 - Ventilation of the drive: built as L1 (above).
@@ -264,10 +277,23 @@ WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPE
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
 - Bottom-dump cars over a grizzly: built as L3 (above).
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
-- Paste backfill of old stopes with tailings.
+- Paste backfill of old stopes with tailings: built as L5 (above).
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **Cement is a crafted placeholder (L5):** a 50 kg bag from one quicklime and a clay ball, until a cement kiln exists
+  (questions/l5-paste.md, 8).
+- **Paste is marked tails slurry (L5):** Wildcatter 0.5.1 has no product for paste; it carries `tailings:solids` and `tailings:binder`
+  in its assay. A `PASTE` product is proposed for Wildcatter.
+- **Only a broken bulkhead spills paste (L5):** breaking a stone wall next to wet paste lets nothing out; the spill happens in one tick
+  (questions/l5-paste.md, 14).
+- **Muck tipped onto wet paste replaces it (L5):** the shared settle rule sees a block with no collision as free (questions/l5-paste.md,
+  15).
+- **Paste fills at the real rate (L5):** a 360 m³ branch takes about 11 hours of play (questions/l5-paste.md, 19).
+- **The filter and mixer have no slurry gauges (L5):** only their motor's points; the pump has FLOW and PRESSURE.
+- **No new L5 sounds:** the filter and pump use Wildcatter's motor hum, the mixer the agitator; paste sounds as mud.
+- **Paste does not cure while its chunk is unloaded (L5):** a scheduled step waits with its chunk.
 
 - **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
   1 and 2); until then ventilation is readings only.

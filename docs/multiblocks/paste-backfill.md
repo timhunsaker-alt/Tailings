@@ -89,3 +89,22 @@ All motors at the world's standard industrial low voltage.
   days; a UWA dataset: 268 kPa at 5 % binder and 73 % solids, 954 kPa at 9 %.
 - A scheelite mine (Mittersill) study: 5 % binder gave over 1 MPa at 28 days and met pumpability.
 - Pump and plant sizes *(proposed)*.
+
+## As built (L5, 2026-11-10, branch `l5-paste`)
+Decisions in [../questions/l5-paste.md](../questions/l5-paste.md) (22 entries; #8, #14 and #19 need Tim).
+- **Existing worlds are untouched:** every block, item and part is new (#22).
+- **Code:** `paste.PasteFill` (the figures, unit-tested in `PasteFillTest`) and `paste.FillVoid` (the void scan, `FillVoidTest`);
+  `Machine.PASTE_FILTER`, `PASTE_MIXER`, `PASTE_PUMP` on the plant's motors (`block.stage.Paste`); `block.FillOutletBlock` and its
+  entity; `block.FillBulkheadBlock` (the spill); `block.PasteFillBlock` (wet and set, the cure); `tools/models/paste.py`.
+- **As the spec, except:** the mixer trims the cake with 0.21 kg of thickened tails a kg of cake solids to exactly 78 % with its cement
+  (#7); cement is a 50 kg bag, a bag a tonne of tails (#8); the pump pushes into the outlet it finds on its own trace of the line, up to
+  1,500 m (#9); line pressure is friction (8 kPa/m) less the paste's weight in the fall (19.6 kPa/m) (#10); curing is eight steps of
+  2.5 minutes (#12); only a broken bulkhead lets paste out, all at once (#14); the void's walls are any block, torches and rails
+  included, and it needs no bulkhead if it is closed (#2).
+- **Measured (PasteFillTest, the scenes):** a m³ of paste holds 1.49 t of tails and 74 kg of cement; the plant's 50 t/h of tails make
+  33.6 m³/h; the filter's filtrate 0.42 L/kg; the pump needs 111 kW; 1,000 m on the flat is 8.0 MPa, 1,001 m reads LINE PRESSURE.
+- **Tests:** NeoForge `paste_fill_void` (the spec's 10 x 6 x 6 branch fills layer by layer, 359 m³, and reads FULL),
+  `paste_not_enclosed` (open to the sky; a bulkhead missing), `paste_cure`, `paste_bulkhead_fail` (71 m³ of wet paste runs out of
+  the gap; the set layer stays; NOT ENCLOSED), `paste_no_cement`, `paste_plant` (thickened tails to wet paste in the void through all
+  three parts; FLOW and PRESSURE on the PLC), `paste_line_pressure` (1,100 m of line); the client film `paste`
+  (`TAILINGS_ONLY=paste ./gradlew :fabric:runClientGameTest`).

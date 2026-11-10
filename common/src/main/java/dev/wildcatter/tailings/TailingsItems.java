@@ -39,6 +39,8 @@ public final class TailingsItems {
 	public static Item GAS_DETECTOR;
 	/** A shaft skip (shaft-and-hoist.md, L4): clicked on a headframe, it hangs on the next free rope. */
 	public static Item SKIP;
+	/** A 50 kg bag of cement (paste-backfill.md, L5): the paste mixer's binder, a placeholder until a cement kiln exists. */
+	public static Item CEMENT;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -76,6 +78,7 @@ public final class TailingsItems {
 		GAS_DETECTOR = Registry.register(BuiltInRegistries.ITEM, detector, new dev.wildcatter.tailings.item.GasDetectorItem(new Item.Properties().setId(detector).stacksTo(1)));
 		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
 		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
+		CEMENT = item("cement");
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

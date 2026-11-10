@@ -59,6 +59,8 @@ public final class TailingsSounds {
 			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case THICKENER, TAILINGS_THICKENER -> WildcatterSounds.MOTOR_HUM;
 			case HOIST_HOUSE -> WildcatterSounds.MOTOR_HUM;
+			case PASTE_FILTER, PASTE_PUMP -> WildcatterSounds.MOTOR_HUM;
+			case PASTE_MIXER -> AGITATOR;
 			default -> null;
 		};
 	}

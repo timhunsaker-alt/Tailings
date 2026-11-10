@@ -54,7 +54,10 @@ class MachineTest {
 			Map.entry(Machine.HEADFRAME, new int[] {9, 30, 9}),
 			Map.entry(Machine.HEADFRAME_BIN, new int[] {4, 5, 4}),
 			Map.entry(Machine.HOIST_HOUSE, new int[] {10, 8, 12}),
-			Map.entry(Machine.MEASURING_FLASK, new int[] {2, 3, 2}));
+			Map.entry(Machine.MEASURING_FLASK, new int[] {2, 3, 2}),
+			Map.entry(Machine.PASTE_FILTER, new int[] {5, 5, 8}),
+			Map.entry(Machine.PASTE_MIXER, new int[] {3, 3, 5}),
+			Map.entry(Machine.PASTE_PUMP, new int[] {3, 3, 6}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

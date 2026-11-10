@@ -98,6 +98,9 @@ public interface Stage {
 			case HOIST_HOUSE -> Shaft.HOIST;
 			case MEASURING_FLASK -> Shaft.FLASK;
 			case HEADFRAME_BIN -> Shaft.BIN;
+			case PASTE_FILTER -> Paste.FILTER;
+			case PASTE_MIXER -> Paste.MIXER;
+			case PASTE_PUMP -> Paste.PUMP;
 			default -> Idle.INSTANCE;
 		};
 	}
