@@ -281,11 +281,26 @@ Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladde
 - **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
   ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
 
+## Later — L7: dense-medium separation (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/dense-medium-separation.md](multiblocks/dense-medium-separation.md), decisions
+in [questions/l7-dms.md](questions/l7-dms.md), branch `l7-dms`. On the belt off the double-deck screen's gravel face (already built),
+a `deslime_screen` washes the fines off the gravel into a `dms_cyclone_module`, which splits it by each rock's density against a
+ferrosilicon medium (default SG 2.75, 2.6-3.3): the floats leave through a `drain_rinse_screen` as vanilla gravel, a block for 1.9 t,
+their minerals with them; the sinks go on through a second one to the cone. A `medium_recovery` makes up the ferrosilicon lost, 0.3 kg
+a tonne; `ferrosilicon` is a 25 kg bag with a placeholder recipe. 2 % each way goes wrong. Existing plants run as before. NeoForge
+scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; unit tests `DenseMediumTest`; the client film `dms`.
+- **Questions for Tim:** the light ores float at any setting (#4); the sinks go round again, about 3 % of an ore block lost (#5); the
+  ferrosilicon recipe (#8).
+- **Left out, planned (the spec's "Left out"):** a DMS drum for coarser feed; real partition curves and near-gravity material; coal
+  washing and diamond recovery (X-2); medium viscosity and contamination by slimes; a starting charge of medium; a screen for the
+  setting and a PLC setpoint; floats on a belt.
+
 ## Later, not scheduled
 
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
-- Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
+- Dense-medium separation: built as L7 (above). X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
 - A shaft and hoist (headframe, skip) instead of the decline: built as L4 (above); the raise borer and the cage are still to build.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
 - Bottom-dump cars over a grizzly: built as L3 (above).
@@ -294,6 +309,15 @@ Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladde
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **Ferrosilicon is a crafted placeholder (L7):** 4 bags of 25 kg from an iron ingot, a sand and a metallurgical coke, until
+  Wildcatter's ferroalloy plant makes it (questions/l7-dms.md, 8).
+- **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).
+- **The medium is set by clicks (L7):** no screen and no PLC setpoint; the PLC reads it (questions/l7-dms.md, 10).
+- **Floats leave by hopper or hand only (L7):** not on a belt (questions/l7-dms.md, 11).
+- **DMS sinks go round again (L7):** through the cone, the screen and the DMS, losing 2 % a pass (questions/l7-dms.md, 5).
+- **A flat 2 % misplacement (L7):** no partition curve; a whole block floats or sinks as one (questions/l7-dms.md, 6).
+- **No new L7 sounds:** the screens use the vibrating screen, the module the slurry rush, the recovery Wildcatter's motor hum.
 
 - **Cement is a crafted placeholder (L5):** a 50 kg bag from one quicklime and a clay ball, until a cement kiln exists
   (questions/l5-paste.md, 8).

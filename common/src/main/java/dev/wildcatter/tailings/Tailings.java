@@ -78,6 +78,7 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.FILL_BULKHEAD));
 		output.accept(new ItemStack(TailingsBlocks.FILL_OUTLET));
 		output.accept(new ItemStack(TailingsItems.CEMENT));
+		output.accept(new ItemStack(TailingsItems.FERROSILICON));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
 		output.accept(new ItemStack(TailingsBlocks.MUCK));

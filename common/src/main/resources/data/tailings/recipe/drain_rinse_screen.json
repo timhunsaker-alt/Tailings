@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "STS",
+    "SMS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:iron_bars",
+    "M": "minecraft:iron_bars",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:drain_rinse_screen",
+    "count": 1
+  }
+}

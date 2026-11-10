@@ -162,6 +162,13 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				}
 				return InteractionResult.SUCCESS;
 			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.DMS_MODULE) {
+				// the module's medium setting, a step a click (dense-medium-separation.md, L7)
+				if (!level.isClientSide()) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.stepMedium()));
+				}
+				return InteractionResult.SUCCESS;
+			}
 			if (player.isShiftKeyDown() && plant.machine() == Machine.CONDITIONER) {
 				if (!level.isClientSide()) {
 					plant.toggleSelective();

@@ -62,6 +62,9 @@ public final class TailingsSounds {
 			case HOIST_HOUSE -> WildcatterSounds.MOTOR_HUM;
 			case PASTE_FILTER, PASTE_PUMP -> WildcatterSounds.MOTOR_HUM;
 			case PASTE_MIXER -> AGITATOR;
+			case DESLIME_SCREEN, DRAIN_RINSE_SCREEN -> VIBRATING_SCREEN;
+			case DMS_MODULE -> SLURRY_RUSH;
+			case MEDIUM_RECOVERY -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
 	}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "STS",
+    "SMS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:hopper",
+    "M": "minecraft:cauldron",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:dms_cyclone_module",
+    "count": 1
+  }
+}

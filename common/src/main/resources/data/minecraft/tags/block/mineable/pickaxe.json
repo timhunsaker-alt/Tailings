@@ -80,6 +80,10 @@
     "tailings:fluid_bed_dryer",
     "tailings:rer_separator",
     "tailings:ht_roll_separator",
-    "tailings:irm_separator"
+    "tailings:irm_separator",
+    "tailings:deslime_screen",
+    "tailings:dms_cyclone_module",
+    "tailings:drain_rinse_screen",
+    "tailings:medium_recovery"
   ]
 }

@@ -337,5 +337,10 @@
   "block.tailings.fill_bulkhead": "Fill Bulkhead",
   "block.tailings.fill_outlet": "Fill Outlet",
   "block.tailings.paste_fill": "Paste Fill",
-  "item.tailings.cement": "Cement"
+  "item.tailings.cement": "Cement",
+  "block.tailings.deslime_screen": "Deslime Screen",
+  "block.tailings.dms_cyclone_module": "DMS Cyclone Module",
+  "block.tailings.drain_rinse_screen": "Drain-and-Rinse Screen",
+  "block.tailings.medium_recovery": "Medium Recovery",
+  "item.tailings.ferrosilicon": "Ferrosilicon (25 kg)"
 }

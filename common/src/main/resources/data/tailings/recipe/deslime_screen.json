@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "STS",
+    "SMS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:water_bucket",
+    "M": "minecraft:iron_bars",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:deslime_screen",
+    "count": 1
+  }
+}

@@ -90,7 +90,15 @@ public enum Machine {
 	/** A 1.5 m high-tension roll separator with its own high-voltage supply, 7.5 kW: takes the conductors, rutile and cassiterite (L6, proposed). */
 	HT_ROLL_SEPARATOR("ht_roll_separator", "High-Tension Roll Separator", 2, 3, 4, 7_500, Supply.INDUSTRIAL),
 	/** A 1.5 m induced-roll magnet at high intensity, 11 kW: takes the monazite; the zircon passes (L6, proposed). */
-	IRM_SEPARATOR("irm_separator", "Induced-Roll Magnet", 2, 3, 3, 11_000, Supply.INDUSTRIAL);
+	IRM_SEPARATOR("irm_separator", "Induced-Roll Magnet", 2, 3, 3, 11_000, Supply.INDUSTRIAL),
+	/** Dense-medium separation (dense-medium-separation.md, L7): a wet vibrating screen at 1 mm with spray bars on the gravel, 11 kW (proposed). */
+	DESLIME_SCREEN("deslime_screen", "Deslime Screen", 2, 2, 4, 11_000, Supply.INDUSTRIAL),
+	/** The mixing box, a 55 kW medium pump and one 610 mm DMS cyclone on its stand, about 60 t/h of gravel (L7, unverified). */
+	DMS_MODULE("dms_cyclone_module", "DMS Cyclone Module", 3, 6, 4, 55_000, Supply.INDUSTRIAL),
+	/** A drain-and-rinse screen, 7.5 kW (L7, proposed): one on the module's north side for the floats, one on its south side for the sinks. */
+	DRAIN_RINSE_SCREEN("drain_rinse_screen", "Drain-and-Rinse Screen", 2, 2, 5, 7_500, Supply.INDUSTRIAL),
+	/** A wet drum magnetic separator and densifier that win the ferrosilicon back from the rinse water, its make-up hopper on top, 5.5 kW (L7, proposed). */
+	MEDIUM_RECOVERY("medium_recovery", "Medium Recovery", 2, 3, 3, 5_500, Supply.INDUSTRIAL);
 
 	public enum Supply {
 		NONE,

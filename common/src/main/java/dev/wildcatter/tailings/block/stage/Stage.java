@@ -106,6 +106,10 @@ public interface Stage {
 			case RER_SEPARATOR -> DryMillStages.RER;
 			case HT_ROLL_SEPARATOR -> DryMillStages.HT;
 			case IRM_SEPARATOR -> DryMillStages.IRM;
+			case DESLIME_SCREEN -> DenseMediumStages.DESLIME;
+			case DMS_MODULE -> DenseMediumStages.MODULE;
+			case DRAIN_RINSE_SCREEN -> DenseMediumStages.DRAIN_RINSE;
+			case MEDIUM_RECOVERY -> DenseMediumStages.RECOVERY;
 			default -> Idle.INSTANCE;
 		};
 	}

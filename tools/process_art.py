@@ -29,7 +29,7 @@ FLAGS = {"load": (63, 173, 73), "loadout": (76, 136, 206), "dump_point": (155, 7
 	"park": (137, 137, 147), "fuel": (240, 210, 50), "waypoint": (225, 115, 25)}
 ITEMS = ("survey_book", "haul_truck", "wheel_loader", "indium", "rhenium", "cobalt", "cadmium", "rare_earth_oxide",
 	"copper_sulfate", "lime", "mibc", "xanthate", "zinc_sulfate", "battery_locomotive", "bottom_dump_car", "loco_battery",
-	"vent_duct_cassette", "gas_detector", "cement", "heavy_mineral_concentrate")
+	"vent_duct_cassette", "gas_detector", "cement", "heavy_mineral_concentrate", "ferrosilicon")
 VEHICLE_MATS = ("paint_yellow", "rubber_tread", "steel_dark", "steel_worn", "steel_rust")
 
 

@@ -510,6 +510,34 @@ Spec: [multiblocks/dry-mill.md](multiblocks/dry-mill.md) (draft, decided on reco
 - **Models:** `tools/models/drymill.py`, in Wildcatter's materials; the dryer sounds Wildcatter's fan, the separators its motor hum,
   the scavenger spirals the slurry rush.
 
+## Dense-medium separation (L7)
+
+Spec: [multiblocks/dense-medium-separation.md](multiblocks/dense-medium-separation.md) (draft, decided on recommendation); the choices
+made building it are in [questions/l7-dms.md](questions/l7-dms.md). The rules are `plant.DenseMedium` (unit-tested), the stages
+`block.stage.DenseMediumStages`, the module's setting and counts `plant.DmsState`.
+
+- **Where it sits:** on the belt off the double-deck screen's gravel face (built in the plant-gaps wave, unchanged). Sand bypasses it;
+  the crushed class goes to the cone as before. Without a DMS nothing changes.
+- **The parts:** `deslime_screen` (2 x 2 x 4, 11 kW; gravel in by a belt over its north end, 3 % washed off as sand to a belt on its
+  east face, the rest into the module it touches), `dms_cyclone_module` (3 x 6 x 4, a 55 kW medium pump; water off a water pipe, 0.15 L
+  a kg, 25 L held), two `drain_rinse_screen`s (2 x 2 x 5, 7.5 kW; the one on the module's north side takes the floats, the one on its
+  south side the sinks), `medium_recovery` (2 x 3 x 3, 5.5 kW; ferrosilicon by hopper on top or by hand, 1 t held). Every motor on the
+  world's industrial tier, its box on the west face of the main cell, with the plant motor's PLC points. 60 t/h each.
+- **The split:** each rock's piece density is the mixing rule over the minerals its block holds (2.7 t) at textbook densities, the
+  rest its host rock (`DenseMedium.pieceSg`). A rock lighter than the medium floats: 98 % to the floats screen, 2 % to the sinks; a
+  heavier rock the other way round. At the default 2.75 the country rocks float except diorite (2.85) and deepslate (2.80); the metal
+  ores sink; the light industrial ores float at any setting.
+- **The products:** the floats screen pays a vanilla gravel block for each 1.9 t into its product slot (a hopper under it); the
+  floats' minerals are gone (L7-1). The sinks screen puts the sinks out of its south end onto a belt, as gravel with their rock, to the
+  cone; they come round the screen and back to the DMS like any gravel.
+- **The medium:** a sneaking click on the module steps its density 0.05, 2.60 to 3.30 and round. 0.3 kg of ferrosilicon is lost a
+  tonne of feed, from the medium recovery's hopper; empty, the module reads NO MEDIUM. It waits for the medium recovery's motor.
+- **Reads:** NO FEED, NO WATER, NO MEDIUM, NOT BUILT (a missing screen or recovery), FULL, nowhere to go; the module's status names the
+  rock, its density and whether it floats. **PLC:** the module adds DENSITY (4-20 mA over SG 2.6-3.3) and FLOATS (a second's pulse
+  each tonne floated).
+- **Models:** `tools/models/dms.py`, in Wildcatter's materials; the screens sound the vibrating screen, the module the slurry rush,
+  the medium recovery Wildcatter's motor hum.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -639,6 +667,8 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Paste fill items (L5):** `cement` (a 50 kg bag: one quicklime and one clay ball, shapeless, a placeholder until a cement kiln).
 - **Dry mill items (L6):** `heavy_mineral_concentrate`, a 100 kg bag of moist HMC with its assay as item data (no recipe; the filter
   makes it).
+- **DMS items (L7):** `ferrosilicon`, a 25 kg bag of milled 15 % Si ferrosilicon: 4 from an iron ingot, a sand and a metallurgical
+  coke, shapeless, a placeholder until Wildcatter's ferroalloy plant.
 - **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
 Block items exist for every block above, including the ones with no crafting recipe, except `skip` and `paste_fill`.

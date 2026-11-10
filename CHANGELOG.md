@@ -4,6 +4,20 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### L7: dense-medium separation (2026-11-10, decided while Tim was away)
+
+- **Deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery:** on the belt off the double-deck screen's gravel
+  face, gravel is washed of its fines and split in a ferrosilicon medium (SG 2.6-3.3, default 2.75, a sneaking click steps it). Rock
+  lighter than the medium floats and leaves as vanilla gravel, a block for 1.9 t, taking its trace minerals with it; heavier rock sinks
+  and goes on to the cone. 2 % goes the wrong way each way. Country rock floats (diorite and deepslate sink at 2.75); the metal ores
+  sink; rock salt, potash, borax, sulfur, graphite, bauxite and bentonite float at any setting.
+- **Ferrosilicon:** a 25 kg bag, made up by hopper on the medium recovery; 0.3 kg is lost a tonne; with none the module reads NO
+  MEDIUM. A placeholder recipe: an iron ingot, a sand and a metallurgical coke make 4.
+- **PLC:** the module reads DENSITY (4-20 mA) and pulses FLOATS each tonne.
+- **Nothing changes in existing plants:** without a DMS module the screen's gravel face, the cone and the mill run as before.
+- **Tests:** `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; `DenseMediumTest`. Decisions in
+  `docs/questions/l7-dms.md`.
+
 ### L5: paste backfill (2026-11-10, decided while Tim was away)
 
 - **Paste filter, mixer and pump:** a 75 kW vacuum disc filter takes a tailings thickener's underflow to an 80 % cake; the 75 kW

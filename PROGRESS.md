@@ -484,3 +484,16 @@ Built while Tim was away on the draft spec `docs/multiblocks/dry-mill.md`; decis
 - **Art:** five models in Wildcatter's materials (`tools/models/drymill.py`); the HMC bag's icon from Ludo (1 credit); no placeholders.
 - **Scenes:** NeoForge `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`:
   **142 NeoForge scenes pass** (136 before, 6 new). Unit tests `DryMillTest` (6) and `MachineTest`: 142 pass. The Fabric client film `dry_mill` (`TAILINGS_ONLY=dry_mill`).
+
+## L7: dense-medium separation (2026-11-10, branch `l7-dms`)
+Built while Tim was away on the draft spec `docs/multiblocks/dense-medium-separation.md`; decisions in `docs/questions/l7-dms.md`
+(16 entries; #4, #5 and #8 most need Tim's eye). Nothing in an existing world changes: four new parts and an item; the screen's gravel
+face was already built (plant-gaps) and is used as it is.
+- **Built:** the `deslime_screen`, the `dms_cyclone_module` (each rock floats or sinks by its density, by the mixing rule over its
+  minerals, against a ferrosilicon medium at SG 2.6-3.3, default 2.75, set by a sneaking click), two `drain_rinse_screen`s (floats out
+  as vanilla gravel, 1.9 t a block; sinks onto a belt to the cone), the `medium_recovery` (0.3 kg of ferrosilicon lost a tonne), and
+  the `ferrosilicon` bag (placeholder recipe). 2 % each way. NO FEED, NO WATER, NO MEDIUM, NOT BUILT, FULL, nowhere to go; DENSITY and
+  FLOATS on the PLC.
+- **Art:** four models in Wildcatter's materials (`tools/models/dms.py`); the ferrosilicon icon from Ludo (1 credit); no placeholders.
+- **Scenes:** NeoForge `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`. Unit tests `DenseMediumTest` (6) and
+  `MachineTest`. The Fabric client film `dms` (`TAILINGS_ONLY=dms`).

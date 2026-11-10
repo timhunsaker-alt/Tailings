@@ -84,3 +84,10 @@ Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations,
 | File | Prompt |
 |---|---|
 | heavy_mineral_concentrate (a) | A single small woven white polypropylene sack, top open, full of damp dark heavy mineral sand concentrate: black, dark grey and reddish-brown fine grains, game item icon, plain white background, no text |
+
+## L7 dense-medium separation (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations, the first (a) kept (1 credit):
+
+| File | Prompt |
+|---|---|
+| ferrosilicon (a) | A single small heavy woven grey polypropylene sack, top open, full of fine dark grey metallic ferrosilicon powder with a slight silver sheen, plain unbranded, game item icon, plain white background, no text |

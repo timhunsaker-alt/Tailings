@@ -137,6 +137,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("dry_mill")) {
 				dryMill(context, world, server);
 			}
+			if (only("dms")) {
+				dms(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -585,6 +588,104 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(pay[0] == 4 && pay[1] == 4, "the filter should pay the spirals' half: 4 nuggets of each");
 		require(pay[2] == 4 && pay[3] == 4, "the dry mill should pay the scavengers' share: 4 nuggets of each");
 		heard("dry_mill", "tailings:slurry_rush", "wildcatter:fan");
+	}
+
+	/**
+	 * L7, dense-medium separation (dense-medium-separation.md): the deslime screen on top of the DMS cyclone module, the floats'
+	 * drain-and-rinse screen north of it over a hopper and chest, the sinks' screen south of it onto a belt, the medium recovery east
+	 * with four bags of ferrosilicon. A block of copper ore gravel goes into the module and one of granite gravel over the deslime
+	 * screen: the granite floats out as vanilla gravel, the copper ore sinks onto the belt. Force-run at 8 times, as the other part films.
+	 */
+	private void dms(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-260, y + 1, -340);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -3; x <= 9; x++) {
+				for (int z = -3; z <= 20; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 10; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			PlantBlockEntity floats = plant(level, Machine.DRAIN_RINSE_SCREEN, o);
+			// the floats' gravel down a hopper into a chest; both stay above the flat world's bottom
+			level.setBlock(o.offset(0, -1, 0), Blocks.HOPPER.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlock(o.offset(0, -2, 0), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity module = plant(level, Machine.DMS_MODULE, o.offset(0, 0, 5));
+			PlantBlockEntity sinks = plant(level, Machine.DRAIN_RINSE_SCREEN, o.offset(0, 0, 9));
+			for (int z = 14; z <= 16; z++) {
+				level.setBlock(o.offset(0, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity sinksBelt = plant(level, Machine.CONVEYOR_DRIVE, o.offset(1, 0, 16));
+			level.setBlock(o.offset(0, -1, 16), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity recovery = plant(level, Machine.MEDIUM_RECOVERY, o.offset(3, 0, 5));
+			PlantBlockEntity deslime = plant(level, Machine.DESLIME_SCREEN, o.offset(0, 6, 5));
+			for (int x = 2; x <= 4; x++) {
+				level.setBlock(o.offset(x, 6, 6), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity fines = plant(level, Machine.CONVEYOR_DRIVE, o.offset(5, 6, 6));
+			level.setBlock(o.offset(4, 5, 6), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (int i = 0; i < 4; i++) {
+				recovery.offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.FERROSILICON));
+			}
+			parts[0] = new PlantBlockEntity[] {deslime, module, floats, sinks, recovery, sinksBelt, fines};
+			for (PlantBlockEntity part : parts[0]) {
+				part.forceRunning();
+				part.fastCycle(8);
+			}
+			module.addWater(1000);
+			module.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_copper"))));
+			deslime.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_granite"))));
+		});
+		server.runCommand("tp @p " + (o.getX() + 13) + " " + (o.getY() + 9) + " " + (o.getZ() + 19) + " 140 28");
+		context.waitTicks(40);
+		Filming film = film(context, world, "dms");
+		context.takeScreenshot("tailings-dms-built");
+		for (int t = 0; t < 44; t++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> parts[0][1].addWater(1000));
+			if (t == 22) {
+				server.runCommand("tp @p " + (o.getX() - 9) + " " + (o.getY() + 7) + " " + (o.getZ() - 6) + " -40 25");
+			}
+			if (t % 8 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : parts[0]) {
+						System.out.println("[tailings-test] dms: " + part.inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot("tailings-dms-end");
+		film.stop();
+		double[] got = server.computeOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			int gravel = parts[0][2].getItem(1).getCount();
+			if (level.getBlockEntity(o.offset(0, -2, 0)) instanceof net.minecraft.world.Container chest) {
+				for (int i = 0; i < chest.getContainerSize(); i++) {
+					if (chest.getItem(i).is(Items.GRAVEL)) {
+						gravel += chest.getItem(i).getCount();
+					}
+				}
+			}
+			if (level.getBlockEntity(o.offset(0, -1, 0)) instanceof net.minecraft.world.Container hopper) {
+				for (int i = 0; i < hopper.getContainerSize(); i++) {
+					if (hopper.getItem(i).is(Items.GRAVEL)) {
+						gravel += hopper.getItem(i).getCount();
+					}
+				}
+			}
+			PlantBlockEntity belt = parts[0][5];
+			double copper = parts[0][3].hold().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL) + belt.hold().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL)
+					+ belt.made().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL);
+			return new double[] {gravel, copper, parts[0][4].dryKg()};
+		});
+		System.out.println("[tailings-test] dms: " + (int) got[0] + " gravel floated, " + (int) got[1] + " kg of copper ore sunk, " + got[2] + " kg of ferrosilicon left");
+		require(got[0] >= 1, "the granite should float out as vanilla gravel");
+		require(got[1] > 1000, "the copper ore should sink onto the belt");
+		require(got[2] < 100, "the medium recovery should have lost ferrosilicon");
+		heard("dms", "tailings:vibrating_screen", "tailings:slurry_rush");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
