@@ -41,6 +41,9 @@ These are the only items that wait on you; everything else is built and only nee
 
 12. **Dense-medium separation** (`l7-dms.md` #4, #5, #8): the light ores (salt, potash, borax) float at any setting and are lost; DMS
     sinks go round again and lose about 3 % of an ore block; ferrosilicon is a placeholder recipe until the ferroalloy plant.
+13. **The XRT sorter** (`l8-xrt.md` #3, #5, #6): the default threshold (Zeff 12.0) sits just above deepslate (11.96) and below
+    silver ore (12.08); light ores (graphite, bauxite, borax) read below quartz and go to waste unless a reverse mode is added; it has
+    its own 160 kW compressor because Wildcatter's is a small instrument-air unit.
 
 ## Every file, by wave
 
@@ -62,8 +65,8 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l4-shaft.md` (merged) | 21 | the shaft and hoist: headframe, hoist house, skips in balance, the measuring flask, the headframe bin (#1, #5, #20 need you) |
 | Tailings | `l5-paste.md` (merged) | 22 | paste backfill: the paste filter, mixer and pump, fill bulkheads and outlet, curing, cement (#8, #14, #19 need you) |
 | Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
-| Tailings | `l7-dms.md` (branch `l7-dms`) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
-| Tailings | `l8-xrt.md` (branch `l8-xrt`) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
+| Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
+| Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
