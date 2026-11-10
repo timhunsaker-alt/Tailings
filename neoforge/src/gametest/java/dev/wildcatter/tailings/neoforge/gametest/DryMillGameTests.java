@@ -28,8 +28,8 @@ import net.minecraft.world.item.ItemStack;
  * with no gas.
  */
 final class DryMillGameTests {
-	static final String[] SCENES = {"dry_mill_split", "dry_mill_ladder", "dry_mill_wet", "dry_mill_no_dryer", "dry_mill_no_gas", "dry_mill_parts"};
-	static final Set<String> LONG = Set.of("dry_mill_split", "dry_mill_ladder", "dry_mill_no_dryer");
+	static final String[] SCENES = {"dry_mill_split", "dry_mill_ladder", "dry_mill_all_hmc", "dry_mill_wet", "dry_mill_no_dryer", "dry_mill_no_gas", "dry_mill_parts"};
+	static final Set<String> LONG = Set.of("dry_mill_split", "dry_mill_ladder", "dry_mill_all_hmc", "dry_mill_no_dryer");
 	/** The separators' four output stacks. */
 	private static final int[] FOUR = dev.wildcatter.tailings.block.stage.DryMillStages.OUTPUT_SLOTS;
 
@@ -38,7 +38,8 @@ final class DryMillGameTests {
 
 	static void register(BiConsumer<String, Consumer<GameTestHelper>> out) {
 		out.accept("dry_mill_split", DryMillGameTests::split);
-		out.accept("dry_mill_ladder", DryMillGameTests::ladder);
+		out.accept("dry_mill_ladder", helper -> ladder(helper, false));
+		out.accept("dry_mill_all_hmc", helper -> ladder(helper, true));
 		out.accept("dry_mill_wet", DryMillGameTests::wet);
 		out.accept("dry_mill_no_dryer", DryMillGameTests::noDryer);
 		out.accept("dry_mill_no_gas", DryMillGameTests::noGas);
@@ -105,9 +106,14 @@ final class DryMillGameTests {
 	 * dry_mill_ladder: fines holding 4 nuggets' worth of zircon and of ilmenite, and a little galena, through the spiral bank, the
 	 * scavenger spirals, the thickener and filter, the dryer touching the filter and the separators: 2 nuggets of each at the filter
 	 * (50 %), 2 more at the separators (45 % paid at 1.11), 4 in all, the 4x; the scavenger spirals' tails carry none of either under
-	 * its own name, so a leach after them finds none; the galena goes on untouched.
+	 * its own name, so a leach after them finds none; the galena goes on untouched. This is a world from before the world's
+	 * {@code dry_mill_all_hmc} rule (the scene runs with the rules off).
+	 *
+	 * <p>dry_mill_all_hmc: the same plant in a new world, the rule on (Tim, 2026-11-10, l6-dry-mill.md #3): the filter, a dryer touching
+	 * it, pays none of the zircon or ilmenite; all of it goes through the dry mill, which pays all 4 nuggets of each (the spirals' 50 %
+	 * at 1.0 a kg, the scavengers' 45 % at 1.11); the galena is still paid at the filter.
 	 */
-	private static void ladder(GameTestHelper helper) {
+	private static void ladder(GameTestHelper helper, boolean allHmc) {
 		int y = 4;
 		var zircon = Mineral.ZIRCON;
 		var ilmenite = Mineral.ILMENITE;
@@ -135,9 +141,14 @@ final class DryMillGameTests {
 		int[] two = {1, 2};
 		helper.succeedWhen(() -> {
 			String s = all(spirals, scavenger, thickener, filter) + all(p);
-			helper.assertTrue(nuggets(filter, two, zircon) == 2 && nuggets(filter, two, ilmenite) == 2, Component.literal("the filter should pay the spirals' 50 %: 2 nuggets of each" + s));
-			helper.assertTrue(nuggets(p[3], FOUR, zircon) == 2, Component.literal("the dry mill should pay 2 zircon nuggets" + s));
-			helper.assertTrue(nuggets(p[1], FOUR, ilmenite) == 2, Component.literal("the dry mill should pay 2 ilmenite nuggets" + s));
+			helper.assertTrue(dev.wildcatter.tailings.OptInRules.on(helper.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.DRY_MILL_ALL_HMC) == allHmc,
+					Component.literal("the rule should be " + (allHmc ? "on, a new world" : "off, a world from before it")));
+			int atFilter = allHmc ? 0 : 2, atMill = allHmc ? 4 : 2;
+			helper.assertTrue(nuggets(filter, two, zircon) == atFilter && nuggets(filter, two, ilmenite) == atFilter,
+					Component.literal("the filter should pay " + atFilter + " nuggets of each" + s));
+			helper.assertTrue(nuggets(p[3], FOUR, zircon) == atMill, Component.literal("the dry mill should pay " + atMill + " zircon nuggets" + s));
+			helper.assertTrue(nuggets(p[1], FOUR, ilmenite) == atMill, Component.literal("the dry mill should pay " + atMill + " ilmenite nuggets" + s));
+			helper.assertTrue(nuggets(filter, two, zircon) + nuggets(p[3], FOUR, zircon) == 4, Component.literal("4 zircon nuggets in all either way, the 4x" + s));
 			SlurryAssay tails = scavenger.out().assayOf(Product.FINES_SLURRY);
 			double left = scavenger.out().held(Product.FINES_SLURRY);
 			helper.assertTrue(tails.get(zircon.mineralItemId()) == 0 && tails.get(ilmenite.mineralItemId()) == 0, Component.literal("no zircon or ilmenite for the leach: " + tails.describe()));

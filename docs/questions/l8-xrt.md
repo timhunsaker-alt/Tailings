@@ -54,6 +54,7 @@ Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/
 - **Needs your eye:** should the sorter have a second mode that **ejects the light pieces** as product, for these ores? It is real
   (the ejectors blow whichever stream is set) and a small change: a second toggle on the screen and a REVERSE point.
 - **Alternatives:** a reverse mode (above); leave it, as built.
+- **Tim (2026-11-10):** add a reverse mode (sneak-click or a PLC point) that keeps the low readers. Built: the sneaking click steps LOW to HIGH, then LOW to HIGH in reverse; the PLC's REVERSE (point 9) sets it in AUTO; a new sorter sorts as built (answers-2026-11-10.md #8).
 
 ### 6. Compressed air: its own compressor, not Wildcatter's
 - **Chosen:** a `sorter_compressor` part, **2 x 2 x 3, 160 kW** on the industrial tier (the spec's figure): a screw compressor and air

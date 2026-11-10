@@ -13,9 +13,30 @@ public final class HeavyMinerals {
 	private static final double SLACK = 1e-9;
 
 	private final Map<Mineral, Double> kg = new EnumMap<>(Mineral.class);
+	/**
+	 * What the separators pay for each mineral's kg, as kg won (l6-dry-mill.md #3): the scavenger spirals' share at the top rung's 1.11 a
+	 * kg ({@link #DEFAULT}), the spiral bank's own share at 1.0 when the world's {@code dry_mill_all_hmc} rule sends it here too.
+	 */
+	private final Map<Mineral, Double> pay = new EnumMap<>(Mineral.class);
+
+	/** What a kg of HMC pays by default: the scavenger spirals' share, at the top rung's rate. */
+	public static double defaultRate(Mineral mineral) {
+		return FullRecoveryRates.topRungPay(mineral);
+	}
 
 	public double kg(Mineral mineral) {
 		return kg.getOrDefault(mineral, 0.0);
+	}
+
+	/** The kg a separator pays for all of {@code mineral} here. */
+	public double pay(Mineral mineral) {
+		return pay.getOrDefault(mineral, 0.0);
+	}
+
+	/** What a kg of {@code mineral} here pays, on average. */
+	public double rate(Mineral mineral) {
+		double there = kg(mineral);
+		return there > SLACK ? pay(mineral) / there : defaultRate(mineral);
 	}
 
 	public double total() {
@@ -30,26 +51,42 @@ public final class HeavyMinerals {
 		return total() <= SLACK;
 	}
 
+	/** Adds {@code amount} kg of the scavenger spirals' HMC, paid at the default rate. */
 	public void add(Mineral mineral, double amount) {
+		add(mineral, amount, amount * defaultRate(mineral));
+	}
+
+	/** Adds {@code amount} kg that the separators will pay as {@code payKg} kg won. */
+	public void add(Mineral mineral, double amount, double payKg) {
 		if (amount > 0) {
 			kg.merge(mineral, amount, Double::sum);
+			pay.merge(mineral, Math.max(0, payKg), Double::sum);
 		}
 	}
 
 	public void add(HeavyMinerals other) {
-		other.kg.forEach(this::add);
+		other.kg.forEach((mineral, amount) -> add(mineral, amount, other.pay(mineral)));
 	}
 
-	/** Takes out {@code amount} kg of {@code mineral}, or what there is. */
+	/** Takes out {@code amount} kg of {@code mineral}, or what there is, with its share of the pay. */
 	public double remove(Mineral mineral, double amount) {
+		return removeWithPay(mineral, amount)[0];
+	}
+
+	/** As {@link #remove}: the kg taken and the pay it carries. */
+	private double[] removeWithPay(Mineral mineral, double amount) {
 		double there = kg(mineral);
 		double took = Math.min(there, Math.max(0, amount));
+		double paid = there > 0 ? pay(mineral) * took / there : 0;
 		if (there - took <= SLACK) {
 			kg.remove(mineral);
+			paid = pay(mineral);
+			pay.remove(mineral);
 		} else {
 			kg.put(mineral, there - took);
+			pay.put(mineral, pay(mineral) - paid);
 		}
-		return took;
+		return new double[] {took, paid};
 	}
 
 	/** Takes {@code amount} kg of the whole, each mineral in its share: what a feeder draws off a blended bin. */
@@ -61,9 +98,15 @@ public final class HeavyMinerals {
 		}
 		double share = Math.min(1, amount / total);
 		for (Mineral mineral : java.util.List.copyOf(kg.keySet())) {
-			out.add(mineral, remove(mineral, share >= 1 ? kg(mineral) : kg(mineral) * share));
+			double[] got = removeWithPay(mineral, share >= 1 ? kg(mineral) : kg(mineral) * share);
+			out.add(mineral, got[0], got[1]);
 		}
 		return out;
+	}
+
+	/** Moves all of {@code mineral} from {@code from} into this, with its pay. */
+	public void addAll(HeavyMinerals from, Mineral mineral) {
+		add(mineral, from.kg(mineral), from.pay(mineral));
 	}
 
 	public Iterable<Mineral> minerals() {
@@ -76,24 +119,46 @@ public final class HeavyMinerals {
 
 	public void clear() {
 		kg.clear();
+		pay.clear();
 	}
 
-	/** {@code ZIRCON=12.5,ILMENITE=3.0}. */
+	/** True when some mineral here pays other than the default rate (the spiral bank's share is in it). */
+	public boolean mixedRates() {
+		for (Mineral mineral : kg.keySet()) {
+			if (Math.abs(rate(mineral) - defaultRate(mineral)) > 1e-6) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** {@code ZIRCON=12.5,ILMENITE=3.0}; a mineral not at the default rate carries its pay, {@code ZIRCON=12.5@13.0}. */
 	public String save() {
 		StringBuilder out = new StringBuilder();
-		kg.forEach((m, v) -> out.append(out.length() == 0 ? "" : ",").append(m.name()).append('=').append(v));
+		kg.forEach((m, v) -> {
+			out.append(out.length() == 0 ? "" : ",").append(m.name()).append('=').append(v);
+			if (Math.abs(rate(m) - defaultRate(m)) > 1e-9) {
+				out.append('@').append(pay(m));
+			}
+		});
 		return out.toString();
 	}
 
 	public void load(String text) {
-		kg.clear();
+		clear();
 		if (text == null || text.isBlank()) {
 			return;
 		}
 		for (String part : text.split(",")) {
 			try {
 				int eq = part.indexOf('=');
-				add(Mineral.valueOf(part.substring(0, eq)), Double.parseDouble(part.substring(eq + 1)));
+				int at = part.indexOf('@');
+				Mineral mineral = Mineral.valueOf(part.substring(0, eq));
+				if (at < 0) {
+					add(mineral, Double.parseDouble(part.substring(eq + 1)));
+				} else {
+					add(mineral, Double.parseDouble(part.substring(eq + 1, at)), Double.parseDouble(part.substring(at + 1)));
+				}
 			} catch (RuntimeException ex) {
 				// left out
 			}

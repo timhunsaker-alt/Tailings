@@ -522,3 +522,27 @@ what an existing world does, so they are off by default behind `config/tailings-
 - **Scenes:** NeoForge `gaps_fuel_bay_pipe`, `gaps_press_points`, `gaps_loadout_points`, `gaps_paste_gauges`,
   `gaps_headframe_hopper`, `gaps_paste_wall_breach`, `gaps_paste_catch_up`, `gaps_muck_on_paste`: **the full suite passes, 167
   required tests** (159 before, 8 new); `build` passes.
+
+## Tim's answers built (2026-11-10, branch `answers`)
+Built from `docs/questions/answers-2026-11-10.md` (each answer marked there, and each matching entry in the wave question files).
+- **World rules (#5, #23):** `OptInRules` is now saved with the world (`data/tailings/rules.dat`) and set by `/tailings rule <name>
+  <true|false>` (operators; `/tailings rule` lists them). `ventilation_interlock`, `stale_air`, `headframe_hopper`,
+  `paste_unloaded_cure` and `dry_mill_all_hmc` are on in a new world (game time 0 and no Tailings data when its rules are made);
+  `paste_wall_breach` is off; a world saved before them has every rule off. The two old config files are read once, as a seed.
+  `mine.VentRules` is gone.
+- **Paste pace (#6):** a placed block stands for 10 m³ of the line's paste; a 360 m³ branch fills in about an hour.
+- **DMS floats on a belt (#7):** off the floats screen's north end, back to the plant as gravel with their rock. The ferrosilicon
+  placeholder stays until Wildcatter 0.7.0.
+- **XRT reverse (#8):** the sneaking click's second round of five steps, and PLC point 9 REVERSE.
+- **All HMC through the dry mill (#9):** the world rule `dry_mill_all_hmc`; each heap and bag of HMC carries what it pays. The
+  chlorinator compat needs a Wildcatter change, written in the answers file under "Wildcatter needs".
+- **gaps2 #2, #3 (#14):** the press's CYCLE is a one-second bit; the paste mixer's LEVEL and DENSITY read its paste hopper.
+- **Ore blocks only (#3):** raw iron, copper and gold and the Wildcatter ores' mined drops were plant feed (a whole block each); now
+  they are refused.
+- **Scenes:** NeoForge `rules_new_world`, `rules_existing_world`, `rules_command`, `raw_ore_refused`, `vent_new_world`, `paste_pace`,
+  `dry_mill_all_hmc`, `dms_floats_belt`, `xrt_reverse`, `gaps_press_cycle_bit`; `gaps_press_points` and `gaps_paste_gauges` changed;
+  the gaps2 rule scenes set the world rule and put it back. The test world is new, so scenes run with the rules on; an older world's
+  scenes (`vent_default_off`, `dry_mill_ladder`, `rules_existing_world`) run in a batch with every rule off (`RulesEnvironment`), and
+  the scenes that turn rules on and off in a batch of their own. **The full suite passes, 177 required tests** (167 before, 10 new);
+  `build` passes. Unit tests added to `DryMillTest`, `XrtSortingTest`, `PasteFillTest`, `AirflowTest`. The Fabric client film
+  `dms_floats_belt` (`TAILINGS_ONLY=dms_floats_belt`).

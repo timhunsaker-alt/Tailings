@@ -17,12 +17,14 @@ Tim. Format as in [README.md](README.md).
   off (or on only for servers that want the hardship). A per-world default could replace the server-wide file (entry 2).
 - **Alternatives:** the spec as written (on for everyone, breaks running drives); on with a long grace (an hour) so players see the
   warning first; readouts only, forever.
+- **Tim (2026-11-10):** a per-world rule, on in new worlds and off in existing ones. Built: `ventilation_interlock` and `stale_air` are world rules (`OptInRules`, `/tailings rule`) (answers-2026-11-10.md #5, #23).
 
 ### 2. A config file, not a gamerule (needs Tim if he wants per-world)
 - **Chosen:** `config/tailings-ventilation.properties`, read once per server run, beside `tailings-train.properties`.
 - **Why:** Tailings has one config file and no gamerule (DESIGN "Config"); this follows the pattern. A test turns the rules on for its
   own machine or player only (`TbmCore.setTestInterlock`, `VentNetwork.TEST_STALE`), so scenes running side by side are not affected.
 - **Alternatives:** a Tailings gamerule (per world, `/gamerule` in game; needs a registration on both loaders); per-world saved data.
+- **Tim (2026-11-10):** per-world. Built: saved with the world, changed by `/tailings rule`; the old file is read once, as a seed, when a world's rules are made (answers-2026-11-10.md #5, #23).
 
 ### 3. The fan's curve
 - **Chosen:** a square-law curve from 3 kPa at shut-off to 25 m³/s in free air, scaled by the fan laws for its motor's speed: 15 m³/s

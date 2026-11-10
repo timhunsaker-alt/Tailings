@@ -29,8 +29,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * part is its spec size with its PLC points.
  */
 final class DmsGameTests {
-	static final String[] SCENES = {"dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_parts"};
-	static final Set<String> LONG = Set.of("dms_split", "dms_density", "dms_medium", "dms_gravel_face");
+	static final String[] SCENES = {"dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_parts", "dms_floats_belt"};
+	static final Set<String> LONG = Set.of("dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_floats_belt");
 	/** The scenes run the DMS parts this many times as fast (as the dry mill's scenes do), so a few tonnes pass in seconds. */
 	private static final int FAST = 20;
 
@@ -43,6 +43,7 @@ final class DmsGameTests {
 		out.accept("dms_medium", DmsGameTests::medium);
 		out.accept("dms_gravel_face", DmsGameTests::gravelFace);
 		out.accept("dms_parts", DmsGameTests::parts);
+		out.accept("dms_floats_belt", DmsGameTests::floatsBelt);
 	}
 
 	private static BlockState belt(Direction.Axis axis) {
@@ -101,6 +102,35 @@ final class DmsGameTests {
 		}
 		rig.water();
 		return rig;
+	}
+
+	/**
+	 * dms_floats_belt: a belt off the floats screen's north end takes the floats as gravel with their rock, back to the plant, so the
+	 * light ores that float at any setting can be recovered (Tim, 2026-11-10, l7-dms.md #4, #11). 2 t of rock salt gravel and 1 t of
+	 * copper ore gravel: 98 % of the salt rides the floats belt as rock salt gravel, none of it is paid out as vanilla gravel; the copper
+	 * ore sinks as before.
+	 */
+	private static void floatsBelt(GameTestHelper helper) {
+		Rig rig = rig(helper, new BlockPos(0, 4, 4), true);
+		for (int k = 1; k <= 3; k++) {
+			helper.setBlock(new BlockPos(0, 4, 4 - k), belt(Direction.Axis.Z));
+		}
+		PlantBlockEntity drive = TailingsGameTests.plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(1, 4, 1));
+		// a chest at the head end, standing for the plant the belt takes the floats back to
+		helper.setBlock(new BlockPos(0, 3, 1), net.minecraft.world.level.block.Blocks.CHEST);
+		drive.forceRunning();
+		drive.fastCycle(FAST);
+		rig.module().receive(gravel(Rock.HALITE, 2000, Rock.COPPER, 1000));
+		helper.succeedWhen(() -> {
+			rig.water();
+			String s = rig.describe() + " | " + drive.inspect().getString();
+			helper.assertTrue(rig.module().hold().isEmpty() && rig.floats().hold().isEmpty(), Component.literal("the module and the floats screen should pass it all" + s));
+			helper.assertTrue(rig.floats().getItem(1).isEmpty() && rig.floats().made().isEmpty(), Component.literal("with a belt there no vanilla gravel is paid" + s));
+			double salt = drive.hold().kg(Rock.HALITE, SizeClass.GRAVEL) + drive.made().kg(Rock.HALITE, SizeClass.GRAVEL);
+			helper.assertTrue(Math.abs(salt - 1960) < 1e-3, Component.literal("98 % of the rock salt should ride the floats belt as rock salt gravel, got " + salt + s));
+			helper.assertTrue(Math.abs(rig.sunk(Rock.COPPER) - 980) < 1e-3, Component.literal("the copper ore sinks as before, got " + rig.sunk(Rock.COPPER) + s));
+			helper.assertTrue(rig.floats().status().contains("back to the plant") || salt > 0, Component.literal(rig.floats().status()));
+		});
 	}
 
 	private static RockLoad gravel(Object... rockKg) {

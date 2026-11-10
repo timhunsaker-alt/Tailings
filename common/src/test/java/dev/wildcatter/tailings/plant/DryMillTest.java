@@ -1,6 +1,7 @@
 package dev.wildcatter.tailings.plant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -94,5 +95,36 @@ class DryMillTest {
 		}
 		assertNull(DryMill.fromHmcKey(Mineral.ZIRCON.mineralItemId()));
 		assertNull(DryMill.fromHmcKey(DryMill.scavengedKey(Mineral.ZIRCON)));
+	}
+
+	@Test
+	void theSpiralBanksShareKeepsItsOwnPayThroughTheLine() {
+		// with dry_mill_all_hmc (Tim, 2026-11-10, l6-dry-mill.md #3) the spirals' 50 % joins the scavengers' 45 % in the dry mill: paid at
+		// 1.0 and 1.11 a kg, the 95 % pays as 100 %, the ladder's 4x
+		HeavyMinerals store = new HeavyMinerals();
+		store.add(Mineral.ZIRCON, 50, 50 * DryMill.PRIMARY_PAY);
+		store.add(Mineral.ZIRCON, 45);
+		store.add(Mineral.ILMENITE, 45);
+		assertEquals(100, store.pay(Mineral.ZIRCON), 1e-9);
+		assertTrue(store.mixedRates());
+		HeavyMinerals back = new HeavyMinerals();
+		back.load(store.save());
+		assertEquals(100, back.pay(Mineral.ZIRCON), 1e-9);
+		assertEquals(50, back.pay(Mineral.ILMENITE), 1e-9);
+		HeavyMinerals half = back.take(70);
+		assertEquals(70, half.total(), 1e-9);
+		assertEquals(back.pay(Mineral.ZIRCON) + half.pay(Mineral.ZIRCON), 100, 1e-9);
+		DryMill.Pass pass = DryMill.separate(Machine.IRM_SEPARATOR, half);
+		assertEquals(half.pay(Mineral.ZIRCON), pass.product().pay(Mineral.ZIRCON), 1e-9);
+		assertEquals(half.pay(Mineral.ILMENITE), pass.rest().pay(Mineral.ILMENITE), 1e-9);
+		HeavyMinerals bag = DryMill.bagged(store);
+		assertTrue(bag != null && Math.abs(bag.rate(Mineral.ZIRCON) - 100.0 / 95) < 1e-6, "a bag keeps its rate");
+		assertEquals(100.0 / 95, store.rate(Mineral.ZIRCON), 1e-9);
+		// with the rule off nothing carries a rate: as before, a kg pays the top rung's 1.11
+		HeavyMinerals plain = new HeavyMinerals();
+		plain.add(Mineral.ZIRCON, 45);
+		assertFalse(plain.mixedRates());
+		assertEquals(plain.save(), "ZIRCON=45.0");
+		assertEquals(45 * DryMill.pay(Mineral.ZIRCON), plain.pay(Mineral.ZIRCON), 1e-9);
 	}
 }

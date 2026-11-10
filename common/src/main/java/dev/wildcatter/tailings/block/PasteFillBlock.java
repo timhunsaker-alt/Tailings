@@ -75,7 +75,7 @@ public class PasteFillBlock extends Block {
 		if (cure >= SET) {
 			return;
 		}
-		// the time its chunk was unloaded, made up only while paste_unloaded_cure is on (off by default; docs/questions/gaps2.md #6)
+		// the time its chunk was unloaded, made up only while the world's paste_unloaded_cure rule is on (on in new worlds; docs/questions/gaps2.md #6)
 		int missed = dev.wildcatter.tailings.OptInRules.on(level.getServer(), dev.wildcatter.tailings.OptInRules.PASTE_UNLOADED_CURE)
 				? dev.wildcatter.tailings.paste.PasteClock.get(level).missedSteps(net.minecraft.world.level.ChunkPos.containing(pos), level.getGameTime())
 				: 0;
@@ -90,8 +90,8 @@ public class PasteFillBlock extends Block {
 	//
 	// A neighbour's change reaches wet paste twice, in this order: neighborChanged names the block that was there, then updateShape
 	// where it was and what is there now. A wall (a solid block that is not paste, a bulkhead or the outlet) gone and open ground in its
-	// place is a breach: the paste spills out of it as out of a broken bulkhead. Only while paste_wall_breach is on in
-	// config/tailings-rules.properties (off by default; docs/questions/gaps2.md #5).
+	// place is a breach: the paste spills out of it as out of a broken bulkhead. Only while the world's paste_wall_breach rule
+	// is on (off by default, even in new worlds; docs/questions/gaps2.md #5).
 
 	private static final java.util.Map<Level, java.util.Map<Long, Long>> WALL_GONE = new java.util.WeakHashMap<>();
 

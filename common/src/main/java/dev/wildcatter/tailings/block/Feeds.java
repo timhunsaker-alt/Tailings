@@ -11,7 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jspecify.annotations.Nullable;
 
-/** Which item is which rock, at which size. Unbroken feed has a null size. */
+/**
+ * Which item is which rock, at which size. Unbroken feed has a null size. Only ore blocks feed the plant (Silk Touch, the TBM, a blast):
+ * raw ore items and an ore's mined drop are the quarter already won, so the plant refuses them (specs-tailings.md X-1).
+ */
 public final class Feeds {
 	public record Charge(Rock rock, @Nullable SizeClass size) {
 	}
@@ -49,13 +52,14 @@ public final class Feeds {
 			return null;
 		}
 		if ("wildcatter".equals(id.getNamespace())) {
+			// ore blocks only (Tim, 2026-11-10; specs-tailings.md X-1): an ore's mined drop (wildcatter:galena, what Fortune multiplies) is
+			// the quarter already won, so it is no plant feed
 			String path = id.getPath();
 			if (path.endsWith("_ore")) {
 				Rock rock = rock(path.substring(0, path.length() - 4));
 				return rock == null || rock.kind() != Rock.Kind.ORE ? null : new Charge(rock, null);
 			}
-			Rock rock = rock(path);
-			return rock == null || rock.kind() != Rock.Kind.ORE ? null : new Charge(rock, SizeClass.SAND);
+			return null;
 		}
 		Rock vanilla = vanillaMetal(id.getPath());
 		if (vanilla != null) {
@@ -86,14 +90,15 @@ public final class Feeds {
 		return new ItemStack(item, count);
 	}
 
+	/** A vanilla metal's ore block; raw iron, copper and gold are no plant feed (Tim, 2026-11-10; specs-tailings.md X-1). */
 	private static @Nullable Rock vanillaMetal(String path) {
-		if (path.equals("iron_ore") || path.equals("deepslate_iron_ore") || path.equals("raw_iron")) {
+		if (path.equals("iron_ore") || path.equals("deepslate_iron_ore")) {
 			return Rock.IRON;
 		}
-		if (path.equals("copper_ore") || path.equals("deepslate_copper_ore") || path.equals("raw_copper")) {
+		if (path.equals("copper_ore") || path.equals("deepslate_copper_ore")) {
 			return Rock.COPPER;
 		}
-		if (path.equals("gold_ore") || path.equals("deepslate_gold_ore") || path.equals("raw_gold")) {
+		if (path.equals("gold_ore") || path.equals("deepslate_gold_ore")) {
 			return Rock.GOLD;
 		}
 		return null;

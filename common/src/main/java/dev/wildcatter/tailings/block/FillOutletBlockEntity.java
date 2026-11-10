@@ -18,13 +18,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The fill outlet (docs/multiblocks/paste-backfill.md, L5): the open end of the fill line inside a void. It reads its void every 5 s
- * ({@link FillVoid}), takes paste from the paste pump on its line while the void is closed and not full, and lets each 2.0 t (a cubic
- * metre) out as a block of wet paste fill in the void's lowest open cell, displacing water.
+ * ({@link FillVoid}), takes paste from the paste pump on its line while the void is closed and not full, and lets each 200 kg out as a
+ * block of wet paste fill in the void's lowest open cell, displacing water: a block stands for {@link PasteFill#FILL_SCALE} cubic metres
+ * of the line's paste, the fill's game pace (l5-paste.md #19).
  */
 public class FillOutletBlockEntity extends BlockEntity implements Inspectable {
 	/** It reads its void every 5 s. */
 	public static final int SCAN_TICKS = 100;
-	/** Paste held in the line's last metre: a cubic metre and its next. */
+	/** Paste held in the line's last metre: 4 t, two cubic metres of the line's paste. */
 	public static final double HOLD_KG = 2 * PasteFill.PASTE_KG_PER_M3;
 
 	private double pasteKg;
@@ -44,16 +45,16 @@ public class FillOutletBlockEntity extends BlockEntity implements Inspectable {
 
 	private void serverTick() {
 		long now = level.getGameTime();
-		if (scan == null || now - scanned >= SCAN_TICKS || (pasteKg >= PasteFill.PASTE_KG_PER_M3 && scan.enclosed() && next >= scan.toFill().length && now - scanned >= 20)) {
+		if (scan == null || now - scanned >= SCAN_TICKS || (pasteKg >= PasteFill.kgPerBlock() - 1e-9 && scan.enclosed() && next >= scan.toFill().length && now - scanned >= 20)) {
 			rescan();
 		}
-		if (pasteKg >= PasteFill.PASTE_KG_PER_M3 && scan != null && scan.enclosed()) {
+		if (pasteKg >= PasteFill.kgPerBlock() - 1e-9 && scan != null && scan.enclosed()) {
 			while (next < scan.toFill().length) {
 				long cell = scan.toFill()[next++];
 				BlockPos at = new BlockPos(FillVoid.x(cell), FillVoid.y(cell), FillVoid.z(cell));
 				if (level.isLoaded(at) && open(level.getBlockState(at))) {
 					level.setBlock(at, TailingsBlocks.PASTE_FILL.defaultBlockState(), Block.UPDATE_ALL);
-					pasteKg -= PasteFill.PASTE_KG_PER_M3;
+					pasteKg = Math.max(0, pasteKg - PasteFill.kgPerBlock());
 					filled++;
 					setChanged();
 					break;

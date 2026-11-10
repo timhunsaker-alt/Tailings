@@ -163,7 +163,17 @@ public final class XrtSorting {
 
 	/** The share of {@code rock}'s kg that the sorter blows to product at {@code step}: 97 % over the threshold, 5 % under it. */
 	public static double productShare(Rock rock, int step) {
-		return over(rock, step) ? 1 - ORE_TO_WASTE : WASTE_TO_PRODUCT;
+		return productShare(rock, step, false);
+	}
+
+	/**
+	 * As {@link #productShare(Rock, int)}; in reverse the ejectors blow the pieces that read under the threshold, for the light ores
+	 * (graphite, magnesite, borax, bauxite) that read under quartz: 97 % of a rock under it to product, 5 % of one over it (Tim,
+	 * 2026-11-10, l8-xrt.md #5). The errors are the ejectors', so they follow the stream blown.
+	 */
+	public static double productShare(Rock rock, int step, boolean reverse) {
+		boolean kept = over(rock, step) != reverse;
+		return kept ? 1 - ORE_TO_WASTE : WASTE_TO_PRODUCT;
 	}
 
 	/** True for what the sorter takes: crushed rock and gravel, inside its 10-125 mm range as the game's classes go; sand and fines not. */
@@ -193,9 +203,14 @@ public final class XrtSorting {
 
 	/** "threshold 2 of 5 (Zeff 12.0)". */
 	public static String describe(int step) {
+		return describe(step, false);
+	}
+
+	/** "threshold 2 of 5 (Zeff 12.0)", and in reverse ", REVERSE: keeps what reads under it". */
+	public static String describe(int step, boolean reverse) {
 		int s = clamp(step);
 		String name = s == 0 ? " LOW" : s == THRESHOLDS.length - 1 ? " HIGH" : "";
-		return String.format(Locale.ROOT, "threshold %d of %d%s (Zeff %.1f)", s + 1, THRESHOLDS.length, name, THRESHOLDS[s]);
+		return String.format(Locale.ROOT, "threshold %d of %d%s (Zeff %.1f)%s", s + 1, THRESHOLDS.length, name, THRESHOLDS[s], reverse ? ", REVERSE: keeps what reads under it" : "");
 	}
 
 	/**
@@ -204,6 +219,8 @@ public final class XrtSorting {
 	 */
 	public static final class State {
 		private int step = DEFAULT_STEP;
+		/** Reverse mode: the ejectors blow what reads under the threshold (off, as built, in a new sorter). */
+		private boolean reverse;
 		private double productKg;
 		private double wasteKg;
 
@@ -211,9 +228,22 @@ public final class XrtSorting {
 			return step;
 		}
 
-		/** The screen's next step, round from HIGH to LOW. */
+		public boolean reverse() {
+			return reverse;
+		}
+
+		public void setReverse(boolean reverse) {
+			this.reverse = reverse;
+		}
+
+		/** The screen's next step: LOW to HIGH, then LOW to HIGH again in reverse, then round. */
 		public int nextStep() {
-			step = (step + 1) % THRESHOLDS.length;
+			if (step + 1 < THRESHOLDS.length) {
+				step++;
+			} else {
+				step = 0;
+				reverse = !reverse;
+			}
 			return step;
 		}
 
@@ -243,13 +273,14 @@ public final class XrtSorting {
 			return (long) Math.floor(wasteKg / 1000 + 1e-9);
 		}
 
-		/** Saved as {@code step|productKg|wasteKg}. */
+		/** Saved as {@code step|productKg|wasteKg}, and {@code |R} in reverse. */
 		public String save() {
-			return step + "|" + productKg + "|" + wasteKg;
+			return step + "|" + productKg + "|" + wasteKg + (reverse ? "|R" : "");
 		}
 
 		public void load(@Nullable String text) {
 			step = DEFAULT_STEP;
+			reverse = false;
 			productKg = 0;
 			wasteKg = 0;
 			if (text == null || text.isBlank()) {
@@ -260,6 +291,7 @@ public final class XrtSorting {
 				step = clamp(Integer.parseInt(part[0]));
 				productKg = part.length > 1 ? Double.parseDouble(part[1]) : 0;
 				wasteKg = part.length > 2 ? Double.parseDouble(part[2]) : 0;
+				reverse = part.length > 3 && "R".equals(part[3]);
 			} catch (NumberFormatException ex) {
 				step = DEFAULT_STEP;
 			}

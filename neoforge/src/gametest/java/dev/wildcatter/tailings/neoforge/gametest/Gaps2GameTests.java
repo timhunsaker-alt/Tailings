@@ -44,7 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class Gaps2GameTests {
 	static final String[] SCENES = {"gaps_fuel_bay_pipe", "gaps_press_points", "gaps_loadout_points", "gaps_paste_gauges", "gaps_headframe_hopper",
-			"gaps_paste_wall_breach", "gaps_paste_catch_up", "gaps_muck_on_paste"};
+			"gaps_paste_wall_breach", "gaps_paste_catch_up", "gaps_muck_on_paste", "gaps_press_cycle_bit"};
 	static final Set<String> LONG = Set.of("gaps_press_points");
 	private static final Map<String, Integer> TICKS = Map.of("gaps_press_points", 1600, "gaps_loadout_points", 1600);
 
@@ -60,6 +60,23 @@ final class Gaps2GameTests {
 		out.accept("gaps_paste_wall_breach", Gaps2GameTests::wallBreach);
 		out.accept("gaps_paste_catch_up", Gaps2GameTests::catchUp);
 		out.accept("gaps_muck_on_paste", Gaps2GameTests::muckOnPaste);
+		out.accept("gaps_press_cycle_bit", Gaps2GameTests::pressCycleBit);
+	}
+
+	/**
+	 * The press's CYCLE as a one-second bit (gaps_press_cycle_bit; Tim, 2026-11-10, gaps2.md #2): on at a cake drop, still on 19 ticks
+	 * later, off after a second, as the hoist's SKIP DUMPED; a PLC counts the drops itself.
+	 */
+	private static void pressCycleBit(GameTestHelper helper) {
+		floor(helper, 0, 12, 0, 0, 0, 12);
+		PlantBlockEntity filter = plant(helper, Machine.TAILINGS_FILTER, new BlockPos(2, 1, 0));
+		helper.assertTrue(!filter.readPoint(6), Component.literal("off before any drop"));
+		filter.countCycle();
+		helper.assertTrue(filter.readPoint(6) && filter.cycles() == 1, Component.literal("on at the drop"));
+		helper.startSequence()
+				.thenExecuteAfter(19, () -> helper.assertTrue(filter.readPoint(6), Component.literal("still on within the second")))
+				.thenExecuteAfter(2, () -> helper.assertTrue(!filter.readPoint(6), Component.literal("off after a second")))
+				.thenSucceed();
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -122,8 +139,8 @@ final class Gaps2GameTests {
 	}
 
 	/**
-	 * The tailings filter's own points (gaps_press_points, P4): CYCLE counts a pulse a cake drop, and FULL is on while a press with
-	 * nowhere to drop its cake holds it. Cycles run 60 times fast.
+	 * The tailings filter's own points (gaps_press_points, P4): CYCLE is on for a second at each cake drop, as the hoist's SKIP DUMPED
+	 * (Tim, 2026-11-10), and FULL is on while a press with nowhere to drop its cake holds it. Cycles run 60 times fast.
 	 */
 	private static void pressPoints(GameTestHelper helper) {
 		floor(helper, 0, 40, 0, 0, 0, 30);
@@ -137,15 +154,17 @@ final class Gaps2GameTests {
 		full.fastCycle(60);
 		full.back().offer(Product.TAILS_SLURRY, 26_000, thickened());
 		helper.assertTrue(filter.points().size() == 8, Component.literal("the press has the motor's six points, CYCLE and FULL: " + filter.points().size()));
-		helper.assertTrue(filter.readPulses(6) == 0 && !filter.readPoint(7), Component.literal("no drops yet, not full"));
+		helper.assertTrue(!filter.readPoint(6) && !filter.readPoint(7) && filter.points().get(6).signal() == dev.wildcatter.control.ControlDevice.Signal.BOOL,
+				Component.literal("no drops yet, not full; CYCLE is a bit"));
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(filter.cycles() == 1, Component.literal("one cycle should drop: " + filter.status())))
 				.thenExecute(() -> {
-					helper.assertTrue(filter.readPulses(6) == 1, Component.literal("CYCLE: a pulse for the drop: " + filter.readPulses(6)));
+					helper.assertTrue(filter.readPoint(6), Component.literal("CYCLE: on for the drop"));
+					helper.assertTrue(filter.readPulses(6) == 0, Component.literal("and no longer a pulse count: " + filter.readPulses(6)));
 					helper.assertTrue(!filter.readPoint(7), Component.literal("its cake went into the bin: not FULL"));
 				})
 				.thenWaitUntil(() -> helper.assertTrue(full.status().startsWith("FULL"), Component.literal("nowhere to drop, it reads FULL: " + full.status())))
-				.thenExecute(() -> helper.assertTrue(full.readPoint(7) && full.readPulses(6) == 1, Component.literal("FULL on, and its drop counted: " + full.readPulses(6))))
+				.thenExecute(() -> helper.assertTrue(full.readPoint(7) && full.cycles() == 1, Component.literal("FULL on, and its drop counted: " + full.cycles())))
 				.thenSucceed();
 	}
 
@@ -178,8 +197,9 @@ final class Gaps2GameTests {
 	}
 
 	/**
-	 * The paste filter's and mixer's slurry gauges (gaps_paste_gauges, L5): LEVEL, FLOW and DENSITY as every slurry part has, reading
-	 * their feed tanks of thickened tails at 60 % solids (1.61 kg/L, from the solids the assay carries).
+	 * The paste filter's and mixer's slurry gauges (gaps_paste_gauges, L5): LEVEL, FLOW and DENSITY as every slurry part has; the
+	 * filter reads its feed tank of thickened tails at 60 % solids (1.61 kg/L, from the solids the assay carries), the mixer its paste
+	 * hopper at 78 % (1.97 kg/L; Tim, 2026-11-10), not its trim.
 	 */
 	private static void pasteGauges(GameTestHelper helper) {
 		floor(helper, 0, 10, 0, 0, 0, 8);
@@ -187,19 +207,24 @@ final class Gaps2GameTests {
 		PlantBlockEntity mixer = plant(helper, Machine.PASTE_MIXER, new BlockPos(5, 1, 0));
 		double hold = SlurryGauge.hold(Machine.PASTE_FILTER);
 		filter.back().offer(Product.TAILS_SLURRY, hold / 2, thickened());
-		mixer.back().offer(Product.TAILS_SLURRY, hold / 4, thickened());
+		mixer.back().offer(Product.TAILS_SLURRY, hold / 2, thickened());   // its trim: not what LEVEL reads
+		mixer.out().offer(Product.TAILS_SLURRY, SlurryGauge.hold(Machine.PASTE_MIXER) / 4,
+				SlurryAssay.of(Map.of(DryStack.SOLIDS_KEY, PasteFill.PASTE_SOLIDS, PasteFill.BINDER_KEY, PasteFill.BINDER)));
 		double sg = PlcScale.density(DryStack.UNDERFLOW_SOLIDS);
+		double pasteSg = PlcScale.density(PasteFill.PASTE_SOLIDS);
 		helper.startSequence()
 				.thenIdle(5)
 				.thenExecute(() -> {
 					for (PlantBlockEntity part : new PlantBlockEntity[] {filter, mixer}) {
 						helper.assertTrue(part.points().size() == 9, Component.literal(part.deviceName() + " has the motor's six points, LEVEL, FLOW and DENSITY: " + part.points().size()));
 						helper.assertTrue(part.points().get(6).name().startsWith("LEVEL") && part.points().get(8).name().startsWith("DENSITY"), Component.literal("in the slurry parts' order"));
-						helper.assertTrue(Math.abs(part.readMa(8) - PlcScale.ma(sg, PlcScale.DENSITY_LOW, PlcScale.DENSITY_HIGH)) < 0.01,
-								Component.literal(part.deviceName() + " DENSITY should read 60 % solids, " + sg + " kg/L: " + part.readMa(8) + " mA; " + part.status()));
 					}
+					helper.assertTrue(Math.abs(filter.readMa(8) - PlcScale.ma(sg, PlcScale.DENSITY_LOW, PlcScale.DENSITY_HIGH)) < 0.01,
+							Component.literal("the filter's DENSITY should read 60 % solids, " + sg + " kg/L: " + filter.readMa(8) + " mA; " + filter.status()));
+					helper.assertTrue(Math.abs(mixer.readMa(8) - PlcScale.ma(pasteSg, PlcScale.DENSITY_LOW, PlcScale.DENSITY_HIGH)) < 0.01,
+							Component.literal("the mixer's DENSITY should read its paste, 78 % solids, " + pasteSg + " kg/L: " + mixer.readMa(8) + " mA; " + mixer.status()));
 					helper.assertTrue(Math.abs(filter.readMa(6) - 12) < 0.05, Component.literal("the filter's tank half full: 12 mA, " + filter.readMa(6) + "; " + filter.status()));
-					helper.assertTrue(Math.abs(mixer.readMa(6) - 8) < 0.05, Component.literal("the mixer's trim a quarter: 8 mA, " + mixer.readMa(6) + "; " + mixer.status()));
+					helper.assertTrue(Math.abs(mixer.readMa(6) - 8) < 0.05, Component.literal("the mixer's paste hopper a quarter full: 8 mA (its trim half full is not read), " + mixer.readMa(6) + "; " + mixer.status()));
 					helper.assertTrue(filter.inspect().getString().contains("slurry level"), Component.literal("its readout gives the gauges: " + filter.inspect().getString()));
 				})
 				.thenSucceed();
@@ -207,8 +232,8 @@ final class Gaps2GameTests {
 
 	/**
 	 * The headframe bin into a hopper under it (gaps_headframe_hopper, L4): with no belt under it, it puts each whole block's worth of
-	 * one rock (2.7 t) into the hopper as that rock's item, at the belt's rate; less than a block stays in the bin. Only with
-	 * {@code headframe_hopper} on (off by default): the scene checks it off, turns it on, and hands it back to the config file.
+	 * one rock (2.7 t) into the hopper as that rock's item, at the belt's rate; less than a block stays in the bin. Only with the world's
+	 * {@code headframe_hopper} rule on (on in new worlds, off in older ones): the scene turns it off, then on, and sets it back.
 	 */
 	private static void headframeHopper(GameTestHelper helper) {
 		floor(helper, 0, 8, 0, 0, 0, 8);
@@ -227,26 +252,27 @@ final class Gaps2GameTests {
 			}
 			return n;
 		};
-		OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, false);
+		boolean was = OptInRules.on(helper.getLevel().getServer(), OptInRules.HEADFRAME_HOPPER);
+		OptInRules.set(helper.getLevel().getServer(), OptInRules.HEADFRAME_HOPPER, false);
 		helper.startSequence()
 				.thenIdle(80)
 				.thenExecute(() -> {
-					helper.assertTrue(granite.getAsInt() == 0 && bin.status().contains("(a belt under it)"), Component.literal("off (the default), a hopper under it takes nothing: "
+					helper.assertTrue(granite.getAsInt() == 0 && bin.status().contains("(a belt under it)"), Component.literal("off (a world from before the rule), a hopper under it takes nothing: "
 							+ granite.getAsInt() + "; " + bin.status()));
-					OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, true);
+					OptInRules.set(helper.getLevel().getServer(), OptInRules.HEADFRAME_HOPPER, true);
 				})
 				.thenWaitUntil(() -> {
 					helper.assertTrue(granite.getAsInt() == 2, Component.literal("on, two blocks of granite into the hopper: " + granite.getAsInt() + "; " + bin.status()));
 					helper.assertTrue(Math.abs(bin.hold().total() - 1000) < 1, Component.literal("a tonne, under a block, stays in the bin: " + bin.hold().total()));
 				})
-				.thenExecute(() -> OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, null))
+				.thenExecute(() -> OptInRules.set(helper.getLevel().getServer(), OptInRules.HEADFRAME_HOPPER, was))
 				.thenSucceed();
 	}
 
 	/**
 	 * A stone wall breached beside wet paste (gaps_paste_wall_breach, L5): a stone changed for cobblestone lets nothing out; a stone
-	 * mined out of the wall lets the wet paste at and above the gap run out of it, as a broken bulkhead does; set paste stays. Only with
-	 * {@code paste_wall_breach} on (off by default): a stone mined out with it off lets nothing out.
+	 * mined out of the wall lets the wet paste at and above the gap run out of it, as a broken bulkhead does; set paste stays. Only with the
+	 * world's {@code paste_wall_breach} rule on (off by default, even in new worlds): a stone mined out with it off lets nothing out.
 	 */
 	private static void wallBreach(GameTestHelper helper) {
 		fill(helper, -8, 1, -14, 34, 1, 18, Blocks.STONE.defaultBlockState());   // the drive floor round the branch
@@ -254,13 +280,14 @@ final class Gaps2GameTests {
 		fill(helper, 1, 2, 1, 6, 2, 4, TailingsBlocks.PASTE_FILL.defaultBlockState().setValue(PasteFillBlock.CURE, PasteFillBlock.SET));
 		fill(helper, 1, 3, 1, 6, 5, 4, TailingsBlocks.PASTE_FILL.defaultBlockState());
 		helper.setBlock(new BlockPos(1, 5, 1), Blocks.AIR);   // the void's last open cell
-		OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, false);
+		boolean was = OptInRules.on(helper.getLevel().getServer(), OptInRules.PASTE_WALL_BREACH);
+		OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_WALL_BREACH, false);
 		helper.startSequence()
 				.thenExecuteAfter(5, () -> helper.getLevel().destroyBlock(helper.absolutePos(new BlockPos(7, 4, 4)), false))
 				.thenExecuteAfter(10, () -> {
 					helper.assertTrue(count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet) == 71, Component.literal("off (the default), a breach lets nothing out: "
 							+ count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet)));
-					OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, true);
+					OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_WALL_BREACH, true);
 					helper.setBlock(new BlockPos(7, 4, 3), Blocks.COBBLESTONE);
 				})
 				.thenExecuteAfter(10, () -> {
@@ -275,7 +302,7 @@ final class Gaps2GameTests {
 					helper.assertTrue(outside >= 40, Component.literal("the wet paste should run out of the gap in the stone: " + outside + " m3 outside, " + inside + " left inside"));
 					helper.assertTrue(inside + outside == 71, Component.literal("no paste is lost or made: " + (inside + outside)));
 					helper.assertTrue(set == 24, Component.literal("set paste stays: " + set));
-					OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, null);
+					OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_WALL_BREACH, was);
 				})
 				.thenSucceed();
 	}
@@ -283,7 +310,7 @@ final class Gaps2GameTests {
 	/**
 	 * Paste makes up the time its chunk was unloaded (gaps_paste_catch_up, L5): with its chunk's paste last stepped five steps ago, the
 	 * next step is the missed four and its own, and so for each wet block in the chunk within a step; a chunk with no record yet (an
-	 * existing world's paste) steps once. Only with {@code paste_unloaded_cure} on (off by default): off, it steps once.
+	 * existing world's paste) steps once. Only with the world's {@code paste_unloaded_cure} rule on (on in new worlds): off, it steps once.
 	 */
 	private static void catchUp(GameTestHelper helper) {
 		fill(helper, 0, 1, 0, 6, 1, 6, Blocks.STONE.defaultBlockState());
@@ -297,12 +324,13 @@ final class Gaps2GameTests {
 		long now = level.getGameTime();
 		long step = PasteFill.cureStepTicks();
 		helper.assertTrue(new PasteClock().missedSteps(chunk, now) == 0, Component.literal("a chunk with no record makes up nothing"));
-		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, false);
+		boolean was = OptInRules.on(helper.getLevel().getServer(), OptInRules.PASTE_UNLOADED_CURE);
+		OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_UNLOADED_CURE, false);
 		PasteClock.get(level).backdate(chunk, now, 5 * step);
 		level.getBlockState(absA).tick(level, absA, level.getRandom());
-		helper.assertTrue(level.getBlockState(absA).getValue(PasteFillBlock.CURE) == 1, Component.literal("off (the default), one step only: " + level.getBlockState(absA)));
+		helper.assertTrue(level.getBlockState(absA).getValue(PasteFillBlock.CURE) == 1, Component.literal("off (a world from before the rule), one step only: " + level.getBlockState(absA)));
 		helper.setBlock(a, TailingsBlocks.PASTE_FILL);
-		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, true);
+		OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_UNLOADED_CURE, true);
 		PasteClock.get(level).backdate(chunk, now, 5 * step);
 		level.getBlockState(absA).tick(level, absA, level.getRandom());
 		helper.assertTrue(level.getBlockState(absA).getValue(PasteFillBlock.CURE) == 5, Component.literal("four steps missed and its own: " + level.getBlockState(absA)));
@@ -311,7 +339,7 @@ final class Gaps2GameTests {
 		PasteClock.get(level).backdate(chunk, now, 20 * step);
 		level.getBlockState(absB).tick(level, absB, level.getRandom());
 		helper.assertTrue(PasteFillBlock.set(level.getBlockState(absB)), Component.literal("a long time unloaded, it sets: " + level.getBlockState(absB)));
-		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, null);
+		OptInRules.set(helper.getLevel().getServer(), OptInRules.PASTE_UNLOADED_CURE, was);
 		helper.succeed();
 	}
 

@@ -234,13 +234,13 @@ Built while Tim was away on the draft spec [multiblocks/ventilation.md](multiblo
 [questions/l1-ventilation.md](questions/l1-ventilation.md). The `vent_fan` (75 kW) blows through `vent_duct` laid like pipe, with
 `booster_fan`s (30 kW) for long drives; the TBM's reel gantry takes a `vent_duct_cassette` and pays duct out as it advances; the cab,
 the junction's AIR AT BACK-UP and the `gas_detector` read the air (10.8 m³/s, 0.3 m/s, needed) and RADON in tuff and sandstone.
-**The interlock (NO VENTILATION) and stale air's effects are off unless `config/tailings-ventilation.properties` turns them on**, so
-existing drives run as before (questions #1, #2 for Tim). NeoForge scenes `vent_fresh`, `vent_cassette`, `vent_stale_player`,
-`vent_booster`, `vent_default_off`, `vent_parts`; unit tests `AirflowTest`.
+**The interlock (NO VENTILATION) and stale air's effects are world rules, on in new worlds and off in existing ones** (Tim,
+2026-11-10; questions #1, #2), so existing drives run as before. NeoForge scenes `vent_fresh`, `vent_cassette`, `vent_stale_player`,
+`vent_booster`, `vent_default_off`, `vent_parts`, `vent_new_world`; unit tests `AirflowTest`.
 - **Left out, planned (the spec's "Left out"):** a network solver (Hardy Cross), return airways, regulators and doors; a shaft as the
   return airway (with L4, shaft-and-hoist.md, Later); heat from the rock at depth and refrigeration; real gases (methane, blasting
   fumes, diesel particulate) and the diesel rule (0.06 m³/s a kW) for when a diesel machine goes below; the battery bay's hydrogen
-  (L2). A per-world rule in place of the config file (questions #2).
+  (L2).
 ## Later — L4: the shaft and hoist (2026-11-09)
 
 Built while Tim was away on the draft spec [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md), decisions in
@@ -264,7 +264,8 @@ Built while Tim was away on the draft spec [multiblocks/paste-backfill.md](multi
 m³, its openings closed with `fill_bulkhead`s), where it lands as wet `paste_fill`, lowest first, and sets in a game day. A broken
 bulkhead lets the wet paste run out. Reads NO FEED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE; PLC FLOW and PRESSURE on the pump.
 NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
-`paste_line_pressure`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`.
+`paste_line_pressure`, `paste_pace`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`. Since Tim's answers
+(2026-11-10) a placed block stands for 10 m³ of paste: a 360 m³ branch fills in about an hour.
 - **Left out, planned (the spec's "Left out"):** uncemented hydraulic and rock fill; fill strength and exposing a fill wall; boreholes
   and their wear; paste rheology; a real cement kiln (cement is a crafted placeholder).
 ## Later — L6: the dry mill (2026-11-10)
@@ -275,9 +276,12 @@ another 45 % of ilmenite, rutile, zircon, monazite and cassiterite to heavy mine
 it to a gas-fired `fluid_bed_dryer` touching it (or bags it, `heavy_mineral_concentrate`, 100 kg with its assay); the dryer feeds the
 `rer_separator` (ilmenite), the `ht_roll_separator` (rutile, cassiterite) and the `irm_separator` (monazite, and zircon), each paying
 its minerals at the top rung's rate: 50 + 45 = 95 %, the 4x, by the real route. The leach's exception stays for a plant without them.
-Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`,
-`dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client film `dry_mill`.
-- **Proposed, not built:** Wildcatter's chlorinator taking Tailings' `zircon_concentrate` (L6-3; questions #14).
+Existing plants pay as before. Since Tim's answers (2026-11-10) the world rule `dry_mill_all_hmc` (on in new worlds) sends the spiral
+bank's share through the dry mill too, where a dryer touches the filter. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`,
+`dry_mill_all_hmc`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client
+film `dry_mill`.
+- **Waits on Wildcatter:** its chlorinator taking Tailings' `zircon_concentrate` (Tim said yes, L6-3; questions #14). Wildcatter has
+  no tag or API for it; what it needs is in questions/answers-2026-11-10.md, "Wildcatter needs".
 - **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
   ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
 
@@ -289,12 +293,14 @@ a `deslime_screen` washes the fines off the gravel into a `dms_cyclone_module`, 
 ferrosilicon medium (default SG 2.75, 2.6-3.3): the floats leave through a `drain_rinse_screen` as vanilla gravel, a block for 1.9 t,
 their minerals with them; the sinks go on through a second one to the cone. A `medium_recovery` makes up the ferrosilicon lost, 0.3 kg
 a tonne; `ferrosilicon` is a 25 kg bag with a placeholder recipe. 2 % each way goes wrong. Existing plants run as before. NeoForge
-scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; unit tests `DenseMediumTest`; the client film `dms`.
-- **Questions for Tim:** the light ores float at any setting (#4); the sinks go round again, about 3 % of an ore block lost (#5); the
-  ferrosilicon recipe (#8).
+scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`, `dms_floats_belt`; unit tests `DenseMediumTest`;
+the client films `dms` and `dms_floats_belt`. Since Tim's answers (2026-11-10) the floats can ride a belt off the floats screen's north
+end, back to the plant, so the light ores can be recovered.
+- **Waits on Wildcatter 0.7.0:** the medium made from Wildcatter's ferrosilicon bag (FeSi 75 and iron to FeSi 15; Tim, #8); the
+  placeholder recipe stays until Wildcatter's Phase 17 is released.
 - **Left out, planned (the spec's "Left out"):** a DMS drum for coarser feed; real partition curves and near-gravity material; coal
   washing and diamond recovery (X-2); medium viscosity and contamination by slimes; a starting charge of medium; a screen for the
-  setting and a PLC setpoint; floats on a belt.
+  setting and a PLC setpoint.
 ## Later — L8: the X-ray ore sorter (2026-11-10)
 
 Built while Tim was away on the draft spec [multiblocks/xrt-ore-sorter.md](multiblocks/xrt-ore-sorter.md), decisions in
@@ -303,10 +309,27 @@ atomic number from the real formulas of the minerals its rock holds and splits c
 (five steps, set by a sneaking click or the PLC's 4-20 mA THRESHOLD) to product, under it to waste, with 3 % and 5 % misplaced; 250
 t/h on crushed rock. Its own 160 kW `sorter_compressor` gives the ejectors air; without it, NO AIR, and it stops. PRODUCT and WASTE pulse
 a tonne each. The dump sorter is unchanged. NeoForge scenes `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; unit
-tests `XrtSortingTest`; the client film `xrt`.
-- **Not built:** the spec's sizing screen (questions/l8-xrt.md, 8); a reverse mode that ejects light pieces (5, a question).
+tests `XrtSortingTest`; the client film `xrt`. Since Tim's answers (2026-11-10) a reverse mode keeps what reads under the threshold
+(the sneaking click, or the PLC's REVERSE); scene `xrt_reverse`.
+- **Not built:** the spec's sizing screen (questions/l8-xrt.md, 8).
 - **Left out, planned (the spec's "Left out"):** other sensors (optical, laser, NIR, X-ray fluorescence and luminescence for diamonds);
   a grade spread inside one rock; dust extraction.
+
+## Tim's answers (2026-11-10)
+
+Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answers-2026-11-10.md), each entry marked there:
+- **World rules (#5, #23):** `OptInRules`, saved with the world and set by `/tailings rule`, replace the two config files:
+  `ventilation_interlock`, `stale_air`, `headframe_hopper`, `paste_unloaded_cure`, `dry_mill_all_hmc` on in new worlds,
+  `paste_wall_breach` off; every rule off in a world saved before them. Scenes `rules_new_world`, `rules_existing_world`,
+  `rules_command`, `vent_new_world`; the scenes of an older world run in their own batch with the rules off.
+- **Paste pace (#6):** a placed block stands for 10 m³; scene `paste_pace`.
+- **DMS floats on a belt (#7):** scene `dms_floats_belt`, client film `dms_floats_belt`. The ferrosilicon placeholder stays until
+  Wildcatter 0.7.0.
+- **XRT reverse (#8):** scene `xrt_reverse`.
+- **All HMC through the dry mill (#9):** scene `dry_mill_all_hmc`. The chlorinator compat waits on Wildcatter (see "Wildcatter needs").
+- **gaps2 #2, #3 (#14):** the press's CYCLE is a one-second bit; the paste mixer's gauges read its paste hopper. Scenes
+  `gaps_press_cycle_bit`, `gaps_press_points`, `gaps_paste_gauges`.
+- **Ore blocks only (#3):** raw iron, copper and gold and every Wildcatter ore's mined drop are no plant feed; scene `raw_ore_refused`.
 
 ## Later, not scheduled
 
@@ -323,12 +346,14 @@ tests `XrtSortingTest`; the client film `xrt`.
 
 ## Known gaps and stand-ins
 
-- **Ferrosilicon is a crafted placeholder (L7):** 4 bags of 25 kg from an iron ingot, a sand and a metallurgical coke, until
-  Wildcatter's ferroalloy plant makes it (questions/l7-dms.md, 8).
+- **Ferrosilicon is a crafted placeholder (L7):** 4 bags of 25 kg from an iron ingot, a sand and a metallurgical coke. Tim
+  (2026-11-10): make it from Wildcatter's ferrosilicon bag (FeSi 75 and iron to FeSi 15) once that is released; that waits for
+  Wildcatter 0.7.0 (Phase 17) (questions/l7-dms.md, 8).
 - **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).
 - **The medium is set by clicks (L7):** no screen and no PLC setpoint; the PLC reads it (questions/l7-dms.md, 10).
-- **Floats leave by hopper or hand only (L7):** not on a belt; on a belt the light ores, which float at any setting, would go round to
-  the plant, so it waits on l7-dms.md 4 (questions/l7-dms.md, 11; gaps2.md, 8).
+- **Floats on a belt are rock again (L7):** with a belt off the floats screen they go back to the plant as gravel with their rock;
+  a belt that runs them straight back to the DMS only floats them again; the player routes them past it, to the cone or the mill
+  (questions/l7-dms.md, 11).
 - **DMS sinks go round again (L7):** through the cone, the screen and the DMS, losing 2 % a pass (questions/l7-dms.md, 5).
 - **A flat 2 % misplacement (L7):** no partition curve; a whole block floats or sinks as one (questions/l7-dms.md, 6).
 - **No new L7 sounds:** the screens use the vibrating screen, the module the slurry rush, the recovery Wildcatter's motor hum.
@@ -339,15 +364,15 @@ tests `XrtSortingTest`; the client film `xrt`.
   in its assay. A `PASTE` product is proposed for Wildcatter.
 - **A paste spill happens in one tick (L5):** a broken bulkhead (or, with `paste_wall_breach` on, a breached wall) lets the wet paste out at once, not over several
   ticks (questions/l5-paste.md, 14).
-- **Paste fills at the real rate (L5):** a 360 m³ branch takes about 11 hours of play (questions/l5-paste.md, 19).
+- **Paste fills at a game pace (L5):** a placed block stands for 10 m³ of the line's paste, so a 360 m³ branch fills in about an hour
+  of play, not the real 11; cement per block of void is a tenth of the real (questions/l5-paste.md, 19).
 - **No new L5 sounds:** the filter and pump use Wildcatter's motor hum, the mixer the agitator; paste sounds as mud.
-- **Three gaps2 fixes are off by default (L4, L5):** in `config/tailings-rules.properties`, `headframe_hopper` (the headframe bin
-  feeds a hopper under it), `paste_wall_breach` (a solid wall removed beside wet paste spills it) and `paste_unloaded_cure` (paste
-  makes up the time its chunk was unloaded). Off, a hopper under the bin takes nothing, only a broken bulkhead spills paste, and paste
-  does not cure while its chunk is unloaded. Whether each defaults on waits on Tim (questions/gaps2.md, 4 to 6).
+- **World rules (Tim, 2026-11-10):** `ventilation_interlock`, `stale_air`, `headframe_hopper`, `paste_unloaded_cure` and
+  `dry_mill_all_hmc` are on in new worlds and off in worlds saved before them; `paste_wall_breach` is off in every world until set
+  (`/tailings rule`). A world is new when its game time is 0 and it holds no Tailings data when its rules are made; a world created
+  before this version and never ticked would count as new. The old `config/tailings-rules.properties` and
+  `config/tailings-ventilation.properties` are read once, as a seed, when a world's rules are made, then never again.
 
-- **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
-  1 and 2); until then ventilation is readings only.
 - **The duct is drawn a metre round (L1):** the real 1.4 m does not fit a block; its friction is worked at 1.4 m.
 - **A duct line is one line (L1):** at a branch the farther end gets the air; the rest is not counted.
 - **No new L1 sounds:** the fans use Wildcatter's fan loop.
@@ -378,8 +403,8 @@ tests `XrtSortingTest`; the client film `xrt`.
 - **No new L6 sounds:** the dryer uses Wildcatter's fan, the separators its motor hum.
 - **Every piece of one rock reads the same (L8):** the X-ray sorter's 3 % and 5 % errors stand in for the real spread inside a rock
   (questions/l8-xrt.md, 4).
-- **Light ores go to waste at the X-ray sorter (L8):** graphite, magnesite, borax, bauxite, spodumene and bentonite read under quartz;
-  there is no reverse mode, and the platinum reef's platinum cannot be seen (questions/l8-xrt.md, 5).
+- **Light ores need the X-ray sorter in reverse (L8):** graphite, magnesite, borax, bauxite, spodumene and bentonite read under quartz,
+  so at a normal step they go to waste; LOW in reverse keeps them. The platinum reef's platinum cannot be seen (questions/l8-xrt.md, 5).
 - **The X-ray sorter's air is a running compressor, not a pressure (L8):** its own 160 kW compressor touching it, not Wildcatter's
   instrument air, which has no flow model (questions/l8-xrt.md, 6).
 - **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
@@ -442,6 +467,8 @@ tests `XrtSortingTest`; the client film `xrt`.
 - **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel; the screen's gravel face takes 35 % of crushed (plant-gaps); an ingot counts 100 kg of metal in the assay (plant-gaps).
 - **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron. No release yet, so still kept (docs/questions/tbm-gaps.md 8).
 - **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in, on track not joined to the first. Past the limit the track is dead and says so: the rectifier's readout, a stopped train's status and a chat line to players near it ("TRACK TOO LONG"). A line split by unloaded chunks loses its far end until they load.
+- **The client films ran before the world rules (answers):** the Fabric client scenes make a new world, so the rules are on in them;
+  only `dms_floats_belt` was filmed since. A film whose TBM runs over a minute with no fan would now stop NO VENTILATION.
 - **Train damage is a config file, not a gamerule.** `config/tailings-train.properties`. Missing file means damage is on and the amount is 8.
 - **Couplings never break (R5a).** Decided with Tim: a loaded 10-car train would need about 215 kN on the 1-in-2 decline. Breaking couplings and cut cars rolling back wait.
 - **Sound levels are not tuned by ear (R8).** The volumes in `sound.md` were set from the files' levels. The tests prove each sound starts, not how it sounds together. The films have no audio: `screencapture` can only record a microphone.
@@ -467,5 +494,9 @@ Other stand-ins worth knowing:
 5. Haulage is Tailings mine rail and mine cars, not vanilla minecarts. Decided 2026-11-02.
 6. Chunk loading is a ticket on the drill and on each train. Decided 2026-11-03; since R1 (2026-11-05) it is one `tailings:runner` ticket that times out on its own.
 7. Packaging is its own jar that requires Wildcatter. Decided 2026-11-02.
+8. Only ore blocks feed the plant (Silk Touch, the TBM, blasting); raw ore items and mined drops get no plant value. Fortune and Silk
+   Touch stay as vanilla has them. Diamonds stay vanilla. Decided 2026-11-10 (answers #3, #4).
+9. A rule that changes how an existing world plays is a per-world rule, on in new worlds and off in existing ones, changeable by
+   command. Decided 2026-11-10 (answers #23).
 
-Still open, from the specs: whether Fortune and Silk Touch stay; which extra vanilla ores (redstone, lapis) join the ladder.
+Still open, from the specs: which extra vanilla ores (redstone, lapis) join the ladder.

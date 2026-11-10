@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * cement, the whole plant from thickened tails to placed paste, and line pressure.
  */
 final class PasteGameTests {
-	static final String[] SCENES = {"paste_fill_void", "paste_not_enclosed", "paste_cure", "paste_bulkhead_fail", "paste_no_cement", "paste_plant", "paste_line_pressure"};
+	static final String[] SCENES = {"paste_fill_void", "paste_not_enclosed", "paste_cure", "paste_bulkhead_fail", "paste_no_cement", "paste_plant", "paste_line_pressure", "paste_pace"};
 	static final Set<String> LONG = Set.of("paste_fill_void", "paste_plant");
 	private static final Map<String, Integer> TICKS = Map.of("paste_plant", 2400);
 
@@ -44,6 +44,7 @@ final class PasteGameTests {
 		out.accept("paste_no_cement", PasteGameTests::noCement);
 		out.accept("paste_plant", PasteGameTests::plant);
 		out.accept("paste_line_pressure", PasteGameTests::linePressure);
+		out.accept("paste_pace", PasteGameTests::pace);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -103,7 +104,7 @@ final class PasteGameTests {
 
 	/**
 	 * A bulkheaded 10 x 6 x 6 drive branch fills from the bottom up and reads FULL (paste_fill_void): paste is handed to the outlet a
-	 * cubic metre a tick; no layer takes paste before the one under it is full.
+	 * block's worth a tick; no layer takes paste before the one under it is full.
 	 */
 	private static void fillVoid(GameTestHelper helper) {
 		branch(helper, 1, 2, 1, 10, 7, 6, true);
@@ -111,7 +112,7 @@ final class PasteGameTests {
 		FillOutletBlockEntity outlet = outlet(helper, new BlockPos(1, 7, 1));
 		boolean[] order = {true};
 		helper.onEachTick(() -> {
-			outlet.receive(PasteFill.PASTE_KG_PER_M3);
+			outlet.receive(PasteFill.kgPerBlock());
 			for (int y = 3; y <= 7; y++) {
 				int above = count(helper, 1, y, 1, 10, y, 6, PasteFillBlock::wet);
 				int below = count(helper, 1, y - 1, 1, 10, y - 1, 6, PasteFillBlock::wet);
@@ -265,6 +266,27 @@ final class PasteGameTests {
 			helper.assertTrue(flow[0] > 4.5 && pressure[0] > 4.0, Component.literal("FLOW and PRESSURE should read: " + flow[0] + " mA, " + pressure[0] + " mA"));
 			helper.assertTrue(pump.points().size() == 8, Component.literal("the pump has the motor's six points, FLOW and PRESSURE"));
 		});
+	}
+
+	/**
+	 * The fill's pace (paste_pace; Tim, 2026-11-10, l5-paste.md #19): a cubic metre of the line's paste, 2.0 t, fills ten blocks of the
+	 * void, so the pump's 35 m3/h fills a 360 m3 drive branch in about an hour, not eleven; each block still takes a game day to set.
+	 */
+	private static void pace(GameTestHelper helper) {
+		branch(helper, 1, 2, 1, 10, 7, 6, true);
+		fill(helper, 11, 2, 1, 11, 7, 6, TailingsBlocks.FILL_BULKHEAD.defaultBlockState());
+		FillOutletBlockEntity outlet = outlet(helper, new BlockPos(1, 7, 1));
+		helper.assertTrue(Math.abs(PasteFill.hoursToFill(360) - 1.03) < 0.01, Component.literal("360 m3 in about an hour at the pump's rating: " + PasteFill.hoursToFill(360) + " h"));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(outlet.accepting(), Component.literal("the outlet reads its closed void: " + outlet.status())))
+				.thenExecute(() -> helper.assertTrue(outlet.receive(PasteFill.PASTE_KG_PER_M3) == PasteFill.PASTE_KG_PER_M3, Component.literal("it takes a cubic metre of paste")))
+				.thenExecuteAfter(40, () -> {
+					helper.assertTrue(outlet.filled() == PasteFill.FILL_SCALE, Component.literal("a cubic metre of paste fills ten blocks: " + outlet.filled() + "; " + outlet.status()));
+					int wet = count(helper, 1, 2, 1, 10, 7, 6, PasteFillBlock::wet);
+					helper.assertTrue(wet == PasteFill.FILL_SCALE, Component.literal("ten wet blocks on the void's floor: " + wet));
+					helper.assertTrue(PasteFill.cureStepTicks() * PasteFill.CURE_STEPS == 24_000, Component.literal("the cure stays a game day"));
+				})
+				.thenSucceed();
 	}
 
 	/** Over 1 km of fill line (1,100 m of pipe) the pump reads LINE PRESSURE and pushes nothing (paste_line_pressure). */

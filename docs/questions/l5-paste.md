@@ -143,6 +143,7 @@ existing world (#22).
 - **Why:** real paste fill runs for weeks to fill a stope; the spec's rates are real.
 - **Alternatives:** count each placed block as more than a cubic metre, or a faster pump for the game. Your call: as built it is a
   long, background use of the tails, which is what it is in a real mine.
+- **Tim (2026-11-10):** scale filling 10x, about an hour for a 360 m³ branch; the cure stays a game day. Built: a placed block stands for 10 m³ of the line's paste (`PasteFill.FILL_SCALE`) (answers-2026-11-10.md #6).
 
 ### 20. Paste is not stopped by what it buries
 - **Chosen:** the outlet places paste only in air and water; it does not break blocks, kill mobs or move items in the void. A player

@@ -52,6 +52,11 @@ public final class TailingsNeoForge {
 				dev.wildcatter.tailings.block.VentNetwork.tickPlayers(level);
 			}
 		});
+		// the world's rules (OptInRules): made at server start, before the first tick, and changed by /tailings rule
+		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.server.ServerStartedEvent.class,
+				event -> dev.wildcatter.tailings.OptInRules.serverStarted(event.getServer()));
+		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.RegisterCommandsEvent.class,
+				event -> dev.wildcatter.tailings.TailingsCommands.register(event.getDispatcher()));
 		if (FMLEnvironment.getDist() == Dist.CLIENT) {
 			dev.wildcatter.tailings.neoforge.client.TailingsNeoForgeClient.init(modBus);
 		}

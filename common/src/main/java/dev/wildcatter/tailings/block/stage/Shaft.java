@@ -185,7 +185,7 @@ public final class Shaft {
 
 	/**
 	 * A vanilla container (a hopper, a chest) under the bin's bottom, for a bin with no belt under it, while
-	 * {@code headframe_hopper} is on in {@code config/tailings-rules.properties} (off by default; docs/questions/gaps2.md #4); never a
+	 * the world's {@code headframe_hopper} rule is on (on in new worlds; docs/questions/gaps2.md #4); never a
 	 * plant part.
 	 */
 	private static net.minecraft.world.@Nullable Container container(PlantBlockEntity part) {

@@ -19,7 +19,9 @@ Vanilla iron, copper, and gold hold four ingots in the rock list, so plain smelt
 
 ## Rock and the size ladder
 
-`rock.Rock` is every feed. `rock.SizeClass` is `crushed`, `gravel`, `sand`, `fines`. The item id is `tailings:<size>_<rock>`, for example `tailings:sand_granite`. Fines are made only by the ball mill. The stamp mill and the jaw make crushed rock from a whole block. The hand screen, the double-deck screen, and the cone move crushed rock to gravel and gravel to sand. Sand does not become fines on a screen.
+`rock.Rock` is every feed. Only ore blocks feed the plant (Silk Touch, the TBM, a blast): raw iron, copper and gold, and every
+Wildcatter ore's mined drop (`wildcatter:galena` and the rest, what Fortune multiplies), are no plant feed (`block.Feeds`; Tim,
+2026-11-10, questions/specs-tailings.md X-1). `rock.SizeClass` is `crushed`, `gravel`, `sand`, `fines`. The item id is `tailings:<size>_<rock>`, for example `tailings:sand_granite`. Fines are made only by the ball mill. The stamp mill and the jaw make crushed rock from a whole block. The hand screen, the double-deck screen, and the cone move crushed rock to gravel and gravel to sand. Sand does not become fines on a screen.
 
 Country-rock traces are fixed kilograms, crustal abundance times the same tenfold game factor Wildcatter uses. Granite's zircon is 8 kg, matching the crushing-circuit spec. Ore blocks hold `Mineral.blockAmount()` (density in t/m³ × 1000 × the game grade). Vanilla metals hold 4 ingots.
 
@@ -148,10 +150,10 @@ The parts' recipes are placeholders: eight iron ingots around a copper ingot; th
 
 Spec: [multiblocks/ventilation.md](multiblocks/ventilation.md) (draft, decided on recommendation); decisions in
 [questions/l1-ventilation.md](questions/l1-ventilation.md). The figures are in `mine.Airflow` (unit-tested in `AirflowTest`).
-- **Off by default:** nothing stops or harms anything unless `config/tailings-ventilation.properties` says so (`mine.VentRules`):
-  `interlock=true` stops a TBM after 60 s with no duct air at its back-up, NO VENTILATION (it holds, and drives on when the air is back);
-  `stale_air=true` gives a player in a drive's stale air Mining Fatigue I after 30 s and Weakness I after 2 minutes, cleared after 5 s of
-  fresh air. Off, both are readings only.
+- **World rules, on in new worlds** (`OptInRules`, see "World rules"): `ventilation_interlock` stops a TBM after 60 s with no duct
+  air at its back-up, NO VENTILATION (it holds, and drives on when the air is back); `stale_air` gives a player in a drive's stale air
+  Mining Fatigue I after 30 s and Weakness I after 2 minutes, cleared after 5 s of fresh air. Off (a world saved before them), both
+  are readings only.
 - **The air:** the bore needs 0.3 m/s over its 36 m², 10.8 m³/s. The `vent_fan` (3 x 3 x 5, 75 kW, a plant part on the industrial
   tier, `block.stage.Vent`) runs whenever its motor may and once a second reads its duct out of its south face (`VentNetwork.read`):
   `vent_duct` blocks, joined like pipe, and any `booster_fan` (2 x 2 x 3, 30 kW) the duct enters at its north face. The fans' curves
@@ -424,7 +426,8 @@ building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The f
   for 5, 8 or 10 % (level never steps); RAISED takes nothing. Pushing or cutting it goes 3.5 km/h and burns at 80 % power.
   Reversing with a load leaves it in front. At a crest it stops and pushes its load over. Along a crest (2 to 5 m to its side) with a
   load it drops a berm 1 or 2 high at a block a metre. Hard rock in its blade's rows stops it: "hard rock: blast it first".
-- **PLC (gaps2):** the tailings filter adds to the motor's six CYCLE (a pulse counter, a pulse each cake drop) and FULL (holding cake
+- **PLC (gaps2):** the tailings filter adds to the motor's six CYCLE (on for a second at each cake drop, as the hoist's SKIP DUMPED;
+  Tim, 2026-11-10) and FULL (holding cake
   with nowhere to drop it); the load-out frame adds LEVEL (4-20 mA over the bin's 400 t), FULL (the bin's FULL) and LOADING (the gate
   filling a truck).
 - **Models:** the four parts are drawn in Wildcatter's materials (`tools/models/pit.py`); the dozer's model and skin come from
@@ -454,8 +457,8 @@ are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft
   60 s as every plant motor; without it the brakes hold the skips where they are (STOPPED). A 150 m shaft lifts about 270 t/h.
 - **The flask:** the apron feeder whose tail end touches it (and no ore sorter) drops a rock item's 2.7 t into its surge when the surge is
   empty, once a second; it fills from the surge at 300 kg/s to exactly 3 t. It takes nothing by hand or hopper.
-- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate. With no belt, and `headframe_hopper` on
-  (off by default), a hopper or chest under its bottom takes it as items (gaps2): each whole block's worth (2.7 t) of one rock and size as its item, one each 65 s (the belt's
+- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate. With no belt, and the world rule `headframe_hopper` on
+  (on in new worlds), a hopper or chest under its bottom takes it as items (gaps2): each whole block's worth (2.7 t) of one rock and size as its item, one each 65 s (the belt's
   rate); less than a block stays in the bin.
 - **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
 - **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
@@ -480,22 +483,25 @@ the stages are `block.stage.Paste`.
   `fill_outlet` on it, then pushes paste straight into the outlet while the outlet's void is closed and not full. The line's pressure
   is 8 kPa a metre of pipe less 19.6 kPa a metre the outlet is below the pump; past 8 MPa it reads LINE PRESSURE. NO OUTLET without
   one. PLC: the motor's six points, FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa). The filter and mixer have the
-  slurry parts' LEVEL, FLOW and DENSITY on their feed tank (the filter's feed, the mixer's trim; gaps2).
+  slurry parts' LEVEL, FLOW and DENSITY: the filter's on its feed tank of thickened tails, the mixer's on its 2 t paste hopper (gaps2;
+  Tim, 2026-11-10).
 - **The fill outlet** (`fill_outlet`): reads its void every 5 s and when clicked: every cell it reaches through air, water and paste,
   any other block a wall. NOT ENCLOSED if a cell is open to the sky (at or above its column's surface height), the void runs into
-  unloaded ground, or it is over 20,000 cells. It holds 4 t of paste; each 2.0 t becomes a block of wet `paste_fill` in the void's
-  lowest open cell no higher than the outlet (on one level the nearest first), displacing water; FULL when none is left. Its readout:
+  unloaded ground, or it is over 20,000 cells. It holds 4 t of paste; each 200 kg becomes a block of wet `paste_fill` in the void's
+  lowest open cell no higher than the outlet (on one level the nearest first), displacing water; FULL when none is left. **The pace**
+  (Tim, 2026-11-10): a placed block stands for 10 m³ of the line's paste (`PasteFill.FILL_SCALE`), so the pump's 35 m³/h fills a 360 m³
+  drive branch in about an hour; everything up the line runs at its real rate. Its readout:
   the void's m³, open, wet and set, and the m³ it has placed.
 - **Paste fill** (`paste_fill`, no item): wet when placed (`cure` 0-7): no collision, it slows what wades in it (half speed across, 40 %
   down), does not suffocate. A scheduled step every 3,000 ticks; the eighth (one game day) sets it (`cure` 8): a solid block, mined by
-  pickaxe or shovel. It drops nothing either way. With `paste_unloaded_cure` on (off by default), time its chunk spends unloaded is
+  pickaxe or shovel. It drops nothing either way. With the world rule `paste_unloaded_cure` on (on in new worlds), time its chunk spends unloaded is
   made up (gaps2, `paste.PasteClock`): each chunk's
   last step is kept per dimension, and a gap longer than a step gives each wet block in the chunk the missed whole steps on its first
   step back. A chunk with no record yet (paste from before the rule was on) makes up nothing until it has one.
 - **The fill bulkhead** (`fill_bulkhead`): a metre of shotcrete barricade, a wall to the void like any block. Removed by any means with
   wet paste touching the gap, the wet paste joined to it at or above the gap's floor (all of it, for a gap under it) runs out at once,
-  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays. **A breached wall** (gaps2, with
-  `paste_wall_breach` on; off by default): any solid block beside wet paste removed, with open ground in its place, spills it the same way (found from the paste's own block
+  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays. **A breached wall** (gaps2, with the
+  world rule `paste_wall_breach` on; off by default, even in new worlds): any solid block beside wet paste removed, with open ground in its place, spills it the same way (found from the paste's own block
   updates, so open cells inside the void are not mistaken for a gap); a wall changed for another solid block lets nothing out. Muck and
   dry tails tipped onto wet paste rest on it.
 - **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
@@ -509,7 +515,9 @@ Spec: [multiblocks/dry-mill.md](multiblocks/dry-mill.md) (draft, decided on reco
   of its front cells, HMC concentrate out at the east back cell, the rest at the west), `fluid_bed_dryer` (3 x 4 x 6, a 30 kW blower,
   gas at its east side), `rer_separator` (2 x 3 x 3, 5.5 kW), `ht_roll_separator` (2 x 3 x 4, 7.5 kW), `irm_separator` (2 x 3 x 3,
   11 kW). Every motor on the world's industrial tier, its box on the west face of the main cell, with the plant motor's PLC points.
-- **The ladder:** the spiral bank's 50 % is paid at the filter as before. The scavenger spirals take 45/50 of what is left of
+- **The ladder:** the spiral bank's 50 % is paid at the filter as before, unless the world rule `dry_mill_all_hmc` is on (on in new
+  worlds; Tim, 2026-11-10) and a dryer touches the filter: then it is HMC too, and the separators pay it at 1.0 a kg (each heap and bag
+  of HMC carries what it pays, `HeavyMinerals.pay`), so all HMC goes through the dry mill and the line still makes 4x. The scavenger spirals take 45/50 of what is left of
   ilmenite, rutile, zircon, monazite and cassiterite to concentrate slurry, under the assay names `tailings:hmc_<mineral>`; what they
   leave goes on as `tailings:scavenged_<mineral>`, which nothing takes again (the leach's exception stays for a plant without them).
   The filter keeps the HMC apart (`PlantBlockEntity.hmc()`): into a dryer touching it while its 1 t bin has room, else as
@@ -540,8 +548,9 @@ made building it are in [questions/l7-dms.md](questions/l7-dms.md). The rules ar
   rest its host rock (`DenseMedium.pieceSg`). A rock lighter than the medium floats: 98 % to the floats screen, 2 % to the sinks; a
   heavier rock the other way round. At the default 2.75 the country rocks float except diorite (2.85) and deepslate (2.80); the metal
   ores sink; the light industrial ores float at any setting.
-- **The products:** the floats screen pays a vanilla gravel block for each 1.9 t into its product slot (a hopper under it); the
-  floats' minerals are gone (L7-1). The sinks screen puts the sinks out of its south end onto a belt, as gravel with their rock, to the
+- **The products:** with a belt off its north end, the floats screen puts the floats on it as gravel with their rock, to go back to
+  the plant, so the light ores that float at any setting can be recovered (Tim, 2026-11-10); with none it pays a vanilla gravel block
+  for each 1.9 t into its product slot (a hopper under it), and the floats' minerals are gone (L7-1). The sinks screen puts the sinks out of its south end onto a belt, as gravel with their rock, to the
   cone; they come round the screen and back to the DMS like any gravel.
 - **The medium:** a sneaking click on the module steps its density 0.05, 2.60 to 3.30 and round. 0.3 kg of ferrosilicon is lost a
   tonne of feed, from the medium recovery's hopper; empty, the module reads NO MEDIUM. It waits for the medium recovery's motor.
@@ -564,36 +573,51 @@ dump station's `ore_sorter` is a different machine and is unchanged.
   formula (`XrtSorting.formula`), the rock's minerals at their game grade, the rest of its 2.7 t quartz (11.6). Country rock reads
   11.6-12.0; galena ore 45; light ores (graphite, magnesite, borax, bauxite) under quartz.
 - **Splitting:** five steps, Zeff 11.5 (LOW), 12.0 (the default), 13.0, 15.0, 20.0 (HIGH). Over the step, 97 % of the rock's kg to
-  product and 3 % to waste; under it, 5 % to product and 95 % to waste. Each keeps its size.
+  product and 3 % to waste; under it, 5 % to product and 95 % to waste. Each keeps its size. **Reverse** (Tim, 2026-11-10): the
+  ejectors blow what reads under the step, 97 % of it to product and 5 % of what reads over; LOW in reverse keeps graphite, magnesite,
+  borax and bauxite and drops the country rock. A new sorter sorts as built.
 - **Rate:** 250 t/h on crushed rock, half on gravel, times its motor's output, and only as fast as both belts take.
 - **Air:** it needs its compressor touching and running, else NO AIR, and it keeps its rock. The compressor runs while the sorter has
   rock or is sorting.
-- **Setting it:** a sneaking click with an empty hand steps the threshold, LOW to HIGH and round. Saved with the part (`xrt`), with the
-  tonnes sent each way.
+- **Setting it:** a sneaking click with an empty hand steps the threshold, LOW to HIGH, then LOW to HIGH in reverse, and round. Saved
+  with the part (`xrt`), with the tonnes sent each way and the reverse.
 - **PLC:** the plant motor's six points, then 6 THRESHOLD (analog out, 4-20 mA, 4 mA a step; in AUTO while fresh, over the screen's
-  step), 7 PRODUCT and 8 WASTE (pulse inputs, a pulse a tonne).
+  step), 7 PRODUCT and 8 WASTE (pulse inputs, a pulse a tonne), 9 REVERSE (a digital output; in AUTO while it keeps coming, over the
+  screen's).
 - **Reads:** NO FEED, NO AIR, FULL, "its output has nowhere to go"; its inspection gives the step, who set it and the tonnes each way.
 - **Models:** `tools/models/xrt.py`, in Wildcatter's materials; the sorter plays the `ore_sorter` loop, the compressor Wildcatter's
   motor hum.
 
 ## Config
 
-Three files. None is created for you.
-
-`config/tailings-train.properties`, since L1 `config/tailings-ventilation.properties`, and since gaps2 `config/tailings-rules.properties`:
+One file: `config/tailings-train.properties`. None is created for you.
 
 | Key | Default if missing | Meaning |
 |---|---|---|
 | `damage` | `true` | Whether the locomotive hurts living entities in the consist box |
 | `amount` | `8` | Damage per hit. A bad number falls back to 8 |
 | `truck_damage` | `8` | Damage per hit from a moving haul truck or wheel loader (over 1 m/s). `damage=false` turns it off too |
-| `interlock` (ventilation) | `false` | A TBM with no duct air at its back-up for 60 s stops, NO VENTILATION |
-| `stale_air` (ventilation) | `false` | Players in a drive's stale air get Mining Fatigue, then Weakness |
-| `headframe_hopper` (rules) | `false` | A headframe bin with no belt under it feeds a hopper or chest under it (gaps2.md #4) |
-| `paste_wall_breach` (rules) | `false` | A solid wall removed beside wet paste spills it, as a broken bulkhead does (gaps2.md #5) |
-| `paste_unloaded_cure` (rules) | `false` | Paste makes up the time its chunk was unloaded (gaps2.md #6) |
 
-There is no other Tailings config, and no Tailings gamerule.
+There is no Tailings gamerule.
+
+## World rules
+
+Tim, 2026-11-10 (questions/answers-2026-11-10.md #23). `OptInRules`, saved with the world (`data/tailings/rules.dat`, a version and
+each rule): what changes how an existing world plays. A world is **new** when its rules are first made, at server start, with its game
+time still 0 and no Tailings data saved in it; a new world gets the defaults below, a world saved before them gets every rule off. A
+rule a world never saved (one added later) is off in it. `/tailings rule` lists them; `/tailings rule <name>` reads one;
+`/tailings rule <name> <true|false>` sets one (an operator's command, as `/gamerule` is). The old `config/tailings-rules.properties`
+and `config/tailings-ventilation.properties` (`interlock`, `stale_air`) are read once, when a world's rules are made: a key either
+sets explicitly is taken over that world's default; after that they are not read.
+
+| Rule | New world | Meaning |
+|---|---|---|
+| `ventilation_interlock` | on | A TBM with no duct air at its back-up for 60 s stops, NO VENTILATION (l1-ventilation.md #1) |
+| `stale_air` | on | Players in a drive's stale air get Mining Fatigue, then Weakness (l1-ventilation.md #1) |
+| `headframe_hopper` | on | A headframe bin with no belt under it feeds a hopper or chest under it (gaps2.md #4) |
+| `paste_unloaded_cure` | on | Paste makes up the time its chunk was unloaded (gaps2.md #6) |
+| `dry_mill_all_hmc` | on | A filter with a dryer touching it sends all its HMC to the dry mill (l6-dry-mill.md #3) |
+| `paste_wall_breach` | off | A solid wall removed beside wet paste spills it, as a broken bulkhead does (gaps2.md #5) |
 
 ## Blocks
 

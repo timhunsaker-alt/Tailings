@@ -91,15 +91,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			out.add(new Point("THRESHOLD 4-20 mA, 5 STEPS", true, Signal.MA));
 			out.add(new Point("PRODUCT, A PULSE A TONNE", false, Signal.PULSE));
 			out.add(new Point("WASTE, A PULSE A TONNE", false, Signal.PULSE));
+			// reverse mode: keep what reads under the threshold (Tim, 2026-11-10, l8-xrt.md #5); in AUTO while it keeps coming
+			out.add(new Point("REVERSE: KEEP UNDER THE THRESHOLD", true));
 		} else if (machine() == Machine.VENT_FAN) {
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/s", VENT_FLOW_HIGH), false, Signal.MA));
 		} else if (machine() == Machine.HOIST_HOUSE) {
 			// the hoist's FILL is the headframe bin's level; a pulse each skip dumped (shaft-and-hoist.md, L4)
 			out.add(new Point("SKIP DUMPED", false));
 		} else if (machine() == Machine.TAILINGS_FILTER) {
-			// the press's own points (open-pit-p4-dry-stack.md, P4; docs/questions/gaps2.md): a pulse each cake drop, and FULL while its
-			// cake has nowhere to drop
-			out.add(new Point("CYCLE, A PULSE A CAKE DROP", false, Signal.PULSE));
+			// the press's own points (open-pit-p4-dry-stack.md, P4; docs/questions/gaps2.md #2): CYCLE on for a second at each cake drop,
+			// as the hoist's SKIP DUMPED (Tim, 2026-11-10), and FULL while its cake has nowhere to drop
+			out.add(new Point("CYCLE, A SECOND A CAKE DROP", false));
 			out.add(new Point("FULL", false));
 		} else if (machine() == Machine.LOADOUT_FRAME) {
 			// the load-out's own points (P4): the bin's level, the bin full, and the gate loading a truck
@@ -127,6 +129,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.TAILINGS_FILTER && point == 7) {
 			return cakeOut > 0;
 		}
+		if (machine() == Machine.TAILINGS_FILTER && point == 6) {
+			return level != null && level.getGameTime() - droppedAt < CYCLE_BIT_TICKS;
+		}
 		if (machine() == Machine.LOADOUT_FRAME && (point == 7 || point == 8)) {
 			return point == 7 ? loadoutBinFull() : status().startsWith("loading");
 		}
@@ -144,6 +149,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public void commandPoint(int point, boolean on, long gameTime) {
 		if (point == 0) {
 			remote.command(0, on, gameTime);
+		} else if (machine() == Machine.XRT_SORTER && point == 9) {
+			remote.command(2, on, gameTime);
 		} else if (machine() == Machine.ORE_SORTER && point >= GATES && point < CODES) {
 			remote.command(point - GATES + 1, on, gameTime);
 			sorter.setGate(point - GATES, remote.auto() && on);
@@ -225,12 +232,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return bin != null && bin.dryKg >= dev.wildcatter.tailings.pit.DryStack.BIN_KG - dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
 	}
 
-	/** The X-ray sorter's PRODUCT and WASTE counts, and the tailings filter's CYCLE: a pulse a tonne, a pulse a cake drop. */
+	/** The X-ray sorter's PRODUCT and WASTE counts: a pulse a tonne. */
 	@Override
 	public long readPulses(int point) {
-		if (machine() == Machine.TAILINGS_FILTER) {
-			return point == 6 ? cycles : 0;
-		}
 		if (xrt == null) {
 			return 0;
 		}
@@ -255,10 +259,20 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return fraction < 0 ? xrt.step() : dev.wildcatter.tailings.plant.XrtSorting.stepOf(fraction);
 	}
 
-	/** A sneaking click on the X-ray sorter steps its screen's threshold, LOW to HIGH and round again. */
+	/** True while a PLC in AUTO sets the X-ray sorter's REVERSE. */
+	public boolean xrtReverseByPlc() {
+		return level != null && remote.auto() && remote.fresh(2, level.getGameTime());
+	}
+
+	/** The X-ray sorter in reverse now: the PLC's REVERSE while it keeps coming in AUTO, else its screen's. */
+	public boolean xrtReverse() {
+		return xrtReverseByPlc() ? remote.on(2, level.getGameTime()) : xrt.reverse();
+	}
+
+	/** A sneaking click on the X-ray sorter steps its screen's threshold, LOW to HIGH, then LOW to HIGH in reverse, and round again. */
 	public void stepThreshold() {
 		xrt.nextStep();
-		say("set to " + dev.wildcatter.tailings.plant.XrtSorting.describe(xrt.step()) + (xrtByPlc() ? "; the PLC sets it while in AUTO" : ""));
+		say("set to " + dev.wildcatter.tailings.plant.XrtSorting.describe(xrt.step(), xrt.reverse()) + (xrtByPlc() || xrtReverseByPlc() ? "; the PLC sets it while in AUTO" : ""));
 		setChanged();
 	}
 
@@ -345,6 +359,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private double waterOut;
 	private double waterReturned;
 	private int cycles;
+	/** When the press last dropped its cake, for its one-second CYCLE bit (not saved). */
+	private long droppedAt = Long.MIN_VALUE / 2;
 	/** A game test's shorter press cycle (not saved). */
 	private int fast = 1;
 	private Motor motor;
@@ -589,8 +605,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	public void countCycle() {
 		cycles++;
+		droppedAt = level == null ? 0 : level.getGameTime();
 		setChanged();
 	}
+
+	/** The tailings filter's CYCLE stays on this long after a drop: a second, as the hoist's SKIP DUMPED. */
+	public static final int CYCLE_BIT_TICKS = 20;
 
 	/** A game test's shorter press cycle: the cycle runs {@code divisor} times as fast. */
 	public void fastCycle(int divisor) {
@@ -1331,7 +1351,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 					winder.height(0), winder.height(1), winder.travel()));
 		}
 		if (xrt != null) {
-			held.append("; ").append(dev.wildcatter.tailings.plant.XrtSorting.describe(xrtStep())).append(xrtByPlc() ? " (PLC)" : "")
+			held.append("; ").append(dev.wildcatter.tailings.plant.XrtSorting.describe(xrtStep(), xrtReverse())).append(xrtByPlc() || xrtReverseByPlc() ? " (PLC)" : "")
 					.append(String.format("; %.1f t to product, %.1f t to waste", xrt.productKg() / 1000, xrt.wasteKg() / 1000));
 		}
 		if (machine() == Machine.ORE_BIN) {
@@ -1558,7 +1578,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			dryKg = 0;
 			cakeOut = 0;
 			// its heavy mineral concentrate, in whole bags: the rest is spilt
-			for (java.util.Map<dev.wildcatter.tailings.rock.Mineral, Integer> bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc); bag != null; bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc)) {
+			for (dev.wildcatter.tailings.plant.HeavyMinerals bag = dev.wildcatter.tailings.plant.DryMill.bagged(hmc); bag != null; bag = dev.wildcatter.tailings.plant.DryMill.bagged(hmc)) {
 				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.of(dev.wildcatter.tailings.TailingsItems.HEAVY_MINERAL_CONCENTRATE, bag));
 			}
 			hmc.clear();

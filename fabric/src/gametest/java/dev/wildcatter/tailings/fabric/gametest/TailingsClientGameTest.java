@@ -143,6 +143,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("xrt")) {
 				xrt(context, world, server);
 			}
+			if (only("dms_floats_belt")) {
+				dmsFloatsBelt(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -689,6 +692,90 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(got[1] > 1000, "the copper ore should sink onto the belt");
 		require(got[2] < 100, "the medium recovery should have lost ferrosilicon");
 		heard("dms", "tailings:vibrating_screen", "tailings:slurry_rush");
+	}
+
+	/**
+	 * L7's floats on a belt (Tim, 2026-11-10, l7-dms.md #4, #11): rock salt and copper ore gravel through the DMS at SG 2.75. The salt
+	 * floats, as it does at any setting, and rides a belt off the floats screen's north end, as rock salt gravel, back toward the plant
+	 * (a chest at its head end stands for it), where before it was lost as vanilla gravel; the copper ore sinks onto the belt to the
+	 * cone. Force-run at 8 times, as the other part films.
+	 */
+	private void dmsFloatsBelt(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-260, y + 1, -420);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -3; x <= 9; x++) {
+				for (int z = -8; z <= 20; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 10; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			PlantBlockEntity floats = plant(level, Machine.DRAIN_RINSE_SCREEN, o);
+			// the floats belt off the floats screen's north end, to a chest standing for the plant
+			for (int z = -5; z <= -1; z++) {
+				level.setBlock(o.offset(0, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity floatsBelt = plant(level, Machine.CONVEYOR_DRIVE, o.offset(1, 0, -5));
+			level.setBlock(o.offset(0, -1, -5), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity module = plant(level, Machine.DMS_MODULE, o.offset(0, 0, 5));
+			PlantBlockEntity sinks = plant(level, Machine.DRAIN_RINSE_SCREEN, o.offset(0, 0, 9));
+			for (int z = 14; z <= 16; z++) {
+				level.setBlock(o.offset(0, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity sinksBelt = plant(level, Machine.CONVEYOR_DRIVE, o.offset(1, 0, 16));
+			level.setBlock(o.offset(0, -1, 16), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity recovery = plant(level, Machine.MEDIUM_RECOVERY, o.offset(3, 0, 5));
+			for (int i = 0; i < 4; i++) {
+				recovery.offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.FERROSILICON));
+			}
+			parts[0] = new PlantBlockEntity[] {module, floats, sinks, recovery, floatsBelt, sinksBelt};
+			for (PlantBlockEntity part : parts[0]) {
+				part.forceRunning();
+				part.fastCycle(8);
+			}
+			module.addWater(1000);
+			module.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_halite"))));
+			module.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_copper"))));
+		});
+		server.runCommand("tp @p " + (o.getX() + 12) + " " + (o.getY() + 8) + " " + (o.getZ() - 10) + " 50 28");
+		context.waitTicks(40);
+		Filming film = film(context, world, "dms_floats_belt");
+		context.takeScreenshot("tailings-dms-floats-belt-built");
+		for (int t = 0; t < 40; t++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> parts[0][0].addWater(1000));
+			if (t == 24) {
+				context.takeScreenshot("tailings-dms-floats-belt-running");
+				server.runCommand("tp @p " + (o.getX() + 11) + " " + (o.getY() + 7) + " " + (o.getZ() + 18) + " 135 25");
+			}
+			if (t % 8 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : parts[0]) {
+						System.out.println("[tailings-test] dms_floats_belt: " + part.inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot("tailings-dms-floats-belt-end");
+		film.stop();
+		double[] got = server.computeOnServer(srv -> {
+			PlantBlockEntity belt = parts[0][4];
+			double salt = belt.hold().kg(Rock.HALITE, dev.wildcatter.tailings.rock.SizeClass.GRAVEL) + belt.made().kg(Rock.HALITE, dev.wildcatter.tailings.rock.SizeClass.GRAVEL);
+			if (srv.overworld().getBlockEntity(o.offset(0, -1, -5)) instanceof net.minecraft.world.Container chest) {
+				for (int i = 0; i < chest.getContainerSize(); i++) {
+					if (chest.getItem(i).is(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_halite")))) {
+						salt += chest.getItem(i).getCount() * dev.wildcatter.tailings.plant.PlantRates.BLOCK_KG;
+					}
+				}
+			}
+			return new double[] {salt, parts[0][1].getItem(1).getCount()};
+		});
+		System.out.println("[tailings-test] dms_floats_belt: " + (int) got[0] + " kg of rock salt on the floats belt, " + (int) got[1] + " vanilla gravel");
+		require(got[0] > 1500, "the rock salt should float onto the floats belt, got " + got[0]);
+		require(got[1] == 0, "no vanilla gravel with a belt off the floats screen");
 	}
 
 	/**

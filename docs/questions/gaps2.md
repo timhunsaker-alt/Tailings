@@ -21,6 +21,7 @@ default on. The rest only add.
   existing six, so a PLC already wired to points 0-5 reads the same; the counter follows the X-ray sorter's PRODUCT and WASTE.
 - **Alternatives:** CYCLE as an on-for-a-second bit like the hoist's SKIP DUMPED (a PLC must then count it itself); the load-out's
   points on the bin (it has no motor, so no selector or points today).
+- **Tim (2026-11-10):** CYCLE becomes a one-second bit. Built: on for a second at each cake drop, as the hoist's SKIP DUMPED (answers-2026-11-10.md #14).
 
 ### 3. The paste filter's and mixer's slurry gauges (L5)
 - **Chosen:** both join the slurry parts: LEVEL, FLOW and DENSITY as points 6-8, the inspection's "slurry level, flow, density", and a
@@ -33,6 +34,7 @@ default on. The rest only add.
 - **Alternatives:** gauge the mixer's paste hopper instead of its trim (the more useful level for running the pump, but not what the
   other parts' LEVEL means). The marked-solids density applies to every gauged part: a part fed a thickened tails slurry would now read
   its real density. Nothing in the base plant puts marked tails into a gauged part, so no existing reading changes in practice.
+- **Tim (2026-11-10):** the mixer's LEVEL reads its paste hopper. Built (its DENSITY reads the same hopper) (answers-2026-11-10.md #14).
 
 ### 4. The headframe bin feeds a hopper under it (L4): built, off by default
 - **Chosen:** with `headframe_hopper=true` in `config/tailings-rules.properties`, and no belt under it, a headframe bin puts each whole block's worth (2.7 t) of one rock and size into a vanilla
@@ -44,6 +46,7 @@ default on. The rest only add.
 - **Alternatives:** leave it belts only. **Existing worlds:** turned on, a hopper or chest already standing under a headframe bin, with
   no belt there, will start to fill with rock from the bin. It took nothing before, so this is the fix of a dead interaction; off (the
   default) nothing changes. **Should it default on?** Recommended yes: nothing worked there before.
+- **Tim (2026-11-10):** a per-world rule, on in new worlds and off in existing ones. Built: the world rule `headframe_hopper` (answers-2026-11-10.md #23).
 
 ### 5. A stone wall breached beside wet paste lets it out (L5): built, off by default
 - **Chosen:** with `paste_wall_breach=true`, when a solid block next to wet paste is removed by any means (mined, blown up, cut) and open ground (air, water,
@@ -57,6 +60,7 @@ default on. The rest only add.
   where before the wall could be opened with nothing coming out; off (the default) only a bulkhead spills, as before. **Should it
   default on?** It is the real hazard the spec describes; recommended on for new worlds, your call for existing ones. The spill still
   happens in one tick (l5-paste.md #14).
+- **Tim (2026-11-10):** a per-world rule, off even in new worlds. Built: the world rule `paste_wall_breach`, off by default (answers-2026-11-10.md #23).
 
 ### 6. Paste cures while its chunk is unloaded, caught up on its return (L5): built, off by default
 - **Chosen:** with `paste_unloaded_cure=true`, a per-dimension record (`paste.PasteClock`, saved with the world) of when each chunk's wet paste last stepped. A chunk's
@@ -69,6 +73,7 @@ default on. The rest only add.
   already waiting in an unloaded chunk is not jumped forward; from then on it cures by the game's clock. Off (the default), paste waits
   with its chunk as before. **Should it default on?** Recommended yes: one game day is the spec's rule, and it only stops paste
   waiting for a player.
+- **Tim (2026-11-10):** a per-world rule, on in new worlds and off in existing ones. Built: the world rule `paste_unloaded_cure` (answers-2026-11-10.md #23).
 
 ### 7. Muck tipped onto wet paste: it already rests on it (L5)
 - **Chosen:** no code change; the Known gap was wrong. The game's free test (`FallingBlock.isFree`) is air, fire, liquid or a

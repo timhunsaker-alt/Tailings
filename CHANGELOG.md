@@ -4,6 +4,30 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Tim's answers built (2026-11-10, branch `answers`)
+
+- **World rules:** what changes how an existing world plays is now a rule saved with the world, not a config file: the drill's NO
+  VENTILATION interlock (`ventilation_interlock`), `stale_air`, `headframe_hopper`, `paste_unloaded_cure` and the new
+  `dry_mill_all_hmc` are on in a new world; `paste_wall_breach` is off until set. A world saved before this version loads with every
+  rule off. `/tailings rule` lists them; `/tailings rule <name> <true|false>` sets one (operators). The old
+  `config/tailings-rules.properties` and `config/tailings-ventilation.properties` are read once, when a world's rules are made.
+- **Paste fills ten times as fast:** a placed block of paste fill stands for 10 m³ of the line's paste, so a 360 m³ drive branch fills
+  in about an hour; the cure is still a game day.
+- **All heavy mineral concentrate through the dry mill** (`dry_mill_all_hmc`): a filter with a dryer touching it sends the spiral
+  bank's share there too, paid at 1.0 a kg; the line still makes 4x. Off, or with no dryer, as before.
+- **DMS floats on a belt:** a belt off the floats screen's north end takes the floats back to the plant as gravel with their rock, so
+  the light ores (rock salt, potash, borax and the rest) can be recovered. With no belt, vanilla gravel as before.
+- **X-ray sorter reverse mode:** past HIGH the sneaking click steps through the five thresholds in reverse, keeping what reads under
+  the threshold (graphite, magnesite, borax, bauxite at LOW); the PLC's new REVERSE point (9) sets it in AUTO. A new sorter sorts as
+  before.
+- **PLC:** the tailings filter's CYCLE is a one-second bit at each cake drop (it was a pulse count); the paste mixer's LEVEL and
+  DENSITY read its paste hopper.
+- **Ore blocks only:** raw iron, copper and gold and every Wildcatter ore's mined drop are no longer plant feed.
+- **Waits on Wildcatter:** the chlorinator taking Tailings' zircon concentrate (the request is in
+  `docs/questions/answers-2026-11-10.md`); the medium from Wildcatter's ferrosilicon (0.7.0).
+- **Tests:** `rules_new_world`, `rules_existing_world`, `rules_command`, `raw_ore_refused`, `vent_new_world`, `paste_pace`,
+  `dry_mill_all_hmc`, `dms_floats_belt`, `xrt_reverse`, `gaps_press_cycle_bit`; the Fabric client film `dms_floats_belt`.
+
 ### gaps2: known gaps closed (2026-11-10, decided while Tim was away)
 
 - **Press and load-out PLC points:** the tailings filter adds CYCLE (a pulse each cake drop) and FULL; the load-out frame adds LEVEL
