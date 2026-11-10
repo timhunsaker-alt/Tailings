@@ -26,6 +26,8 @@ public final class SlurryGauge {
 			case CYCLONE -> Grinding.OVERFLOW_HOLD;
 			case SPIRAL_BANK, SCAVENGER_SPIRAL_BANK, CONDITIONER, ACTIVATION_TANK, FLOTATION_BANK, THICKENER, FILTER, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER,
 					ELECTROWINNING_BANK, HEAP_PAD -> Flotation.HOLD;
+			// the paste filter's feed of thickened tails and the mixer's trim (paste-backfill.md, L5; docs/questions/gaps2.md)
+			case PASTE_FILTER, PASTE_MIXER -> Flotation.HOLD;
 			default -> 0;
 		};
 	}
@@ -58,6 +60,15 @@ public final class SlurryGauge {
 		return hold <= 0 ? 0 : heldKg(part) / hold;
 	}
 
+	/**
+	 * A product's density as its tank holds it: the solids its assay is marked with (thickened tails and paste carry
+	 * {@code tailings:solids}, as Wildcatter 0.5.1 has no product for them), else the product's own.
+	 */
+	private static double density(Product product, SlurryHold tank) {
+		double marked = tank.assayOf(product).get(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY);
+		return marked > 0 ? PlcScale.density(marked) : PlcScale.density(product);
+	}
+
 	/** The density of what its tank holds, kg/L; an empty tank reads as water. */
 	public static double density(PlantBlockEntity part) {
 		SlurryHold tank = tank(part);
@@ -65,7 +76,7 @@ public final class SlurryGauge {
 		for (Product product : SLURRIES) {
 			double held = tank.held(product);
 			kg += held;
-			litres += held / PlcScale.density(product);
+			litres += held / density(product, tank);
 		}
 		return litres <= 1e-9 ? PlcScale.DENSITY_LOW : kg / litres;
 	}

@@ -76,6 +76,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
 | Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
+| Tailings | `gaps2.md` (branch `gaps2`) | 8 | known gaps closed by adding: fuel bay pipe scene, press and load-out PLC points, paste filter and mixer gauges, the headframe bin into a hopper, a wall breached beside wet paste, paste curing while unloaded, muck on paste (#4, #5, #6 change existing worlds) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
 | Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 44 | the gyratory and stockpile (P7a), the SAG line (P7b), pit flotation and the 45 m thickener (P7c) |

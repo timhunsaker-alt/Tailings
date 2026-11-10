@@ -290,11 +290,12 @@ device. A PLC never overrides protection: a stalled motor, a tripped breaker and
   is kept and comes back when the PLC stops, in HAND or OFF, or on a code with no rock. The waste side stays the waste side; two sides
   on one rock, the first takes it. Gates and codes are refreshed every tick, so a quiet PLC opens its gates too.
 - **A slurry part** (`block.stage.SlurryGauge`; the mill, cyclones, spiral bank, the tanks, banks, thickeners, filter, leach tank,
-  electrowinning bank and heap pad) adds LEVEL, FLOW and DENSITY, 4-20 mA inputs. LEVEL is its feed tank (the inlet buffer it draws
+  electrowinning bank, heap pad, and since gaps2 the paste filter and paste mixer) adds LEVEL, FLOW and DENSITY, 4-20 mA inputs. LEVEL is its feed tank (the inlet buffer it draws
   into off the pipe; the mill, cyclones and heap pad read their discharge sump) over the hold it works to, so a part backed up by a
   full outlet reads full. FLOW is what leaves it by pipe over the last second, 0-60 L/s. DENSITY is its feed tank's, 1.0-2.0 kg/L,
   from each product's solids at 2.7 t/m3: mill discharge 70 % (1.79), fines, conditioned, tails and leach slurry 35 % (1.28),
-  concentrate 30 % (1.23), thickened concentrate 60 % (1.61), pregnant liquor as water. A transmitter clamped to it reads the same.
+  concentrate 30 % (1.23), thickened concentrate 60 % (1.61), pregnant liquor as water; a tails slurry marked with its solids
+  (`tailings:solids`: thickened tails 60 %, 1.61; paste 78 %, 1.97) at those (gaps2). A transmitter clamped to it reads the same.
 - **`mine_switch`:** THROW in; THROWN and AUTO out. In HAND a switch is thrown by hand (a click with an empty hand). A train's path
   through a switch that is thrown under it is broken, so it stops.
 - **`block_signal`:** HOLD in, keeping the section closed even when it is clear; OCCUPIED and AUTO out.
@@ -423,6 +424,9 @@ building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The f
   for 5, 8 or 10 % (level never steps); RAISED takes nothing. Pushing or cutting it goes 3.5 km/h and burns at 80 % power.
   Reversing with a load leaves it in front. At a crest it stops and pushes its load over. Along a crest (2 to 5 m to its side) with a
   load it drops a berm 1 or 2 high at a block a metre. Hard rock in its blade's rows stops it: "hard rock: blast it first".
+- **PLC (gaps2):** the tailings filter adds to the motor's six CYCLE (a pulse counter, a pulse each cake drop) and FULL (holding cake
+  with nowhere to drop it); the load-out frame adds LEVEL (4-20 mA over the bin's 400 t), FULL (the bin's FULL) and LOADING (the gate
+  filling a truck).
 - **Models:** the four parts are drawn in Wildcatter's materials (`tools/models/pit.py`); the dozer's model and skin come from
   `tools/models/pit_vehicles.py` in Ludo's materials, on tracks: treads over a round idler and sprocket a side, its blade group raised
   and lowered by the blade's position.
@@ -450,7 +454,9 @@ are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft
   60 s as every plant motor; without it the brakes hold the skips where they are (STOPPED). A 150 m shaft lifts about 270 t/h.
 - **The flask:** the apron feeder whose tail end touches it (and no ore sorter) drops a rock item's 2.7 t into its surge when the surge is
   empty, once a second; it fills from the surge at 300 kg/s to exactly 3 t. It takes nothing by hand or hopper.
-- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate.
+- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate. With no belt, a hopper or chest under
+  its bottom takes it as items (gaps2): each whole block's worth (2.7 t) of one rock and size as its item, one each 65 s (the belt's
+  rate); less than a block stays in the bin.
 - **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
 - **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
 
@@ -473,7 +479,8 @@ the stages are `block.stage.Paste`.
   (anything else reads NOT PASTE) and, once a second, follows the steel pipe from its south face (up to 1,500 m) to the first
   `fill_outlet` on it, then pushes paste straight into the outlet while the outlet's void is closed and not full. The line's pressure
   is 8 kPa a metre of pipe less 19.6 kPa a metre the outlet is below the pump; past 8 MPa it reads LINE PRESSURE. NO OUTLET without
-  one. PLC: the motor's six points, FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa).
+  one. PLC: the motor's six points, FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa). The filter and mixer have the
+  slurry parts' LEVEL, FLOW and DENSITY on their feed tank (the filter's feed, the mixer's trim; gaps2).
 - **The fill outlet** (`fill_outlet`): reads its void every 5 s and when clicked: every cell it reaches through air, water and paste,
   any other block a wall. NOT ENCLOSED if a cell is open to the sky (at or above its column's surface height), the void runs into
   unloaded ground, or it is over 20,000 cells. It holds 4 t of paste; each 2.0 t becomes a block of wet `paste_fill` in the void's
@@ -481,10 +488,15 @@ the stages are `block.stage.Paste`.
   the void's m³, open, wet and set, and the m³ it has placed.
 - **Paste fill** (`paste_fill`, no item): wet when placed (`cure` 0-7): no collision, it slows what wades in it (half speed across, 40 %
   down), does not suffocate. A scheduled step every 3,000 ticks; the eighth (one game day) sets it (`cure` 8): a solid block, mined by
-  pickaxe or shovel. It drops nothing either way.
+  pickaxe or shovel. It drops nothing either way. Time its chunk spends unloaded is made up (gaps2, `paste.PasteClock`): each chunk's
+  last step is kept per dimension, and a gap longer than a step gives each wet block in the chunk the missed whole steps on its first
+  step back. A chunk with no record yet (paste from before gaps2) makes up nothing until it has one.
 - **The fill bulkhead** (`fill_bulkhead`): a metre of shotcrete barricade, a wall to the void like any block. Removed by any means with
   wet paste touching the gap, the wet paste joined to it at or above the gap's floor (all of it, for a gap under it) runs out at once,
-  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays.
+  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays. **A breached wall** (gaps2): any
+  solid block beside wet paste removed, with open ground in its place, spills it the same way (found from the paste's own block
+  updates, so open cells inside the void are not mistaken for a gap); a wall changed for another solid block lets nothing out. Muck and
+  dry tails tipped onto wet paste rest on it.
 - **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
   and pump hum with Wildcatter's motor hum, the mixer with the agitator.
 ## The dry mill (L6)

@@ -327,7 +327,8 @@ tests `XrtSortingTest`; the client film `xrt`.
   Wildcatter's ferroalloy plant makes it (questions/l7-dms.md, 8).
 - **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).
 - **The medium is set by clicks (L7):** no screen and no PLC setpoint; the PLC reads it (questions/l7-dms.md, 10).
-- **Floats leave by hopper or hand only (L7):** not on a belt (questions/l7-dms.md, 11).
+- **Floats leave by hopper or hand only (L7):** not on a belt; on a belt the light ores, which float at any setting, would go round to
+  the plant, so it waits on l7-dms.md 4 (questions/l7-dms.md, 11; gaps2.md, 8).
 - **DMS sinks go round again (L7):** through the cone, the screen and the DMS, losing 2 % a pass (questions/l7-dms.md, 5).
 - **A flat 2 % misplacement (L7):** no partition curve; a whole block floats or sinks as one (questions/l7-dms.md, 6).
 - **No new L7 sounds:** the screens use the vibrating screen, the module the slurry rush, the recovery Wildcatter's motor hum.
@@ -336,14 +337,12 @@ tests `XrtSortingTest`; the client film `xrt`.
   (questions/l5-paste.md, 8).
 - **Paste is marked tails slurry (L5):** Wildcatter 0.5.1 has no product for paste; it carries `tailings:solids` and `tailings:binder`
   in its assay. A `PASTE` product is proposed for Wildcatter.
-- **Only a broken bulkhead spills paste (L5):** breaking a stone wall next to wet paste lets nothing out; the spill happens in one tick
-  (questions/l5-paste.md, 14).
-- **Muck tipped onto wet paste replaces it (L5):** the shared settle rule sees a block with no collision as free (questions/l5-paste.md,
-  15).
+- **A paste spill happens in one tick (L5):** a broken bulkhead or breached wall lets the wet paste out at once, not over several
+  ticks (questions/l5-paste.md, 14).
 - **Paste fills at the real rate (L5):** a 360 m³ branch takes about 11 hours of play (questions/l5-paste.md, 19).
-- **The filter and mixer have no slurry gauges (L5):** only their motor's points; the pump has FLOW and PRESSURE.
 - **No new L5 sounds:** the filter and pump use Wildcatter's motor hum, the mixer the agitator; paste sounds as mud.
-- **Paste does not cure while its chunk is unloaded (L5):** a scheduled step waits with its chunk.
+- **Paste unloaded before gaps2 is not caught up (L5):** a chunk's unloaded time is made up from its first cure step after gaps2
+  (questions/gaps2.md, 6).
 
 - **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
   1 and 2); until then ventilation is readings only.
@@ -359,7 +358,8 @@ tests `XrtSortingTest`; the client film `xrt`.
 - **Bottom-dump doors snap (L3):** they are drawn open or shut, not swinging; the load drops in one tick rather than over the grizzly's
   4 m.
 - **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
-- **The battery locomotive has no PLC points of its own (L2):** only the charger has (CHARGING, FULL, CHARGE).
+- **The battery locomotive has no PLC points of its own (L2):** it has no control cable as it moves; the spec puts its points on the
+  charger, which has them (CHARGING, FULL, CHARGE) (questions/gaps2.md, 8).
 - **No raise borer and no cage yet (L4):** the shaft is dug by hand; the hoist only checks the skips' compartments are clear
   (questions/l4-shaft.md, 1, 2). Planned in shaft-and-hoist.md, "Still to build".
 - **The hoist motor draws its full 450 kW while it runs (L4):** Wildcatter 0.5.1's motor has no part load, so the real lift (346 kW,
@@ -383,14 +383,11 @@ tests `XrtSortingTest`; the client film `xrt`.
 - **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
 - **No X-ray sorter sounds of its own (L8):** it plays the dump sorter's air jets; its compressor Wildcatter's motor hum.
 - **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
-- **The headframe bin feeds belts only (L4):** a hopper under it takes nothing (questions/l4-shaft.md, 12).
 
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).
 - **Thickened tails are marked tails slurry (P4):** Wildcatter 0.5.1 has no product for them, so the underflow is tails slurry whose
   assay carries its solids. Wildcatter's lined cell counts it as plain tails. A `THICKENED_TAILS` product is proposed for Wildcatter.
-- **No PLC points of their own for the press and the load-out (P4):** they have the plant's motor points; the spec's LEVEL, FULL,
-  LOADING and CYCLE are not built.
 - **No new P4 sounds:** the press, thickener, gate and dozer reuse existing sounds; the hydraulic whine, the cake's thud and the
   track clatter are for the art wave.
 - **Placeholder art (P4):** `dry_tails_placeholder` (block) and `track_dozer_placeholder` (the dozer's icon) are drawn by script; the
@@ -411,8 +408,6 @@ tests `XrtSortingTest`; the client film `xrt`.
   without driving between; the driver moves it. A self-running loader stands where it was left too.
 - **A truck's route is only as good as its stakes (P2a):** it drives straight between stakes and turns round in the open at the
   stake before an end (about 25 m). It does not find its own way round anything the survey missed between samples.
-- **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
-  `Lines.pull` as the genset does.
 - **The dispatch office's model is a first pass (P2b):** a site office drawn in Wildcatter's materials (no new textures); its radio
   mast is short, kept inside its 3 x 3 x 3 cells.
 - **A parked truck waits on the road (P2b):** it parks in its lane at the PARK stake, not off to the side in a parking bay, so park

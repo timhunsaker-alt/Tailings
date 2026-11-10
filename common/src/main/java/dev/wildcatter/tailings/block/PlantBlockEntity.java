@@ -96,6 +96,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		} else if (machine() == Machine.HOIST_HOUSE) {
 			// the hoist's FILL is the headframe bin's level; a pulse each skip dumped (shaft-and-hoist.md, L4)
 			out.add(new Point("SKIP DUMPED", false));
+		} else if (machine() == Machine.TAILINGS_FILTER) {
+			// the press's own points (open-pit-p4-dry-stack.md, P4; docs/questions/gaps2.md): a pulse each cake drop, and FULL while its
+			// cake has nowhere to drop
+			out.add(new Point("CYCLE, A PULSE A CAKE DROP", false, Signal.PULSE));
+			out.add(new Point("FULL", false));
+		} else if (machine() == Machine.LOADOUT_FRAME) {
+			// the load-out's own points (P4): the bin's level, the bin full, and the gate loading a truck
+			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
+			out.add(new Point("FULL", false));
+			out.add(new Point("LOADING", false));
 		} else if (machine() == Machine.PASTE_PUMP) {
 			// the paste pump's flow and line pressure (paste-backfill.md, L5)
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/h", PASTE_FLOW_HIGH), false, Signal.MA));
@@ -114,6 +124,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean readPoint(int point) {
+		if (machine() == Machine.TAILINGS_FILTER && point == 7) {
+			return cakeOut > 0;
+		}
+		if (machine() == Machine.LOADOUT_FRAME && (point == 7 || point == 8)) {
+			return point == 7 ? loadoutBinFull() : status().startsWith("loading");
+		}
 		return switch (point) {
 			case 1 -> motor != null && motor.output() > 0;
 			case 2 -> motor != null && motor.stalled();
@@ -179,6 +195,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return point == 6 ? dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.Paste.flowM3PerHour(this), 0, PASTE_FLOW_HIGH)
 					: dev.wildcatter.tailings.plant.PlcScale.ma(line == null ? 0 : line.pressure, 0, PASTE_PRESSURE_HIGH);
 		}
+		if (point == 6 && machine() == Machine.LOADOUT_FRAME) {
+			PlantBlockEntity bin = touching(Machine.LOADOUT_BIN);
+			return 4 + 16 * Math.min(1.03, bin == null ? 0 : bin.dryKg / dev.wildcatter.tailings.pit.DryStack.BIN_KG);
+		}
 		if (point == 6 && dms != null) {
 			return dev.wildcatter.tailings.plant.PlcScale.ma(dms.medium(), dev.wildcatter.tailings.plant.DenseMedium.SG_LOW, dev.wildcatter.tailings.plant.DenseMedium.SG_HIGH);
 		}
@@ -199,9 +219,18 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
 	}
 
-	/** The X-ray sorter's PRODUCT and WASTE counts: a pulse a tonne. */
+	/** True for a load-out frame whose bin on it holds no more than a block short of its 400 t, as the bin reads FULL. */
+	private boolean loadoutBinFull() {
+		PlantBlockEntity bin = touching(Machine.LOADOUT_BIN);
+		return bin != null && bin.dryKg >= dev.wildcatter.tailings.pit.DryStack.BIN_KG - dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
+	}
+
+	/** The X-ray sorter's PRODUCT and WASTE counts, and the tailings filter's CYCLE: a pulse a tonne, a pulse a cake drop. */
 	@Override
 	public long readPulses(int point) {
+		if (machine() == Machine.TAILINGS_FILTER) {
+			return point == 6 ? cycles : 0;
+		}
 		if (xrt == null) {
 			return 0;
 		}

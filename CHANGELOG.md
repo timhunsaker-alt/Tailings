@@ -4,6 +4,23 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### gaps2: known gaps closed (2026-11-10, decided while Tim was away)
+
+- **Press and load-out PLC points:** the tailings filter adds CYCLE (a pulse each cake drop) and FULL; the load-out frame adds LEVEL
+  (the bin's 400 t over 4-20 mA), FULL and LOADING. Added after the motor's six points, so existing wiring reads the same.
+- **Paste filter and mixer gauges:** LEVEL, FLOW and DENSITY on their feed tanks, as every slurry part has; DENSITY reads a tails
+  slurry's marked solids (thickened tails 1.61 kg/L, paste 1.97) rather than plain tails'.
+- **The headframe bin feeds a hopper:** with no belt under it, a hopper or chest under it takes its rock as items, a block's worth
+  (2.7 t) an item, at the belt's rate. A hopper already standing under a bin will start to fill.
+- **A breached wall spills wet paste:** removing any solid block beside wet paste, with open ground in its place, lets the paste run
+  out as a broken bulkhead does. Mining into a void of wet paste now spills it.
+- **Paste cures while unloaded:** a chunk's wet paste makes up the time its chunk was unloaded on its first cure step back. Paste
+  already waiting in an unloaded chunk before this update is not jumped forward.
+- **Checked:** the fuel bay fills its day tank by pipe; muck tipped onto wet paste rests on it (the Known gap that said otherwise was
+  wrong).
+- **Tests:** `gaps_fuel_bay_pipe`, `gaps_press_points`, `gaps_loadout_points`, `gaps_paste_gauges`, `gaps_headframe_hopper`,
+  `gaps_paste_wall_breach`, `gaps_paste_catch_up`, `gaps_muck_on_paste`. Decisions in `docs/questions/gaps2.md`.
+
 ### L7: dense-medium separation (2026-11-10, decided while Tim was away)
 
 - **Deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery:** on the belt off the double-deck screen's gravel

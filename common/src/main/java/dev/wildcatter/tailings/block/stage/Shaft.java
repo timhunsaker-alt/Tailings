@@ -183,7 +183,61 @@ public final class Shaft {
 		}
 	};
 
-	/** The headframe bin: what the skips dump, out of its bottom onto the belt under it. */
+	/**
+	 * A vanilla container (a hopper, a chest) under the bin's bottom, for a bin with no belt under it (docs/questions/gaps2.md); never
+	 * a plant part.
+	 */
+	private static net.minecraft.world.@Nullable Container container(PlantBlockEntity part) {
+		for (dev.wildcatter.block.Lines.Face face : part.side(Direction.DOWN)) {
+			if (part.getLevel().getBlockEntity(face.pipe()) instanceof net.minecraft.world.Container box && !(box instanceof PlantBlockEntity)
+					&& !(dev.wildcatter.multiblock.BigParts.entity(part.getLevel(), face.pipe()) instanceof PlantBlockEntity)) {
+				return box;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Out of its bottom into the container under it as items, a block's worth (2.7 t) of one rock and size an item, at the belt's
+	 * rate: one item each {@link #ITEM_TICKS}. Less than a block of a rock stays in the bin.
+	 */
+	private static void bag(PlantBlockEntity part, net.minecraft.world.Container box) {
+		Object[] whole = {null, null};
+		part.hold().forEach((rock, size, kg) -> {
+			if (whole[0] == null && kg >= dev.wildcatter.tailings.plant.PlantRates.BLOCK_KG - 1e-6) {
+				whole[0] = rock;
+				whole[1] = size;
+			}
+		});
+		if (whole[0] == null) {
+			part.say(String.format("less than a block of any rock for the hopper under it; holds %.1f t", part.hold().total() / 1000));
+			return;
+		}
+		if (part.getLevel().getGameTime() % Math.max(1, ITEM_TICKS / part.fast()) != 0) {
+			part.say(String.format("feeding %s to the hopper under it; holds %.0f t", Crushing.main(part.hold()), part.hold().total() / 1000));
+			return;
+		}
+		Rock rock = (Rock) whole[0];
+		SizeClass size = (SizeClass) whole[1];
+		net.minecraft.world.item.ItemStack item = dev.wildcatter.tailings.block.Feeds.stack(size == null ? dev.wildcatter.tailings.block.Feeds.blockId(rock) : size.itemId(rock), 1);
+		if (item.isEmpty()) {
+			return;
+		}
+		net.minecraft.world.item.ItemStack left = net.minecraft.world.level.block.entity.HopperBlockEntity.addItem(null, box, item, Direction.UP);
+		if (!left.isEmpty()) {
+			part.say(String.format("FULL: the container under it is full; holds %.0f t", part.hold().total() / 1000));
+			return;
+		}
+		part.hold().take(dev.wildcatter.tailings.plant.PlantRates.BLOCK_KG, (r, s) -> r == rock && s == size);
+		box.setChanged();
+		part.say(String.format("feeding %s to the hopper under it; holds %.0f t", Crushing.main(part.hold()), part.hold().total() / 1000));
+		part.setChanged();
+	}
+
+	/** Ticks between items into a container: a block's 2.7 t at the belt's rate. */
+	static final int ITEM_TICKS = (int) Math.ceil(dev.wildcatter.tailings.plant.PlantRates.BLOCK_KG / Belts.BELT_KG_PER_TICK);
+
+	/** The headframe bin: what the skips dump, out of its bottom onto the belt under it, or into a hopper under it as items. */
 	static final Stage BIN = new Stage() {
 		@Override
 		public double holdKg() {
@@ -203,7 +257,12 @@ public final class Shaft {
 			}
 			PlantBlockEntity.Sink sink = part.sink(part.side(Direction.DOWN));
 			if (sink == null) {
-				part.say(String.format("%s (a belt under it); holds %.0f t", Crushing.NOWHERE, part.hold().total() / 1000));
+				net.minecraft.world.Container box = container(part);
+				if (box != null) {
+					bag(part, box);
+					return;
+				}
+				part.say(String.format("%s (a belt or a hopper under it); holds %.0f t", Crushing.NOWHERE, part.hold().total() / 1000));
 				return;
 			}
 			double max = Math.min(Belts.BELT_KG_PER_TICK, sink.room(part.hold()));

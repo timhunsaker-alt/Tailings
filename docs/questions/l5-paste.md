@@ -89,7 +89,8 @@ existing world (#22).
 
 ### 12. Curing: eight steps of 2.5 minutes
 - **Chosen:** wet paste sets in one game day (L5-3), in eight scheduled steps of 3,000 ticks; its step is in its block state, so paste
-  moved by a spill keeps its age. While its chunk is not loaded it does not cure (the game holds a scheduled tick's time left).
+  moved by a spill keeps its age. While its chunk is not loaded it does not cure (the game holds a scheduled tick's time left);
+  **since gaps2** it makes that time up when the chunk comes back (gaps2.md #6).
 - **Why:** a single 24,000-tick tick would restart when the paste moves; steps cost about one block tick a second for a 20,000 m³ void.
 - **Alternatives:** cure by the clock (a block entity per cubic metre, heavy for 20,000 of them); random ticks (no exact time).
 
@@ -104,15 +105,16 @@ existing world (#22).
 - **Chosen:** when a fill bulkhead is removed by any means and wet paste touches the gap, every wet cell joined to it at or above the
   gap's floor (all of them, for a gap under the paste) runs out, highest first, and settles outside the gap by the settle rule; set
   paste stays. It happens at once, in one tick. Breaking a stone wall next to wet paste lets nothing out (the outlet then reads NOT
-  ENCLOSED).
+  ENCLOSED). **Since gaps2:** a stone (any solid) wall breached beside wet paste spills it too (gaps2.md #5).
 - **Why:** the spec ("a bulkhead broken while the paste behind it is wet"); the real hazard is a barricade failing. Any block could be
   watched, but a wet void always has open cells beside its paste (its unfilled top), so telling a breach from them needs a scan.
 - **Alternatives:** any wall block breached lets paste out (a void scan on every block broken next to paste); a spill spread over
   several ticks (smoother on a server for a very large void).
 
 ### 15. The settle rule and wet paste
-- **Chosen:** spilled paste settles on paste (the rule's ground treats paste as solid). Muck and dry tails tipped onto wet paste still
-  fall into it and replace it, as the settle rule sees a block with no collision as free.
+- **Chosen:** spilled paste settles on paste (the rule's ground treats paste as solid). Muck and dry tails tipped onto wet paste rest
+  on it: the game's free test is not about collision, and paste is not replaceable. (This said they fell into it and replaced it; the
+  gaps2 wave checked it with a scene, `gaps_muck_on_paste`: they never did. gaps2.md #7.)
 - **Why:** changing the shared rule would change how muck settles elsewhere; tipping onto wet fill is rare.
 - **Alternatives:** make the shared rule see wet paste as solid (one line, touches the pit's settling).
 
@@ -130,7 +132,8 @@ existing world (#22).
 
 ### 18. PLC points
 - **Chosen:** the pump has the plant motor's six points, then FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa). The
-  filter and mixer have the motor's six only; their feed tanks are not on the slurry gauges.
+  filter and mixer have the motor's six only; their feed tanks are not on the slurry gauges. **Since gaps2** they have LEVEL, FLOW and
+  DENSITY (gaps2.md #3).
 - **Why:** the spec's pump points (RUN, RUNNING, FLOW, PRESSURE).
 - **Alternatives:** LEVEL and DENSITY on the filter and mixer as the other slurry parts have.
 
