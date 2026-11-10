@@ -41,8 +41,8 @@ import net.minecraft.world.item.ItemStack;
  */
 final class PitBigGameTests {
 	static final String[] SCENES = {"pit_switch_house", "pit_cable_end", "pit_ultra_haul", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric",
-			"pit_rope_shovel_built", "pit_rope_shovel", "pit_low_voltage", "pit_switch_house_fed"};
-	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_low_voltage", 1200), Map.entry("pit_switch_house_fed", 1200), Map.entry("pit_switch_house", 1200), Map.entry("pit_cable_end", 1600),
+			"pit_rope_shovel_built", "pit_rope_shovel", "pit_low_voltage", "pit_switch_house_fed", "pit_shovel_edge"};
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_low_voltage", 1200), Map.entry("pit_shovel_edge", 1200), Map.entry("pit_switch_house_fed", 1200), Map.entry("pit_switch_house", 1200), Map.entry("pit_cable_end", 1600),
 			Map.entry("pit_ultra_haul", 7200), Map.entry("pit_ultra_loader", 400), Map.entry("pit_hyd_shovel", 2400), Map.entry("pit_hyd_electric", 1200),
 			Map.entry("pit_rope_shovel_built", 400), Map.entry("pit_rope_shovel", 3000));
 	static final Map<String, Integer> PADDING = Map.of("pit_switch_house", 60, "pit_cable_end", 60, "pit_ultra_haul", 200, "pit_ultra_loader", 60,
@@ -54,7 +54,7 @@ final class PitBigGameTests {
 
 	static int[] reach(String scene) {
 		return switch (scene) {
-			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage", "pit_switch_house_fed" -> new int[] {-1, 4, -1, 4};
+			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage", "pit_switch_house_fed", "pit_shovel_edge" -> new int[] {-1, 4, -1, 4};
 			case "pit_ultra_haul" -> new int[] {-3, 4, -1, 11};
 			case "pit_rope_shovel_built", "pit_rope_shovel" -> new int[] {-1, 5, -1, 6};
 			default -> new int[] {-1, 2, -1, 2};
@@ -507,5 +507,28 @@ final class PitBigGameTests {
 			helper.assertTrue(drill.cable().live() && Math.abs(house.volts(0) - nominal) < nominal * 0.05,
 					Component.literal("the drill has power at about " + Math.round(nominal) + " V: " + house.inspect().getString() + "; " + drill.powerInfo()));
 		}));
+	}
+
+	/**
+	 * In AUTO, a shovel whose face is out of reach edges up to it a metre at a time, up to 5 m past where it was set to work, then digs
+	 * (docs/questions/p3-blasting.md, 21: the self-running loader's plan, shared).
+	 */
+	static void shovelEdge(GameTestHelper helper) {
+		floor(helper, 0, 60, 1, 1, 0, 40);
+		muck(helper, 26, 33, 2, 5, 6, 8);   // 2 m beyond the bucket's 3 m
+		HydraulicShovelEntity shovel = vehicle(helper, TailingsEntities.HYDRAULIC_SHOVEL, 30.0, 2, 20.5, 180);
+		shovel.setFuel(shovel.tank());
+		shovel.fastPasses(20);
+		double startZ = shovel.getZ();
+		shovel.setAutoHere();
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(!shovel.bucket().empty(), Component.literal("it should edge up and dig: " + shovel.status() + " at "
+						+ (startZ - shovel.getZ()) + " m on")))
+				.thenExecute(() -> {
+					double on = startZ - shovel.getZ();
+					System.out.println("[tailings-test] pit_shovel_edge: edged " + on + " m and dug " + shovel.bucket().tonnes());
+					helper.assertTrue(on >= 1.5 && on <= 5.01, Component.literal("a few metres, no more than 5: " + on));
+				})
+				.thenSucceed();
 	}
 }

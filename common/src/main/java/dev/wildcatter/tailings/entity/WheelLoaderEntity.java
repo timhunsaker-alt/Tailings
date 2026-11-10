@@ -135,6 +135,11 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 			}
 			dig(level, null);
 			if (load.empty()) {
+				if (status.startsWith("nothing in reach") && edgeForward(autoStake)) {
+					status = "edging up to the face";
+					retryIn = 10;
+					return;
+				}
 				status = "face worked out: nothing left in reach";
 				retryIn = 200;
 			}

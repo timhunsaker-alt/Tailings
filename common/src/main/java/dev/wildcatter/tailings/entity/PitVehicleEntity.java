@@ -214,6 +214,28 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	/** It may not drive: the truck's body is up, the loader is in a pass. */
 	public abstract boolean busy();
 
+	/** A self-running loader or shovel edges up to this far past its LOAD stake toward its face (p3-blasting.md 21, P5). */
+	public static final double EDGE_MOST = 5.0;
+
+	/**
+	 * A face worked out of reach: it edges a metre forward, along its heading, if the way is clear and it stays within
+	 * {@link #EDGE_MOST} of its stake. True if it moved.
+	 */
+	protected boolean edgeForward(net.minecraft.core.BlockPos stake) {
+		Vec3 step = ahead();
+		Vec3 to = position().add(step);
+		if (Math.hypot(to.x - stake.getX() - 0.5, to.z - stake.getZ() - 0.5) > EDGE_MOST) {
+			return false;
+		}
+		Vec3 before = position();
+		move(MoverType.SELF, step);
+		if (Math.hypot(getX() - before.x, getZ() - before.z) < 0.9) {
+			setPos(before);
+			return false;
+		}
+		return true;
+	}
+
 	/** The jump key pressed once, with nobody in the cab: for game tests. */
 	public void pressJump(ServerLevel level) {
 		if (electric() && outOfFuel()) {

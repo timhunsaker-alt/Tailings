@@ -438,7 +438,7 @@ building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.
 
 Spec `docs/multiblocks/open-pit-p5-big-machines.md` (a draft decided on recommendation; "As built" at its end). Built while Tim was
 away on branch `p5-big-machines` (from `p3-blasting`, with `main` merged in; needs Wildcatter 0.6.0 as P3 does); what building it raised
-was decided on the best recommendation and logged in `docs/questions/p5-big-machines.md` (34 decisions). DESIGN.md, "The open pit (P5)".
+was decided on the best recommendation and logged in `docs/questions/p5-big-machines.md` (35 decisions). DESIGN.md, "The open pit (P5)".
 
 - **P5a, power:** `pit_switch_house` (3 x 3 x 6) on the world's medium voltage, four breaker outlets with ground check, definite-time
   trips at 1.25 x the machine's peak for 1 s, an incoming breaker, a panel and PLC points (CLOSE, CLOSED, TRIPPED, AMPS per outlet). The
@@ -461,9 +461,15 @@ was decided on the best recommendation and logged in `docs/questions/p5-big-mach
   the quarter. A stepped 10 % ramp between stakes surveyed as blocked when the stakes' straight line ran under a step: the scene's stakes
   stand at the ramp's foot and top. With its drives stopped a machine's volts come straight back, so LOW VOLTAGE holds 10 s rather than
   hunting. Setting the rope shovel down needs the ground ahead clear for its boom.
+- **Edging to the face (p3-blasting.md 21's plan):** in AUTO the loader and the shovels edge up to 5 m past their LOAD stake toward a
+  face out of reach (`pit_shovel_edge`: 2 m, then a full bucket).
 - **Models:** the switch house and the six parts in Wildcatter's materials (`tools/models/pit.py`); the ultra, the hydraulic shovel and
   the lifted rope shovel by `tools/models/pit_vehicles.py` in Ludo's materials (the generator now hangs groups from groups, each on its
   own hinge); the trailing cable drawn along the ground; the rope shovel's hoist and suspension ropes drawn as lines.
+- **Scenes:** NeoForge `pit_switch_house`, `pit_switch_house_fed`, `pit_cable_end`, `pit_low_voltage`, `pit_ultra_haul`,
+  `pit_ultra_loader`, `pit_hyd_shovel`, `pit_hyd_electric`, `pit_rope_shovel_built`, `pit_rope_shovel`, `pit_shovel_edge`: **138 pass**
+  (127 with P3 and main merged, 11 new). Unit tests: 132 pass (`PitPowerTest` new). The Fabric client film `pit_big`
+  (`TAILINGS_ONLY=pit_big`).
 - **Known gaps (P5):** script-drawn item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder`,
   `hydraulic_shovel_placeholder` (`tools/models/p5_assets.py`); the rope shovel's PLC points are planned, not built; the drill is still one
   machine (its parts planned); the cable is drawn straight; the rest are in ROADMAP's Known gaps.

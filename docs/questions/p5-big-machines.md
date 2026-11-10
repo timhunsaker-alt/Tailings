@@ -261,3 +261,14 @@ best recommendation while Tim was away. Nothing here is final until he has been 
   minutes.
 - **Why:** the spec's film; the speed-up as the other films' (pit_blast's drill).
 - **Alternatives:** film it at real time (about 2 min 20 s of loading alone).
+
+## After P5: shared with the loader
+
+### 35. A self-running loader or shovel edges up to its face
+- **Chosen:** in AUTO, when nothing is in reach (not hard rock, not a misfire), the wheel loader, the hydraulic shovel and the rope shovel
+  edge a metre forward along their heading if the way is clear, up to 5 m past their LOAD stake (or where AUTO was set on the panel),
+  and try again; past that, "face worked out". `pit_shovel_edge`: a shovel edges 2 m to a face just out of reach and digs.
+- **Why:** the plan in p3-blasting.md, 21 (found filming the blast's muck pile), recommended for P5 since the shovels work a face the same
+  way; real operators crowd the face as it retreats.
+- **Alternatives:** the player moves the LOAD stake (the old way); edge further (a machine wandering off its loading point would leave
+  its trucks' stake behind).

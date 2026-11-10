@@ -210,6 +210,11 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 			long most = truck == null ? bucketKg() : Math.min(bucketKg(), truck.load().room());
 			dig(level, null, most);
 			if (load.empty() && !status.startsWith("hard rock") && !status.startsWith("misfire")) {
+				if (edgeForward(autoStake)) {
+					status = "edging up to the face";
+					retryIn = 48 / divisor;   // a metre at 1.5 km/h
+					return;
+				}
 				status = "face worked out: nothing left in reach";
 				retryIn = 200;
 			} else if (load.empty()) {

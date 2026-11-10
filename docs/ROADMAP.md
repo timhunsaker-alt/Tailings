@@ -216,7 +216,7 @@ rock). NeoForge scenes `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_
 ## Open pit — P5: the pit switch house, trailing cables, the ultra truck, the big shovels (2026-11-09)
 
 Built while Tim was away on the draft spec [multiblocks/open-pit-p5-big-machines.md](multiblocks/open-pit-p5-big-machines.md), decided on
-recommendation (decisions in [questions/p5-big-machines.md](questions/p5-big-machines.md), 34). P5a: the `pit_switch_house` on the
+recommendation (decisions in [questions/p5-big-machines.md](questions/p5-big-machines.md), 35). P5a: the `pit_switch_house` on the
 world's medium voltage (four breaker outlets, ground check, trips, a PLC device), the `trailing_cable` (400 m reels, paid out along the
 path, CABLE END, its resistance on the solver, drawn on the ground), LOW VOLTAGE, and the drill's electric option. P5b: the
 `ultra_haul_truck` (363 t; routes surveyed for its own box, 40 m to turn, 2-block berms; too high for the wheel loader). P5c: the
@@ -224,7 +224,8 @@ path, CABLE END, its resistance on the solver, drawn on the ground), LOW VOLTAGE
 (`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`, `shovel_dipper`), lifted into one machine by RUN and
 set down by STOP, on its cable at 3.5 MW hoisting; 4 passes to an ultra. NeoForge scenes `pit_switch_house`, `pit_switch_house_fed`,
 `pit_cable_end`, `pit_low_voltage`, `pit_ultra_haul`, `pit_ultra_loader`, `pit_hyd_shovel`, `pit_hyd_electric`, `pit_rope_shovel_built`,
-`pit_rope_shovel`; unit tests `PitPowerTest`; client film `pit_big`.
+`pit_rope_shovel`, `pit_shovel_edge`; unit tests `PitPowerTest`; client film `pit_big`. The self-running loader and the shovels
+now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan).
 
 Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant). Planned from P5 (Known gaps below): the rope
 shovel's PLC points through its outlet; the drill as four parts.
@@ -312,7 +313,7 @@ into the playthrough.
 - **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
-  without driving between; the driver moves it. A self-running loader stands where it was left too.
+  without driving between; the driver moves it. A self-running loader edges up to 5 m toward a face out of reach (P5), no further.
 - **A truck's route is only as good as its stakes (P2a):** it drives straight between stakes and turns round in the open at the
   stake before an end (about 25 m). It does not find its own way round anything the survey missed between samples.
 - **The fuel bay's pipe intake has no scene yet (P2a):** `pit_fuel_bay` fills its day tank by hand; filling by pipe uses Wildcatter's
