@@ -49,8 +49,10 @@ These are the only items that wait on you; everything else is built and only nee
     points are on its switch house outlet, not its tub, since the tub lifts and walks.
 15. **The pit line** (branch `p5-big-machines`, `p7-pit-line.md` #11, #14, #21, #27): three close reclaim feeders draw 41 % of a pile
     (one draws 26 %); the weigher's 50 t/h step; whether a big mill should refuse a direct start or just trip its breaker; whether
-    Wildcatter should get a large-bore slurry pipe. P7c (pit flotation) is a plan, not built: the 45 m thickener needs the model tool
-    changed first. P5, P6 and P7 pass all 200 server scenes together and merge to main after the Wildcatter v0.6.0 release.
+    Wildcatter should get a large-bore slurry pipe. P7c, pit flotation (#33, #36, #37, #40): turn the shared empty model on for the older
+    big parts too (about 10,000 fewer files); the row's air on instrument tubing or a real air header; should the concentrate
+    thickener refuse uncleaned concentrate; and Wildcatter's decant tower takes about 72 t/h against the line's 1,670 t/h, so raise its
+    rate? P5, P6 and P7 (all of it) pass 205 server scenes together and merge to main after the Wildcatter v0.6.0 release.
 
 ## Every file, by wave
 
@@ -76,7 +78,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
-| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 32 | the gyratory and stockpile (P7a), the SAG line (P7b); P7c left as a plan |
+| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 44 | the gyratory and stockpile (P7a), the SAG line (P7b), pit flotation and the 45 m thickener (P7c) |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
