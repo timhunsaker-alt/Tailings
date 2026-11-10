@@ -137,6 +137,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("dry_mill")) {
 				dryMill(context, world, server);
 			}
+			if (only("xrt")) {
+				xrt(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -585,6 +588,78 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(pay[0] == 4 && pay[1] == 4, "the filter should pay the spirals' half: 4 nuggets of each");
 		require(pay[2] == 4 && pay[3] == 4, "the dry mill should pay the scavengers' share: 4 nuggets of each");
 		heard("dry_mill", "tailings:slurry_rush", "wildcatter:fan");
+	}
+
+	/**
+	 * L8, the X-ray ore sorter (xrt-ore-sorter.md): crushed galena ore and andesite come in on a belt over its feed end; its compressor
+	 * beside it gives the ejectors air; the galena is blown onto the product belt off its south end, the andesite drops onto the waste
+	 * belt off its east face, each to a chest.
+	 */
+	private void xrt(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-300, y + 1, -300);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -9; x <= 14; x++) {
+				for (int z = -3; z <= 17; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 8; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			PlantBlockEntity sorter = plant(level, Machine.XRT_SORTER, o);
+			PlantBlockEntity compressor = plant(level, Machine.SORTER_COMPRESSOR, o.offset(-2, 0, 0));
+			// the feed belt over its north (feed) end, on trestles of the run's own height
+			for (int x = -6; x <= 2; x++) {
+				level.setBlock(o.offset(x, 5, 1), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity feed = plant(level, Machine.CONVEYOR_DRIVE, o.offset(3, 5, 0));
+			// the product belt off its south end, the waste belt off its east face, each over a chest
+			for (int z = 8; z <= 14; z++) {
+				level.setBlock(o.offset(1, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity product = plant(level, Machine.CONVEYOR_DRIVE, o.offset(2, 0, 14));
+			level.setBlock(o.offset(1, -1, 14), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (int x = 4; x <= 10; x++) {
+				level.setBlock(o.offset(x, 0, 4), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity waste = plant(level, Machine.CONVEYOR_DRIVE, o.offset(11, 0, 4));
+			level.setBlock(o.offset(10, -1, 4), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (PlantBlockEntity part : new PlantBlockEntity[] {sorter, compressor, feed, product, waste}) {
+				part.forceRunning();
+			}
+			parts[0] = new PlantBlockEntity[] {sorter, compressor, feed, product, waste};
+		});
+		server.runCommand("tp @p " + (o.getX() + 13) + " " + (o.getY() + 9) + " " + (o.getZ() + 18) + " 140 30");
+		context.waitTicks(40);
+		Filming film = film(context, world, "xrt");
+		context.takeScreenshot("tailings-xrt-built");
+		for (int t = 0; t < 40; t++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> {
+				PlantBlockEntity feed = parts[0][2];
+				if (feed.hold().total() < 200) {
+					dev.wildcatter.tailings.plant.RockLoad load = new dev.wildcatter.tailings.plant.RockLoad();
+					load.add(Rock.GALENA, dev.wildcatter.tailings.rock.SizeClass.CRUSHED, 100);
+					load.add(Rock.ANDESITE, dev.wildcatter.tailings.rock.SizeClass.CRUSHED, 100);
+					feed.receive(load);
+				}
+			});
+			if (t == 20) {
+				context.takeScreenshot("tailings-xrt-sorting");
+				server.runCommand("tp @p " + (o.getX() + 16) + " " + (o.getY() + 6) + " " + (o.getZ() + 3) + " 88 22");
+			}
+			if (t % 8 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] xrt: " + parts[0][0].inspect().getString() + " | " + parts[0][1].status()));
+			}
+		}
+		context.takeScreenshot("tailings-xrt-end");
+		film.stop();
+		double[] sent = server.computeOnServer(srv -> new double[] {parts[0][0].xrt().productKg(), parts[0][0].xrt().wasteKg()});
+		System.out.println("[tailings-test] xrt end: " + sent[0] + " kg to product, " + sent[1] + " kg to waste");
+		require(sent[0] > 500 && sent[1] > 500 && Math.abs(sent[0] / (sent[0] + sent[1]) - 0.51) < 0.02, "half galena, half andesite: 51 % to product (97 % of one, 5 % of the other)");
+		heard("xrt", "tailings:ore_sorter", "wildcatter:motor_hum");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {

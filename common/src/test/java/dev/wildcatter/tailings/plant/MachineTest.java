@@ -62,7 +62,9 @@ class MachineTest {
 			Map.entry(Machine.FLUID_BED_DRYER, new int[] {3, 4, 6}),
 			Map.entry(Machine.RER_SEPARATOR, new int[] {2, 3, 3}),
 			Map.entry(Machine.HT_ROLL_SEPARATOR, new int[] {2, 3, 4}),
-			Map.entry(Machine.IRM_SEPARATOR, new int[] {2, 3, 3}));
+			Map.entry(Machine.IRM_SEPARATOR, new int[] {2, 3, 3}),
+			Map.entry(Machine.XRT_SORTER, new int[] {4, 5, 8}),
+			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

@@ -484,3 +484,14 @@ Built while Tim was away on the draft spec `docs/multiblocks/dry-mill.md`; decis
 - **Art:** five models in Wildcatter's materials (`tools/models/drymill.py`); the HMC bag's icon from Ludo (1 credit); no placeholders.
 - **Scenes:** NeoForge `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`:
   **142 NeoForge scenes pass** (136 before, 6 new). Unit tests `DryMillTest` (6) and `MachineTest`: 142 pass. The Fabric client film `dry_mill` (`TAILINGS_ONLY=dry_mill`).
+
+## L8: the X-ray ore sorter (2026-11-10, branch `l8-xrt`)
+Built while Tim was away on the draft spec `docs/multiblocks/xrt-ore-sorter.md`; decisions in `docs/questions/l8-xrt.md` (16 entries;
+#3, #5 and #6 most need Tim's eye). Nothing in an existing world changes, and the dump sorter is untouched.
+- **Built:** the `xrt_sorter` (reads each piece's effective atomic number from its minerals' real formulas; five threshold steps; 97/3
+  and 95/5 splits; 250 t/h on crushed rock, half on gravel) and its `sorter_compressor` (160 kW). NO FEED, NO AIR, FULL, nowhere to go;
+  PLC THRESHOLD (4-20 mA), PRODUCT and WASTE (a pulse a tonne).
+- **Not built:** the spec's sizing screen (#8); a reverse mode for light ores (#5, a question).
+- **Art:** two models in Wildcatter's materials (`tools/models/xrt.py`); no placeholders, no Ludo credits.
+- **Scenes:** NeoForge `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`: **the full suite passes, 154 required
+  tests** (5 new). Unit tests `XrtSortingTest` (7) and `MachineTest`: 165 pass. The Fabric client film `xrt` (`TAILINGS_ONLY=xrt`).

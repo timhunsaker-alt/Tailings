@@ -281,11 +281,24 @@ Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladde
 - **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
   ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
 
+## Later — L8: the X-ray ore sorter (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/xrt-ore-sorter.md](multiblocks/xrt-ore-sorter.md), decisions in
+[questions/l8-xrt.md](questions/l8-xrt.md), branch `l8-xrt`. A 1.2 m `xrt_sorter` (4 x 5 x 8, 20 kW) reads each piece's effective
+atomic number from the real formulas of the minerals its rock holds and splits crushed rock and gravel two ways: over the threshold
+(five steps, set by a sneaking click or the PLC's 4-20 mA THRESHOLD) to product, under it to waste, with 3 % and 5 % misplaced; 250
+t/h on crushed rock. Its own 160 kW `sorter_compressor` gives the ejectors air; without it, NO AIR, and it stops. PRODUCT and WASTE pulse
+a tonne each. The dump sorter is unchanged. NeoForge scenes `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; unit
+tests `XrtSortingTest`; the client film `xrt`.
+- **Not built:** the spec's sizing screen (questions/l8-xrt.md, 8); a reverse mode that ejects light pieces (5, a question).
+- **Left out, planned (the spec's "Left out"):** other sensors (optical, laser, NIR, X-ray fluorescence and luminescence for diamonds);
+  a grade spread inside one rock; dust extraction.
+
 ## Later, not scheduled
 
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
-- Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
+- Dense-medium separation, and X-ray ore sorting as its own machine (X-ray sorting built as L8, above). The dump sorter is a stand-in, not that machine, and stays.
 - A shaft and hoist (headframe, skip) instead of the decline: built as L4 (above); the raise borer and the cage are still to build.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
 - Bottom-dump cars over a grizzly: built as L3 (above).
@@ -337,6 +350,14 @@ Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladde
   stacks, with no product bins (questions/l6-dry-mill.md, 6, 7).
 - **Each separator takes all of its mineral (L6):** no misplacement or middlings.
 - **No new L6 sounds:** the dryer uses Wildcatter's fan, the separators its motor hum.
+- **Every piece of one rock reads the same (L8):** the X-ray sorter's 3 % and 5 % errors stand in for the real spread inside a rock
+  (questions/l8-xrt.md, 4).
+- **Light ores go to waste at the X-ray sorter (L8):** graphite, magnesite, borax, bauxite, spodumene and bentonite read under quartz;
+  there is no reverse mode, and the platinum reef's platinum cannot be seen (questions/l8-xrt.md, 5).
+- **The X-ray sorter's air is a running compressor, not a pressure (L8):** its own 160 kW compressor touching it, not Wildcatter's
+  instrument air, which has no flow model (questions/l8-xrt.md, 6).
+- **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
+- **No X-ray sorter sounds of its own (L8):** it plays the dump sorter's air jets; its compressor Wildcatter's motor hum.
 - **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
 - **The headframe bin feeds belts only (L4):** a hopper under it takes nothing (questions/l4-shaft.md, 12).
 

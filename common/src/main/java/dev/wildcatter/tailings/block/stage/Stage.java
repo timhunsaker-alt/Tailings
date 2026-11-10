@@ -106,6 +106,8 @@ public interface Stage {
 			case RER_SEPARATOR -> DryMillStages.RER;
 			case HT_ROLL_SEPARATOR -> DryMillStages.HT;
 			case IRM_SEPARATOR -> DryMillStages.IRM;
+			case XRT_SORTER -> Xrt.SORTER;
+			case SORTER_COMPRESSOR -> Xrt.COMPRESSOR;
 			default -> Idle.INSTANCE;
 		};
 	}

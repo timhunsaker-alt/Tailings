@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SLS",
+    "OBO",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "L": "wildcatter:lead_ingot",
+    "O": "minecraft:observer",
+    "B": "tailings:belt_conveyor",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:xrt_sorter",
+    "count": 1
+  }
+}

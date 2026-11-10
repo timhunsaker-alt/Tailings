@@ -80,6 +80,8 @@
     "tailings:fluid_bed_dryer",
     "tailings:rer_separator",
     "tailings:ht_roll_separator",
-    "tailings:irm_separator"
+    "tailings:irm_separator",
+    "tailings:xrt_sorter",
+    "tailings:sorter_compressor"
   ]
 }

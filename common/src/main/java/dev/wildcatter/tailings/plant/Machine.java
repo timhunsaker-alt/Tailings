@@ -90,7 +90,11 @@ public enum Machine {
 	/** A 1.5 m high-tension roll separator with its own high-voltage supply, 7.5 kW: takes the conductors, rutile and cassiterite (L6, proposed). */
 	HT_ROLL_SEPARATOR("ht_roll_separator", "High-Tension Roll Separator", 2, 3, 4, 7_500, Supply.INDUSTRIAL),
 	/** A 1.5 m induced-roll magnet at high intensity, 11 kW: takes the monazite; the zircon passes (L6, proposed). */
-	IRM_SEPARATOR("irm_separator", "Induced-Roll Magnet", 2, 3, 3, 11_000, Supply.INDUSTRIAL);
+	IRM_SEPARATOR("irm_separator", "Induced-Roll Magnet", 2, 3, 3, 11_000, Supply.INDUSTRIAL),
+	/** A 1.2 m X-ray transmission ore sorter (xrt-ore-sorter.md, L8): feeder, 3 m/s belt, X-ray line and 192 air ejectors; 20 kW (unverified). */
+	XRT_SORTER("xrt_sorter", "X-Ray Ore Sorter", 4, 5, 8, 20_000, Supply.INDUSTRIAL),
+	/** The sorter's screw compressor and air receiver for its ejectors, 160 kW (L8, proposed). */
+	SORTER_COMPRESSOR("sorter_compressor", "Sorter Air Compressor", 2, 2, 3, 160_000, Supply.INDUSTRIAL);
 
 	public enum Supply {
 		NONE,
