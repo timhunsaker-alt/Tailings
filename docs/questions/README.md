@@ -71,6 +71,16 @@ These are the only items that wait on you; everything else is built and only nee
     Nothing changes in existing worlds; not merged to master, for the same reason as Phase 16. Needs you: #1 (Tailings' DMS could take
     Wildcatter's ferrosilicon instead of its placeholder recipe), #7 (green anodes stand in for electrode paste), #14 (one vessel batch
     is one bag; iron ingots for mill scale).
+19. **Wildcatter Phase 18, phosphate** (branch `phase18`, `phase18-phosphate.md`, 22 entries): the phosphoric acid line and its
+    gypsum, granulation (TSP, DAP on the ammonia plant), potash, and the first cycle of uranium from phosphoric acid (the second waits
+    on Phase 16). Nothing changes in existing worlds. Needs you: #3 (acid on the reactor's south side), #15 (Farmings must read
+    `c:fertilizers`), #17 (without Phase 16 the strip fills at 326 kg and the acid bypasses it), #19 (a stand-in extractant recipe).
+20. **Wildcatter Phase 19a and 19b, the reactor** (branch `phase19`, `phase19-reactor.md`, 21 entries): containment with recombiners
+    and igniters, the relief tank, dry casks, fresh-fuel inspection, contamination. Every rule that changes a running reactor is off by
+    default in `config/wildcatter.properties` (`reactorLtop`, `reactorHeatupLimit`, `reactorRealHeatup`, `reactorDeltaTTrips`,
+    `reactorContamination`, `fuelHandlingDamage`). Needs you: #1-4, 6, 7 (on for new worlds?), #5 (the OP delta-T constants are
+    unverified), #8 (per-world rules instead of a server file), #18 (fuel takes about 160 world days to cool enough for a cask, so
+    count cooling 100x for cask eligibility?).
 ## Every file, by wave
 
 | Mod | File | Entries | What |
@@ -108,6 +118,8 @@ These are the only items that wait on you; everything else is built and only nee
 | Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
 | Wildcatter | `phase16-uranium.md` (branch `phase16`) | 30 | ADU and the calciner, cathode H2, ash bed, KOH, product assay, spin-up, cooling, ISR CO2, bleed, satellites |
 | Wildcatter | `phase17-ferroalloys.md` (branch `phase17`) | 19 | the furnace transformer, the SAF at PF 0.80, the capacitor bank, the moly roaster, the aluminothermic vessel |
+| Wildcatter | `phase18-phosphate.md` (branch `phase18`) | 22 | phosphoric acid, gypsum, TSP and DAP, potash, uranium from phosphoric acid (first cycle) |
+| Wildcatter | `phase19-reactor.md` (branch `phase19`) | 21 | containment, PARs and igniters, the relief tank, LTOP, heat-up, delta-T trips, dry casks, contamination, inspection |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.
