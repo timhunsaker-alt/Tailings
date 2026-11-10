@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "ICI",
+    "IKI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "tailings:conveyor_drive",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:heavy_conveyor_drive",
+    "count": 1
+  }
+}

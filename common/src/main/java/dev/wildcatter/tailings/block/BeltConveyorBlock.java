@@ -49,14 +49,19 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 		return defaultBlockState().setValue(AXIS, context.getHorizontalDirection().getAxis());
 	}
 
+	/** The drive that drives a run of this belt. */
+	public Machine drive() {
+		return Machine.CONVEYOR_DRIVE;
+	}
+
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return state.getValue(AXIS) == Direction.Axis.X ? X : Z;
 	}
 
 	/**
-	 * The run {@code start} belongs to, in order from one end to the other: belts of the same axis end to end, level or one block up
-	 * or down (a grade). Belts side by side are separate runs.
+	 * The run {@code start} belongs to, in order from one end to the other: belts of the same kind and axis end to end, level or one
+	 * block up or down (a grade). Belts side by side are separate runs, and so are a 600 mm belt and a heavy belt end to end.
 	 */
 	public static List<BlockPos> run(BlockGetter level, BlockPos start) {
 		BlockState first = level.getBlockState(start);
@@ -65,17 +70,17 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 		}
 		Direction.Axis axis = first.getValue(AXIS);
 		Direction forward = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
-		List<BlockPos> back = walk(level, start, forward.getOpposite(), axis);
+		List<BlockPos> back = walk(level, start, forward.getOpposite(), axis, first.getBlock());
 		List<BlockPos> run = new ArrayList<>();
 		for (int i = back.size() - 1; i >= 0; i--) {
 			run.add(back.get(i));
 		}
 		run.add(start);
-		run.addAll(walk(level, start, forward, axis));
+		run.addAll(walk(level, start, forward, axis, first.getBlock()));
 		return run;
 	}
 
-	private static List<BlockPos> walk(BlockGetter level, BlockPos start, Direction way, Direction.Axis axis) {
+	private static List<BlockPos> walk(BlockGetter level, BlockPos start, Direction way, Direction.Axis axis, Block kind) {
 		List<BlockPos> out = new ArrayList<>();
 		Set<BlockPos> seen = new HashSet<>();
 		seen.add(start);
@@ -85,7 +90,7 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 			for (int dy : new int[] {0, 1, -1}) {
 				BlockPos maybe = at.relative(way).above(dy);
 				BlockState there = level.getBlockState(maybe);
-				if (there.getBlock() instanceof BeltConveyorBlock && there.getValue(AXIS) == axis && seen.add(maybe)) {
+				if (there.getBlock() == kind && there.getValue(AXIS) == axis && seen.add(maybe)) {
 					next = maybe;
 					break;
 				}

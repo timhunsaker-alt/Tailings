@@ -1,6 +1,6 @@
 # P7b: the SAG mill line (SAG mill, pebble crusher, ball mill, cyclones)
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** The choices are listed in
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **P7b**, built (see "As built"). The choices are listed in
 [../questions/specs-tailings.md](../questions/specs-tailings.md) (P7 section).
 
 The grinding line of the pit-sized plant, at **1,000 t/h** (primary-gyratory-stockpile.md, "The line's rate"). It takes the
@@ -104,6 +104,24 @@ and is to be checked before approval.
 
 ## The wave plan
 - **P7b**, after P7a (the stockpile) and a Wildcatter large-bore slurry line, if Tim takes Decision P7-6.
+
+## As built (P7b, 2026-11-10, branch `p7-pit-line`)
+Decisions in [../questions/p7-pit-line.md](../questions/p7-pit-line.md) (#20-#31; #21 and #27 need Tim).
+- **Existing worlds are untouched:** five new parts. A plant part may now have two motors (only the two big mills do).
+- **Code:** `block.stage.SagLineStages` (the SAG, the pebble crusher, the large ball mill, the cyclone feed pump, the large cluster), the
+  charge, the cyclone feed's density and the water in `plant.PitLine` (unit-tested in `PitLineTest`), the second motor in
+  `PlantBlockEntity`; `Machine.SAG_MILL` to `CYCLONE_CLUSTER_LARGE`; `tools/models/sagline.py`.
+- **As the spec, except:** the second motor box is 4 m south of the main cell on the west face (#20); no NOT STARTED rule: a direct start
+  trips its breaker by Wildcatter's motor physics, and `p7_sag_start` is not built (#21); the normal charge works out at about 83 t and
+  OVERLOAD at about 120 t (#22); pebbles stay the crushed class and come back from the crusher as gravel (#23); the pump takes the ball
+  mill's discharge on its north face or either side (#24); the pump box takes the cyclone water, so the feed is about 54 % solids (#25);
+  the cluster has no motor and reads PRESSURE (#26); the line runs on the existing, unrated steel pipe (#27).
+- **Measured (the scenes):** at its normal charge the SAG grinds 1,000 t/h, 850 with its pebble crusher bypassed; 1 t of undersize
+  through the cluster makes 816 kg of fines slurry (286 kg of solids at 35 %) and 714 kg of underflow, with 505 L of the pump box's water;
+  fed to 125 t the SAG reads OVERLOAD and the weigher holds 900 t/h until it clears.
+- **Tests:** NeoForge `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests `PitLineTest`,
+  `MachineTest`; the client film `p7_line` (with P7a).
+- **Not built:** the spec's "Left out"; the mills' start interlock (#21).
 
 ## Sources
 - AG/SAG update survey (2015): the first gearless SAG mills were two **32' x 17' (15' EGL), 8,200 kW** mills for Chuquicamata (1986);

@@ -3,6 +3,7 @@
   "values": [
     "tailings:muck",
     "tailings:dry_tails",
-    "tailings:paste_fill"
+    "tailings:paste_fill",
+    "tailings:stockpile_rock"
   ]
 }

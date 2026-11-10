@@ -167,6 +167,7 @@ public class TailingsGameTests {
 			DryMillGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			DmsGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			XrtGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			PitLineGameTests.register((name, scene) -> helper.register(id(name), scene));
 			helper.register(id("belt_transit"), loaded(TailingsGameTests::beltTransit));
 			helper.register(id("feed_face"), loaded(TailingsGameTests::feedFace));
 			helper.register(id("screen_gravel"), loaded(TailingsGameTests::screenGravel));
@@ -237,13 +238,13 @@ public class TailingsGameTests {
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, PitLineGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) ? 1600 : 400))))), 1, true,
-								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, VentGameTests.padding(scene, TrainsGameTests.padding(scene, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40)))))));
+						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitLineGameTests.ticks(scene, PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) ? 1600 : 400)))))), 1, true,
+								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitLineGameTests.padding(scene, VentGameTests.padding(scene, TrainsGameTests.padding(scene, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40))))))));
 			}
 		});
 	}

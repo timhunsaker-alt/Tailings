@@ -102,6 +102,21 @@
     "tailings:dragline_shoe",
     "tailings:dragline_mast",
     "tailings:dragline_boom_section",
-    "tailings:dragline_bucket"
+    "tailings:dragline_bucket",
+    "tailings:gyratory_crusher",
+    "tailings:gyratory_pocket",
+    "tailings:rock_breaker",
+    "tailings:surge_pocket",
+    "tailings:primary_apron_feeder",
+    "tailings:heavy_conveyor_drive",
+    "tailings:stockpile_head",
+    "tailings:reclaim_feeder",
+    "tailings:belt_weigher",
+    "tailings:heavy_belt_conveyor",
+    "tailings:sag_mill",
+    "tailings:pebble_crusher",
+    "tailings:ball_mill_large",
+    "tailings:cyclone_feed_pump",
+    "tailings:cyclone_cluster_large"
   ]
 }

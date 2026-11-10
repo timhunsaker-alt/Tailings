@@ -375,5 +375,21 @@
   "block.tailings.dms_cyclone_module": "DMS Cyclone Module",
   "block.tailings.drain_rinse_screen": "Drain-and-Rinse Screen",
   "block.tailings.medium_recovery": "Medium Recovery",
-  "item.tailings.ferrosilicon": "Ferrosilicon (25 kg)"
+  "item.tailings.ferrosilicon": "Ferrosilicon (25 kg)",
+  "block.tailings.gyratory_crusher": "Gyratory Crusher",
+  "block.tailings.gyratory_pocket": "Gyratory Dump Pocket",
+  "block.tailings.rock_breaker": "Rock Breaker",
+  "block.tailings.surge_pocket": "Surge Pocket",
+  "block.tailings.primary_apron_feeder": "Primary Apron Feeder",
+  "block.tailings.heavy_conveyor_drive": "Heavy Conveyor Drive",
+  "block.tailings.stockpile_head": "Stockpile Head",
+  "block.tailings.reclaim_feeder": "Reclaim Feeder",
+  "block.tailings.belt_weigher": "Belt Weigher",
+  "block.tailings.heavy_belt_conveyor": "Heavy Belt Conveyor",
+  "block.tailings.stockpile_rock": "Stockpile Rock",
+  "block.tailings.sag_mill": "SAG Mill",
+  "block.tailings.pebble_crusher": "Pebble Crusher",
+  "block.tailings.ball_mill_large": "Large Ball Mill",
+  "block.tailings.cyclone_feed_pump": "Cyclone Feed Pump",
+  "block.tailings.cyclone_cluster_large": "Large Cyclone Cluster"
 }

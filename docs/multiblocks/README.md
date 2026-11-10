@@ -30,9 +30,9 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [open-pit-p3-blasting.md](open-pit-p3-blasting.md) | P3 (DRAFT) | (new) build detail: blasthole drill, emulsion truck, boosters, detonators, the blast, misfires |
 | [open-pit-p4-dry-stack.md](open-pit-p4-dry-stack.md) | P4 (DRAFT) | (new) build detail: tailings thickener and filter, load-out, dumps, berms, track dozer |
 | [open-pit-p5-big-machines.md](open-pit-p5-big-machines.md) | P5 (DRAFT) | (new) build detail: pit switch house and trailing cables, ultra truck, hydraulic and rope shovels |
-| [primary-gyratory-stockpile.md](primary-gyratory-stockpile.md) | P7a (DRAFT) | (new) gyratory crusher, coarse-ore stockpile, reclaim |
-| [sag-mill-line.md](sag-mill-line.md) | P7b (DRAFT) | (new) SAG mill, pebble crusher, ball mill, cyclones at 1,000 t/h |
-| [pit-flotation.md](pit-flotation.md) | P7c (DRAFT) | (new) tank-cell flotation and the large tails thickener for the pit line |
+| [primary-gyratory-stockpile.md](primary-gyratory-stockpile.md) | P7a (DRAFT, built) | (new) gyratory crusher, coarse-ore stockpile, reclaim |
+| [sag-mill-line.md](sag-mill-line.md) | P7b (DRAFT, built) | (new) SAG mill, pebble crusher, ball mill, cyclones at 1,000 t/h |
+| [pit-flotation.md](pit-flotation.md) | P7c (DRAFT, planned) | (new) tank-cell flotation and the large tails thickener for the pit line |
 | [ventilation.md](ventilation.md) | L1 (DRAFT) | (new) the drive's main fan, duct and the TBM's duct cassette |
 | [battery-locomotive.md](battery-locomotive.md) | L2 (DRAFT) | (new) battery locomotives and their charger on a Wildcatter receptacle |
 | [bottom-dump-cars.md](bottom-dump-cars.md) | L3 (DRAFT) | (new) bottom-dump cars over a track grizzly |

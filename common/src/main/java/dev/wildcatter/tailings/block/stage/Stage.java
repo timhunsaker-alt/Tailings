@@ -45,6 +45,11 @@ public interface Stage {
 		return localSide == Direction.UP && at[1] == part.machine().height() - 1;
 	}
 
+	/** A conveyor drive's: the most its run holds, kg (the 600 mm belt's 30 s of the plant's rate; a heavy run by its length). */
+	default double runHoldKg(PlantBlockEntity part) {
+		return PlantRates.BELT_HOLD_KG;
+	}
+
 	/** How much dry rock it holds, kg. */
 	default double holdKg() {
 		return PlantRates.DRY_HOLD_KG;
@@ -70,6 +75,19 @@ public interface Stage {
 			case BALL_MILL -> Grinding.MILL;
 			case CYCLONE -> Grinding.CYCLONE;
 			case CONVEYOR_DRIVE -> Belts.DRIVE;
+			case HEAVY_CONVEYOR_DRIVE -> Belts.HEAVY_DRIVE;
+			case GYRATORY_CRUSHER -> PitLineStages.GYRATORY;
+			case ROCK_BREAKER -> PitLineStages.BREAKER;
+			case SURGE_POCKET -> PitLineStages.SURGE;
+			case PRIMARY_APRON_FEEDER -> PitLineStages.PRIMARY_FEEDER;
+			case STOCKPILE_HEAD -> PitLineStages.STOCKPILE_HEAD;
+			case RECLAIM_FEEDER -> PitLineStages.RECLAIM_FEEDER;
+			case BELT_WEIGHER -> PitLineStages.WEIGHER;
+			case SAG_MILL -> SagLineStages.SAG;
+			case PEBBLE_CRUSHER -> SagLineStages.PEBBLE;
+			case BALL_MILL_LARGE -> SagLineStages.BALL;
+			case CYCLONE_FEED_PUMP -> SagLineStages.PUMP;
+			case CYCLONE_CLUSTER_LARGE -> SagLineStages.CLUSTER;
 			case ORE_BIN -> Belts.BIN;
 			case SPIRAL_BANK -> Gravity.SPIRALS;
 			case SCAVENGER_BANK -> FullRecovery.SCAVENGER;

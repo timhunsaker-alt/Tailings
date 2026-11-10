@@ -19,6 +19,30 @@ Built while Tim was away on the approved spec `docs/multiblocks/dragline.md`; de
 - **Trailing Cable:** a reel clicked on a pit machine (the drill, the hydraulic shovel, a lifted rope shovel or dragline) now couples it,
   adds 400 m, or (sneaking) takes the cable off.
 
+
+### Open pit P7b — the SAG mill line (2026-11-10, decided while Tim was away)
+
+- **An SABC circuit at 1,000 t/h:** the `sag_mill` (9.75 m, two 4.1 MW pinion motors), the `pebble_crusher`, the `ball_mill_large`
+  (7.3 m x 11 m, two 5.25 MW pinions), the `cyclone_feed_pump` (600 kW) and the `cyclone_cluster_large` (twelve 660 mm cyclones) turn
+  the stockpile's crushed rock into fines slurry at 150 µm, carrying its assay, on steel pipe. All their motors at the medium-voltage tier.
+- **The SAG's charge:** it grinds its full rate at its normal charge; overfed past 35 % filling it reads OVERLOAD and the belt weigher
+  holds its feed 10 % back. With the pebble crusher off its pebbles go round uncrushed and it grinds 15 % slower.
+- **PLC:** WEIGHT on each mill, PRESSURE on the cluster.
+- **P7c (pit flotation) is planned, not built.** Nothing changes in existing worlds. Decisions in `docs/questions/p7-pit-line.md`.
+
+### Open pit P7a — the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, decided while Tim was away)
+
+- **The primary:** trucks tip into the `gyratory_pocket` (400 t) standing on the `gyratory_crusher` (450 kW at the medium-voltage tier),
+  which crushes about 2,400 t/h into the `surge_pocket` (500 t) under it; the `primary_apron_feeder` (up to 3,000 t/h) puts it on a
+  heavy belt. Every 200th hard bank block bridges the bowl until the `rock_breaker` on the pocket's rim breaks it, 30 s.
+- **The heavy belt:** `heavy_belt_conveyor`, 1,400 mm at 4 m/s, 3,000 t/h, with `heavy_conveyor_drive`s of 355 kW: 75 kW a 30 m plus
+  the lift; no steeper than 1 in 3.
+- **The stockpile:** the `stockpile_head` drops crushed rock as `stockpile_rock` blocks by the settle rule; a 30 m pile holds about
+  100,000 t. `reclaim_feeder`s under openings in a tunnel's roof draw the block over them; the slopes roll in at 37 degrees, so the
+  pile drains as cones and the rest is dead stockpile (one feeder draws about a quarter).
+- **The belt weigher:** reads t/h and pulses each 100 t; the feeders share its setpoint (1,000 t/h, a sneaking click or the PLC).
+- **Nothing changes in existing worlds.** Decisions in `docs/questions/p7-pit-line.md`.
+
 ### Open pit P5 — the pit switch house, trailing cables, the ultra truck and the big shovels (2026-11-09)
 
 Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-machines.md`.

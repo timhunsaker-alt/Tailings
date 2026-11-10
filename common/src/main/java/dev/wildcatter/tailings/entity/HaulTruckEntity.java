@@ -232,7 +232,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		}
 	}
 
-	/** A pit hopper under the body's tail: up to 3 m behind it, across its width, down to 8 m. */
+	/** A pit hopper, or a gyratory's dump pocket (P7a), under the body's tail: up to 3 m behind it, across its width, down to 8 m. */
 	public @Nullable DumpBlockEntity hopperBehind(Level level) {
 		for (double back = 0; back <= 3; back += 1) {
 			for (double across = -Math.floor(spec().width() / 3); across <= Math.floor(spec().width() / 3); across += 1) {
@@ -241,7 +241,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 				for (int down = 0; down <= 8; down++) {
 					BlockPos pos = column.below(down);
 					BlockState state = level.getBlockState(pos);
-					if (state.getBlock() instanceof PlantMachineBlock block && block.machine() == Machine.PIT_HOPPER
+					if (state.getBlock() instanceof PlantMachineBlock block && (block.machine() == Machine.PIT_HOPPER || block.machine() == Machine.GYRATORY_POCKET)
 							&& level.getBlockEntity(PlantMachineBlock.mainOf(pos, state)) instanceof DumpBlockEntity hopper) {
 						return hopper;
 					}

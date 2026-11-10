@@ -48,6 +48,9 @@ These are the only items that wait on you; everything else is built and only nee
 14. **The walking dragline** (`p6-dragline.md` #1, #3, #18): the boom is five 15 m parts, not ten of 7.5 m (a cell is a whole metre);
     its house fills its whole 5,760-cell box (a hollow shell would save about 15,000 block states); and its PLC points are on its
     switch house outlet, not its tub, since the tub lifts and walks.
+15. **The pit line** (`p7-pit-line.md` #11, #14, #21, #27): three close reclaim feeders draw 41 % of a pile (one draws 26 %); the
+    weigher's 50 t/h step; whether a big mill should refuse a direct start or just trip its breaker; whether Wildcatter should get a
+    large-bore slurry pipe (the line's 1 m³/s runs on the unrated steel pipe today). P7c is a plan, not built.
 
 ## Every file, by wave
 
@@ -59,7 +62,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `p4-dry-stack.md` | 20 | the tailings filter, the load-out, dumps, berms, the track dozer |
 | Tailings | `p3-blasting.md` (branch `p3-blasting`) | 19 | the blasthole drill, charging, the blasting machine, the shot |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 38 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
-| Tailings | `p6-dragline.md` (branch `p6-dragline`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
+| Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
 | Tailings | `tbm-gaps.md` | 12 | the TBM, its gantries and the mine trains |
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |
@@ -74,6 +77,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
+| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 32 | the pit line: the gyratory and its pocket, the stockpile and its reclaim (P7a); the SAG line (P7b); P7c left as a plan (#11, #14, #21, #27 need you) |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |

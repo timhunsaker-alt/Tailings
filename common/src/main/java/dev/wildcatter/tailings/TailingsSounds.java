@@ -66,6 +66,13 @@ public final class TailingsSounds {
 			case DESLIME_SCREEN, DRAIN_RINSE_SCREEN -> VIBRATING_SCREEN;
 			case DMS_MODULE -> SLURRY_RUSH;
 			case MEDIUM_RECOVERY -> WildcatterSounds.MOTOR_HUM;
+			case GYRATORY_CRUSHER -> CONE_CRUSHER;
+			case ROCK_BREAKER -> JAW_CRUSHER;
+			case PRIMARY_APRON_FEEDER, RECLAIM_FEEDER -> APRON_FEEDER;
+			case HEAVY_CONVEYOR_DRIVE -> BELT_CONVEYOR;
+			case SAG_MILL, BALL_MILL_LARGE -> BALL_MILL;
+			case PEBBLE_CRUSHER -> CONE_CRUSHER;
+			case CYCLONE_FEED_PUMP -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
 	}
@@ -75,6 +82,10 @@ public final class TailingsSounds {
 		return switch (machine) {
 			case BALL_MILL -> 2F;
 			case JAW, CONE -> 1.5F;
+			case GYRATORY_CRUSHER -> 2.5F;
+			case SAG_MILL, BALL_MILL_LARGE -> 4F;
+			case PRIMARY_APRON_FEEDER -> 1.5F;
+			case HEAVY_CONVEYOR_DRIVE -> 1F;
 			case FLOTATION_BANK -> 1.2F;
 			case SCREEN, APRON_FEEDER -> 1F;
 			case CONVEYOR_DRIVE, CONDITIONER, ACTIVATION_TANK -> 0.6F;

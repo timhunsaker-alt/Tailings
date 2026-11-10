@@ -139,7 +139,46 @@ public enum Machine {
 	/** A 15 m length of the 75 m lattice boom, two of its 7.5 m sections pinned together; five laid in a line make the boom. */
 	DRAGLINE_BOOM("dragline_boom_section", "Dragline Boom Section", 4, 4, 15, 0, Supply.NONE),
 	/** The 33 m³ bucket with its rigging: chains, spreader bar and dump block. */
-	DRAGLINE_BUCKET("dragline_bucket", "Dragline Bucket", 5, 4, 6, 0, Supply.NONE);
+	DRAGLINE_BUCKET("dragline_bucket", "Dragline Bucket", 5, 4, 6, 0, Supply.NONE),
+	/**
+	 * The pit line's primary crusher (primary-gyratory-stockpile.md, P7a): a 42-65 class gyratory, 1,066 mm feed opening, about 120 t,
+	 * crushing about 2,400 t/h when fed; its bowl at its top under the dump pocket, its 450 kW motor at the medium-voltage tier.
+	 */
+	GYRATORY_CRUSHER("gyratory_crusher", "Gyratory Crusher", 6, 10, 6, 450_000, Supply.MEDIUM),
+	/** The concrete direct-tip pocket over the gyratory's bowl, holding a truck load and more, 400 t (P7a, proposed). */
+	GYRATORY_POCKET("gyratory_pocket", "Gyratory Dump Pocket", 14, 8, 10, 0, Supply.NONE),
+	/** A pedestal hydraulic rock breaker on the pocket's rim, 75 kW (P7a, proposed): it breaks a boulder that bridges the bowl. */
+	ROCK_BREAKER("rock_breaker", "Rock Breaker", 2, 3, 6, 75_000, Supply.INDUSTRIAL),
+	/** The steel-lined surge pocket under the gyratory, 500 t of crushed rock (P7a, proposed). */
+	SURGE_POCKET("surge_pocket", "Surge Pocket", 8, 6, 8, 0, Supply.NONE),
+	/** A 2.4 m apron feeder from the surge pocket onto the stockpile conveyor, up to 3,000 t/h, 150 kW (P7a, proposed). */
+	PRIMARY_APRON_FEEDER("primary_apron_feeder", "Primary Apron Feeder", 3, 2, 12, 150_000, Supply.INDUSTRIAL),
+	/** The head pulley and drive of a 1,400 mm heavy belt run, 355 kW at the medium-voltage tier (P7a, proposed). */
+	HEAVY_CONVEYOR_DRIVE("heavy_conveyor_drive", "Heavy Conveyor Drive", 2, 2, 3, dev.wildcatter.tailings.plant.PitLine.HEAVY_DRIVE_WATTS, Supply.MEDIUM),
+	/** The head frame and chute over the coarse-ore stockpile: it drops the belt's load onto the pile under it (P7a). */
+	STOCKPILE_HEAD("stockpile_head", "Stockpile Head", 3, 4, 4, 0, Supply.NONE),
+	/** A 1.5 m apron feeder in the reclaim tunnel under an opening in its roof, 500 t/h, 55 kW (P7a, proposed). */
+	RECLAIM_FEEDER("reclaim_feeder", "Reclaim Feeder", 2, 2, 6, 55_000, Supply.INDUSTRIAL),
+	/** A belt scale on the SAG feed belt: it reads t/h, and the reclaim feeders follow its setpoint (P7a). */
+	BELT_WEIGHER("belt_weigher", "Belt Weigher", 2, 1, 2, 0, Supply.NONE),
+	/**
+	 * The 9.75 m x 4.6 m (32 ft x 15 ft EGL) SAG mill and its trommel (sag-mill-line.md, P7b): 8.2 MW on a twin-pinion drive, two
+	 * 4.1 MW motors at the medium-voltage tier, their boxes on its west face. {@link #watts} is one motor.
+	 */
+	SAG_MILL("sag_mill", "SAG Mill", 11, 11, 14, dev.wildcatter.tailings.plant.PitLine.SAG_MOTOR_WATTS, Supply.MEDIUM),
+	/** A 300 kW class cone crusher at a 12 mm closed side, crushing the SAG's pebbles (P7b, unverified). */
+	PEBBLE_CRUSHER("pebble_crusher", "Pebble Crusher", 4, 5, 4, 300_000, Supply.MEDIUM),
+	/** A 7.3 m x 11 m (24 ft x 36 ft) overflow ball mill on two 5.25 MW pinions (P7b, proposed). {@link #watts} is one motor. */
+	BALL_MILL_LARGE("ball_mill_large", "Large Ball Mill", 9, 9, 16, dev.wildcatter.tailings.plant.PitLine.BALL_MILL_MOTOR_WATTS, Supply.MEDIUM),
+	/** The cyclone feed sump and its 600 kW slurry pump, about 1 m³/s at 25 m head (P7b, proposed). */
+	CYCLONE_FEED_PUMP("cyclone_feed_pump", "Cyclone Feed Pump", 4, 4, 5, 600_000, Supply.MEDIUM),
+	/** Twelve 660 mm hydrocyclones on a ring manifold, ten running, cut at 150 µm; the pump drives them (P7b, proposed). */
+	CYCLONE_CLUSTER_LARGE("cyclone_cluster_large", "Large Cyclone Cluster", 6, 6, 6, 0, Supply.NONE);
+
+	/** Motors on the part: the two pinions of the big mills' twin-pinion drives, one for every other part. */
+	public int motors() {
+		return this == SAG_MILL || this == BALL_MILL_LARGE ? 2 : 1;
+	}
 
 	public enum Supply {
 		NONE,

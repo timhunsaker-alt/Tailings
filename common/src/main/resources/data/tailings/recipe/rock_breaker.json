@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    " PS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "P": "minecraft:piston",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:rock_breaker",
+    "count": 1
+  }
+}

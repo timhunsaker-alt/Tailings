@@ -700,6 +700,62 @@ dump station's `ore_sorter` is a different machine and is unchanged.
 - **Models:** `tools/models/xrt.py`, in Wildcatter's materials; the sorter plays the `ore_sorter` loop, the compressor Wildcatter's
   motor hum.
 
+## The pit line (P7a): the primary gyratory, the coarse-ore stockpile and its reclaim
+
+Spec: [multiblocks/primary-gyratory-stockpile.md](multiblocks/primary-gyratory-stockpile.md) (draft, decided on recommendation); the
+choices made building it are in [questions/p7-pit-line.md](questions/p7-pit-line.md). The rules are `plant.PitLine` (unit-tested), the
+parts' state `plant.PitState`, the stages `block.stage.PitLineStages` and `Belts.HEAVY_DRIVE`.
+
+- **The line's rate:** 1,000 t/h, a bank block every 9.7 s, a 363 t ultra load every 22 minutes. It is new parts beside the 50 t/h
+  plant, which is unchanged.
+- **The primary, a stack 26 m deep:** the `gyratory_pocket` (14 x 8 x 10, 400 t, the pit hopper's kind: whole loads, soil refused, FULL
+  makes a truck wait) stands on the `gyratory_crusher` (6 x 10 x 6, 450 kW at the medium-voltage tier), over its bowl; the crusher on the
+  `surge_pocket` (8 x 6 x 8, 500 t); the `primary_apron_feeder` (3 x 2 x 12, 150 kW, up to 3,000 t/h) under the surge pocket, touching it.
+  A truck backed to the pocket's rim tips into it. The gyratory takes a bank block at a time and crushes it to the crushed class at
+  about 2,400 t/h into the surge pocket; the feeder puts it onto a heavy belt beyond its south face or under its south end.
+- **Boulders:** every 200th bank block of hard rock (all but tuff, sandstone and the soft ores) bridges the bowl: BRIDGED until the
+  `rock_breaker` (2 x 3 x 6, 75 kW) on the pocket's rim, touching it, has worked 30 s on it, by itself while its motor runs.
+- **The heavy belt:** `heavy_belt_conveyor`, 1,400 mm at 4 m/s, up to 3,000 t/h, laid as the 600 mm belt; a run is one kind of belt.
+  Its `heavy_conveyor_drive`s (2 x 2 x 3, 355 kW, medium voltage) must give 75 kW a 30 m plus the lift (m g h / 0.9) at 3,000 t/h, else
+  NO DRIVE; more than one step up or down in any 3 m is TOO STEEP. A run holds 208 kg a metre, at least 30 s of the line.
+- **The stockpile:** the `stockpile_head` (3 x 4 x 4) takes a heavy belt over its top and drops `stockpile_rock` through its chute under
+  its south end, by the settle rule: 2,025 kg of crushed rock a block (three quarters of a bank block), one rock a block where it can.
+  It reads the depth under its chute and the tonnes stacked; FULL when the pile reaches it.
+- **Reclaim:** a `reclaim_feeder` (2 x 2 x 6, 55 kW, up to 500 t/h) in a tunnel of any solid blocks draws the stockpile block over the
+  opening in the roof over its north end (up to 4 m up) and feeds it onto a heavy belt at its south end. The column falls into the gap
+  and the slopes round it roll in: a stockpile block on the pile's top rolls when it stands steeper than the rule, and an emptied cell
+  makes the tops round it look again. One feeder under a cone draws about a quarter of it; what stays is the dead stockpile.
+- **The belt weigher:** `belt_weigher` (2 x 1 x 2) beside or under a heavy belt. It reads the t/h the feeders put on its run and its
+  total; its setpoint (1,000 t/h; a sneaking click steps 50 to 1,500; the PLC's SETPOINT in AUTO) is shared evenly among the feeders
+  drawing for it, each up to 500 t/h; 10 % less while the mill its run feeds reads OVERLOAD.
+- **Reads:** NO FEED, NOT BUILT, FULL, BRIDGED, NO DRIVE, TOO STEEP, nowhere to go. **PLC:** each motor's plant points; the gyratory's
+  FILL is its pocket, plus BRIDGED and POCKET FULL; a reclaim feeder's SPEED; the weigher's RATE, SETPOINT and TOTAL (a pulse each 100 t).
+- **Models and sound:** `tools/models/pitline.py`, in Wildcatter's materials. The gyratory sounds the cone crusher, the breaker the jaw,
+  the feeders the apron feeder, the heavy drive the belt.
+
+## The pit line (P7b): the SAG mill line
+
+Spec: [multiblocks/sag-mill-line.md](multiblocks/sag-mill-line.md) (draft, decided on recommendation); decisions in
+[questions/p7-pit-line.md](questions/p7-pit-line.md) #20-#31. The stages are `block.stage.SagLineStages`; the numbers `plant.PitLine`.
+
+- **An SABC circuit at 1,000 t/h:** the `sag_mill` (11 x 11 x 14, a 9.75 m x 4.6 m mill on two 4.1 MW pinions), the `pebble_crusher`
+  (4 x 5 x 4, 300 kW), the `ball_mill_large` (9 x 9 x 16, 7.3 m x 11 m on two 5.25 MW pinions), the `cyclone_feed_pump` (4 x 4 x 5,
+  600 kW) and the `cyclone_cluster_large` (6 x 6 x 6, twelve 660 mm cyclones, no motor). Every motor at the medium-voltage tier.
+- **Twin pinions:** a big mill has two motors, boxes on its west face at the main cell and 4 m south; each gives half its power.
+- **The SAG:** crushed rock (and the pebble crusher's gravel) by a heavy belt over its feed end, water off a water pipe (75 % solids).
+  It grinds 1,000 t/h at its normal charge of about 83 t, in proportion below it, 15 % less unless its pebble belt runs into a running
+  pebble crusher. 20 % of the crushed rock it grinds leaves as pebbles out of its east face; the rest, the trommel's undersize, goes into
+  the box of the pump touching it, with its assay. Over about 120 t (35 % filling) OVERLOAD, and the weigher on its feed belt holds 10 %
+  back; at about 160 t its feed stops. WEIGHT on the PLC.
+- **The pebble crusher:** pebbles over its top to gravel out of its south end; with its motor stopped they go round it uncrushed.
+- **The pump:** the SAG's undersize in its box, the ball mill's discharge on pipe at its north face or either side; water to a 54 %
+  cyclone feed, up to 4,200 t/h, out on pipe at its south face.
+- **The cluster:** the cyclone feed in at its north face; 1 in 3.5 of the solids to the overflow at 35 %, fines slurry out on pipe at its
+  south face; the rest into the large ball mill it touches. PRESSURE on the PLC (90 kPa at 3,500 t/h).
+- **The ball mill:** grinds the underflow, 2,500 t/h, and puts it out on pipe under its south end at 70 %, back to the pump.
+- **Power:** 18.7 MW of mill motors; with P7a about 20 MW: a Wildcatter load needing a plant of that size.
+- **Models and sound:** `tools/models/sagline.py`; the mills sound the ball mill, the pebble crusher the cone, the pump the motor hum.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -761,6 +817,22 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `truck_dump_wall` | Smooth stone around an iron ingot (placeholder) | 12 x 5 x 2: 3 m retaining wall and a 1.5 m bumper a reversing truck stops against |
 | `pit_hopper` | Iron, a hopper and smooth stone (placeholder) | 10 x 6 x 6, 400 t of bank blocks. A truck whose tail is over it tips in; the apron feeder touching it draws it out. It refuses soil |
 | `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
+| `gyratory_crusher` | Iron blocks round a cone crusher, industrial cable (placeholder) | 6 x 10 x 6, 450 kW at the medium-voltage tier; about 2,400 t/h to crushed (P7a) |
+| `gyratory_pocket` | Gray concrete round a hopper (placeholder) | 14 x 8 x 10, 400 t; stands on the gyratory, trucks tip into it (P7a) |
+| `rock_breaker` | Steel, a piston, industrial cable (placeholder) | 2 x 3 x 6, 75 kW; breaks a boulder bridging the bowl in 30 s (P7a) |
+| `surge_pocket` | Iron round a hopper (placeholder) | 8 x 6 x 8, 500 t of crushed rock under the gyratory (P7a) |
+| `primary_apron_feeder` | Iron round an apron feeder, industrial cable (placeholder) | 3 x 2 x 12, 150 kW, up to 3,000 t/h (P7a) |
+| `heavy_belt_conveyor` | 3 leather, 3 iron → 3 (placeholder) | 1,400 mm belt, 4 m/s, up to 3,000 t/h, one block a metre (P7a) |
+| `heavy_conveyor_drive` | Iron round a conveyor drive, industrial cable (placeholder) | 2 x 2 x 3, 355 kW at the medium-voltage tier (P7a) |
+| `stockpile_head` | Iron, a heavy belt, a hopper (placeholder) | 3 x 4 x 4; drops the belt's load onto the pile (P7a) |
+| `reclaim_feeder` | Iron, a hopper, an apron feeder (placeholder) | 2 x 2 x 6, 55 kW, up to 500 t/h from under the pile (P7a) |
+| `belt_weigher` | Iron round a comparator (placeholder) | 2 x 1 x 2; RATE, SETPOINT, TOTAL; the feeders follow its setpoint (P7a) |
+| `sag_mill` | Iron blocks round a ball mill and a copper block (placeholder) | 11 x 11 x 14, 2 x 4.1 MW at the medium-voltage tier, 1,000 t/h (P7b) |
+| `pebble_crusher` | Iron round a cone crusher, industrial cable (placeholder) | 4 x 5 x 4, 300 kW; the SAG's pebbles to gravel (P7b) |
+| `ball_mill_large` | Iron blocks round a ball mill (placeholder) | 9 x 9 x 16, 2 x 5.25 MW; grinds the underflow (P7b) |
+| `cyclone_feed_pump` | Steel round a cauldron, industrial cable (placeholder) | 4 x 4 x 5, 600 kW; the cyclone feed (P7b) |
+| `cyclone_cluster_large` | Cyclone clusters round an iron block (placeholder) | 6 x 6 x 6, twelve 660 mm cyclones at 150 µm (P7b) |
+| `stockpile_rock` | None. The stockpile head makes it | Crushed rock, 2,025 kg; falls, settles and rolls in over a reclaim feeder (P7a) |
 | `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
 | `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |
 | `headframe` | Iron blocks and iron bars (placeholder) | 9 x 30 x 9 over a 5 x 5 shaft; its sheaves and dump (L4) |

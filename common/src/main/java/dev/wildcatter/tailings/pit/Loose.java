@@ -56,14 +56,43 @@ public final class Loose {
 
 	/** Lets one block of muck go at {@code start}; returns where it rested, or null when there was no room. */
 	public static @Nullable BlockPos muck(ServerLevel level, BlockPos start, Map<String, Integer> quarters) {
+		return muck(level, start, TailingsBlocks.MUCK.defaultBlockState(), quarters);
+	}
+
+	/**
+	 * Lets one block of {@code state}, a muck block or a stockpile block (primary-gyratory-stockpile.md, P7a), go at {@code start} holding
+	 * {@code quarters}; returns where it rested, or null when there was no room.
+	 */
+	public static @Nullable BlockPos muck(ServerLevel level, BlockPos start, BlockState state, Map<String, Integer> quarters) {
 		BlockPos rest = rest(level, start);
 		if (rest != null) {
-			level.setBlock(rest, TailingsBlocks.MUCK.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlock(rest, state, Block.UPDATE_ALL);
 			if (level.getBlockEntity(rest) instanceof MuckBlockEntity muck) {
 				muck.set(quarters);
 			}
 		}
 		return rest;
+	}
+
+	/**
+	 * Where a loose block standing at {@code pos} would roll to by the settle rule, were it let go: its own cell when it stands, as at
+	 * 37 degrees or less (the stockpile's slopes rolling in over a reclaim feeder, P7a).
+	 */
+	public static BlockPos wouldRoll(ServerLevel level, BlockPos pos) {
+		Settle.Ground world = ground(level);
+		Settle.Ground without = new Settle.Ground() {
+			@Override
+			public boolean free(int x, int y, int z) {
+				return (x == pos.getX() && y == pos.getY() && z == pos.getZ()) || world.free(x, y, z);
+			}
+
+			@Override
+			public int floor() {
+				return world.floor();
+			}
+		};
+		Settle.Cell cell = Settle.rest(without, pos.getX(), pos.getY(), pos.getZ(), new java.util.Random(level.getRandom().nextLong()));
+		return cell == null ? pos : new BlockPos(cell.x(), cell.y(), cell.z());
 	}
 
 	/** Lets one block of {@code state} go at {@code start}. */

@@ -1,0 +1,64 @@
+{
+ "variants": {
+  "facing=north,piece=0": {
+   "model": "tailings:block/belt_weigher/p0"
+  },
+  "facing=north,piece=1": {
+   "model": "tailings:block/belt_weigher/p1"
+  },
+  "facing=north,piece=2": {
+   "model": "tailings:block/belt_weigher/p2"
+  },
+  "facing=north,piece=3": {
+   "model": "tailings:block/belt_weigher/p3"
+  },
+  "facing=east,piece=0": {
+   "model": "tailings:block/belt_weigher/p0",
+   "y": 90
+  },
+  "facing=east,piece=1": {
+   "model": "tailings:block/belt_weigher/p1",
+   "y": 90
+  },
+  "facing=east,piece=2": {
+   "model": "tailings:block/belt_weigher/p2",
+   "y": 90
+  },
+  "facing=east,piece=3": {
+   "model": "tailings:block/belt_weigher/p3",
+   "y": 90
+  },
+  "facing=south,piece=0": {
+   "model": "tailings:block/belt_weigher/p0",
+   "y": 180
+  },
+  "facing=south,piece=1": {
+   "model": "tailings:block/belt_weigher/p1",
+   "y": 180
+  },
+  "facing=south,piece=2": {
+   "model": "tailings:block/belt_weigher/p2",
+   "y": 180
+  },
+  "facing=south,piece=3": {
+   "model": "tailings:block/belt_weigher/p3",
+   "y": 180
+  },
+  "facing=west,piece=0": {
+   "model": "tailings:block/belt_weigher/p0",
+   "y": 270
+  },
+  "facing=west,piece=1": {
+   "model": "tailings:block/belt_weigher/p1",
+   "y": 270
+  },
+  "facing=west,piece=2": {
+   "model": "tailings:block/belt_weigher/p2",
+   "y": 270
+  },
+  "facing=west,piece=3": {
+   "model": "tailings:block/belt_weigher/p3",
+   "y": 270
+  }
+ }
+}

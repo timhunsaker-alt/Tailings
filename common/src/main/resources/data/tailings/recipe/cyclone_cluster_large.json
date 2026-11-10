@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CIC",
+    "CCC"
+  ],
+  "key": {
+    "C": "tailings:cyclone_cluster",
+    "I": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "tailings:cyclone_cluster_large",
+    "count": 1
+  }
+}

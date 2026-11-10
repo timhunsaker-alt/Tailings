@@ -57,6 +57,9 @@ public class MuckBlockEntity extends BlockEntity implements Inspectable {
 	public Component inspect() {
 		StringBuilder what = new StringBuilder();
 		quarters.forEach((id, q) -> what.append(what.isEmpty() ? "" : ", ").append(q).append("/4 ").append(id.substring(id.indexOf(':') + 1)));
+		if (getBlockState().getBlock() instanceof StockpileRockBlock) {
+			return Component.literal("Stockpile: crushed rock, " + (what.isEmpty() ? "empty" : what) + " of a bank block");
+		}
 		return Component.literal("Muck: broken rock, " + (what.isEmpty() ? "empty" : what) + " of a bank block");
 	}
 
