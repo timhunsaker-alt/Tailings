@@ -1,8 +1,8 @@
 {
   "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "top": "tailings:block/blasthole_collar_stemmed_placeholder",
-    "bottom": "tailings:block/blasthole_top_placeholder",
-    "side": "tailings:block/blasthole_placeholder"
+    "top": "tailings:block/blasthole_collar_stemmed",
+    "bottom": "tailings:block/blasthole_top",
+    "side": "tailings:block/blasthole"
   }
 }

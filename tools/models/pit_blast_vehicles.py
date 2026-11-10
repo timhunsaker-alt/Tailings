@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The open pit's P3 machines at their real size (docs/multiblocks/open-pit-p3-blasting.md), with pit_vehicles.py's painter: the rotary
-blasthole drill (client/BlastholeDrillModel.java) and the bulk emulsion truck (client/EmulsionTruckModel.java), with their
-placeholder skins. Frames as in pit_vehicles.py: x across (plus is its right), y up, z along (minus is the front).
+blasthole drill (client/BlastholeDrillModel.java) and the bulk emulsion truck (client/EmulsionTruckModel.java), with their skins
+painted in Ludo's materials (tools/models/skin.py; run python3 tools/process_art.py first): the drill in the haul truck's yellow
+paint, steel and tread, the truck's tank and cab in white paint, its stripe and hose reel in that paint dyed red. Frames as in pit_vehicles.py: x across (plus is its right), y up, z along (minus is the front).
 
 The drill's mast stands at its back end over the hole (1.5 m in from the back, z = 6); its rotary head runs down the mast as it
 drills. The truck's hose hangs from the reel at its back while it pumps.
@@ -17,6 +18,8 @@ from pit_vehicles import paint, YELLOW, BLACK, DARK, STEEL  # noqa: E402
 
 WHITE = (222, 222, 216)
 RED = (168, 42, 38)
+pit_vehicles.MATERIAL[WHITE] = "paint_white"
+pit_vehicles.MATERIAL[RED] = "paint_red"   # paint_white dyed red by tools/process_art.py
 
 DRILL_HEAD = (0.0, 23.0, 6.0)
 DRILL = [

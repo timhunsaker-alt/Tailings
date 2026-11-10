@@ -263,7 +263,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** {doc} Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
+/** {doc} Written by tools/models/pit_vehicles.py, with its {SHEET} x {SHEET} skin painted in Ludo's materials: change the script, not this file. */
 public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("{name}"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */

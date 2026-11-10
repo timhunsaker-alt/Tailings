@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** The bulk emulsion truck at its real size, 8.5 x 2.5 x 3.8 m; its hose hangs from the reel while it pumps. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 placeholder skin: change the script, not this file. */
+/** The bulk emulsion truck at its real size, 8.5 x 2.5 x 3.8 m; its hose hangs from the reel while it pumps. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
 public class EmulsionTruckModel extends EntityModel<PitVehicleRenderer.PitState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("emulsion_truck"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */

@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A blasthole (docs/multiblocks/open-pit-p3-blasting.md): a column of these from the collar down, each remembering the rock it
- * replaced. The collar carries the hole: its state, its cuttings, its charge. Its tag is coloured by state (a placeholder): white
+ * replaced. The collar carries the hole: its state, its cuttings, its charge. Its tag is coloured by state: white
  * drilled, yellow primed, orange charged, grey stemmed, green logged, red misfired.
  *
  * <p>On the collar: a cast booster or a detonator primes it; gravel stems it 13 m a block; an empty hand shovels its own cuttings in as
