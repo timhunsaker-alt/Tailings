@@ -54,7 +54,10 @@ import org.jspecify.annotations.Nullable;
 public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
 		WaterUser, dev.wildcatter.kinetic.Sounding, dev.wildcatter.control.ControlDevice, dev.wildcatter.control.Measurable {
 	/** Its HAND / OFF / AUTO: HAND runs on its own work as it always has, OFF holds it, and AUTO runs it while a PLC keeps enabling it (Wildcatter's plc.md). */
-	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(5);
+	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(9);
+	private static final String[] SIDE_POINTS = {"NORTH", "EAST", "SOUTH", "WEST"};
+	/** The sorter's points past the six every motor has: a gate a side, then a rock code a side. */
+	private static final int GATES = 6, CODES = 10;
 
 	private boolean plcAllows() {
 		return remote.hand() || level != null && remote.on(0, level.getGameTime());
@@ -65,7 +68,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return machine().name().replace('_', ' ');
 	}
 
-	/** Each motor-driven part: run, its feedback and its current. A sorter adds a diverter gate a side; a part with no motor has no signals. */
+	/**
+	 * Each motor-driven part: run, its feedback and its current. A sorter adds a diverter gate a side and the rock code each side takes;
+	 * a part that holds slurry adds its level, flow and density. A part with no motor has no signals.
+	 */
 	@Override
 	public java.util.List<Point> points() {
 		if (motor == null) {
@@ -74,9 +80,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		java.util.List<Point> out = new java.util.ArrayList<>(java.util.List.of(new Point("RUN", true), new Point("RUNNING", false), new Point("STALLED", false), new Point("AUTO", false),
 				new Point("AMPS 4-20 mA, 150 %", false, Signal.MA), new Point("FILL 4-20 mA", false, Signal.MA)));
 		if (machine() == Machine.ORE_SORTER) {
-			for (String side : java.util.List.of("NORTH", "EAST", "SOUTH", "WEST")) {
+			for (String side : SIDE_POINTS) {
 				out.add(new Point("SHUT " + side + " GATE", true));
 			}
+			for (String side : SIDE_POINTS) {
+				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
+			}
+		} else if (dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
+			out.add(new Point(String.format("FLOW 4-20 mA, %.0f L/s", dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH), false, Signal.MA));
+			out.add(new Point(String.format("DENSITY 4-20 mA, %.1f-%.1f kg/L", dev.wildcatter.tailings.plant.PlcScale.DENSITY_LOW, dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH), false, Signal.MA));
 		}
 		return out;
 	}
@@ -95,9 +108,40 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public void commandPoint(int point, boolean on, long gameTime) {
 		if (point == 0) {
 			remote.command(0, on, gameTime);
-		} else if (point >= 6 && point < 10) {
-			remote.command(point - 5, on, gameTime);
-			sorter.setGate(point - 6, remote.auto() && on);
+		} else if (machine() == Machine.ORE_SORTER && point >= GATES && point < CODES) {
+			remote.command(point - GATES + 1, on, gameTime);
+			sorter.setGate(point - GATES, remote.auto() && on);
+		}
+	}
+
+	@Override
+	public void commandMa(int point, double milliamps, long gameTime) {
+		if (machine() == Machine.ORE_SORTER && point >= CODES && point < CODES + dev.wildcatter.tailings.haul.Sorter.SIDES) {
+			remote.commandMa(point - CODES + 5, milliamps, gameTime);
+			if (level != null) {
+				routeBySignal(level.getGameTime());
+			}
+		}
+	}
+
+	/**
+	 * The sorter's sides as its PLC says, each tick: a gate shut while its command keeps coming, and each side taking the rock its code
+	 * names while in AUTO and the loop is fresh. Code 0 takes nothing of its own; a code with no rock, a stale loop or HAND or OFF leave
+	 * the side as its screen set it.
+	 */
+	private void routeBySignal(long now) {
+		for (int side = 0; side < dev.wildcatter.tailings.haul.Sorter.SIDES; side++) {
+			sorter.setGate(side, remote.on(side + 1, now));
+			double fraction = remote.fraction(side + 5, now, -1);
+			int code = fraction < 0 ? -1 : dev.wildcatter.tailings.plant.PlcScale.code(4 + 16 * fraction);
+			dev.wildcatter.tailings.rock.Rock rock = dev.wildcatter.tailings.plant.PlcScale.rock(code);
+			if (code == 0) {
+				sorter.choose(side, null);
+			} else if (rock != null) {
+				sorter.choose(side, Feeds.blockId(rock));
+			} else {
+				sorter.release(side);
+			}
 		}
 	}
 
@@ -106,7 +150,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (motor == null) {
 			return 0;
 		}
+		if (point >= 6 && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			return switch (point) {
+				case 6 -> 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.SlurryGauge.level(this));
+				case 7 -> dev.wildcatter.tailings.plant.PlcScale.ma(flowLitres, 0, dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH);
+				default -> dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.SlurryGauge.density(this), dev.wildcatter.tailings.plant.PlcScale.DENSITY_LOW,
+						dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH);
+			};
+		}
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
+	}
+
+	/** Litres a second of slurry leaving by pipe over the last second, and what has left in this one. */
+	private double flowLitres;
+	private double flowCounting;
+
+	/** Its discharge flow, L/s, over the last second. */
+	public double flow() {
+		return flowLitres;
 	}
 
 	@Override
@@ -122,7 +183,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case AMPS -> motor == null ? Double.NaN : motor.amps();
 			case SPEED -> motor == null ? Double.NaN : motor.output() * 100;
 			case WEIGHT -> hold.total();
-			case LEVEL -> hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
+			case LEVEL -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100
+					: hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
+			case FLOW -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? flowLitres : Double.NaN;
+			case DENSITY -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.density(this) : Double.NaN;
 			default -> Double.NaN;
 		};
 	}
@@ -139,6 +203,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private boolean selective;
 	/** Dry rock waiting to be worked, or, in a conveyor drive, the load on its run. */
 	private final RockLoad hold = new RockLoad();
+	/** A conveyor drive's load, by where it rides along the run (the transit time to the head end). */
+	private final dev.wildcatter.tailings.plant.BeltTravel travel = new dev.wildcatter.tailings.plant.BeltTravel();
 	/** Rock worked but not yet paid out as an item (the screen's sand for its hopper). */
 	private final RockLoad made = new RockLoad();
 	/** What it puts on steel pipe. */
@@ -150,6 +216,19 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** An ore sorter's screen: the type each side takes, and the waste side. */
 	private final dev.wildcatter.tailings.haul.Sorter sorter = new dev.wildcatter.tailings.haul.Sorter();
 	private double water;
+	/**
+	 * The dry stack (open-pit-p4-dry-stack.md): a load-out bin's dry tails, or the cake in a tailings filter's chambers, kg; the
+	 * filter's cake dropped and not yet placed; its time into its cycle in ticks; water waiting to go back on a water pipe, and the
+	 * litres returned so far.
+	 */
+	private double dryKg;
+	private double cakeOut;
+	private double cycle;
+	private double waterOut;
+	private double waterReturned;
+	private int cycles;
+	/** A game test's shorter press cycle (not saved). */
+	private int fast = 1;
 	private Motor motor;
 	private boolean demand;
 	private boolean forced;
@@ -184,6 +263,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	private void serverTick() {
 		demand = false;
+		if (level.getGameTime() % 20 == 0) {
+			flowLitres = flowCounting;
+			flowCounting = 0;
+		}
+		if (machine() == Machine.ORE_SORTER) {
+			routeBySignal(level.getGameTime());
+		}
 		intake();
 		stage().tick(this);
 		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
@@ -225,6 +311,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
 	private void intake() {
 		ItemStack in = slots.get(0);
+		if (machine() == Machine.LOADOUT_BIN) {
+			if (dryTails(in) && dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG <= dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
+				in.shrink(1);
+				dryKg += dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
+				setChanged();
+			}
+			return;
+		}
 		Feeds.Charge charge = Feeds.parse(in);
 		if (charge == null) {
 			return;
@@ -293,6 +387,81 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return water;
 	}
 
+	public double dryKg() {
+		return dryKg;
+	}
+
+	public void setDryKg(double kg) {
+		dryKg = Math.max(0, kg);
+		setChanged();
+	}
+
+	public double cakeOut() {
+		return cakeOut;
+	}
+
+	public void setCakeOut(double kg) {
+		cakeOut = Math.max(0, kg);
+		setChanged();
+	}
+
+	/** A filter's time into its cycle, in ticks. */
+	public double cycle() {
+		return cycle;
+	}
+
+	public void setCycle(double ticks) {
+		cycle = ticks;
+		setChanged();
+	}
+
+	/** Cake drops so far. */
+	public int cycles() {
+		return cycles;
+	}
+
+	public void countCycle() {
+		cycles++;
+		setChanged();
+	}
+
+	/** A game test's shorter press cycle: the cycle runs {@code divisor} times as fast. */
+	public void fastCycle(int divisor) {
+		fast = Math.max(1, divisor);
+	}
+
+	public int fast() {
+		return fast;
+	}
+
+	/** Water squeezed or settled out, to go back on a water pipe. */
+	public void overflow(double litres) {
+		waterOut += litres;
+	}
+
+	public double waterOut() {
+		return waterOut;
+	}
+
+	public void returned(double litres, boolean lost) {
+		waterOut = Math.max(0, waterOut - litres);
+		waterReturned += lost ? 0 : litres;
+		waterLost += lost ? litres : 0;
+		setChanged();
+	}
+
+	/** Litres with no water pipe or user to take them, counted as lost (not saved). */
+	public double waterLost() {
+		return waterLost;
+	}
+
+	private double waterLost;
+
+	/** Litres sent back on the water pipe so far. */
+	public double waterReturned() {
+		return waterReturned;
+	}
+
 	public void useWater(double litres) {
 		water = Math.max(0, water - litres);
 		setChanged();
@@ -321,10 +490,37 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return stage().accepts(rock, size);
 	}
 
-	/** Takes rock into its hold; the caller checked {@link #room} and {@link #accepts}. */
+	/** Takes rock into its hold; the caller checked {@link #room} and {@link #accepts}. A conveyor drive takes it onto its run's tail end. */
 	public void receive(RockLoad load) {
+		receive(load, stage().dropAt(this, null));
+	}
+
+	/** Takes rock into its hold; on a conveyor drive's run it drops {@code toGo} metres short of the head end and rides from there. */
+	public void receive(RockLoad load, double toGo) {
+		if (machine() == Machine.CONVEYOR_DRIVE) {
+			travel.match(hold.total());
+			travel.add(load.total(), toGo);
+		}
 		hold.add(load);
 		setChanged();
+	}
+
+	/** A conveyor drive's load, along its run. */
+	public dev.wildcatter.tailings.plant.BeltTravel travel() {
+		return travel;
+	}
+
+	/** A load-out frame's gate: the centre of its lane, at its floor (open-pit-p4-dry-stack.md). */
+	public net.minecraft.world.phys.Vec3 loadoutGate() {
+		List<BlockPos> cells = cells();
+		double cx = 0, cz = 0;
+		int lowest = Integer.MAX_VALUE;
+		for (BlockPos c : cells) {
+			cx += c.getX() + 0.5;
+			cz += c.getZ() + 0.5;
+			lowest = Math.min(lowest, c.getY());
+		}
+		return new net.minecraft.world.phys.Vec3(cx / cells.size(), lowest, cz / cells.size());
 	}
 
 	/** A part of kind {@code machine} touching this one, or null. */
@@ -361,10 +557,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		void put(RockLoad load);
 	}
 
-	/** The first place out of {@code faces} that takes rock: a moving belt, or a part touching that face. */
+	/** The first place out of {@code faces} that takes rock: a moving belt, or a part whose feed face touches that face. */
 	public @Nullable Sink sink(List<Lines.Face> faces) {
 		for (Lines.Face face : faces) {
-			Sink there = sinkAt(face.pipe(), this);
+			Sink there = sinkAt(face.pipe(), face.side(), this);
 			if (there != null) {
 				return there;
 			}
@@ -372,11 +568,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return null;
 	}
 
-	/** What takes rock at {@code pos}, never {@code except}: a belt's run (through its drive) or a part. */
-	public @Nullable Sink sinkAt(BlockPos pos, @Nullable PlantBlockEntity except) {
+	/**
+	 * What takes rock at {@code pos}, coming in moving {@code into} (DOWN: dropped onto it from above), never {@code except}: a belt's
+	 * run (through its drive) or a part, only through its feed face (crushing-circuit.md, "Nozzles and faces").
+	 */
+	public @Nullable Sink sinkAt(BlockPos pos, Direction into, @Nullable PlantBlockEntity except) {
 		if (level.getBlockEntity(pos) instanceof BeltBlockEntity belt) {
 			BlockPos at = belt.drive();
 			if (at != null && level.getBlockEntity(at) instanceof PlantBlockEntity drive && drive != except) {
+				double toGo = drive.stage().dropAt(drive, pos);
 				return new Sink() {
 					@Override
 					public double room(RockLoad what) {
@@ -385,13 +585,16 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 					@Override
 					public void put(RockLoad load) {
-						drive.receive(load);
+						drive.receive(load, toGo);
 					}
 				};
 			}
 			return null;
 		}
 		if (BigParts.entity(level, pos) instanceof PlantBlockEntity part && part != except && part != this) {
+			if (!part.stage().feeds(part, PartFrame.local(part.worldPosition, part.getBlockState(), pos), part.local(into.getOpposite()))) {
+				return null;
+			}
 			return new Sink() {
 				@Override
 				public double room(RockLoad what) {
@@ -459,7 +662,26 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	// ---- hands and hoppers -------------------------------------------------------------------------------------------------------
 
+	private static boolean dryTails(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == TailingsBlocks.DRY_TAILS.asItem();
+	}
+
 	public boolean offer(ItemStack stack) {
+		if (machine() == Machine.LOADOUT_BIN) {
+			// the load-out takes dry tails only (open-pit-p4-dry-stack.md)
+			if (!dryTails(stack)) {
+				say("dry tails only: " + stack.getHoverName().getString() + " refused");
+				return false;
+			}
+			if (dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG > dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
+				say("FULL");
+				return false;
+			}
+			stack.shrink(1);
+			dryKg += dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG;
+			setChanged();
+			return true;
+		}
 		Reagent reagent = reagent(stack);
 		if (reagent != null && dosed()) {
 			for (int slot = 2; slot <= LAST_REAGENT_SLOT; slot++) {
@@ -555,23 +777,44 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return sorter;
 	}
 
-	/** A click on a sorter's side with a rock item sets that side to take it; false for anything else. */
+	private static final String[] SIDE_NAMES = {"north", "east", "south", "west"};
+
+	/** A click on a sorter's side with a rock item sets that side to take it (a shortcut for its screen); false for anything else. */
 	public boolean setSide(Direction face, ItemStack stack) {
 		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal() || Feeds.parse(stack) == null) {
 			return false;
 		}
-		sorter.set((face.get2DDataValue() + 2) % 4, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
-		say("the " + face.getName() + " side takes " + stack.getHoverName().getString());
+		setSide((face.get2DDataValue() + 2) % 4, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), stack.getHoverName().getString());
 		return true;
 	}
 
-	/** A sneaking click with an empty hand on a sorter's side sets it as the waste side. */
+	/** Sets a sorter's side (0 north to 3 west) to take {@code itemId}, from its screen. */
+	public void setSide(int side, String itemId, String name) {
+		sorter.set(side, itemId);
+		say("the " + SIDE_NAMES[side] + " side takes " + name);
+		setChanged();
+	}
+
+	/** Clears a sorter's side: it takes nothing of its own. */
+	public void clearSide(int side) {
+		sorter.clear(side);
+		say("the " + SIDE_NAMES[side] + " side takes nothing");
+		setChanged();
+	}
+
+	/** Makes a sorter's side the waste side. */
+	public void setWaste(int side) {
+		sorter.setWaste(side);
+		say("the " + SIDE_NAMES[side] + " side takes the waste");
+		setChanged();
+	}
+
+	/** Sets the sorter's side facing {@code face} as the waste side. */
 	public boolean setWasteSide(Direction face) {
 		if (machine() != Machine.ORE_SORTER || !face.getAxis().isHorizontal()) {
 			return false;
 		}
-		sorter.setWaste((face.get2DDataValue() + 2) % 4);
-		say("the " + face.getName() + " side takes the waste");
+		setWaste((face.get2DDataValue() + 2) % 4);
 		return true;
 	}
 
@@ -716,6 +959,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return 0;
 		}
 		double got = out.give(product, max);
+		flowCounting += got / dev.wildcatter.tailings.plant.PlcScale.density(product);
 		setChanged();
 		return got;
 	}
@@ -783,8 +1027,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			}
 		}
+		if (motor != null && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
+			held.append(String.format("; slurry level %.0f %%, flow %.1f L/s, density %.2f kg/L", dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100, flowLitres,
+					dev.wildcatter.tailings.block.stage.SlurryGauge.density(this)));
+		}
 		if (stage().waterHold() > 0) {
 			held.append(String.format("; water %.0f/%.0f L", water, stage().waterHold()));
+		}
+		if (machine() == Machine.LOADOUT_BIN) {
+			held.append(String.format("; holds %.1f of %.0f t of dry tails", dryKg / 1000, dev.wildcatter.tailings.pit.DryStack.BIN_KG / 1000));
+		}
+		if (machine() == Machine.TAILINGS_FILTER) {
+			held.append(String.format("; %.1f t of cake in the press, %d drops", dryKg / 1000, cycles));
+			if (cakeOut > 0) {
+				held.append(String.format("; %.1f t of cake waiting to drop", cakeOut / 1000));
+			}
+		}
+		if (waterReturned > 0) {
+			held.append(String.format("; %.0f L of water returned", waterReturned));
 		}
 		if (machine() == Machine.CONDITIONER) {
 			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
@@ -795,8 +1055,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.ORE_SORTER) {
 			String[] names = {"north", "east", "south", "west"};
 			for (int side = 0; side < names.length; side++) {
-				String set = side == sorter.waste() ? "waste" : sorter.product(side);
-				if (set != null) {
+				String takes = sorter.takes(side);
+				String set = side == sorter.waste() ? (takes == null ? "waste" : takes + " and waste") : takes;
+				if (sorter.chosen(side)) {
+					held.append("; ").append(names[side]).append(" (PLC): ").append(set == null ? "nothing" : set);
+				} else if (set != null) {
 					held.append("; ").append(names[side]).append(": ").append(set);
 				}
 			}
@@ -824,6 +1087,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
 		output.putString("hold", hold.save());
+		output.putString("travel", travel.save());
 		output.putString("made", made.save());
 		output.putString("out", out.save());
 		StringBuilder made = new StringBuilder();
@@ -831,6 +1095,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putString("byproducts", made.toString());
 		output.putString("back", back.save());
 		output.putDouble("water", water);
+		output.putDouble("dry_kg", dryKg);
+		output.putDouble("cake_out", cakeOut);
+		output.putDouble("cycle", cycle);
+		output.putDouble("water_out", waterOut);
+		output.putDouble("water_returned", waterReturned);
+		output.putInt("cycles", cycles);
 		output.putString("sort", sorter.save());
 		remote.save(output);
 		output.putBoolean("selective", selective);
@@ -855,6 +1125,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		trimReagents();
 		status = input.getStringOr("status", "idle");
 		hold.load(input.getStringOr("hold", ""));
+		// a run saved before belts had a transit time: its load is at the head end
+		travel.load(input.getStringOr("travel", ""));
+		travel.match(hold.total());
 		made.load(input.getStringOr("made", ""));
 		out.load(input.getStringOr("out", ""));
 		byproducts.clear();
@@ -866,6 +1139,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		back.load(input.getStringOr("back", ""));
 		water = input.getDoubleOr("water", 0);
+		dryKg = input.getDoubleOr("dry_kg", 0);
+		cakeOut = input.getDoubleOr("cake_out", 0);
+		cycle = input.getDoubleOr("cycle", 0);
+		waterOut = input.getDoubleOr("water_out", 0);
+		waterReturned = input.getDoubleOr("water_returned", 0);
+		cycles = input.getIntOr("cycles", 0);
 		sorter.load(input.getStringOr("sort", ""));
 		selective = input.getBooleanOr("selective", false);
 		binned.clear();
@@ -941,6 +1220,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			});
 			binned.clear();
+			// a load-out bin's dry tails, as items, up to a few stacks: the rest is spilt
+			int blocks = (int) Math.min(64 * 9, (dryKg + cakeOut) / dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG);
+			for (int left = blocks; left > 0; left -= 64) {
+				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(TailingsBlocks.DRY_TAILS, Math.min(64, left)));
+			}
+			dryKg = 0;
+			cakeOut = 0;
 		}
 	}
 
@@ -961,6 +1247,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public boolean canPlaceItem(int slot, ItemStack stack) {
 		if (slot == 0 && machine() == Machine.BYPRODUCT_PLANT) {
 			return dev.wildcatter.tailings.plant.ByProducts.byItem(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()) != null;
+		}
+		if (slot == 0 && machine() == Machine.LOADOUT_BIN) {
+			return dryTails(stack);
 		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);

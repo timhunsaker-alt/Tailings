@@ -1,13 +1,14 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "ICI",
-    "I I"
+    "SSS",
+    "CMC",
+    "SSS"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "S": "wildcatter:steel_ingot",
+    "C": "wildcatter:cable_mv",
+    "M": "minecraft:copper_ingot"
   },
   "result": {
     "id": "tailings:cable_junction",

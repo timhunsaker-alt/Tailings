@@ -63,7 +63,7 @@ for name, title, texture, cells in MACHINES:
 for name, title in REAGENTS:
     write(COMMON / f"assets/tailings/models/item/{name}.json", {
         "parent": "minecraft:item/generated",
-        "textures": {"layer0": "minecraft:item/sugar"},
+        "textures": {"layer0": f"tailings:item/{name}"},   # Ludo icons (tools/process_art.py)
     })
     write(COMMON / f"assets/tailings/items/{name}.json", {
         "model": {"type": "minecraft:model", "model": f"tailings:item/{name}"},

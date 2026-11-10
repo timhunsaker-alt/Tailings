@@ -68,6 +68,12 @@ public final class TailingsEntities {
 			.clientTrackingRange(16)
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("emulsion_truck")));
+	public static final EntityType<dev.wildcatter.tailings.entity.TrackDozerEntity> TRACK_DOZER = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.TrackDozerEntity>of(dev.wildcatter.tailings.entity.TrackDozerEntity::new, MobCategory.MISC)
+			.sized(4.9F, 4.6F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("track_dozer")));
 
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
@@ -102,6 +108,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("wheel_loader"), WHEEL_LOADER);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("blasthole_drill"), BLASTHOLE_DRILL);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("emulsion_truck"), EMULSION_TRUCK);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("track_dozer"), TRACK_DOZER);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

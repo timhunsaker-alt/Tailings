@@ -20,15 +20,17 @@ import net.minecraft.resources.Identifier;
  * loader's arms lifted as the entity says (open-pit.md). The model's ground is its root, so nothing is offset.
  */
 public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehicleRenderer.PitState> {
-	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck_placeholder.png");
-	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader_placeholder.png");
+	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck.png");
+	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader.png");
 	private static final Identifier DRILL_TEXTURE = Tailings.id("textures/entity/blasthole_drill_placeholder.png");
 	private static final Identifier EMULSION_TEXTURE = Tailings.id("textures/entity/emulsion_truck_placeholder.png");
+	private static final Identifier DOZER_TEXTURE = Tailings.id("textures/entity/track_dozer.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
 	private final BlastholeDrillModel drill;
 	private final EmulsionTruckModel emulsion;
+	private final TrackDozerModel dozer;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -36,6 +38,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		loader = new WheelLoaderModel(context.bakeLayer(WheelLoaderModel.LAYER));
 		drill = new BlastholeDrillModel(context.bakeLayer(BlastholeDrillModel.LAYER));
 		emulsion = new EmulsionTruckModel(context.bakeLayer(EmulsionTruckModel.LAYER));
+		dozer = new TrackDozerModel(context.bakeLayer(TrackDozerModel.LAYER));
 	}
 
 	@Override
@@ -54,7 +57,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
 		state.kind = entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
-				: state.truck ? 0 : 1;
+				: entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity ? 4 : state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
@@ -70,12 +73,14 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 0 -> truck;
 			case 2 -> drill;
 			case 3 -> emulsion;
+			case 4 -> dozer;
 			default -> loader;
 		};
 		Identifier texture = switch (state.kind) {
 			case 0 -> TRUCK_TEXTURE;
 			case 2 -> DRILL_TEXTURE;
 			case 3 -> EMULSION_TEXTURE;
+			case 4 -> DOZER_TEXTURE;
 			default -> LOADER_TEXTURE;
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
@@ -85,7 +90,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
-		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck. */
+		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer. */
 		public int kind;
 		public boolean loaded;
 		public float lift;

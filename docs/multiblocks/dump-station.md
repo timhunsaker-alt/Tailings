@@ -96,17 +96,21 @@ Below the track (y 0 to 2), and the sorter and bins beside the pocket:
 - **Rock types stay separate.** The crushing circuit treats each rock type differently (granite sand is a zircon feed, cobble sand
   a trace sulfide feed), so a mixed bin gives a mixed product.
 
-## Added while building (R4c)
-- **The sorter's screen:** right-click a side of the sorter with a rock or ore item to set that side to that type; sneak-right-click
-  a side with an empty hand to set it as the waste side. The Power Meter or an empty-hand click reads the settings.
-- **Where the train waits:** with the car over the full pocket, not at the signal before the ramp.
+## Added while building (R4c; plant-gaps 2026-11-09)
+- **The sorter's screen** (plant-gaps): an empty-hand click opens it: a slot a side round the sorter; put a rock or ore item on a slot
+  to set that side (the item stays in hand), click it empty-handed to clear it, and press a side's W to make it the waste side. A
+  click on a side with a rock item still sets it straight away. The Power Meter reads the settings.
+- **Where the train waits** (plant-gaps): at the block signal whose section holds the dump, while the pocket cannot take the train's
+  load or the grizzly is choked. With no signal there it waits with the car over the full pocket (R4c).
+- **Oversize** (plant-gaps): one item in a hundred tipped stays on the 300 mm bars *(proposed)*; 32 pieces choke the grizzly and no car
+  tips. A pickaxe breaks a piece through (a rock breaker's work); a sneaking empty-hand click lifts them off to the player.
 - **The sorter** passes up to a stack a second, as the feeder does, and holds two stacks on its belt.
 
 ## Left out (ROADMAP)
 - A real X-ray ore sorter's grade cut, which splits ore from waste within one rock type. This sorter sorts by type only.
 - Bottom-dump cars over a grizzly.
 - Dense-medium separation.
-- Oversize staying on the pocket's 300 mm grizzly for a player to clear (proposed in the parts table): every rock passes the bars.
+- A powered rock breaker on a boom over the grizzly: the pickaxe stands in for it.
 
 ## Game test
 `dumpStation` (Fabric client game test):

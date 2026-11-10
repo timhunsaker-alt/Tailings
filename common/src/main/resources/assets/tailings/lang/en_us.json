@@ -308,5 +308,12 @@
   "item.tailings.blast_logger": "Blast Logger",
   "item.tailings.blasting_key": "Blasting Key",
   "entity.tailings.blasthole_drill": "Blasthole Drill",
-  "entity.tailings.emulsion_truck": "Emulsion Truck"
+  "entity.tailings.emulsion_truck": "Emulsion Truck",
+  "block.tailings.tailings_thickener": "Tailings Thickener",
+  "block.tailings.tailings_filter": "Tailings Filter",
+  "block.tailings.loadout_frame": "Load-Out Frame",
+  "block.tailings.loadout_bin": "Load-Out Bin",
+  "block.tailings.dry_tails": "Dry Tails",
+  "item.tailings.track_dozer": "Track Dozer",
+  "entity.tailings.track_dozer": "Track Dozer"
 }

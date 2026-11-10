@@ -14,6 +14,13 @@ public final class Haul {
 	/** One 10-car train. A second train waits rather than tipping into a full pocket. */
 	public static final int POCKET_ITEMS = MAX_CARS * CAR_ITEMS;
 	public static final int BIN_ITEMS = 8_192;
+	/**
+	 * Of the rock a car tips, the share too big for the pocket's 300 mm grizzly, which stays on its bars (dump-station.md; proposed: TBM
+	 * muck is mostly chips, but slabs from the crown and broken segments come out with it). One item in a hundred.
+	 */
+	public static final double OVERSIZE_SHARE = 0.01;
+	/** Oversize on the bars that chokes the grizzly: no car tips until it is broken or lifted off (proposed: about a car's floor of slabs). */
+	public static final int GRIZZLY_CHOKE = 32;
 	/** How many items the drill hands a waiting car in one tick, one face of muck. */
 	public static final int TRANSFER = 64;
 

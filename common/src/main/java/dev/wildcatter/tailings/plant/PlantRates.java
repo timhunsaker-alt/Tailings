@@ -32,6 +32,11 @@ public final class PlantRates {
 	public static final double SCREEN_SAND_FROM_CRUSHED = 0.15;
 	/** Of the cone's gravel, the share the screen passes as sand (proposed); the rest goes round again. */
 	public static final double SCREEN_SAND_FROM_GRAVEL = 0.40;
+	/**
+	 * Of the jaw's crushed rock, the share between the screen's decks, 6-40 mm, that a belt on its gravel face takes out as aggregate
+	 * (proposed). All of the cone's product that is not sand is 6-40 mm. With nothing on the gravel face it goes round to the cone.
+	 */
+	public static final double SCREEN_GRAVEL_FROM_CRUSHED = 0.35;
 	/** The screen and cone see the circulating oversize as well as new feed: their capacity over the plant rate (proposed). */
 	public static final double SCREEN_CAPACITY = 3;
 	public static final double CONE_CAPACITY = 2.5;

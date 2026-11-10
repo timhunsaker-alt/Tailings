@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CRC",
+    "SBS",
+    "CPC"
+  ],
+  "key": {
+    "C": "minecraft:smooth_stone",
+    "R": "tailings:concentrate_thickener",
+    "S": "minecraft:iron_block",
+    "B": "minecraft:bucket",
+    "P": "minecraft:piston"
+  },
+  "result": {
+    "id": "tailings:tailings_thickener",
+    "count": 1
+  }
+}

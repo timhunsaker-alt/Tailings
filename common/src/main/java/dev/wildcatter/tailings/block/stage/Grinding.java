@@ -43,6 +43,12 @@ final class Grinding {
 			return size == SizeClass.SAND;
 		}
 
+		/** Sand in by a belt over its north (feed) end. */
+		@Override
+		public boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+			return Stage.feedEndTop(part, at, localSide);
+		}
+
 		@Override
 		public double waterHold() {
 			return MILL_WATER;

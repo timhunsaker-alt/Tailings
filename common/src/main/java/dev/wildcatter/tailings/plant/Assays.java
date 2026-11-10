@@ -15,11 +15,11 @@ public final class Assays {
 	private Assays() {
 	}
 
-	/** The kg of each mineral in a kg of {@code rock}, dry. */
+	/** The kg of each mineral in a kg of {@code rock}, dry. A vanilla metal counted in ingots is counted here in kg of metal. */
 	public static SlurryAssay dry(Rock rock) {
 		Map<String, Double> shares = new HashMap<>();
 		for (Mineral mineral : rock.minerals()) {
-			shares.merge(mineral.mineralItemId(), rock.contained(mineral).doubleValue() / PlantRates.BLOCK_KG, Double::sum);
+			shares.merge(mineral.mineralItemId(), rock.contained(mineral).doubleValue() * mineral.kgPerUnit() / PlantRates.BLOCK_KG, Double::sum);
 		}
 		return SlurryAssay.of(shares);
 	}

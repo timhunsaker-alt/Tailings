@@ -71,6 +71,17 @@ public enum Mineral {
 		return unit;
 	}
 
+	/**
+	 * Kilograms of metal an ingot counts for in a slurry's assay: 100 kg, as Wildcatter counts an iron ingot (its Tuning, proposed).
+	 * The assay is always in kg; the vanilla metals are paid in ingots, so the filter divides by this.
+	 */
+	public static final double INGOT_KG = 100;
+
+	/** Kilograms in one of this mineral's {@link #unit()}: {@link #INGOT_KG} for an ingot, 1 for a kilogram. */
+	public double kgPerUnit() {
+		return unit == Unit.INGOT ? INGOT_KG : 1;
+	}
+
 	/** Null when this mineral is not paid at 50% in phase 1. */
 	public Separator separator() {
 		return separator;

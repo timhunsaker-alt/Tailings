@@ -96,19 +96,26 @@ public final class Loose {
 		for (Map.Entry<String, Long> e : Map.copyOf(load.contents()).entrySet()) {
 			String id = e.getKey();
 			long kg = e.getValue();
-			if (PitMass.soil(id)) {
+			if (PitMass.ownBlock(id)) {
 				BlockState state = stateOf(id);
-				int whole = (int) (kg / PitMass.kg(id));
+				// to the nearest whole block: what is left over spills, and the body comes away empty (2026-11-09, docs/questions)
+				int whole = (int) Math.round((double) kg / PitMass.kg(id));
+				boolean all = true;
 				for (int i = 0; i < whole; i++) {
 					if (block(level, start, state) == null) {
+						all = false;
 						break;
 					}
 					load.take(id, PitMass.kg(id));
 					placed++;
 				}
+				if (all) {
+					load.take(id, Long.MAX_VALUE);
+				}
 				continue;
 			}
-			int quarters = (int) (kg * 4 / PitMass.kg(id));
+			// to the nearest quarter of a bank block; the rest spills (2026-11-09)
+			int quarters = (int) Math.round(kg * 4.0 / PitMass.kg(id));
 			for (int q = 0; q < quarters; q++) {
 				filling.merge(id, 1, Integer::sum);
 				inFilling++;
@@ -123,6 +130,7 @@ public final class Loose {
 					inFilling = 0;
 				}
 			}
+			load.take(id, Long.MAX_VALUE);
 		}
 		if (inFilling > 0) {
 			if (muck(level, start, filling) == null) {

@@ -68,6 +68,15 @@ public final class Feeds {
 		return null;
 	}
 
+	/** The item of a whole, unbroken rock: its block. */
+	public static String blockId(Rock rock) {
+		return switch (rock.kind()) {
+			case ORE -> "wildcatter:" + rock.id() + "_ore";
+			case VANILLA -> "minecraft:" + rock.id() + "_ore";
+			case COUNTRY -> "minecraft:" + rock.id();
+		};
+	}
+
 	public static ItemStack stack(String itemId, int count) {
 		Identifier id = Identifier.parse(itemId);
 		Item item = BuiltInRegistries.ITEM.getValue(id);

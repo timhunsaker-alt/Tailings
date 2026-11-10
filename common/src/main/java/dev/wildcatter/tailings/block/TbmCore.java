@@ -87,7 +87,11 @@ public final class TbmCore {
 	private final List<String> pending = new ArrayList<>();
 	private boolean running;
 	private int wait;
+	/** The quench tank's water: the pump gantry's, which the machine takes each tick (TbmBackup#loadTank) and hands back. */
 	private int tank;
+	private boolean tankAboard = true;
+	/** A world saved with the tank in the cab: this goes to the pump gantry the first time it is seen. */
+	private int legacyTank;
 	private int status = DrillCodes.IDLE;
 	private int lack = DrillCodes.LACK_NONE;
 	private String note = "";
@@ -103,6 +107,7 @@ public final class TbmCore {
 	private final UUID[] gantries = new UUID[TbmGantry.values().length];
 	private boolean pumping;
 	private boolean conveying;
+	private boolean auxPower = true;
 
 	public boolean forced() {
 		return forced;
@@ -133,9 +138,19 @@ public final class TbmCore {
 		gantries[kind.ordinal()] = null;
 	}
 
-	/** What it draws through the reel's cable now. */
+	/** What it draws through the reel's cable now: the beam at 4.16 kV, and the pump and conveyor through the reel gantry's transformer. */
 	public int drawWatts() {
-		return BEAM_WATTS + (pumping ? PUMP_WATTS : 0) + (conveying ? CONVEYOR_WATTS : 0);
+		return BEAM_WATTS + auxWatts();
+	}
+
+	/** The pump's and conveyor's draw on the reel gantry's transformer now. */
+	public int auxWatts() {
+		return (pumping ? PUMP_WATTS : 0) + (conveying ? CONVEYOR_WATTS : 0);
+	}
+
+	/** Whether the transformer's 480 V side is up: without it the conveyor does not move muck. */
+	public void setAuxPower(boolean on) {
+		auxPower = on;
 	}
 
 	/** Says why it stands as it does. */
@@ -196,6 +211,24 @@ public final class TbmCore {
 
 	public void setJunction(@Nullable BlockPos junction) {
 		this.junction = junction;
+	}
+
+	/** Whether a pump gantry is here with the tank now, and the water in it (no pump gantry: none; one not loaded: what was last seen). */
+	public void setTankAboard(boolean aboard, int water) {
+		tankAboard = aboard;
+		tank = Math.max(0, water);
+	}
+
+	public boolean tankAboard() {
+		return tankAboard;
+	}
+
+	public int legacyTank() {
+		return legacyTank;
+	}
+
+	public void clearLegacyTank() {
+		legacyTank = 0;
 	}
 
 	public void addQuench(int buckets) {
@@ -300,7 +333,7 @@ public final class TbmCore {
 	/** The rails just behind the conveyor's tail, on columns 2 and 5: a car there takes the machine's muck, and a train waits for it. */
 	public void tickLoading(Level level) {
 		conveying = false;
-		if (drill.advanceCount() == 0 || gantry(TbmGantry.CONVEYOR) == null) {
+		if (drill.advanceCount() == 0 || gantry(TbmGantry.CONVEYOR) == null || !auxPower) {
 			return;
 		}
 		Map<Long, Loading> here = LOADING.computeIfAbsent(level, l -> new HashMap<>());
@@ -339,7 +372,7 @@ public final class TbmCore {
 
 	public void acceptBuckets() {
 		ItemStack water = slots.get(SLOT_WATER);
-		if (water.getItem() == Items.WATER_BUCKET && tank < TANK_MAX) {
+		if (tankAboard && water.getItem() == Items.WATER_BUCKET && tank < TANK_MAX) {
 			tank++;
 			slots.set(SLOT_WATER, new ItemStack(Items.BUCKET));
 		}
@@ -507,6 +540,8 @@ public final class TbmCore {
 		output.putBoolean("running", running);
 		output.putInt("wait", wait);
 		output.putInt("tank", tank);
+		output.putBoolean("tankOnGantry", true);
+		output.putInt("legacyTank", legacyTank);
 		output.putInt("status", status);
 		output.putInt("lack", lack);
 		output.putString("note", note);
@@ -540,6 +575,7 @@ public final class TbmCore {
 		running = input.getBooleanOr("running", false);
 		wait = input.getIntOr("wait", 0);
 		tank = input.getIntOr("tank", 0);
+		legacyTank = input.getBooleanOr("tankOnGantry", false) ? input.getIntOr("legacyTank", 0) : tank;
 		status = input.getIntOr("status", DrillCodes.IDLE);
 		lack = input.getIntOr("lack", DrillCodes.LACK_NONE);
 		note = input.getStringOr("note", "");

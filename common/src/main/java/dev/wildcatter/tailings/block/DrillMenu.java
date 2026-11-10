@@ -22,7 +22,8 @@ public class DrillMenu extends AbstractContainerMenu {
 	private static final int STATUS_CHARS = 96;
 	private final Container container;
 	private final ContainerData data;
-	private final @Nullable TbmCab drill;
+	/** The cab it shows: the main beam's block entity, or the running machine. It follows the machine as it lifts and sets down. */
+	private @Nullable TbmCab drill;
 
 	/** The client's copy: the server sends it the slots and data. */
 	public DrillMenu(int id, Inventory player, BlockPos pos) {
@@ -33,8 +34,8 @@ public class DrillMenu extends AbstractContainerMenu {
 	public DrillMenu(int id, Inventory player, @Nullable TbmCab drill) {
 		super(DrillMenus.DRILL, id);
 		this.drill = drill;
-		this.container = drill == null ? new SimpleContainer(DrillBlockEntity.SLOTS) : drill;
-		this.data = drill == null ? new SimpleContainerData(NUMBERS + STATUS_CHARS) : new Live(drill.core());
+		this.container = drill == null ? new SimpleContainer(DrillBlockEntity.SLOTS) : new Follow();
+		this.data = drill == null ? new SimpleContainerData(NUMBERS + STATUS_CHARS) : new Live(() -> this.drill.core());
 		for (int i = 0; i < DrillBlockEntity.INPUTS; i++) {
 			addSlot(new StockSlot(container, i, 8 + i * 18, 96));
 		}
@@ -134,6 +135,80 @@ public class DrillMenu extends AbstractContainerMenu {
 		return drill != null && drill.stillValid(player);
 	}
 
+	/**
+	 * The machine lifted into its contraption, or set down as blocks again: every screen open on {@code from} now shows {@code to},
+	 * so the cab's screen stays open across the change.
+	 */
+	public static void rebind(net.minecraft.server.level.ServerLevel level, TbmCab from, TbmCab to) {
+		for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+			if (player.containerMenu instanceof DrillMenu menu && menu.drill == from) {
+				menu.drill = to;
+			}
+		}
+	}
+
+	/** The slots of whichever cab the screen shows now. */
+	private final class Follow implements Container {
+		private TbmCab cab() {
+			return java.util.Objects.requireNonNull(drill);
+		}
+
+		@Override
+		public int getContainerSize() {
+			return cab().getContainerSize();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return cab().isEmpty();
+		}
+
+		@Override
+		public ItemStack getItem(int slot) {
+			return cab().getItem(slot);
+		}
+
+		@Override
+		public ItemStack removeItem(int slot, int count) {
+			return cab().removeItem(slot, count);
+		}
+
+		@Override
+		public ItemStack removeItemNoUpdate(int slot) {
+			return cab().removeItemNoUpdate(slot);
+		}
+
+		@Override
+		public void setItem(int slot, ItemStack stack) {
+			cab().setItem(slot, stack);
+		}
+
+		@Override
+		public void setChanged() {
+			cab().setChanged();
+		}
+
+		@Override
+		public boolean stillValid(Player player) {
+			return cab().stillValid(player);
+		}
+
+		@Override
+		public boolean canPlaceItem(int slot, ItemStack stack) {
+			return cab().canPlaceItem(slot, stack);
+		}
+
+		@Override
+		public void clearContent() {
+			cab().clearContent();
+		}
+	}
+
+	/** The cab it shows now, for tests. */
+	public @Nullable TbmCab cab() {
+		return drill;
+	}
+
 	private static final class StockSlot extends Slot {
 		private StockSlot(Container container, int index, int x, int y) {
 			super(container, index, x, y);
@@ -147,14 +222,16 @@ public class DrillMenu extends AbstractContainerMenu {
 
 	/** Server-side view of the cab. The client keeps a {@link SimpleContainerData} copy. */
 	private static final class Live implements ContainerData {
-		private final TbmCore drill;
+		private final java.util.function.Supplier<TbmCore> core;
+		private TbmCore drill;
 
-		private Live(TbmCore drill) {
-			this.drill = drill;
+		private Live(java.util.function.Supplier<TbmCore> core) {
+			this.core = core;
 		}
 
 		@Override
 		public int get(int index) {
+			drill = core.get();
 			return switch (index) {
 				case 0 -> drill.program().targetY();
 				case 1 -> drill.program().heading().ordinal();

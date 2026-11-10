@@ -23,6 +23,7 @@ public final class TailingsNeoForgeClient {
 		modBus.addListener(RegisterMenuScreensEvent.class, event -> {
 			event.register(DrillMenus.DRILL, DrillScreen::new);
 			event.register(dev.wildcatter.tailings.block.PitPanelMenu.TYPE, dev.wildcatter.tailings.client.PitPanelScreen::new);
+			event.register(DrillMenus.SORTER, dev.wildcatter.tailings.client.SorterScreen::new);
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> {
 			event.registerLayerDefinition(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
@@ -31,6 +32,7 @@ public final class TailingsNeoForgeClient {
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.BlastholeDrillModel.LAYER, dev.wildcatter.tailings.client.BlastholeDrillModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.EmulsionTruckModel.LAYER, dev.wildcatter.tailings.client.EmulsionTruckModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.TrackDozerModel.LAYER, dev.wildcatter.tailings.client.TrackDozerModel::createBodyLayer);
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
 			event.registerEntityRenderer(TailingsEntities.DRILL, NoopRenderer::new);
@@ -45,6 +47,7 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.BLASTHOLE_DRILL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.EMULSION_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.TRACK_DOZER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));

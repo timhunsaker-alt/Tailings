@@ -59,6 +59,10 @@
     "tailings:haul_dispatch",
     "tailings:matrix_fill_point",
     "tailings:blasting_machine",
-    "tailings:blasthole"
+    "tailings:blasthole",
+    "tailings:tailings_thickener",
+    "tailings:tailings_filter",
+    "tailings:loadout_frame",
+    "tailings:loadout_bin"
   ]
 }

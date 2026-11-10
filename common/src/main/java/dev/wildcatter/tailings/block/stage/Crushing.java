@@ -28,6 +28,12 @@ final class Crushing {
 			return size == null;
 		}
 
+		/** Fed from a belt over its top. */
+		@Override
+		public boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+			return Stage.top(part, at, localSide);
+		}
+
 		@Override
 		public void tick(PlantBlockEntity part) {
 			if (part.hold().isEmpty()) {
@@ -68,17 +74,26 @@ final class Crushing {
 	};
 
 	/** The jaw: unbroken rock to crushed (-150 mm), out of its south face onto a belt. */
-	static final Stage JAW = simple(1, size -> size == null ? SizeClass.CRUSHED : null, Direction.SOUTH);
+	static final Stage JAW = simple(1, size -> size == null ? SizeClass.CRUSHED : null, Direction.SOUTH, false);
 
 	/** The cone: the screen's oversize to gravel (-40 mm), out of its south face onto a belt back to the screen. */
 	static final Stage CONE = simple(PlantRates.CONE_CAPACITY,
-			size -> size == SizeClass.CRUSHED || size == SizeClass.GRAVEL ? SizeClass.GRAVEL : null, Direction.SOUTH);
+			size -> size == SizeClass.CRUSHED || size == SizeClass.GRAVEL ? SizeClass.GRAVEL : null, Direction.SOUTH, true);
 
-	/** The double-deck screen: sand (-6 mm) out of its east face (or its hopper), the oversize out of its south face to the cone. */
+	/**
+	 * The double-deck screen: sand (-6 mm) out of its east face (or its hopper), the oversize out of its south face to the cone, and,
+	 * with a belt on its gravel face, the 6-40 mm gravel out as aggregate.
+	 */
 	static final Stage SCREEN = new Stage() {
 		@Override
 		public boolean accepts(Rock rock, @Nullable SizeClass size) {
 			return size == SizeClass.CRUSHED || size == SizeClass.GRAVEL;
+		}
+
+		/** Fed by a belt over its north (feed) end. */
+		@Override
+		public boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+			return Stage.feedEndTop(part, at, localSide);
 		}
 
 		@Override
@@ -99,6 +114,7 @@ final class Crushing {
 				return;
 			}
 			PlantBlockEntity.Sink sand = part.sink(part.side(Direction.EAST));
+			PlantBlockEntity.Sink gravel = part.sink(gravelFace(part));
 			double sandShare = sandShare(part.hold());
 			RockLoad sandProbe = new RockLoad();
 			RockLoad overProbe = new RockLoad();
@@ -120,11 +136,25 @@ final class Crushing {
 			RockLoad taken = part.hold().take(max);
 			RockLoad toSand = new RockLoad();
 			RockLoad toCone = new RockLoad();
+			RockLoad toGravel = new RockLoad();
 			taken.forEach((rock, size, kg) -> {
 				double share = size == SizeClass.GRAVEL ? PlantRates.SCREEN_SAND_FROM_GRAVEL : PlantRates.SCREEN_SAND_FROM_CRUSHED;
+				double middle = gravel == null ? 0 : size == SizeClass.GRAVEL ? 1 - share : PlantRates.SCREEN_GRAVEL_FROM_CRUSHED;
 				toSand.add(rock, SizeClass.SAND, kg * share);
-				toCone.add(rock, size, kg * (1 - share));
+				toGravel.add(rock, SizeClass.GRAVEL, kg * middle);
+				toCone.add(rock, size, kg * (1 - share - middle));
 			});
+			if (gravel != null && !toGravel.isEmpty()) {
+				// the gravel face takes what its belt has room for; the rest goes round to the cone
+				double room = gravel.room(toGravel);
+				if (room < toGravel.total()) {
+					RockLoad over = toGravel.take(toGravel.total() - room);
+					toCone.add(over);
+				}
+				if (!toGravel.isEmpty()) {
+					gravel.put(toGravel);
+				}
+			}
 			oversize.put(toCone);
 			if (sand != null) {
 				sand.put(toSand);
@@ -135,6 +165,11 @@ final class Crushing {
 			part.setChanged();
 		}
 	};
+
+	/** The screen's gravel face: the west face of its discharge (south) end, between the decks (crushing-circuit.md, "The ladder of sizes"). */
+	static java.util.List<dev.wildcatter.block.Lines.Face> gravelFace(PlantBlockEntity part) {
+		return part.faces(at -> at[2] == part.machine().depth() - 1, Direction.WEST);
+	}
 
 	/** The share of what the screen holds that passes 6 mm. */
 	private static double sandShare(RockLoad load) {
@@ -164,12 +199,20 @@ final class Crushing {
 		}
 	}
 
-	/** A crusher: takes what {@code to} maps, makes that size, puts it out of {@code out} onto a belt. */
-	private static Stage simple(double capacity, java.util.function.Function<@Nullable SizeClass, @Nullable SizeClass> to, Direction out) {
+	/**
+	 * A crusher: takes what {@code to} maps, makes that size, puts it out of {@code out} onto a belt. {@code beltFed}: fed by a belt over
+	 * its top (the cone); otherwise only from the part it is built into (the jaw, from its grizzly), a hopper or a hand.
+	 */
+	private static Stage simple(double capacity, java.util.function.Function<@Nullable SizeClass, @Nullable SizeClass> to, Direction out, boolean beltFed) {
 		return new Stage() {
 			@Override
 			public boolean accepts(Rock rock, @Nullable SizeClass size) {
 				return to.apply(size) != null;
+			}
+
+			@Override
+			public boolean feeds(PlantBlockEntity part, int[] at, Direction localSide) {
+				return beltFed && Stage.top(part, at, localSide);
 			}
 
 			@Override

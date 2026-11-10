@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I I",
+    "I I",
+    "IHI"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "H": "minecraft:hopper"
+  },
+  "result": {
+    "id": "tailings:loadout_bin",
+    "count": 1
+  }
+}

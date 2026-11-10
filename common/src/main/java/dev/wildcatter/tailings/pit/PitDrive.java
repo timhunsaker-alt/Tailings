@@ -46,6 +46,15 @@ public final class PitDrive {
 	/** The emulsion truck: 8.5 x 2.5 x 3.8 m, about 300 kW, 12 t of matrix, about 14 t empty and 40 km/h (proposed). */
 	public static final Spec EMULSION_TRUCK = new Spec(8.5, 2.5, 3.8, 14_000, 12_000, 300_000, 40 / 3.6, 3.0, 8.0);
 
+	/**
+	 * The track dozer (open-pit-p4-dry-stack.md): 70.2 t, 447 kW net, 8.8 x 4.9 x 4.6 m with its blade (unverified), 12.2 km/h forward
+	 * (the sources give 11.7-12.7) and 15 back. Its "rating" is the blade's 18 blocks of rock. A crawler turns nearly on the spot: 4 m
+	 * (proposed).
+	 */
+	public static final Spec DOZER = new Spec(8.8, 4.9, 4.6, 70_200, 18L * PitMass.ROCK_KG, 447_000, 12.2 / 3.6, 15 / 3.6, 4.0);
+	/** Pushing a load or cutting, it goes at 3.5 km/h (proposed). */
+	public static final double DOZING_SPEED = 3.5 / 3.6;
+
 	private PitDrive() {
 	}
 
