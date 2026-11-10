@@ -2,8 +2,10 @@
 
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `gaps2` from `main`. The task: close the Known gaps in `ROADMAP.md` that can be closed purely by adding behaviour,
-leaving the ones that wait on a design choice of yours. Format as in `README.md` here. **#4, #5 and #6 change what an existing
-world does** and most need your eye; the rest only add.
+leaving the ones that wait on a design choice of yours. Format as in `README.md` here. **#4, #5 and #6 would change what an existing
+world does, so they are built but off by default**, each behind a key in `config/tailings-rules.properties` (the mechanism
+ventilation's rules use: `OptInRules`, read once a server run, missing file or key is off). The question on each is whether it should
+default on. The rest only add.
 
 ### 1. The fuel bay's pipe intake has a scene (P2a)
 - **Chosen:** no code change. `gaps_fuel_bay_pipe`: a Wildcatter stock tank of diesel on steel pipe to the bay's side; the bay's day
@@ -32,19 +34,19 @@ world does** and most need your eye; the rest only add.
   other parts' LEVEL means). The marked-solids density applies to every gauged part: a part fed a thickened tails slurry would now read
   its real density. Nothing in the base plant puts marked tails into a gauged part, so no existing reading changes in practice.
 
-### 4. The headframe bin feeds a hopper under it (L4)
-- **Chosen:** with no belt under it, a headframe bin puts each whole block's worth (2.7 t) of one rock and size into a vanilla
+### 4. The headframe bin feeds a hopper under it (L4): built, off by default
+- **Chosen:** with `headframe_hopper=true` in `config/tailings-rules.properties`, and no belt under it, a headframe bin puts each whole block's worth (2.7 t) of one rock and size into a vanilla
   container (a hopper, a chest) under its bottom, as that rock's item (the block for unbroken rock, the crushed or gravel item
   otherwise), at the belt's rate (one item each 65 s). Less than a block of a rock stays in the bin. A belt under it still comes
   first.
 - **Why:** l4-shaft.md #12's alternative, done the way a belt's head end already puts rock into hoppers and chests (R10), so the rule
   for rock becoming items is the same one.
-- **Alternatives:** leave it belts only. **Existing worlds:** a hopper or chest already standing under a headframe bin, with no belt
-  there, will start to fill with rock from the bin. It took nothing before, so this is the fix of a dead interaction, not a change to a
-  working one; the bin's status said "a belt under it" and now says "a belt or a hopper under it".
+- **Alternatives:** leave it belts only. **Existing worlds:** turned on, a hopper or chest already standing under a headframe bin, with
+  no belt there, will start to fill with rock from the bin. It took nothing before, so this is the fix of a dead interaction; off (the
+  default) nothing changes. **Should it default on?** Recommended yes: nothing worked there before.
 
-### 5. A stone wall breached beside wet paste lets it out (L5)
-- **Chosen:** when a solid block next to wet paste is removed by any means (mined, blown up, cut) and open ground (air, water,
+### 5. A stone wall breached beside wet paste lets it out (L5): built, off by default
+- **Chosen:** with `paste_wall_breach=true`, when a solid block next to wet paste is removed by any means (mined, blown up, cut) and open ground (air, water,
   anything replaceable) takes its place, the wet paste spills out of that gap exactly as out of a broken bulkhead: the wet cells joined
   to it at or above the gap's floor run out, highest first, by the settle rule; set paste stays. It is found from the paste's own block
   updates (the block that was there, then the block that is there now), with no scan, and the spill runs once that update is done.
@@ -52,19 +54,21 @@ world does** and most need your eye; the rest only add.
 - **Why:** l5-paste.md #14's alternative, without the void scan it feared: the paste learns which neighbour went and what replaced it,
   so open cells inside the void (its unfilled top) are never mistaken for a breach.
 - **Alternatives:** keep it bulkheads only. **Existing worlds:** mining or blasting into a void that holds wet paste now spills it,
-  where before the wall could be opened with nothing coming out. That is the hazard the spec describes, but it is new, so it is your
-  call. The spill still happens in one tick (l5-paste.md #14).
+  where before the wall could be opened with nothing coming out; off (the default) only a bulkhead spills, as before. **Should it
+  default on?** It is the real hazard the spec describes; recommended on for new worlds, your call for existing ones. The spill still
+  happens in one tick (l5-paste.md #14).
 
-### 6. Paste cures while its chunk is unloaded, caught up on its return (L5)
-- **Chosen:** a per-dimension record (`paste.PasteClock`, saved with the world) of when each chunk's wet paste last stepped. A chunk's
+### 6. Paste cures while its chunk is unloaded, caught up on its return (L5): built, off by default
+- **Chosen:** with `paste_unloaded_cure=true`, a per-dimension record (`paste.PasteClock`, saved with the world) of when each chunk's wet paste last stepped. A chunk's
   wet paste steps at least every 2.5 minutes while it is loaded, so a longer gap is time it was unloaded; each wet block in the chunk
   gets that time's whole steps on its first step back (within one step of the chunk's return). A day or more away and it is set.
 - **Why:** the spec's "sets in one game day" held only while a player stayed near the stope; scheduled ticks keep their time left while
   their chunk is unloaded. One record per chunk, no block entity per cubic metre (l5-paste.md #12's reason for the scheduled steps).
 - **Alternatives:** leave it (paste far from players stays wet indefinitely); cure by the clock with a block entity per cube (heavy).
-  **Existing worlds:** a chunk with no record yet gets nothing made up; its record starts at its first step after this update. So
-  paste already waiting in an unloaded chunk is not jumped forward; from then on it cures by the game's clock. It changes the pace only
-  in that paste no longer waits for a player; it is not behind a setting, since one game day is the spec's rule.
+  **Existing worlds:** a chunk with no record yet gets nothing made up; its record starts at its first step with the rule on. So paste
+  already waiting in an unloaded chunk is not jumped forward; from then on it cures by the game's clock. Off (the default), paste waits
+  with its chunk as before. **Should it default on?** Recommended yes: one game day is the spec's rule, and it only stops paste
+  waiting for a player.
 
 ### 7. Muck tipped onto wet paste: it already rests on it (L5)
 - **Chosen:** no code change; the Known gap was wrong. The game's free test (`FallingBlock.isFree`) is air, fire, liquid or a

@@ -509,12 +509,13 @@ Built while Tim was away on the draft spec `docs/multiblocks/xrt-ore-sorter.md`;
   tests** (5 new). Unit tests `XrtSortingTest` (7) and `MachineTest`: 165 pass. The Fabric client film `xrt` (`TAILINGS_ONLY=xrt`).
 
 ## gaps2: known gaps closed by adding behaviour (2026-11-10, branch `gaps2`)
-Closed while Tim was away, from ROADMAP's Known gaps; decisions in `docs/questions/gaps2.md` (8 entries; #4, #5 and #6 change what an
-existing world does).
+Closed while Tim was away, from ROADMAP's Known gaps; decisions in `docs/questions/gaps2.md` (8 entries). #4, #5 and #6 would change
+what an existing world does, so they are off by default behind `config/tailings-rules.properties` (`OptInRules`).
 - **Built:** the tailings filter's CYCLE and FULL and the load-out frame's LEVEL, FULL and LOADING PLC points (P4); LEVEL, FLOW and
   DENSITY on the paste filter and mixer, DENSITY from a slurry's marked solids (L5); the headframe bin into a hopper or chest under it
-  (L4); wet paste spilling from a breached stone wall as from a bulkhead (L5); paste making up the time its chunk was unloaded
-  (`paste.PasteClock`, L5).
+  (L4, `headframe_hopper`); wet paste spilling from a breached stone wall as from a bulkhead (L5, `paste_wall_breach`); paste making up
+  the time its chunk was unloaded (`paste.PasteClock`, L5, `paste_unloaded_cure`). The last three are off by default; their scenes turn
+  them on and hand them back.
 - **Checked, no code:** the fuel bay fills by pipe (P2a); muck tipped onto wet paste already rests on it (the Known gap was wrong).
 - **Left:** DMS floats on a belt (balance: the light ores would be recovered, l7-dms.md #4); battery locomotive PLC points (a moving
   entity; the spec puts them on the charger, which has them).

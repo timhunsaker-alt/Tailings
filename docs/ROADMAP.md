@@ -337,12 +337,14 @@ tests `XrtSortingTest`; the client film `xrt`.
   (questions/l5-paste.md, 8).
 - **Paste is marked tails slurry (L5):** Wildcatter 0.5.1 has no product for paste; it carries `tailings:solids` and `tailings:binder`
   in its assay. A `PASTE` product is proposed for Wildcatter.
-- **A paste spill happens in one tick (L5):** a broken bulkhead or breached wall lets the wet paste out at once, not over several
+- **A paste spill happens in one tick (L5):** a broken bulkhead (or, with `paste_wall_breach` on, a breached wall) lets the wet paste out at once, not over several
   ticks (questions/l5-paste.md, 14).
 - **Paste fills at the real rate (L5):** a 360 m³ branch takes about 11 hours of play (questions/l5-paste.md, 19).
 - **No new L5 sounds:** the filter and pump use Wildcatter's motor hum, the mixer the agitator; paste sounds as mud.
-- **Paste unloaded before gaps2 is not caught up (L5):** a chunk's unloaded time is made up from its first cure step after gaps2
-  (questions/gaps2.md, 6).
+- **Three gaps2 fixes are off by default (L4, L5):** in `config/tailings-rules.properties`, `headframe_hopper` (the headframe bin
+  feeds a hopper under it), `paste_wall_breach` (a solid wall removed beside wet paste spills it) and `paste_unloaded_cure` (paste
+  makes up the time its chunk was unloaded). Off, a hopper under the bin takes nothing, only a broken bulkhead spills paste, and paste
+  does not cure while its chunk is unloaded. Whether each defaults on waits on Tim (questions/gaps2.md, 4 to 6).
 
 - **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
   1 and 2); until then ventilation is readings only.

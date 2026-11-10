@@ -53,6 +53,11 @@ These are the only items that wait on you; everything else is built and only nee
     big parts too (about 10,000 fewer files); the row's air on instrument tubing or a real air header; should the concentrate
     thickener refuse uncleaned concentrate; and Wildcatter's decant tower takes about 72 t/h against the line's 1,670 t/h, so raise its
     rate? P5, P6 and P7 (all of it) pass 205 server scenes together and merge to main after the Wildcatter v0.6.0 release.
+16. **The gaps2 fixes** (branch `gaps2`, `gaps2.md`): three are built but **off by default** in `config/tailings-rules.properties`, as
+    they would change existing worlds. Should each default on? #4 `headframe_hopper` (a hopper under a headframe bin takes its rock as
+    items), #5 `paste_wall_breach` (a solid wall mined out beside wet paste spills it), #6 `paste_unloaded_cure` (paste makes up the
+    time its chunk was unloaded). And two that are on: #2, the press's and load-out's new PLC points (CYCLE as a pulse counter or a
+    one-second bit?), and #3, the paste filter's and mixer's gauges (should the mixer's LEVEL read its paste hopper, not its trim?).
 
 ## Every file, by wave
 
@@ -76,7 +81,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
 | Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
-| Tailings | `gaps2.md` (branch `gaps2`) | 8 | known gaps closed by adding: fuel bay pipe scene, press and load-out PLC points, paste filter and mixer gauges, the headframe bin into a hopper, a wall breached beside wet paste, paste curing while unloaded, muck on paste (#4, #5, #6 change existing worlds) |
+| Tailings | `gaps2.md` (branch `gaps2`) | 8 | known gaps closed by adding: fuel bay pipe scene, press and load-out PLC points, paste filter and mixer gauges, the headframe bin into a hopper, a wall breached beside wet paste, paste curing while unloaded, muck on paste (#4, #5, #6 off by default: should they default on?) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
 | Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 44 | the gyratory and stockpile (P7a), the SAG line (P7b), pit flotation and the 45 m thickener (P7c) |

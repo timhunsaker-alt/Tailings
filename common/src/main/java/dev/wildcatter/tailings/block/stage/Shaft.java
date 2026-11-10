@@ -184,8 +184,9 @@ public final class Shaft {
 	};
 
 	/**
-	 * A vanilla container (a hopper, a chest) under the bin's bottom, for a bin with no belt under it (docs/questions/gaps2.md); never
-	 * a plant part.
+	 * A vanilla container (a hopper, a chest) under the bin's bottom, for a bin with no belt under it, while
+	 * {@code headframe_hopper} is on in {@code config/tailings-rules.properties} (off by default; docs/questions/gaps2.md #4); never a
+	 * plant part.
 	 */
 	private static net.minecraft.world.@Nullable Container container(PlantBlockEntity part) {
 		for (dev.wildcatter.block.Lines.Face face : part.side(Direction.DOWN)) {
@@ -257,12 +258,13 @@ public final class Shaft {
 			}
 			PlantBlockEntity.Sink sink = part.sink(part.side(Direction.DOWN));
 			if (sink == null) {
-				net.minecraft.world.Container box = container(part);
+				boolean hopper = dev.wildcatter.tailings.OptInRules.on(part.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.HEADFRAME_HOPPER);
+				net.minecraft.world.Container box = hopper ? container(part) : null;
 				if (box != null) {
 					bag(part, box);
 					return;
 				}
-				part.say(String.format("%s (a belt or a hopper under it); holds %.0f t", Crushing.NOWHERE, part.hold().total() / 1000));
+				part.say(String.format("%s (a belt%s under it); holds %.0f t", Crushing.NOWHERE, hopper ? " or a hopper" : "", part.hold().total() / 1000));
 				return;
 			}
 			double max = Math.min(Belts.BELT_KG_PER_TICK, sink.room(part.hold()));

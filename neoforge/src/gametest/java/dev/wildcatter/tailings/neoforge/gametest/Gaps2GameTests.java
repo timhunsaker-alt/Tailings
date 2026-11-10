@@ -12,6 +12,7 @@ import dev.wildcatter.tailings.block.PasteFillBlock;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.stage.SlurryGauge;
 import dev.wildcatter.tailings.entity.HaulTruckEntity;
+import dev.wildcatter.tailings.OptInRules;
 import dev.wildcatter.tailings.paste.PasteClock;
 import dev.wildcatter.tailings.paste.PasteFill;
 import dev.wildcatter.tailings.pit.DryStack;
@@ -206,7 +207,8 @@ final class Gaps2GameTests {
 
 	/**
 	 * The headframe bin into a hopper under it (gaps_headframe_hopper, L4): with no belt under it, it puts each whole block's worth of
-	 * one rock (2.7 t) into the hopper as that rock's item, at the belt's rate; less than a block stays in the bin.
+	 * one rock (2.7 t) into the hopper as that rock's item, at the belt's rate; less than a block stays in the bin. Only with
+	 * {@code headframe_hopper} on (off by default): the scene checks it off, turns it on, and hands it back to the config file.
 	 */
 	private static void headframeHopper(GameTestHelper helper) {
 		floor(helper, 0, 8, 0, 0, 0, 8);
@@ -216,21 +218,35 @@ final class Gaps2GameTests {
 		bin.hold().add(Rock.GRANITE, null, 2 * 2700 + 1000);
 		bin.fastCycle(20);   // an item each 65 s at the belt's rate: 20 times fast
 		HopperBlockEntity hopper = helper.getBlockEntity(hopperAt, HopperBlockEntity.class);
-		helper.succeedWhen(() -> {
-			int granite = 0;
+		java.util.function.IntSupplier granite = () -> {
+			int n = 0;
 			for (int slot = 0; slot < hopper.getContainerSize(); slot++) {
 				if (hopper.getItem(slot).is(Items.GRANITE)) {
-					granite += hopper.getItem(slot).getCount();
+					n += hopper.getItem(slot).getCount();
 				}
 			}
-			helper.assertTrue(granite == 2, Component.literal("two blocks of granite into the hopper: " + granite + "; " + bin.status()));
-			helper.assertTrue(Math.abs(bin.hold().total() - 1000) < 1, Component.literal("a tonne, under a block, stays in the bin: " + bin.hold().total()));
-		});
+			return n;
+		};
+		OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, false);
+		helper.startSequence()
+				.thenIdle(80)
+				.thenExecute(() -> {
+					helper.assertTrue(granite.getAsInt() == 0 && bin.status().contains("(a belt under it)"), Component.literal("off (the default), a hopper under it takes nothing: "
+							+ granite.getAsInt() + "; " + bin.status()));
+					OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, true);
+				})
+				.thenWaitUntil(() -> {
+					helper.assertTrue(granite.getAsInt() == 2, Component.literal("on, two blocks of granite into the hopper: " + granite.getAsInt() + "; " + bin.status()));
+					helper.assertTrue(Math.abs(bin.hold().total() - 1000) < 1, Component.literal("a tonne, under a block, stays in the bin: " + bin.hold().total()));
+				})
+				.thenExecute(() -> OptInRules.setTest(OptInRules.HEADFRAME_HOPPER, null))
+				.thenSucceed();
 	}
 
 	/**
 	 * A stone wall breached beside wet paste (gaps_paste_wall_breach, L5): a stone changed for cobblestone lets nothing out; a stone
-	 * mined out of the wall lets the wet paste at and above the gap run out of it, as a broken bulkhead does; set paste stays.
+	 * mined out of the wall lets the wet paste at and above the gap run out of it, as a broken bulkhead does; set paste stays. Only with
+	 * {@code paste_wall_breach} on (off by default): a stone mined out with it off lets nothing out.
 	 */
 	private static void wallBreach(GameTestHelper helper) {
 		fill(helper, -8, 1, -14, 34, 1, 18, Blocks.STONE.defaultBlockState());   // the drive floor round the branch
@@ -238,8 +254,15 @@ final class Gaps2GameTests {
 		fill(helper, 1, 2, 1, 6, 2, 4, TailingsBlocks.PASTE_FILL.defaultBlockState().setValue(PasteFillBlock.CURE, PasteFillBlock.SET));
 		fill(helper, 1, 3, 1, 6, 5, 4, TailingsBlocks.PASTE_FILL.defaultBlockState());
 		helper.setBlock(new BlockPos(1, 5, 1), Blocks.AIR);   // the void's last open cell
+		OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, false);
 		helper.startSequence()
-				.thenExecuteAfter(5, () -> helper.setBlock(new BlockPos(7, 4, 3), Blocks.COBBLESTONE))
+				.thenExecuteAfter(5, () -> helper.getLevel().destroyBlock(helper.absolutePos(new BlockPos(7, 4, 4)), false))
+				.thenExecuteAfter(10, () -> {
+					helper.assertTrue(count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet) == 71, Component.literal("off (the default), a breach lets nothing out: "
+							+ count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet)));
+					OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, true);
+					helper.setBlock(new BlockPos(7, 4, 3), Blocks.COBBLESTONE);
+				})
 				.thenExecuteAfter(10, () -> {
 					helper.assertTrue(count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet) == 71, Component.literal("a wall changed for a wall lets nothing out: "
 							+ count(helper, 1, 3, 1, 6, 5, 4, PasteFillBlock::wet)));
@@ -252,6 +275,7 @@ final class Gaps2GameTests {
 					helper.assertTrue(outside >= 40, Component.literal("the wet paste should run out of the gap in the stone: " + outside + " m3 outside, " + inside + " left inside"));
 					helper.assertTrue(inside + outside == 71, Component.literal("no paste is lost or made: " + (inside + outside)));
 					helper.assertTrue(set == 24, Component.literal("set paste stays: " + set));
+					OptInRules.setTest(OptInRules.PASTE_WALL_BREACH, null);
 				})
 				.thenSucceed();
 	}
@@ -259,7 +283,7 @@ final class Gaps2GameTests {
 	/**
 	 * Paste makes up the time its chunk was unloaded (gaps_paste_catch_up, L5): with its chunk's paste last stepped five steps ago, the
 	 * next step is the missed four and its own, and so for each wet block in the chunk within a step; a chunk with no record yet (an
-	 * existing world's paste) steps once.
+	 * existing world's paste) steps once. Only with {@code paste_unloaded_cure} on (off by default): off, it steps once.
 	 */
 	private static void catchUp(GameTestHelper helper) {
 		fill(helper, 0, 1, 0, 6, 1, 6, Blocks.STONE.defaultBlockState());
@@ -273,6 +297,12 @@ final class Gaps2GameTests {
 		long now = level.getGameTime();
 		long step = PasteFill.cureStepTicks();
 		helper.assertTrue(new PasteClock().missedSteps(chunk, now) == 0, Component.literal("a chunk with no record makes up nothing"));
+		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, false);
+		PasteClock.get(level).backdate(chunk, now, 5 * step);
+		level.getBlockState(absA).tick(level, absA, level.getRandom());
+		helper.assertTrue(level.getBlockState(absA).getValue(PasteFillBlock.CURE) == 1, Component.literal("off (the default), one step only: " + level.getBlockState(absA)));
+		helper.setBlock(a, TailingsBlocks.PASTE_FILL);
+		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, true);
 		PasteClock.get(level).backdate(chunk, now, 5 * step);
 		level.getBlockState(absA).tick(level, absA, level.getRandom());
 		helper.assertTrue(level.getBlockState(absA).getValue(PasteFillBlock.CURE) == 5, Component.literal("four steps missed and its own: " + level.getBlockState(absA)));
@@ -281,6 +311,7 @@ final class Gaps2GameTests {
 		PasteClock.get(level).backdate(chunk, now, 20 * step);
 		level.getBlockState(absB).tick(level, absB, level.getRandom());
 		helper.assertTrue(PasteFillBlock.set(level.getBlockState(absB)), Component.literal("a long time unloaded, it sets: " + level.getBlockState(absB)));
+		OptInRules.setTest(OptInRules.PASTE_UNLOADED_CURE, null);
 		helper.succeed();
 	}
 

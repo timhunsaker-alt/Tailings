@@ -454,8 +454,8 @@ are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft
   60 s as every plant motor; without it the brakes hold the skips where they are (STOPPED). A 150 m shaft lifts about 270 t/h.
 - **The flask:** the apron feeder whose tail end touches it (and no ore sorter) drops a rock item's 2.7 t into its surge when the surge is
   empty, once a second; it fills from the surge at 300 kg/s to exactly 3 t. It takes nothing by hand or hopper.
-- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate. With no belt, a hopper or chest under
-  its bottom takes it as items (gaps2): each whole block's worth (2.7 t) of one rock and size as its item, one each 65 s (the belt's
+- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate. With no belt, and `headframe_hopper` on
+  (off by default), a hopper or chest under its bottom takes it as items (gaps2): each whole block's worth (2.7 t) of one rock and size as its item, one each 65 s (the belt's
   rate); less than a block stays in the bin.
 - **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
 - **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
@@ -488,13 +488,14 @@ the stages are `block.stage.Paste`.
   the void's m³, open, wet and set, and the m³ it has placed.
 - **Paste fill** (`paste_fill`, no item): wet when placed (`cure` 0-7): no collision, it slows what wades in it (half speed across, 40 %
   down), does not suffocate. A scheduled step every 3,000 ticks; the eighth (one game day) sets it (`cure` 8): a solid block, mined by
-  pickaxe or shovel. It drops nothing either way. Time its chunk spends unloaded is made up (gaps2, `paste.PasteClock`): each chunk's
+  pickaxe or shovel. It drops nothing either way. With `paste_unloaded_cure` on (off by default), time its chunk spends unloaded is
+  made up (gaps2, `paste.PasteClock`): each chunk's
   last step is kept per dimension, and a gap longer than a step gives each wet block in the chunk the missed whole steps on its first
-  step back. A chunk with no record yet (paste from before gaps2) makes up nothing until it has one.
+  step back. A chunk with no record yet (paste from before the rule was on) makes up nothing until it has one.
 - **The fill bulkhead** (`fill_bulkhead`): a metre of shotcrete barricade, a wall to the void like any block. Removed by any means with
   wet paste touching the gap, the wet paste joined to it at or above the gap's floor (all of it, for a gap under it) runs out at once,
-  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays. **A breached wall** (gaps2): any
-  solid block beside wet paste removed, with open ground in its place, spills it the same way (found from the paste's own block
+  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays. **A breached wall** (gaps2, with
+  `paste_wall_breach` on; off by default): any solid block beside wet paste removed, with open ground in its place, spills it the same way (found from the paste's own block
   updates, so open cells inside the void are not mistaken for a gap); a wall changed for another solid block lets nothing out. Muck and
   dry tails tipped onto wet paste rest on it.
 - **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
@@ -577,9 +578,9 @@ dump station's `ore_sorter` is a different machine and is unchanged.
 
 ## Config
 
-Two files. Neither is created for you.
+Three files. None is created for you.
 
-`config/tailings-train.properties`, and since L1 `config/tailings-ventilation.properties`:
+`config/tailings-train.properties`, since L1 `config/tailings-ventilation.properties`, and since gaps2 `config/tailings-rules.properties`:
 
 | Key | Default if missing | Meaning |
 |---|---|---|
@@ -588,6 +589,9 @@ Two files. Neither is created for you.
 | `truck_damage` | `8` | Damage per hit from a moving haul truck or wheel loader (over 1 m/s). `damage=false` turns it off too |
 | `interlock` (ventilation) | `false` | A TBM with no duct air at its back-up for 60 s stops, NO VENTILATION |
 | `stale_air` (ventilation) | `false` | Players in a drive's stale air get Mining Fatigue, then Weakness |
+| `headframe_hopper` (rules) | `false` | A headframe bin with no belt under it feeds a hopper or chest under it (gaps2.md #4) |
+| `paste_wall_breach` (rules) | `false` | A solid wall removed beside wet paste spills it, as a broken bulkhead does (gaps2.md #5) |
+| `paste_unloaded_cure` (rules) | `false` | Paste makes up the time its chunk was unloaded (gaps2.md #6) |
 
 There is no other Tailings config, and no Tailings gamerule.
 

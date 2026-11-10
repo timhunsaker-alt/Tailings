@@ -90,7 +90,7 @@ existing world (#22).
 ### 12. Curing: eight steps of 2.5 minutes
 - **Chosen:** wet paste sets in one game day (L5-3), in eight scheduled steps of 3,000 ticks; its step is in its block state, so paste
   moved by a spill keeps its age. While its chunk is not loaded it does not cure (the game holds a scheduled tick's time left);
-  **since gaps2** it makes that time up when the chunk comes back (gaps2.md #6).
+  **since gaps2**, with `paste_unloaded_cure` on (off by default), it makes that time up when the chunk comes back (gaps2.md #6).
 - **Why:** a single 24,000-tick tick would restart when the paste moves; steps cost about one block tick a second for a 20,000 m³ void.
 - **Alternatives:** cure by the clock (a block entity per cubic metre, heavy for 20,000 of them); random ticks (no exact time).
 
@@ -105,7 +105,7 @@ existing world (#22).
 - **Chosen:** when a fill bulkhead is removed by any means and wet paste touches the gap, every wet cell joined to it at or above the
   gap's floor (all of them, for a gap under the paste) runs out, highest first, and settles outside the gap by the settle rule; set
   paste stays. It happens at once, in one tick. Breaking a stone wall next to wet paste lets nothing out (the outlet then reads NOT
-  ENCLOSED). **Since gaps2:** a stone (any solid) wall breached beside wet paste spills it too (gaps2.md #5).
+  ENCLOSED). **Since gaps2**, with `paste_wall_breach` on (off by default), a stone (any solid) wall breached beside wet paste spills it too (gaps2.md #5).
 - **Why:** the spec ("a bulkhead broken while the paste behind it is wet"); the real hazard is a barricade failing. Any block could be
   watched, but a wet void always has open cells beside its paste (its unfilled top), so telling a breach from them needs a scan.
 - **Alternatives:** any wall block breached lets paste out (a void scan on every block broken next to paste); a spill spread over
