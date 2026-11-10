@@ -44,6 +44,12 @@ public final class TailingsNeoForge {
 					dev.wildcatter.tailings.block.PitPanelMenu.TYPE = panel;
 					helper.register(Tailings.id("pit_panel"), panel);
 				}
+				if (DrillMenus.SORTER == null) {
+					MenuType<dev.wildcatter.tailings.block.SorterMenu> sorter = new MenuType<>(dev.wildcatter.tailings.block.SorterMenu::new,
+							net.minecraft.world.flag.FeatureFlags.VANILLA_SET);
+					DrillMenus.SORTER = sorter;
+					helper.register(Tailings.id("ore_sorter"), sorter);
+				}
 			});
 		});
 		if (FMLEnvironment.getDist() == Dist.CLIENT) {

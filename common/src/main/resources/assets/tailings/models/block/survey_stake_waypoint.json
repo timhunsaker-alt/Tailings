@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "post": "tailings:block/survey_stake_post_placeholder",
-    "flag": "tailings:block/survey_stake_waypoint_placeholder",
-    "particle": "tailings:block/survey_stake_post_placeholder"
+    "post": "tailings:block/survey_stake_post",
+    "flag": "tailings:block/survey_stake_waypoint",
+    "particle": "tailings:block/survey_stake_post"
   },
   "elements": [
     {

@@ -166,6 +166,8 @@ The specs:
 - **Why:** cutting ramps at a haul road's grade and pushing berms are what a pit needs a dozer for.
 - **Alternatives:** blade only (no grade setting: players cut ramps by hand); an autonomous dozer (real, much more work).
 
+Built on these choices (2026-11-09); what building it decided is in [p4-dry-stack.md](p4-dry-stack.md).
+
 ## P5: power and big machines
 
 ### P5-1. The switch house

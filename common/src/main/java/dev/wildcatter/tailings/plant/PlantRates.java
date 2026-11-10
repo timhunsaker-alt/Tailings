@@ -23,6 +23,13 @@ public final class PlantRates {
 	public static final double BELT_METRES_PER_SECOND = 2;
 	/** One conveyor drive (7.5 kW) moves this many metres of belt; a longer run needs more drives on it (proposed). */
 	public static final int METRES_PER_DRIVE = 30;
+	/**
+	 * A started motor runs on, empty, this long after its part's work runs out before it stops (proposed; playthrough-fix decision 1).
+	 * A plant runs its crushers and mills through the gaps in their feed: each direct-on-line start draws six times the motor's current,
+	 * and a motor stopped the moment its hold empties restarts on every few kilograms the belts bring, which heats its cable and its
+	 * generator until one burns out or trips. NEMA MG 1 allows a large motor about two starts cold and one hot before it must rest.
+	 */
+	public static final int MOTOR_RUN_ON_SECONDS = 60;
 	/** An ore bin holds 8,192 items (decided as the game size). */
 	public static final int BIN_ITEMS = 8192;
 
@@ -32,6 +39,11 @@ public final class PlantRates {
 	public static final double SCREEN_SAND_FROM_CRUSHED = 0.15;
 	/** Of the cone's gravel, the share the screen passes as sand (proposed); the rest goes round again. */
 	public static final double SCREEN_SAND_FROM_GRAVEL = 0.40;
+	/**
+	 * Of the jaw's crushed rock, the share between the screen's decks, 6-40 mm, that a belt on its gravel face takes out as aggregate
+	 * (proposed). All of the cone's product that is not sand is 6-40 mm. With nothing on the gravel face it goes round to the cone.
+	 */
+	public static final double SCREEN_GRAVEL_FROM_CRUSHED = 0.35;
 	/** The screen and cone see the circulating oversize as well as new feed: their capacity over the plant rate (proposed). */
 	public static final double SCREEN_CAPACITY = 3;
 	public static final double CONE_CAPACITY = 2.5;

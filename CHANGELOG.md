@@ -25,6 +25,78 @@ Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
   left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
   detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
   shot fires with a machine or vehicle in the rock it breaks.
+### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
+
+- **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a
+  motor that stopped the moment its hold emptied restarted direct on line on every few kilograms: in the playthrough the cone's
+  4/0 cable burnt out at its motor box and the ball mill's 1 MW set tripped on stator overcurrent, both within 30 s of the first ore.
+  It never starts without work, and a PLC's run or the hand switch still stops it at once.
+- **The playthrough fails fast:** a burnt power cable, a tripped generator, a machine dark for a minute, or a TBM it cannot find stops
+  the run with the reason. It follows the TBM when it sets itself down as blocks at the end of its course (it read "machine not
+  found"). `TAILINGS_FEED=1` stages ore in the ore bin for a quick diagnostic. Decisions in `docs/questions/playthrough.md`.
+
+### PLC 13i: the last signals (2026-11-09, decided while Tim was away)
+
+- **A PLC chooses which rock each side of the ore sorter takes:** one 4-20 mA output a side carrying a rock code (copper ore is code
+  10, 6.5 mA; the list is in DESIGN.md). The screen's setting comes back when the PLC stops saying. A gate the PLC shut now opens
+  when the PLC goes quiet (it stayed shut).
+- **A PLC programs the TBM's course** through its cable junction: TARGET Y and FLAT LENGTH, with read-backs. The course takes while
+  the machine stands, and never moves floor already cut.
+- **Slurry parts read LEVEL, FLOW and DENSITY** (4-20 mA): the feed tank's level, the flow out by pipe (0-60 L/s), and the slurry's
+  density from its solids (1.0-2.0 kg/L). Transmitters read them too.
+- **Changed for existing PLC programs:** the ore sorter has four more points (14, was 10); slurry parts have three more (9, was 6).
+  The old points keep their numbers.
+- **Tests:** `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`.
+
+### Open pit P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09, decided while Tim was away)
+
+- **New parts:** the tailings thickener (15 m, tails to 60 % solids, its overflow water back on a water pipe), the tailings filter (a
+  plate press dropping 15 t of dry tails every 15 minutes), and the truck load-out: a 400 t bin on a frame over a drive-through lane,
+  filling a truck under its gate at 2 t/s.
+- **Dry tails**, a new block: the press's cake, 1.8 t a block, falling like sand. The pit hopper refuses it: it goes to the dump.
+- **LOADOUT stakes work:** a self-driving truck drives through the load-out, is filled under the gate, loops round and hauls to its
+  dump stop.
+- **Dumps, crests and berms:** at a DUMP POINT on a crest a truck backs to the berm and tips over it, and the load runs down the face;
+  with no berm it will not back up (NO BERM, and BLOCKED in dispatch). With no crest it tips on the flat. A berm stops a truck backed
+  by hand; a truck backed over a crest with no berm goes over and is wrecked, leaving its item and load at the bottom.
+- **The track dozer:** a 70 t crawler. Blade CARRY, CUT (to level, 5, 8 or 10 %) or RAISED; it pushes loose ground and muck, cuts
+  ramps, pushes loads over a crest and pushes up berms along it. Hard rock stops it.
+- **Tests:** 12 NeoForge scenes (`pit_thickener` to `pit_dozer_push`), `DryStackTest`; the client scene `pit_dry_stack`.
+
+### The TBM's gaps (2026-11-09, decided while Tim was away)
+
+- **The gantries run on their own wheels** on the twin track. Take a rail from under one and the machine stops, naming it; put it
+  back and it goes on. On the decline they now stand on their rails, half a block lower than before.
+- **Every car of a train loads:** the loading point reaches a whole 10-car train (29 rows behind the conveyor, was 13), and a train
+  indexes forward through it a car at a time.
+- **The trailing cable is drawn** from the reel gantry back to the cable junction, and the reel turns as it pays out.
+- **The reel gantry's transformer is on the circuit:** the pump's and conveyor's current flows through a 4.16 kV to 480 V, 150 kVA
+  transformer, shown on the junction's readout. The conveyor stops if its 480 V is out.
+- **The quench tank is on the pump gantry.** Breaking the pump gantry loses its water. Changed for existing worlds: water in an old
+  cab moves to its pump gantry.
+- **The cab's screen stays open** when the machine lifts and sets down.
+- **Real recipes** for the cutterhead, segment erector, main beam, track layer, cable junction and the three gantries, from steel and
+  Wildcatter's parts. Changed for existing players: the old iron-and-copper recipes are gone.
+- **Track too long for the solver** (over 4,000 nodes on one rectifier) is dead and says so: "TRACK TOO LONG".
+- **Fixed by Wildcatter 0.4.1, now proved:** busway straight onto the traction rectifier's motor box.
+- **Tests:** `tbm_gantry_derail`, `tbm_train_fills`, `tbm_quench_gantry`, `tbm_screen_follows`, `tbm_transformer`, `tbm_recipes`,
+  `track_too_long`, `rectifier_busway`; `GantryWheelsTest`.
+
+### Plant gaps closed (2026-11-09)
+
+- **Belts take time:** rock rides a belt at 2 m/s, so a 20 m run takes 10 s, and the lumps are drawn where the rock is. A belt whose
+  head end is blocked stops.
+- **Parts take rock only through their feed face:** grizzly, cone and heap pad from a belt over their top; screen and ball mill over
+  their north (feed) end; the jaw only from its grizzly. A part beside another's output face no longer takes it as a chute: lay a belt.
+  Existing layouts that relied on that need a belt there.
+- **Gravel aggregate:** a belt on the west face of the screen's south end takes the 6-40 mm gravel out; a hopper or chest at a belt's
+  head end takes rock as items.
+- **Oversize on the dump pocket's grizzly:** about one item in a hundred stays on the bars; 32 choke it and no car tips. Break pieces
+  through with a pickaxe, or sneak-click with an empty hand to lift them off.
+- **Trains wait at the signal before the dump** while its pocket is full, when a block signal guards the dump.
+- **Bulk concentrate:** lead and zinc concentrate piped into one filter pay the lead only, the zinc going to slag.
+- **The ore sorter has a screen:** click it with an empty hand; put a rock on a side's slot to set it, W makes it the waste side.
+- **Assays count metal in kg:** an ingot is 100 kg of copper, iron or gold in a slurry's assay. Payouts are unchanged.
 
 ### Round wheels (2026-11-09, Tim's request)
 

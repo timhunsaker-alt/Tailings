@@ -77,7 +77,7 @@ public final class PitLoad {
 
 	public boolean hasSoil() {
 		for (String id : kilograms.keySet()) {
-			if (PitMass.soil(id)) {
+			if (PitMass.ownBlock(id)) {
 				return true;
 			}
 		}

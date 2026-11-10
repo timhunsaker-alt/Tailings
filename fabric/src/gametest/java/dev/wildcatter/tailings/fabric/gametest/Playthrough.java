@@ -89,6 +89,12 @@ final class Playthrough {
 	private final List<BlockPos> panels = new ArrayList<>();
 	private final MineVehicleEntity[] train = new MineVehicleEntity[3];
 	private String oreId = "minecraft:copper_ore";
+	/** Every cell of power cable and busway laid, and its block: a cell that burns out is gone, and the run fails on it. */
+	private final Map<BlockPos, Block> conductors = new java.util.LinkedHashMap<>();
+	/** Where the TBM was last seen: when it sets itself down as blocks at the end of its course, its cab is found near here. */
+	private BlockPos tbmLast;
+	/** Machines read NO POWER at the last check: two checks running (a minute) fails the run. */
+	private final java.util.Set<String> dark = new java.util.HashSet<>();
 	private dev.wildcatter.energy.ConductorSize size;
 
 	Playthrough(ClientGameTestContext context) {
@@ -144,9 +150,12 @@ final class Playthrough {
 			server.runOnServer(this::plcSite);
 			context.waitTicks(40);
 			server.runOnServer(this::plcProgram);
-			power(server);
-			play(server);
-			film.stop();
+			try {
+				power(server);
+				play(server);
+			} finally {
+				film.stop();
+			}
 			writeBill();
 		}
 	}
@@ -423,6 +432,9 @@ final class Playthrough {
 					require(there.canBeReplaced(), id + " at " + at.toShortString() + " is blocked by " + there);
 					place(srv, id, at, SOUTH);
 				}
+				if (id.matches(".*(cable|busway).*")) {
+					conductors.put(at.immutable(), level.getBlockState(at).getBlock());
+				}
 				if (at.equals(to)) {
 					break;
 				}
@@ -456,16 +468,17 @@ final class Playthrough {
 			ServerLevel level = srv.overworld();
 			PlantBlockEntity sorter = (PlantBlockEntity) level.getBlockEntity(parts.get("sorter"));
 			ServerPlayer player = srv.getPlayerList().getPlayers().get(0);
-			// clicking the sorter's faces, as a player sets it: its east side with the ore, its south side empty-handed and sneaking
+			// the sorter's screen, opened with an empty hand as a player does: the ore on its east side, its south side the waste side
 			BlockPos cell = parts.get("sorter").offset(2, 1, 1);
-			ItemStack ore = new ItemStack(item(oreId));
-			player.setItemInHand(InteractionHand.MAIN_HAND, ore);
-			player.gameMode.useItemOn(player, level, ore, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(cell), Direction.EAST, cell, false));
 			player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-			player.setShiftKeyDown(true);
-			BlockPos south = parts.get("sorter").offset(1, 1, 2);
-			player.gameMode.useItemOn(player, level, ItemStack.EMPTY, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(south), Direction.SOUTH, south, false));
-			player.setShiftKeyDown(false);
+			player.gameMode.useItemOn(player, level, ItemStack.EMPTY, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(cell), Direction.EAST, cell, false));
+			require(player.containerMenu instanceof dev.wildcatter.tailings.block.SorterMenu, "an empty hand should open the sorter's screen, got " + player.containerMenu);
+			var menu = player.containerMenu;
+			menu.setCarried(new ItemStack(item(oreId)));
+			menu.clicked(1, 0, net.minecraft.world.inventory.ContainerInput.PICKUP, player);   // the east side's slot
+			menu.setCarried(ItemStack.EMPTY);
+			menu.clickMenuButton(player, dev.wildcatter.tailings.block.SorterMenu.WASTE + 2);   // south: waste
+			player.closeContainer();
 			log("sorter: " + sorter.inspect().getString());
 		});
 	}
@@ -551,32 +564,42 @@ final class Playthrough {
 		bigPart(srv, TailingsBlocks.TRACTION_RECTIFIER, c.offset(0, 1, 36));
 	}
 
+	/**
+	 * The crushing circuit, every part fed through its feed face (crushing-circuit.md, "Nozzles and faces"; plant-gaps): the grizzly's
+	 * undersize and the jaw's product onto belts over the screen's north end, the screen's oversize by belt over the cone's top, the cone's
+	 * product round onto the jaw's belt, the sand over the mill's north end. Until plant-gaps the screen took the undersize through its
+	 * west face and the jaw's belt from under it, and the cone sat against its south face as a chute: the spec never allowed those.
+	 */
 	private void crushing(MinecraftServer srv) {
 		part(srv, "jaw", Machine.JAW, at(0, 0, 0));
 		part(srv, "grizzly", Machine.GRIZZLY, at(0, 4, 0));
 		part(srv, "screen", Machine.SCREEN, at(6, 3, 0));
-		part(srv, "cone", Machine.CONE, at(6, 3, 6));
+		part(srv, "cone", Machine.CONE, at(6, -1, 7));
 		part(srv, "mill", Machine.BALL_MILL, at(11, -1, 0));
 		part(srv, "cyclone", Machine.CYCLONE, at(9, -1, 2));
 		// the ore bin's belt: under the bin, up and over the grizzly
 		belts(srv, Direction.Axis.X, new int[][] {{-9, -1, 2}, {-8, -1, 2}, {-7, 0, 2}, {-6, 1, 2}, {-5, 2, 2}, {-4, 3, 2}, {-3, 4, 2}, {-2, 5, 2}, {-1, 6, 2}, {0, 6, 2}, {1, 6, 2}});
 		part(srv, "binDrive", Machine.CONVEYOR_DRIVE, at(2, 6, 1));
-		// the grizzly's undersize to the screen
-		belts(srv, Direction.Axis.X, new int[][] {{3, 4, 1}, {4, 4, 1}, {5, 4, 1}});
-		part(srv, "bypassDrive", Machine.CONVEYOR_DRIVE, at(5, 4, -1));
-		// the jaw's product up under the screen
-		belts(srv, Direction.Axis.X, new int[][] {{0, 0, 4}, {1, 0, 4}, {2, 0, 4}, {3, 0, 4}, {4, 1, 4}, {5, 2, 4}, {6, 2, 4}, {7, 2, 4}});
-		part(srv, "jawDrive", Machine.CONVEYOR_DRIVE, at(8, 2, 3));
-		// sand off the screen's east face into the mill's feed end
+		// the grizzly's undersize, off its east face up onto the screen's feed belt
+		belts(srv, Direction.Axis.X, new int[][] {{3, 5, 1}, {4, 6, 1}, {5, 6, 1}, {6, 6, 1}});
+		part(srv, "bypassDrive", Machine.CONVEYOR_DRIVE, at(6, 7, 0));
+		// the jaw's product, along its south face and up beside the screen
+		belts(srv, Direction.Axis.X, new int[][] {{0, 0, 4}, {1, 1, 4}, {2, 2, 4}, {3, 3, 4}, {4, 4, 4}, {5, 5, 4}, {6, 6, 4}});
+		part(srv, "jawDrive", Machine.CONVEYOR_DRIVE, at(6, 7, 3));
+		// the screen's feed belt, north along its top to its north (feed) end
+		belts(srv, Direction.Axis.Z, new int[][] {{7, 6, 4}, {7, 6, 3}, {7, 6, 2}, {7, 6, 1}});
+		part(srv, "feedDrive", Machine.CONVEYOR_DRIVE, at(7, 6, -1));
+		// sand off the screen's east face over the mill's feed end
 		belts(srv, Direction.Axis.X, new int[][] {{9, 3, 1}, {10, 3, 1}, {11, 3, 1}});
 		part(srv, "sandDrive", Machine.CONVEYOR_DRIVE, at(12, 3, 0));
-		// the cone's product round to the top of the screen: three runs, as belts run straight
-		belts(srv, Direction.Axis.X, new int[][] {{7, 3, 9}, {8, 3, 9}});
-		part(srv, "coneDrive", Machine.CONVEYOR_DRIVE, at(8, 3, 10));
-		belts(srv, Direction.Axis.Z, new int[][] {{9, 3, 9}, {9, 4, 8}, {9, 5, 7}, {9, 6, 6}, {9, 6, 5}, {9, 6, 4}});
-		part(srv, "returnDrive", Machine.CONVEYOR_DRIVE, at(9, 7, 4));
-		belts(srv, Direction.Axis.X, new int[][] {{9, 6, 3}, {8, 6, 3}});
-		part(srv, "topDrive", Machine.CONVEYOR_DRIVE, at(7, 6, 2));
+		// the screen's oversize off its south face over the cone's top
+		belts(srv, Direction.Axis.Z, new int[][] {{7, 3, 6}, {7, 3, 7}});
+		part(srv, "oversizeDrive", Machine.CONVEYOR_DRIVE, at(7, 3, 8));
+		// the cone's product off its south face, west, then north and up onto the jaw's belt: two runs, as belts run straight
+		belts(srv, Direction.Axis.X, new int[][] {{8, -1, 10}, {7, -1, 10}, {6, -1, 10}, {5, -1, 10}, {4, -1, 10}});
+		part(srv, "coneDrive", Machine.CONVEYOR_DRIVE, at(4, 0, 10));
+		belts(srv, Direction.Axis.Z, new int[][] {{3, -1, 10}, {3, 0, 9}, {3, 1, 8}, {3, 2, 7}, {3, 3, 6}, {3, 4, 5}});
+		part(srv, "returnDrive", Machine.CONVEYOR_DRIVE, at(3, 5, 5));
 		// mill discharge round to the cyclone's north face
 		String pipe = "wildcatter:gas_line";
 		line(srv, pipe, at(11, -1, 6), at(7, -1, 6), at(7, -1, 1), at(9, -1, 1));
@@ -699,14 +722,15 @@ final class Playthrough {
 		line(srv, bus, crushers.east(), up, new BlockPos(up.getX(), ytop, trunkA), new BlockPos(at(14, 0, 0).getX(), ytop, trunkA));
 		size = dev.wildcatter.energy.ConductorSize.AWG_4_0;
 		drop(srv, lv, at(-1, 0, 0), ytop, trunkA);    // the jaw, 165 A
-		drop(srv, lv, at(5, 3, 6), ytop, trunkA);     // the cone, 200 A
+		// the cone, 200 A: west under its belts to a column of its own
+		line(srv, lv, at(5, -1, 7), at(0, -1, 7), new BlockPos(at(0, 0, 0).getX(), ytop, at(0, 0, 7).getZ()), new BlockPos(at(0, 0, 0).getX(), ytop, trunkA));
 		size = null;
-		for (BlockPos box : new BlockPos[] {parts.get("feeder").west(), parts.get("sorter").west(), at(1, 6, 1), at(4, 4, -1), at(7, 3, 10), at(8, 7, 4), at(6, 6, 2), at(11, 3, 0)}) {
+		// the screen's box, and the drives' (each a drive's west cell)
+		for (BlockPos box : new BlockPos[] {parts.get("feeder").west(), parts.get("sorter").west(), at(5, 3, 0), at(1, 6, 1), at(5, 7, 0), at(5, 7, 3), at(6, 6, -1), at(11, 3, 0),
+				at(6, 3, 8), at(3, 0, 10), at(2, 5, 5)}) {
 			drop(srv, lv, box, ytop, trunkA);
 		}
-		// three drops that can't come straight down
-		line(srv, lv, at(5, 3, 0), at(4, 3, 0), at(4, 4, 0));
-		line(srv, lv, at(7, 2, 3), at(5, 2, 3), new BlockPos(at(5, 0, 3).getX(), ytop, at(0, 0, 3).getZ()), new BlockPos(at(5, 0, 0).getX(), ytop, trunkA));
+		// the cyclones' drop, which can't come straight down
 		line(srv, lv, at(8, -1, 2), at(8, 0, 2), at(4, 0, 2), new BlockPos(at(4, 0, 0).getX(), ytop, at(0, 0, 2).getZ()), new BlockPos(at(4, 0, 0).getX(), ytop, trunkA));
 		// the flotation plant: its own 1 MW gas set and busway
 		BlockPos floats = skid(srv, at(31, py - o.getY(), 5), true);
@@ -1059,16 +1083,84 @@ final class Playthrough {
 
 	// ---- playing ---------------------------------------------------------------------------------------------------------------
 
+	/** The TBM's cab standing as blocks near {@code near}: its main beam's block entity. */
+	private static DrillBlockEntity cabNear(ServerLevel level, BlockPos near) {
+		if (level.getBlockEntity(near) instanceof DrillBlockEntity cab) {
+			return cab;
+		}
+		for (BlockPos at : BlockPos.betweenClosed(near.offset(-16, -8, -16), near.offset(16, 8, 16))) {
+			if (level.getBlockEntity(at) instanceof DrillBlockEntity cab) {
+				return cab;
+			}
+		}
+		return null;
+	}
+
+	/** Every machine, generator and the mine's power, logged. */
+	private void statuses(MinecraftServer srv) {
+		parts.forEach((name, at) -> log("  " + name + ": " + read(srv, at)));
+		panels.forEach(panel -> log("  generator " + panel.toShortString() + ": " + read(srv, panel)));
+		log("  rectifier: " + read(srv, c.offset(0, 1, 36)));
+		log("  junction: " + read(srv, c.offset(-2, 0, 14)));
+		log("  mine substation: " + read(srv, c.offset(-10, gy + 1 - c.getY(), 10)));
+		log("  largest circuit " + dev.wildcatter.circuit.CircuitManager.largestNodes + " nodes, " + dev.wildcatter.circuit.CircuitManager.largestNanos / 1000 + " us");
+	}
+
+	/**
+	 * Why the run can no longer pay, or null: a power cable or busway burnt out, a generator tripped, or a machine with work left dark
+	 * (NO POWER or a lost phase) for two checks running, a minute of game time. Each of these stalled a run for its last 40 minutes.
+	 */
+	private String powerFault(MinecraftServer srv) {
+		ServerLevel level = srv.overworld();
+		for (Map.Entry<BlockPos, Block> cell : conductors.entrySet()) {
+			if (level.getBlockState(cell.getKey()).getBlock() != cell.getValue()) {
+				return "the " + BuiltInRegistries.BLOCK.getKey(cell.getValue()).getPath() + " at " + cell.getKey().toShortString() + " burnt out (now " + level.getBlockState(cell.getKey()) + ")";
+			}
+		}
+		for (BlockPos panel : panels) {
+			String reading = read(srv, panel);
+			if (reading.contains("TRIPPED")) {
+				return "the generator at " + panel.toShortString() + " tripped: " + reading;
+			}
+		}
+		java.util.Set<String> now = new java.util.HashSet<>();
+		for (Map.Entry<String, BlockPos> part : parts.entrySet()) {
+			String reading = read(srv, part.getValue());
+			if (reading.contains("NO POWER") || reading.contains("STALLED")) {
+				now.add(part.getKey());
+				if (dark.contains(part.getKey())) {
+					dark.clear();
+					return part.getKey() + " has been dark for a minute: " + reading;
+				}
+			}
+		}
+		dark.clear();
+		dark.addAll(now);
+		return null;
+	}
+
 	private void play(TestServerContext server) {
 		int rate = Integer.parseInt(System.getenv().getOrDefault("TAILINGS_RATE", "100"));
 		server.runOnServer(srv -> {
 			DrillBlockEntity cab = (DrillBlockEntity) srv.overworld().getBlockEntity(beam);
 			cab.press(6, null);   // the screen's "stop on ore" off: this drive means to go through it
 			log("the program's last step gives the TBM its GO: " + cab.core().readout() + " / " + cab.core().note());
+			tbmLast = beam;
+			if (System.getenv("TAILINGS_FEED") != null) {
+				// a diagnostic, not the playthrough: ore straight into the ore bin, so the plant loads up in a minute instead of eight
+				PlantBlockEntity bin = (PlantBlockEntity) srv.overworld().getBlockEntity(parts.get("oreBin"));
+				int fed = 0;
+				while (fed < 256 && bin.offer(new ItemStack(item(oreId)))) {
+					fed++;
+				}
+				log("TAILINGS_FEED: staged " + fed + " " + oreId + " into the ore bin (a diagnostic run)");
+			}
 		});
 		server.runCommand("tick rate " + rate);
 		int minutes = Integer.parseInt(System.getenv().getOrDefault("TAILINGS_GAME_MINUTES", "50"));
 		boolean[] done = {false};
+		String[] fail = {null};
+		boolean diag = System.getenv("TAILINGS_FEED") != null;
 		for (int t = 0; t < minutes * 2 && !done[0]; t++) {
 			long from = server.computeOnServer(srv -> srv.overworld().getGameTime());
 			while (server.computeOnServer(srv -> srv.overworld().getGameTime()) - from < 600) {   // 30 game seconds
@@ -1090,14 +1182,19 @@ final class Playthrough {
 				}
 				TbmEntity machine = level.getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(120)).stream().findFirst().orElse(null);
 				String tbm;
+				DrillBlockEntity standing = machine == null ? cabNear(level, tbmLast) : null;
 				if (machine != null) {
 					stock(srv, machine);
+					tbmLast = machine.blockPosition();
 					tbm = machine.core().readout() + " / " + machine.core().note() + " at " + machine.blockPosition().toShortString();
-				} else if (level.getBlockEntity(beam) instanceof DrillBlockEntity cab) {
-					stock(srv, cab);
-					tbm = "(blocks) " + cab.core().readout() + " / " + cab.core().note();
+				} else if (standing != null) {
+					// standing as blocks: at the start, or set down where its course ends on the flat (TbmEntity.setDown)
+					stock(srv, standing);
+					tbmLast = standing.getBlockPos();
+					tbm = "(blocks at " + standing.getBlockPos().toShortString() + ") " + standing.core().readout() + " / " + standing.core().note();
 				} else {
-					tbm = "(machine not found)";
+					fail[0] = "the TBM is gone: no machine within 120 blocks of the site and no cab near " + tbmLast.toShortString() + ", where it was last seen";
+					return;
 				}
 				PlantBlockEntity filter = (PlantBlockEntity) level.getBlockEntity(parts.get("filter"));
 				int ingots = 0;
@@ -1110,12 +1207,13 @@ final class Playthrough {
 				log(String.format("%.1f min | TBM %s | train z %.0f %s, cars %d %d | filter paid %d", (half + 1) / 2.0, tbm, loco.getZ() - c.getZ(), loco.status(),
 						level.getEntity(loco.carIds().get(0)) instanceof MineVehicleEntity a ? a.load().total() : -1,
 						level.getEntity(loco.carIds().get(1)) instanceof MineVehicleEntity b ? b.load().total() : -1, ingots));
-				if (half % 4 == 0) {
-					parts.forEach((name, at) -> log("  " + name + ": " + read(srv, at)));
-					panels.forEach(panel -> log("  generator " + panel.toShortString() + ": " + read(srv, panel)));
-					log("  rectifier: " + read(srv, c.offset(0, 1, 36)));
-					log("  junction: " + read(srv, c.offset(-2, 0, 14)));
-					log("  mine substation: " + read(srv, c.offset(-10, gy + 1 - c.getY(), 10)));
+				String fault = powerFault(srv);
+				if (half % 4 == 0 || fault != null || diag) {
+					statuses(srv);
+				}
+				if (fault != null) {
+					fail[0] = fault;
+					return;
 				}
 				PlantBlockEntity filterTwo = (PlantBlockEntity) level.getBlockEntity(parts.get("filterTwo"));
 				PlantBlockEntity cells = (PlantBlockEntity) level.getBlockEntity(parts.get("cells"));
@@ -1128,6 +1226,11 @@ final class Playthrough {
 					done[0] = true;
 				}
 			});
+			if (fail[0] != null) {
+				server.runCommand("tick rate 20");
+				context.takeScreenshot("tailings-play-failed");
+				throw new AssertionError("the playthrough stopped at " + (t + 1) / 2.0 + " game minutes: " + fail[0]);
+			}
 			if (t % 8 == 3) {
 				context.takeScreenshot("tailings-play-" + t);
 			}

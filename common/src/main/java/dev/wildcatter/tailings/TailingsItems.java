@@ -29,6 +29,7 @@ public final class TailingsItems {
 	public static Item CAR;
 	public static Item HAUL_TRUCK;
 	public static Item WHEEL_LOADER;
+	public static Item TRACK_DOZER;
 	public static Item SURVEY_BOOK;
 	/** Open pit P3 (open-pit-p3-blasting.md). */
 	public static Item BLASTHOLE_DRILL;
@@ -66,6 +67,7 @@ public final class TailingsItems {
 				new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, Tailings.id("blasting_key"))).stacksTo(1)));
 		ResourceKey<Item> logger = ResourceKey.create(Registries.ITEM, Tailings.id("blast_logger"));
 		BLAST_LOGGER = Registry.register(BuiltInRegistries.ITEM, logger, new dev.wildcatter.tailings.item.BlastLoggerItem(new Item.Properties().setId(logger).stacksTo(1)));
+		TRACK_DOZER = vehicle("track_dozer", () -> TailingsEntities.TRACK_DOZER);
 		ResourceKey<Item> book = ResourceKey.create(Registries.ITEM, Tailings.id("survey_book"));
 		SURVEY_BOOK = Registry.register(BuiltInRegistries.ITEM, book, new dev.wildcatter.tailings.item.SurveyBookItem(new Item.Properties().setId(book).stacksTo(1)));
 		for (TbmGantry gantry : TbmGantry.values()) {

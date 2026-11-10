@@ -1,13 +1,15 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "ICI",
-    "III"
+    "SPS",
+    "STS",
+    "M M"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "S": "wildcatter:steel_ingot",
+    "P": "wildcatter:process_water_pump",
+    "T": "minecraft:cauldron",
+    "M": "minecraft:minecart"
   },
   "result": {
     "id": "tailings:pump_gantry",

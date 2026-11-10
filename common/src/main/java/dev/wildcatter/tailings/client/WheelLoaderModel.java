@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** The wheel loader at its real size, 15 x 4.5 x 6 m; its arms and bucket lift about the boom pins. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 placeholder skin: change the script, not this file. */
+/** The wheel loader at its real size, 15 x 4.5 x 6 m; its arms and bucket lift about the boom pins. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
 public class WheelLoaderModel extends EntityModel<PitVehicleRenderer.PitState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("wheel_loader"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */

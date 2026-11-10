@@ -19,6 +19,11 @@ public final class FilterCake {
 		return held.getOrDefault(mineral, 0.0);
 	}
 
+	/** Adds {@code kg} of a mineral from a slurry's assay, which is always in kg: a vanilla metal goes in as ingots. */
+	public void addKg(Mineral mineral, double kg) {
+		add(mineral, kg / mineral.kgPerUnit());
+	}
+
 	public void add(Mineral mineral, double amount) {
 		if (amount > 0) {
 			held.merge(mineral, amount, Double::sum);

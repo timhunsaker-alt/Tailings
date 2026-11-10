@@ -325,3 +325,110 @@ what building it raised was decided on the best recommendation and logged in `do
 - **The client film** `pit_blast` is written in `TailingsClientGameTest` (`TAILINGS_ONLY=pit_blast`): drill a 3 x 4 pattern, prime,
   charge from two truck stands, stem, log, fire from 60 m with the siren, then a loader digs the muck. Compiled, not yet filmed.
 - NeoForge scenes: **96 pass** (86 before, 10 new). Unit tests: 100 pass (`BlastingTest` new).
+## The dispatch office filmed; ground tips come away clean (2026-11-09)
+
+- **`pit_dispatch` (Fabric client, filmed):** the office in HAND runs the route; the truck hauls to the dump point and tips (LOADS 1,
+  30 t in the hour); switched OFF it drives back and parks at the PARK stake (z 71, engine off); back in HAND it goes to work.
+- **Found by the film:** after a ground tip the truck was drawn full, holding the 1.2 t under a whole block of sand. A ground tip now
+  goes out to the nearest whole block or quarter and the rest spills, so the truck comes away empty (`pit_truck_tip`: 30 t of sand
+  is 19 blocks). Logged in `docs/questions/lead-decisions.md`.
+
+## TBM gaps: the gantries, the trains and the machine's loose ends (2026-11-09)
+
+Tim was away and asked for all known gaps closed on the best recommendation; the choices are in
+[docs/questions/tbm-gaps.md](docs/questions/tbm-gaps.md).
+- **Gantries on wheels:** each runs on a `TrainPath` along each of its two rails; a rail gone under one stops the machine, and it goes
+  back on by itself when the rail is back. On the grade they now stand on their rails, half a block lower than the course's line.
+- **Every car loads:** the loading point reaches a whole 10-car train, so a train indexes forward through it.
+- **The trailing cable** is drawn from the reel back to the junction, and bars on the reel turn as it pays out.
+- **The transformer** (4.16 kV to 480 V, 150 kVA) is a real part of the junction's circuit; the pump and conveyor draw through it.
+- **The quench tank** rides the pump gantry and is lost with it.
+- **The cab's screen** stays open across the lift and set-down.
+- **Recipes:** steel and Wildcatter's parts for the machine and its gantries.
+- **Track too long** for Wildcatter's solver (over 4,000 nodes) is dead and says so; it used to keep its last volts silently.
+- **Busway straight onto the rectifier** works on Wildcatter 0.5.1 (`rectifier_busway`): the R10 gap is closed.
+- **Left:** per-part boxes for the running machine (a plan in the questions file); the legacy parts are kept, as no release has
+  shipped yet.
+
+**Tests:** `GantryWheelsTest`; NeoForge scenes `tbm_gantry_derail`, `tbm_train_fills`, `tbm_quench_gantry`, `tbm_screen_follows`,
+`tbm_transformer`, `tbm_recipes`, `track_too_long`, `rectifier_busway`; `tbm_gantries_decline` now checks the pump gantry on its
+rails. 91 NeoForge scenes pass. `TAILINGS_SCENES=a,b` runs only those scenes. The client films were not re-shot: `tbm`, `haul` and
+`hand` show the changes.
+
+## Plant gaps: the ore plant's and dump's known gaps closed (2026-11-09)
+
+Tim (2026-11-09): "close all known gaps", decided on the best recommendation while he was away
+([docs/questions/plant-gaps.md](docs/questions/plant-gaps.md)). Each closed gap has a NeoForge scene.
+- **Belts have a transit time:** rock rides at the spec's 2 m/s from where it dropped on (`plant.BeltTravel`): a 20 m run delivers in
+  10 s (`belt_transit`), and the lumps are drawn on the metres the rock is riding. A run whose head end is blocked stops.
+- **Feed faces are checked:** the grizzly, cone and heap pad take rock over their top, the screen and mill over their north (feed) end;
+  the jaw only from its grizzly; a part beside an output face is no chute (`feed_face`). The old layouts broke the spec in three
+  places, all moved to belts: the screen's oversize went straight into a cone touching it (the R3 sketch, the crushing scenes), and the
+  playthrough fed the screen through its west face and from under it. The playthrough's crushing layout is rebuilt (the undersize and
+  the jaw's product onto a feed belt over the screen's north end; the oversize by belt over the cone, now on the floor; the cone's
+  product round onto the jaw's belt), and a server scene builds it block for block (`playthrough_crushing`) so it is proved before the
+  15-minute film. Its power drops were re-planned with it and checked cell by cell for clashes; the playthrough itself was not run.
+- **The screen's gravel face:** a belt on the west face of its south end takes the 6-40 mm out as aggregate, and a hopper or chest at a
+  belt's head end takes rock as items, so gravel ends as `gravel_*` items (`screen_gravel`).
+- **Oversize on the pocket's grizzly:** one item in a hundred tipped stays on the bars; 32 choke it; a pickaxe breaks a piece through,
+  a sneaking empty-hand click lifts them off (`pocket_oversize`; `dump_station` breaks its one piece through).
+- **The train waits at the signal before the dump** while the pocket cannot take its load (`dump_signal`).
+- **Bulk concentrate:** lead and zinc concentrate piped into one filter pay the lead and lose the bank's zinc (`bulk_concentrate`,
+  `SelectiveTest`).
+- **The ore sorter has a screen** on both loaders (`SorterMenu`, `SorterScreen`; `sorter_screen`); the playthrough sets its sorter
+  through it.
+- **Metal in kg:** the assay counts the vanilla metals in kg, an ingot 100 kg (`CrushingRatesTest`, `BeltTravelTest`); the flotation
+  and recovery scenes feed real masses.
+- Kept: concentrate as mineral only, and the `fines_*` items. The waste bin's way out is written in DESIGN.md.
+- NeoForge scenes: **91 pass** (83 before, 8 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).
+
+## PLC 13i: the last signals (2026-11-09)
+
+Tim (2026-11-09): "close all known gaps", decided on the best recommendation while he was away
+([docs/questions/plc-13i.md](docs/questions/plc-13i.md), with two questions for him). The three 13i lines are gone from Known gaps.
+Wildcatter 0.5.1's API only (its AO4 module's `commandMa`). DESIGN.md, "PLC signals".
+- **The sorter's routing:** NORTH/EAST/SOUTH/WEST TAKES, a rock code a side on 4-20 mA (code *n* at 4 + *n*/4 mA; 0 nothing, 1-38
+  `Rock`'s list, copper ore 10). In AUTO on a fresh loop it overrides the screen, which comes back when the PLC stops. Found on the
+  way: a gate the PLC shut stayed shut when the PLC went quiet; gates are now refreshed every tick (`plc_sorter_route`).
+- **The TBM's course:** TARGET Y (-64 to 320) and FLAT LENGTH (0-400 m) on the cable junction, with read-backs. It takes while the
+  machine stands, before a GO in the same scan; a target that would move floor already cut is held (`plc_tbm_course`: a flat 3 m
+  drive set by the PLC over the screen's 32, holding while it drives though the PLC asks for 400).
+- **Slurry readings:** LEVEL (feed tank over its hold), FLOW (out by pipe, 0-60 L/s) and DENSITY (1.0-2.0 kg/L from the product's
+  solids) on every slurry part with a motor; Wildcatter's transmitters read them too (`plc_slurry`: the cyclone's flow at the tank's
+  31 L/s draw, 1.28 kg/L fines, the tank backing up to full).
+- Plain Java in `plant.PlcScale` and `block.stage.SlurryGauge`; `PlcScaleTest` pins the rock codes.
+- NeoForge scenes: **105 pass** (102 before, 3 new). Unit tests pass. The Fabric client scenes were not run (the lead films them).
+
+## Open pit P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09)
+
+Built while Tim was away on the draft spec `docs/multiblocks/open-pit-p4-dry-stack.md`, on Wildcatter 0.5.1; the choices made
+building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.md). DESIGN.md, "The open pit (P4)".
+
+- **P4a:** the `tailings_thickener` (15 x 5 x 15, 11 kW: tails to 60 % underflow, about 1.2 L of overflow water a kg back on a water
+  pipe), the `tailings_filter` (6 x 6 x 24, 150 kW: a 15-minute batch press dropping 15 t of `dry_tails`), and the truck load-out
+  (`loadout_bin`, 400 t, on `loadout_frame` over a 10 m lane; 2 t/s through its gate: a 91 t truck in 45.5 s). A truck on a LOADOUT
+  route drives through the lane, is filled under the gate, leaves out of the far side round a balloon loop, and hauls to its dump.
+- **P4b:** DUMP POINTs look for a crest and a berm (`pit.Crest`): a paddock on the flat, back to the berm and tip over it, or NO BERM
+  (BLOCKED in dispatch after 30 s). A berm stops a truck backed by hand; one backed over a crest with no berm falls and is wrecked into
+  its item and load. Ten 91 t loads at one crest advance it and the face stands between 28 and 46 degrees. The `track_dozer` (70 t,
+  447 kW, on tracks): CARRY, CUT to level/5/8/10 %, RAISED; it pushes loads over a crest, pushes up berms, and stops at hard rock.
+- **What building it found:** Wildcatter 0.5.1 has no thickened-tails product, so the underflow is tails slurry marked with its solids
+  in its assay; the frame's cells fill the lane, so the LOADOUT stake stands at its mouth; a U-turn left a truck 25 m off a 10 m lane,
+  so it loops; a 1-block berm did not stop a truck that climbs 1-block steps. The first crest scenes stood their benches on a 3-block
+  slab, and tipped loads rolled under it to the world's floor: benches are now solid down to the dump's floor.
+- **Scenes:** NeoForge `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`,
+  `pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`: **114 pass** (102
+  before, 12 new). Unit tests `DryStackTest` (110 unit tests pass). The Fabric client scene `pit_dry_stack` (`TAILINGS_ONLY=pit_dry_stack`) is written and
+  compiles; it has not been run or filmed.
+
+## The playthrough runs again; pit_dry_stack filmed (2026-11-09)
+- **Motors run on for 60 s** (`PlantRates.MOTOR_RUN_ON_SECONDS`, proposed) after their part's work runs out. Since belts carry rock
+  in small pieces, the cone and the ball mill restarted direct on line on every few kilograms: the cone's cable burnt out and the
+  mill's set tripped on overcurrent, so the filmed playthrough stalled with nothing paid. Decisions in `docs/questions/playthrough.md`.
+- **The playthrough fails fast:** it checks every 30 game seconds that its cables stand, no set has tripped, and nothing reads NO
+  POWER or STALLED for a minute, and it follows the TBM when it sets itself down at the end of its course. It paid on every rung in
+  12 game minutes (filmed).
+- **pit_dry_stack** filmed for the first time: the dozer's berm now runs past the stake across the truck's whole tail.
+- **pit_dozer_cut** waits for the dozer to stop before it reads the ramp (it failed under a loaded server).
+- **The haul dispatch office** registers for trucks when it is loaded, not only when it first ticks (from the P3 branch).
+- 117 NeoForge scenes pass.

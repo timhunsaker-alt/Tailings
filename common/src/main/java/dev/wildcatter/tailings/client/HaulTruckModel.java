@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** The 100 t class haul truck at its real size, 10.0 x 6.2 x 5.2 m; its body tips about its rear hinge. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 placeholder skin: change the script, not this file. */
+/** The 100 t class haul truck at its real size, 10.0 x 6.2 x 5.2 m; its body tips about its rear hinge. Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
 public class HaulTruckModel extends EntityModel<PitVehicleRenderer.PitState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("haul_truck"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */

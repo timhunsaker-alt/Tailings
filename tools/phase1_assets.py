@@ -16,10 +16,10 @@ nugget_crafts += re.findall(r'"(tailings:[a-z_]+_nugget)", "([^"]+)"', MINERAL)
 
 SIZES = [("crushed", "Crushed"), ("gravel", "Gravel"), ("sand", "Sand"), ("fines", "Fines")]
 MACHINES = [
-    ("stamp_mill", "Stamp Mill", "minecraft:block/deepslate"),
-    ("hand_screen", "Hand Screen", "minecraft:block/oak_planks"),
-    ("shaking_table", "Shaking Table", "minecraft:block/smooth_stone"),
-    ("magnetic_separator", "Magnetic Separator", "minecraft:block/iron_block"),
+    ("stamp_mill", "Stamp Mill", "tailings:block/stamp_mill"),
+    ("hand_screen", "Hand Screen", "tailings:block/hand_screen"),
+    ("shaking_table", "Shaking Table", "tailings:block/shaking_table"),
+    ("magnetic_separator", "Magnetic Separator", "tailings:block/magnetic_separator"),
 ]
 ITEM_TEXTURE = {
     "crushed": "minecraft:block/cobblestone",

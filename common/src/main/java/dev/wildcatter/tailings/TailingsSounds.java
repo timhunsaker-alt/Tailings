@@ -49,7 +49,7 @@ public final class TailingsSounds {
 			case APRON_FEEDER -> APRON_FEEDER;
 			case CYCLONE -> SLURRY_RUSH;
 			case CONDITIONER, ACTIVATION_TANK, FLOTATION_BANK -> AGITATOR;
-			case FILTER -> PRESSURE_FILTER;
+			case FILTER, TAILINGS_FILTER -> PRESSURE_FILTER;
 			case ORE_SORTER -> ORE_SORTER;
 			case BLOWER -> WildcatterSounds.FAN;
 			case SPIRAL_BANK, CLEANER_BANK, CCD_THICKENER -> SLURRY_RUSH;
@@ -57,7 +57,7 @@ public final class TailingsSounds {
 			case HEAP_PAD -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case REGRIND_MILL -> BALL_MILL;
 			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
-			case THICKENER -> WildcatterSounds.MOTOR_HUM;
+			case THICKENER, TAILINGS_THICKENER -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
 	}
@@ -70,7 +70,8 @@ public final class TailingsSounds {
 			case FLOTATION_BANK -> 1.2F;
 			case SCREEN, APRON_FEEDER -> 1F;
 			case CONVEYOR_DRIVE, CONDITIONER, ACTIVATION_TANK -> 0.6F;
-			case THICKENER -> 0.4F;
+			case THICKENER, TAILINGS_THICKENER -> 0.4F;
+			case TAILINGS_FILTER -> 1.2F;
 			default -> 0.8F;
 		};
 	}

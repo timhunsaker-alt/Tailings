@@ -4,11 +4,15 @@
 Pixel space as Blockbench exports it: y runs down from the root, the wheels' bottoms at y = 24 are on the rail, the front is -z.
 16 px are 1 m, so the locomotive's 48 px body is 3 m and the car's 32 px body is 2 m (haulage.md).
 
+Skins are painted in Ludo's materials (tools/models/skin.py): run python3 tools/process_art.py first.
+
 Run from the repo root: python3 tools/models/vehicles.py
 """
 import random
 
 from PIL import Image
+
+from skin import sample
 
 OUT = "common/src/main/resources/assets/tailings/textures/entity/"
 
@@ -20,6 +24,10 @@ RUST = (108, 72, 44)
 ROCK = (86, 80, 72)
 GLASS = (46, 70, 84)
 LAMP = (255, 244, 190)
+# each colour's Ludo material and its shade (tools/models/skin.py): rail wheels, roof and couplers are blackened steel, the car's
+# sides rusty plate; the lamp and the cab glass stay flat colours
+MATERIAL = {YELLOW: ("paint_yellow", 1.0), BLACK: ("steel_dark", 0.6), DARK: ("steel_dark", 1.0), STEEL: ("steel_rust", 1.0),
+            RUST: ("steel_rust", 0.8), ROCK: ("rock", 1.0)}
 
 # name, x0, y0, z0, sx, sy, sz, colour, pattern
 LOCOMOTIVE = [
@@ -56,34 +64,30 @@ CAR = [
 ]
 
 
-def shade(colour, rng, spread=7):
-    d = rng.randint(-spread, spread)
-    return tuple(max(0, min(255, c + d)) for c in colour)
+def face(img, x, y, w, h, colour, pattern, rng, k=1.0):
+    """One face of a box, top left at (x, y) on the skin: its colour's material, shaded by k, with the pattern's details."""
+    mat, base = MATERIAL.get(colour, (None, 1.0))
 
+    def at(i, j, kk, m=None):
+        if (m or mat) is None:
+            return tuple(min(255, int(c * kk)) for c in colour)
+        return sample(m or mat, x + i, y + j, (base if m is None else 1.0) * kk)
 
-def scale(colour, k):
-    return tuple(int(c * k) for c in colour)
-
-
-def face(img, x, y, w, h, colour, pattern, rng):
-    """One face of a box. Its top left is (x, y) in the skin."""
     for j in range(h):
         for i in range(w):
-            c = shade(colour, rng, 3)
+            c = at(i, j, k)
             if pattern == "plate" and (i == 0 or j == 0 or i == w - 1 or j == h - 1) and w > 2 and h > 2:
-                c = scale(colour, 0.78)
+                c = at(i, j, k * 0.78)
             elif pattern == "hazard" and (i + j) % 6 < 3:
-                c = BLACK
+                c = at(i, j, 0.55, "steel_dark")
             elif pattern == "ribs" and i % 8 == 3:
-                c = scale(colour, 1.2)
+                c = at(i, j, k * 1.2)
             elif pattern == "ribs" and rng.random() < 0.06:
-                c = RUST
-            elif pattern == "rock":
-                c = shade(colour if rng.random() > 0.1 else RUST, rng, 18)
+                c = at(i, j, k * 0.8, "steel_rust")
             elif pattern == "louvres" and j % 3 == 1 and 1 < i < w - 2 and 1 < j < h - 2:
-                c = BLACK
-            elif pattern == "cab" and 2 < j < 9 and 2 < i < w - 3 and i % 8 != 7:
-                c = GLASS if h > 2 else c
+                c = at(i, j, 0.35, "steel_dark")
+            elif pattern == "cab" and 2 < j < 9 and 2 < i < w - 3 and i % 8 != 7 and h > 2:
+                c = GLASS
             img.putpixel((x + i, y + j), c)
 
 
@@ -97,12 +101,12 @@ def paint(boxes, name):
         if u + w > 256:
             u, v, row = 0, v + row + 1, 0
         # the box-UV cross: top and bottom over the four sides
-        face(img, u + sz, v, sx, sz, scale(colour, 1.08), pattern if pattern in ("plate", "rock") else "flat", rng)
-        face(img, u + sz + sx, v, sx, sz, scale(colour, 0.7), "flat", rng)
-        face(img, u, v + sz, sz, sy, scale(colour, 0.88), pattern, rng)
+        face(img, u + sz, v, sx, sz, colour, pattern if pattern in ("plate", "rock") else "flat", rng, 1.08)
+        face(img, u + sz + sx, v, sx, sz, colour, "flat", rng, 0.7)
+        face(img, u, v + sz, sz, sy, colour, pattern, rng, 0.88)
         face(img, u + sz, v + sz, sx, sy, colour, pattern if pattern != "louvres" else "plate", rng)
-        face(img, u + sz + sx, v + sz, sz, sy, scale(colour, 0.88), pattern, rng)
-        face(img, u + sz + sx + sz, v + sz, sx, sy, scale(colour, 0.92), pattern if pattern != "louvres" else "plate", rng)
+        face(img, u + sz + sx, v + sz, sz, sy, colour, pattern, rng, 0.88)
+        face(img, u + sz + sx + sz, v + sz, sx, sy, colour, pattern if pattern != "louvres" else "plate", rng, 0.92)
         if part.startswith("wheel_"):
             # as round as 4 px allows: the whole rectangle solid (the slices use parts of it), then four slices, 2-4-4-2 long
             face(img, u, v, w, h, colour, "flat", rng)
@@ -113,7 +117,7 @@ def paint(boxes, name):
                          f'.addBox({x}F, {y}F, {z}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);'.replace("'", '"'))
         u += w + 1
         row = max(row, h)
-    img.save(OUT + name + "_placeholder.png")   # drawn by script: a placeholder until the art comes from Ludo
+    img.save(OUT + name + ".png")   # painted in the Ludo materials (art/final/vehicle)
     print(f"// {name}")
     print("\n".join(lines))
 

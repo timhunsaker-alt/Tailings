@@ -119,6 +119,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_blast")) {
 				pitBlast(context, world, server);
 			}
+			if (only("pit_dispatch")) {
+				pitDispatch(context, world, server);
+			}
+			if (only("pit_dry_stack")) {
+				pitDryStack(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -323,28 +329,35 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
+			// every part fed only through its feed face (crushing-circuit.md, "Nozzles and faces"); the NeoForge scene crushing_circuit has the same layout
 			PlantBlockEntity jaw = plant(level, Machine.JAW, o);
 			PlantBlockEntity grizzly = plant(level, Machine.GRIZZLY, o.offset(0, 4, 0));
-			for (BlockPos at : new BlockPos[] {o.offset(0, 0, 4), o.offset(1, 0, 4), o.offset(2, 0, 4), o.offset(3, 0, 4), o.offset(4, 1, 4), o.offset(5, 2, 4)}) {
+			PlantBlockEntity screen = plant(level, Machine.SCREEN, o.offset(5, 0, 4));
+			PlantBlockEntity cone = plant(level, Machine.CONE, o.offset(5, 0, 14));
+			PlantBlockEntity mill = plant(level, Machine.BALL_MILL, o.offset(9, -2, 4));
+			PlantBlockEntity cyclone = plant(level, Machine.CYCLONE, o.offset(13, -2, 6));
+			PlantBlockEntity bypassDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(3, 3, 3));
+			PlantBlockEntity jawDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(7, 3, 3));
+			PlantBlockEntity oversizeDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(6, 4, 15));
+			PlantBlockEntity sandDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(11, 2, 4));
+			// the jaw's discharge up over the screen's north end; the sand off its east face over the mill's north end
+			for (BlockPos at : new BlockPos[] {o.offset(0, 0, 4), o.offset(1, 0, 4), o.offset(2, 0, 4), o.offset(3, 1, 4), o.offset(4, 2, 4), o.offset(5, 3, 4), o.offset(6, 3, 4),
+					o.offset(8, 2, 5), o.offset(9, 2, 5), o.offset(10, 2, 5)}) {
 				level.setBlock(at, belt(Direction.Axis.X), Block.UPDATE_ALL);
 			}
-			PlantBlockEntity jawDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(6, 2, 4));
-			PlantBlockEntity screen = plant(level, Machine.SCREEN, o.offset(3, 3, 0));
-			PlantBlockEntity cone = plant(level, Machine.CONE, o.offset(3, 3, 6));
-			for (int x = 6; x <= 8; x++) {
-				level.setBlock(o.offset(x, 3, 1), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			// the grizzly's undersize down onto the jaw's belt; the screen's oversize up over the cone
+			for (BlockPos at : new BlockPos[] {o.offset(3, 4, 1), o.offset(3, 3, 2), o.offset(3, 2, 3),
+					o.offset(6, 0, 10), o.offset(6, 1, 11), o.offset(6, 2, 12), o.offset(6, 3, 13), o.offset(6, 4, 14)}) {
+				level.setBlock(at, belt(Direction.Axis.Z), Block.UPDATE_ALL);
 			}
-			PlantBlockEntity sandDrive = plant(level, Machine.CONVEYOR_DRIVE, o.offset(9, 3, 1));
-			PlantBlockEntity mill = plant(level, Machine.BALL_MILL, o.offset(7, -1, 0));
-			PlantBlockEntity cyclone = plant(level, Machine.CYCLONE, o.offset(11, -1, 2));
-			pipe(level, o.offset(10, -1, 6), o.offset(11, -1, 6), o.offset(12, -1, 6), o.offset(13, -1, 6), o.offset(13, -1, 5), o.offset(13, -1, 4),
-					o.offset(13, -1, 3), o.offset(13, -1, 2), o.offset(13, -1, 1), o.offset(12, -1, 1));
-			for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, jawDrive, sandDrive, mill, cyclone}) {
+			pipe(level, o.offset(12, -2, 10), o.offset(13, -2, 10), o.offset(14, -2, 10), o.offset(15, -2, 10), o.offset(15, -2, 9), o.offset(15, -2, 8),
+					o.offset(15, -2, 7), o.offset(15, -2, 6), o.offset(15, -2, 5), o.offset(14, -2, 5));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {jaw, screen, cone, bypassDrive, jawDrive, oversizeDrive, sandDrive, mill, cyclone}) {
 				part.forceRunning();
 			}
 			parts[0] = new PlantBlockEntity[] {grizzly, jaw, screen, cone, mill, cyclone};
 		});
-		server.runCommand("tp @p 19 " + (y + 11) + " 358 135 22");
+		server.runCommand("tp @p 22 " + (y + 12) + " 362 135 25");
 		context.waitTicks(40);
 		Filming film = film(context, world, "crushing");
 		context.takeScreenshot("tailings-crushing-built");
@@ -378,9 +391,10 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
-			double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue();
+			// the assay counts metal in kg: the block's four copper ingots are 400 kg
+			double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.INGOT_KG;
 			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
-			source.out().offer(Product.FINES_SLURRY, 100, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", copper / 100)));
+			source.out().offer(Product.FINES_SLURRY, 1200, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", copper / 1200)));
 			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
 			PlantBlockEntity tank = plant(level, Machine.CONDITIONER, o.offset(0, 0, 3));
 			pipe(level, o.offset(0, 0, 6));
@@ -430,7 +444,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			PlantBlockEntity source = plant(level, Machine.FLOTATION_BANK, o.offset(3, 0, 0));
-			source.out().offer(Product.TAILS_SLURRY, 800, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 2.0 / 800)));
+			source.out().offer(Product.TAILS_SLURRY, 800, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 2 * Mineral.INGOT_KG / 800)));
 			pipe(level, o.offset(3, 0, 13));
 			PlantBlockEntity scavenger = plant(level, Machine.SCAVENGER_BANK, o.offset(3, 0, 14));
 			PlantBlockEntity blower = plant(level, Machine.BLOWER, o.offset(1, 0, 15));
@@ -1108,6 +1122,248 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		film.stop();
 		server.runOnServer(srv -> System.out.println("[tailings-test] pit_blast: loader " + (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity l ? l.status() : "gone")));
 		heard("pit_blast", "tailings:tbm_cutter", "wildcatter:diesel_idle", "minecraft:entity.generic.explode");
+	}
+
+	/**
+	 * The open pit's P2b, filmed: a haul dispatch office runs a route. In HAND the truck hauls and tips at the dump point (LOADS counts
+	 * it); switched OFF it drives back and parks at the PARK stake with its engine off; back in HAND it goes to work. (The PLC's RUN in
+	 * AUTO is proved by the server scenes pit_dispatch and pit_dispatch_fallback.)
+	 */
+	private void pitDispatch(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(-300, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is road level
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] truck = new dev.wildcatter.tailings.entity.HaulTruckEntity[1];
+		dev.wildcatter.tailings.block.HaulDispatchBlockEntity[] office = new dev.wildcatter.tailings.block.HaulDispatchBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -28; x <= 68; x++) {
+				for (int z = -4; z <= 170; z++) {
+					for (int yy = 54; yy <= 72; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= 58 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			int[] zs = {0, 30, 70, 110, 140};
+			dev.wildcatter.tailings.pit.StopKind[] kinds = {dev.wildcatter.tailings.pit.StopKind.LOAD, dev.wildcatter.tailings.pit.StopKind.WAYPOINT,
+					dev.wildcatter.tailings.pit.StopKind.PARK, dev.wildcatter.tailings.pit.StopKind.WAYPOINT, dev.wildcatter.tailings.pit.StopKind.DUMP_POINT};
+			java.util.List<BlockPos> route = new java.util.ArrayList<>();
+			for (int i = 0; i < zs.length; i++) {
+				BlockPos at = b.offset(20, 59, zs[i]);
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SurveyStakeBlock.KIND, kinds[i]), Block.UPDATE_ALL);
+				route.add(at);
+			}
+			part(level, TailingsBlocks.HAUL_DISPATCH, b.offset(50, 59, 4));
+			office[0] = (dev.wildcatter.tailings.block.HaulDispatchBlockEntity) level.getBlockEntity(b.offset(50, 59, 4));
+			office[0].forcePowered(true);
+			System.out.println("[tailings-test] pit_dispatch: " + office[0].addRoute(route));
+			var t = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			t.setPos(b.getX() + 16.5, b.getY() + 59, b.getZ() + 40);
+			t.setYRot(0);
+			t.setFuel(t.tank());
+			t.load().add("minecraft:sand", 30_000);
+			t.refreshLoad();
+			level.addFreshEntity(t);
+			System.out.println("[tailings-test] pit_dispatch: truck " + t.takeRoute(level, route));
+			truck[0] = t;
+		});
+		server.runCommand("tp @p " + (b.getX() + 75) + " " + (b.getY() + 100) + " " + (b.getZ() - 15) + " 33 38");   // over the office, down the road
+		context.waitTicks(60);
+		java.util.UUID id = server.computeOnServer(srv -> truck[0].getUUID());
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(id) instanceof dev.wildcatter.tailings.entity.HaulTruckEntity e) {
+				truck[0] = e;
+			}
+		});
+		fresh.run();
+		context.takeScreenshot("tailings-pit-dispatch-route");
+		Filming film = film(context, world, "pit_dispatch");
+		java.util.function.Consumer<String> follow = name -> {
+			fresh.run();
+			double[] at = server.computeOnServer(srv -> new double[] {truck[0].getX(), truck[0].getZ(), truck[0].getYRot()});
+			double yaw = Math.toRadians(at[2]);
+			double cx = at[0] + Math.cos(yaw) * 20 + Math.sin(yaw) * 12, cz = at[1] + Math.sin(yaw) * 20 - Math.cos(yaw) * 12;
+			double look = Math.toDegrees(Math.atan2(-(at[0] - cx), at[1] - cz));
+			server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.1f %.1f %.1f %.0f 30", cx, b.getY() + 74.0, cz, look));
+		};
+		// HAND: it hauls to the dump point and tips
+		for (int t = 0; t < 400 && server.computeOnServer(srv -> office[0].loads(0)) == 0; t++) {
+			if (t % 4 == 0) {
+				follow.accept("haul");
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: tipped; loads " + office[0].loads(0) + ", " + Math.round(office[0].tonnesLastHour(0)) + " t in the hour; " + truck[0].status()));
+		follow.accept("tipped");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-dispatch-tipped");
+		// OFF: it drives back and parks at the PARK stake
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: selector " + office[0].cycleHoa(b.offset(50, 59, 4))));
+		for (int t = 0; t < 400 && !server.computeOnServer(srv -> truck[0].parked() && truck[0].speed() == 0); t++) {
+			if (t % 4 == 0) {
+				follow.accept("park");
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dispatch: " + truck[0].status() + " at z " + Math.round(truck[0].getZ() - b.getZ()) + "; engine on " + truck[0].engineOn()));
+		follow.accept("parked");
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-dispatch-parked");
+		require(server.computeOnServer(srv -> truck[0].parked() && Math.abs(truck[0].getZ() - b.getZ() - 70) < 8), "switched OFF, the truck should park at the PARK stake");
+		// back to HAND (through AUTO): it goes to work
+		server.runOnServer(srv -> {
+			office[0].cycleHoa(b.offset(50, 59, 4));
+			System.out.println("[tailings-test] pit_dispatch: selector " + office[0].cycleHoa(b.offset(50, 59, 4)));
+		});
+		for (int t = 0; t < 120 && server.computeOnServer(srv -> truck[0].parked() || Math.abs(truck[0].getZ() - b.getZ() - 70) < 15); t++) {
+			if (t % 4 == 0) {
+				follow.accept("work");
+			}
+			context.waitTicks(10);
+		}
+		follow.accept("work");
+		context.waitTicks(20);
+		context.takeScreenshot("tailings-pit-dispatch-back-to-work");
+		film.stop();
+		require(server.computeOnServer(srv -> !truck[0].parked()), "back in HAND, the truck should go to work");
+		heard("pit_dispatch", "wildcatter:diesel_load", "tailings:muck_tip");
+	}
+
+	/**
+	 * The open pit's P4, filmed: the tailings filter over the load-out drops a cake into the bin; a self-driving truck drives through the
+	 * load-out's lane, is filled under the gate, loops round and goes to a DUMP POINT at a crest with no berm, where it stops reading NO
+	 * BERM; the track dozer pushes a berm up along the crest; the truck backs to the berm and tips over it, down the face.
+	 */
+	private void pitDryStack(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(-700, y + 8, 1400).offset(0, -59, 0);   // b + (x, 59, z) is the bench's road level
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] truck = new dev.wildcatter.tailings.entity.HaulTruckEntity[1];
+		dev.wildcatter.tailings.entity.TrackDozerEntity[] dozer = new dev.wildcatter.tailings.entity.TrackDozerEntity[1];
+		dev.wildcatter.tailings.block.PlantBlockEntity[] filter = new dev.wildcatter.tailings.block.PlantBlockEntity[1];
+		dev.wildcatter.tailings.block.PlantBlockEntity[] bin = new dev.wildcatter.tailings.block.PlantBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			// the bench, its crest at z -10 with a 6 m drop to the dump's floor beyond
+			for (int x = -30; x <= 60; x++) {
+				for (int z = -40; z <= 140; z++) {
+					for (int yy = 44; yy <= 100; yy++) {
+						boolean solid = z >= -10 ? yy <= 58 : yy <= 52;
+						level.setBlock(b.offset(x, yy, z), (solid ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.LOADOUT_FRAME, b.offset(14, 59, 60));
+			part(level, TailingsBlocks.LOADOUT_BIN, b.offset(15, 69, 61));
+			part(level, TailingsBlocks.TAILINGS_FILTER, b.offset(17, 76, 58));
+			part(level, TailingsBlocks.TAILINGS_THICKENER, b.offset(30, 59, 75));
+			var frame = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(14, 59, 60));
+			frame.forceRunning();
+			bin[0] = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(15, 69, 61));
+			bin[0].setDryKg(80_000);
+			filter[0] = (dev.wildcatter.tailings.block.PlantBlockEntity) level.getBlockEntity(b.offset(17, 76, 58));
+			filter[0].forceRunning();
+			filter[0].fastCycle(30);
+			filter[0].back().offer(dev.wildcatter.fluid.Product.TAILS_SLURRY, 26_000, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY, 0.6)));
+			int[] zs = {-8, 25, 45, 59};
+			dev.wildcatter.tailings.pit.StopKind[] kinds = {dev.wildcatter.tailings.pit.StopKind.DUMP_POINT, dev.wildcatter.tailings.pit.StopKind.WAYPOINT,
+					dev.wildcatter.tailings.pit.StopKind.WAYPOINT, dev.wildcatter.tailings.pit.StopKind.LOADOUT};
+			java.util.List<BlockPos> route = new java.util.ArrayList<>();
+			for (int i = 0; i < zs.length; i++) {
+				BlockPos at = b.offset(19, 59, zs[i]);
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SurveyStakeBlock.KIND, kinds[i]), Block.UPDATE_ALL);
+				route.add(at);
+			}
+			var t = dev.wildcatter.tailings.TailingsEntities.HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			t.setPos(b.getX() + 19.5, b.getY() + 59, b.getZ() + 38);
+			t.setYRot(0);
+			t.setFuel(t.tank());
+			level.addFreshEntity(t);
+			System.out.println("[tailings-test] pit_dry_stack: truck " + t.takeRoute(level, route));
+			truck[0] = t;
+			var d = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			// along the crest, heading east, the crest on its left; the berm (a block a metre) must run past the stake at x 19 across
+			// the whole tail (x 16 to 22), so it starts at x 6 with blocks to spare
+			d.setPos(b.getX() + 6.5, b.getY() + 59, b.getZ() - 3.5);
+			d.setYRot(-90);
+			d.setFuel(d.tank());
+			d.loadBlade(dev.wildcatter.tailings.pit.PitMass.DRY_TAILS, 24);
+			level.addFreshEntity(d);
+			dozer[0] = d;
+		});
+		server.runCommand("tp @p " + (b.getX() + 45) + " " + (b.getY() + 90) + " " + (b.getZ() + 40) + " 120 35");   // over the load-out
+		context.waitTicks(60);
+		java.util.UUID truckId = server.computeOnServer(srv -> truck[0].getUUID());
+		java.util.UUID dozerId = server.computeOnServer(srv -> dozer[0].getUUID());
+		Runnable fresh = () -> server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(truckId) instanceof dev.wildcatter.tailings.entity.HaulTruckEntity e) {
+				truck[0] = e;
+			}
+			if (srv.overworld().getEntity(dozerId) instanceof dev.wildcatter.tailings.entity.TrackDozerEntity e) {
+				dozer[0] = e;
+			}
+		});
+		fresh.run();
+		context.takeScreenshot("tailings-pit-dry-stack-layout");
+		Filming film = film(context, world, "pit_dry_stack");
+		// the filter's cycle: a cake drops into the bin
+		for (int t = 0; t < 120 && server.computeOnServer(srv -> filter[0].cycles()) == 0; t++) {
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: cake dropped; bin " + Math.round(bin[0].dryKg() / 1000) + " t; " + filter[0].status()));
+		context.takeScreenshot("tailings-pit-dry-stack-cake");
+		java.util.function.Consumer<double[]> follow = at -> {
+			double yaw = Math.toRadians(at[2]);
+			double cx = at[0] + Math.cos(yaw) * 22 + Math.sin(yaw) * 12, cz = at[1] + Math.sin(yaw) * 22 - Math.cos(yaw) * 12;
+			double look = Math.toDegrees(Math.atan2(-(at[0] - cx), at[1] - cz));
+			server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.1f %.1f %.1f %.0f 30", cx, b.getY() + 76.0, cz, look));
+		};
+		Runnable followTruck = () -> {
+			fresh.run();
+			follow.accept(server.computeOnServer(srv -> new double[] {truck[0].getX(), truck[0].getZ(), truck[0].getYRot()}));
+		};
+		// through the lane and filled under the gate
+		for (int t = 0; t < 400 && server.computeOnServer(srv -> truck[0].load().room()) > 0; t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: filled " + truck[0].load().tonnes() + " at z " + Math.round(truck[0].getZ() - b.getZ())));
+		context.takeScreenshot("tailings-pit-dry-stack-loaded");
+		// round the loop, back through, to the dump: no berm
+		for (int t = 0; t < 600 && !server.computeOnServer(srv -> truck[0].status().startsWith("NO BERM")); t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: " + truck[0].status()));
+		context.takeScreenshot("tailings-pit-dry-stack-no-berm");
+		require(server.computeOnServer(srv -> truck[0].status().startsWith("NO BERM")), "the truck should stop short of an unbermed crest");
+		// the dozer pushes up the berm along the crest
+		server.runOnServer(srv -> dozer[0].testDrive(new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false)));
+		for (int t = 0; t < 300 && server.computeOnServer(srv -> dozer[0].getX() - b.getX() < 30 && dozer[0].bladeBlocks() > 0); t++) {
+			if (t % 4 == 0) {
+				fresh.run();
+				follow.accept(server.computeOnServer(srv -> new double[] {dozer[0].getX(), dozer[0].getZ(), dozer[0].getYRot()}));
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> {
+			dozer[0].testDrive(net.minecraft.world.entity.player.Input.EMPTY);
+			System.out.println("[tailings-test] pit_dry_stack: dozer " + dozer[0].status());
+		});
+		context.takeScreenshot("tailings-pit-dry-stack-berm");
+		// the truck backs to the berm and tips over it
+		for (int t = 0; t < 400 && !server.computeOnServer(srv -> truck[0].load().empty()); t++) {
+			if (t % 4 == 0) {
+				followTruck.run();
+			}
+			context.waitTicks(10);
+		}
+		server.runOnServer(srv -> System.out.println("[tailings-test] pit_dry_stack: " + truck[0].status()));
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-dry-stack-tipped");
+		film.stop();
+		require(server.computeOnServer(srv -> truck[0].load().empty()), "with the berm up, the truck should tip over it");
+		heard("pit_dry_stack", "wildcatter:diesel_load", "tailings:muck_tip");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */

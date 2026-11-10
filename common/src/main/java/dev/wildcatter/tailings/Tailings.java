@@ -73,6 +73,8 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsItems.BLAST_LOGGER));
 		output.accept(new ItemStack(TailingsItems.BLASTING_KEY));
 		output.accept(new ItemStack(TailingsBlocks.BLASTING_MACHINE));
+		output.accept(new ItemStack(TailingsItems.TRACK_DOZER));
+		output.accept(new ItemStack(TailingsBlocks.DRY_TAILS));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
 		output.accept(new ItemStack(TailingsBlocks.MUCK));

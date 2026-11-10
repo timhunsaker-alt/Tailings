@@ -181,6 +181,17 @@ Elevation of the jaw and grizzly, looking west:
   - "its output has nowhere to go".
 - **Removing a part** stops the flow through it. What it holds stays in it until it is broken, and then drops (R1).
 
+## Added while building (plant-gaps, 2026-11-09; decisions in docs/questions/plant-gaps.md)
+- **Transit time:** rock rides a run at the belt's 2 m/s from where it dropped on, so a run's transit time is its length over 2 m/s (a
+  20 m run, 10 s). A run whose head end is blocked stops. The lumps are drawn on the metres the rock is riding.
+- **Feed faces are checked:** a part takes rock only through its feed face above; a part touching an output face is no chute. The
+  layout sketch above had the screen's oversize go straight into a cone; the R10 playthrough fed the screen through its west face and
+  from under it. Both now go by belt (`Playthrough.java`, and the NeoForge scenes `crushing_circuit` and `playthrough_crushing`).
+- **The gravel face** is the west face of the screen's south (discharge) end. A belt there takes the 6-40 mm as aggregate: 35 % of
+  crushed rock *(proposed)* and all of the cone's gravel that is not sand; what the belt has no room for goes round to the cone. A
+  hopper or chest at a run's head end takes rock as whole items (2.7 t of one rock and size an item), so gravel ends as `gravel_*` items.
+- **Metal in kg:** the vanilla metals are in kg in the assay, an ingot 100 kg *(proposed, Wildcatter's iron ingot)*.
+
 ## Left out (ROADMAP)
 - Real size distributions inside a size class (P80 only).
 - Screen blinding, liner and media wear, steel ball consumption.

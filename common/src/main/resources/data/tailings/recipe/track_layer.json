@@ -1,13 +1,14 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "ICI",
-    "III"
+    "SRS",
+    "SHS",
+    "S S"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "S": "wildcatter:steel_ingot",
+    "R": "tailings:mine_rail",
+    "H": "minecraft:hopper"
   },
   "result": {
     "id": "tailings:track_layer",

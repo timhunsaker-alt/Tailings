@@ -126,6 +126,11 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return level() instanceof ServerLevel server ? route.describe(server) : "";
 	}
 
+	/** The middle of its body, where a load-out's gate fills it: about 1 m behind its centre. */
+	public Vec3 bodyCentre() {
+		return local(0, 0, -1.0);
+	}
+
 	@Override
 	public boolean busy() {
 		return raising != 0 || lift() > 0;
@@ -214,6 +219,122 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			}
 		}
 		return null;
+	}
+
+	// ---- the crest (open-pit-p4-dry-stack.md, Berms) ----------------------------------------------------------------------------
+
+	/** The ground as a crest or berm sees it: what has a collision box (a survey stake has none). */
+	public static dev.wildcatter.tailings.pit.Crest.Ground crestGround(Level level) {
+		BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+		return (x, y, z) -> {
+			BlockState state = level.getBlockState(at.set(x, y, z));
+			return !state.getCollisionShape(level, at).isEmpty();
+		};
+	}
+
+	/** Falling over a crest: metres a tick, and how far it has fallen; it is wrecked where it lands. */
+	private double overFall;
+	private double fallen;
+	private boolean goingOver;
+
+	/** True once it has gone over the crest (tests). */
+	public boolean goingOver() {
+		return goingOver;
+	}
+
+	/** Its rear axle, about 2.5 m in from its tail. */
+	private Vec3 rearAxle() {
+		return local(0, 0, -spec().length() / 2 + 2.5);
+	}
+
+	/**
+	 * Backing toward a crest: a berm at the crest stops it, as a bumper does (it does not step up onto a ridge with a drop behind it);
+	 * with no berm, its rear axle over a drop of 3 m or more, it goes over (P4-4). A self-driving truck never backs to an unbermed crest.
+	 */
+	@Override
+	protected void beforeMove(ServerLevel level) {
+		if (speed() >= -0.05) {
+			bermBehind = false;
+			return;
+		}
+		dev.wildcatter.tailings.pit.Crest.Ground ground = crestGround(level);
+		int y = (int) Math.floor(getY() + 0.01);
+		Vec3 axle = rearAxle();
+		if (!route.active() && dev.wildcatter.tailings.pit.Crest.drop(ground, (int) Math.floor(axle.x), y, (int) Math.floor(axle.z))) {
+			goingOver = true;
+			overFall = 0;
+			fallen = 0;
+			// it tips back over the edge: its centre goes out past its rear axle, over the drop
+			Vec3 out = ahead().scale(-(spec().length() / 2 - 1.5));
+			setPos(getX() + out.x, getY(), getZ() + out.z);
+			status = "over the crest";
+			if (getFirstPassenger() instanceof Player p) {
+				p.sendOverlayMessage(Component.literal("Haul Truck: over the crest!"));
+			}
+			return;
+		}
+		// a ridge just behind its tail with a drop behind that: a berm
+		bermBehind = false;
+		for (double back = 0.5; back <= 2.0 && !bermBehind; back += 0.5) {
+			Vec3 at = local(0, 0, -spec().length() / 2 - back);
+			int x = (int) Math.floor(at.x), z = (int) Math.floor(at.z);
+			if (ground.solid(x, y, z) && !ground.solid(x, y + 1, z)) {
+				for (double beyond = 1; beyond <= 4 && !bermBehind; beyond += 1) {
+					Vec3 b = local(0, 0, -spec().length() / 2 - back - beyond);
+					bermBehind = dev.wildcatter.tailings.pit.Crest.drop(ground, (int) Math.floor(b.x), y, (int) Math.floor(b.z));
+				}
+			}
+		}
+	}
+
+	private boolean bermBehind;
+
+	@Override
+	public float maxUpStep() {
+		return bermBehind ? 0F : super.maxUpStep();
+	}
+
+	@Override
+	protected boolean ownTick(ServerLevel level) {
+		if (!goingOver) {
+			return false;
+		}
+		// it tips back over the edge and falls: it drifts back as it goes, and is wrecked where it lands
+		overFall = Math.min(3.0, overFall + 0.08);
+		Vec3 back = ahead().scale(-0.15);
+		double drop = overFall;
+		BlockPos below = BlockPos.containing(getX(), getY() - drop, getZ());
+		boolean landed = false;
+		for (int y = (int) Math.floor(getY()) - 1; y >= below.getY(); y--) {
+			if (crestGround(level).solid(below.getX(), y, below.getZ()) || y <= level.getMinY()) {
+				drop = getY() - (y + 1);
+				landed = true;
+				break;
+			}
+		}
+		setPos(getX() + back.x, getY() - Math.max(0, drop), getZ() + back.z);
+		fallen += Math.max(0, drop);
+		if (landed) {
+			wreck(level);
+		}
+		return true;
+	}
+
+	/** Wrecked at the bottom: it breaks into its item and its load, tipped where it lands, and its driver takes the fall. Public for tests. */
+	public void wreck(ServerLevel level) {
+		Loose.tip(level, blockPosition().above(), load);
+		refreshLoad();
+		spawnAtLocation(level, new net.minecraft.world.item.ItemStack(item()));
+		java.util.List<net.minecraft.world.entity.Entity> riders = java.util.List.copyOf(getPassengers());
+		ejectPassengers();
+		for (net.minecraft.world.entity.Entity rider : riders) {
+			float hurt = (float) Math.max(0, fallen - 3);
+			if (hurt > 0) {
+				rider.hurtServer(level, level.damageSources().fall(), hurt);
+			}
+		}
+		level.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 4F, 0.5F);
+		discard();
 	}
 
 	@Override
