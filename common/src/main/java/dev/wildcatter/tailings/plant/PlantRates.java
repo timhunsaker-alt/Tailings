@@ -23,6 +23,13 @@ public final class PlantRates {
 	public static final double BELT_METRES_PER_SECOND = 2;
 	/** One conveyor drive (7.5 kW) moves this many metres of belt; a longer run needs more drives on it (proposed). */
 	public static final int METRES_PER_DRIVE = 30;
+	/**
+	 * A started motor runs on, empty, this long after its part's work runs out before it stops (proposed; playthrough-fix decision 1).
+	 * A plant runs its crushers and mills through the gaps in their feed: each direct-on-line start draws six times the motor's current,
+	 * and a motor stopped the moment its hold empties restarts on every few kilograms the belts bring, which heats its cable and its
+	 * generator until one burns out or trips. NEMA MG 1 allows a large motor about two starts cold and one hot before it must rest.
+	 */
+	public static final int MOTOR_RUN_ON_SECONDS = 60;
 	/** An ore bin holds 8,192 items (decided as the game size). */
 	public static final int BIN_ITEMS = 8192;
 

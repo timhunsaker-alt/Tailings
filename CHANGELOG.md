@@ -4,6 +4,25 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P5 — the pit switch house, trailing cables, the ultra truck and the big shovels (2026-11-09)
+
+Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-machines.md`.
+
+- **Pit Switch House** (`pit_switch_house`): put it on the world's medium-voltage cable (its north face). Its four outlets each feed one
+  machine through a **Trailing Cable** (`trailing_cable`, a 400 m reel): click the house with a reel, then the machine. Its panel opens
+  and closes each outlet; an outlet only closes when its cable reaches a machine, and trips at 1.25 x its machine's peak held for a
+  second. On the PLC: CLOSE, CLOSED, TRIPPED and AMPS for each outlet.
+- **Electric machines:** the cable pays out as the machine drives and stops it at CABLE END; under 90 % volts at the machine it stops,
+  LOW VOLTAGE. The **Blasthole Drill** has an Electric setting on its panel.
+- **Ultra Haul Truck** (`ultra_haul_truck`): the 360 t class, 363 t in its body, 15 m long, climbing 10 % loaded at 11 km/h. It takes
+  routes, tips into the pit hopper and works with dispatch as the 100 t truck does; it needs 40 m to turn and 2-block berms. The wheel
+  loader cannot reach it.
+- **Hydraulic Shovel** (`hydraulic_shovel`): a 27 t bucket; digs the face, swings to a truck either side and loads it in 13 passes; in
+  AUTO it loads trucks on both sides in turn. Diesel, or electric on a trailing cable (its panel).
+- **Rope Shovel**: build its six parts (`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`,
+  `shovel_dipper`), couple a trailing cable to the crawlers and press RUN on their panel: it lifts into one machine with a 100 t dipper,
+  drawing 3.5 MW as it hoists, and loads an ultra in 4 passes. STOP sets it back down as its parts.
+
 ### Open pit P3 — drilling and blasting (2026-11-09)
 
 Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
@@ -25,6 +44,17 @@ Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
   left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
   detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
   shot fires with a machine or vehicle in the rock it breaks.
+
+
+### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
+
+- **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a
+  motor that stopped the moment its hold emptied restarted direct on line on every few kilograms: in the playthrough the cone's
+  4/0 cable burnt out at its motor box and the ball mill's 1 MW set tripped on stator overcurrent, both within 30 s of the first ore.
+  It never starts without work, and a PLC's run or the hand switch still stops it at once.
+- **The playthrough fails fast:** a burnt power cable, a tripped generator, a machine dark for a minute, or a TBM it cannot find stops
+  the run with the reason. It follows the TBM when it sets itself down as blocks at the end of its course (it read "machine not
+  found"). `TAILINGS_FEED=1` stages ore in the ore bin for a quick diagnostic. Decisions in `docs/questions/playthrough.md`.
 
 ### PLC 13i: the last signals (2026-11-09, decided while Tim was away)
 
