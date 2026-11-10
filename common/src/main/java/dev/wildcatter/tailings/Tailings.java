@@ -98,5 +98,6 @@ public final class Tailings {
 		for (ItemStack stack : TailingsItems.CONCENTRATES.stream().map(ItemStack::new).toList()) {
 			output.accept(stack);
 		}
+		output.accept(new ItemStack(TailingsItems.HEAVY_MINERAL_CONCENTRATE));
 	}
 }

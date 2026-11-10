@@ -101,6 +101,11 @@ public interface Stage {
 			case PASTE_FILTER -> Paste.FILTER;
 			case PASTE_MIXER -> Paste.MIXER;
 			case PASTE_PUMP -> Paste.PUMP;
+			case SCAVENGER_SPIRAL_BANK -> DryMillStages.SCAVENGER_SPIRALS;
+			case FLUID_BED_DRYER -> DryMillStages.DRYER;
+			case RER_SEPARATOR -> DryMillStages.RER;
+			case HT_ROLL_SEPARATOR -> DryMillStages.HT;
+			case IRM_SEPARATOR -> DryMillStages.IRM;
 			default -> Idle.INSTANCE;
 		};
 	}

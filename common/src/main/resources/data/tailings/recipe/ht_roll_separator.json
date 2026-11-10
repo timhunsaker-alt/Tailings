@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SHS",
+    "SRS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "H": "minecraft:hopper",
+    "R": "minecraft:copper_block",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:ht_roll_separator",
+    "count": 1
+  }
+}

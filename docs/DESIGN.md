@@ -487,6 +487,28 @@ the stages are `block.stage.Paste`.
   highest first, and settles outside by the settle rule (on paste, not into it); set paste stays.
 - **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
   and pump hum with Wildcatter's motor hum, the mixer with the agitator.
+## The dry mill (L6)
+
+Spec: [multiblocks/dry-mill.md](multiblocks/dry-mill.md) (draft, decided on recommendation); the choices made building it are in
+[questions/l6-dry-mill.md](questions/l6-dry-mill.md). The rules are `plant.DryMill` (unit-tested), the stages `block.stage.DryMillStages`.
+
+- **The parts:** `scavenger_spiral_bank` (4 x 5 x 6, a 37 kW pump; faces as the spiral bank's: the spirals' fines in at the north face
+  of its front cells, HMC concentrate out at the east back cell, the rest at the west), `fluid_bed_dryer` (3 x 4 x 6, a 30 kW blower,
+  gas at its east side), `rer_separator` (2 x 3 x 3, 5.5 kW), `ht_roll_separator` (2 x 3 x 4, 7.5 kW), `irm_separator` (2 x 3 x 3,
+  11 kW). Every motor on the world's industrial tier, its box on the west face of the main cell, with the plant motor's PLC points.
+- **The ladder:** the spiral bank's 50 % is paid at the filter as before. The scavenger spirals take 45/50 of what is left of
+  ilmenite, rutile, zircon, monazite and cassiterite to concentrate slurry, under the assay names `tailings:hmc_<mineral>`; what they
+  leave goes on as `tailings:scavenged_<mineral>`, which nothing takes again (the leach's exception stays for a plant without them).
+  The filter keeps the HMC apart (`PlantBlockEntity.hmc()`): into a dryer touching it while its 1 t bin has room, else as
+  `heavy_mineral_concentrate` bags of 100 kg, whole kg of each mineral as item data.
+- **Drying:** 2 t/h at 0.3 GJ a tonne of any natural gas on its east pipe, at Wildcatter's heating value (7.9 m³ a tonne); NO GAS
+  under half. It passes the dry HMC to a roll magnet touching it; bags go in by hopper on top or by hand.
+- **Separating:** each separator treats 2 t/h from its 1 t hopper: the rare-earth roll takes ilmenite, the high-tension roll rutile and
+  cassiterite, the induced roll monazite and (what it leaves) zircon. Its own minerals are paid at `FullRecoveryRates.topRungPay`
+  (1.11 a kg won, so 45 % pays as 50 %) by the nuggets rule into four output stacks; the rest goes to the next separator touching it,
+  or it stops, "nowhere to go". Moist HMC offered to a separator: WET. Full outputs: FULL.
+- **Models:** `tools/models/drymill.py`, in Wildcatter's materials; the dryer sounds Wildcatter's fan, the separators its motor hum,
+  the scavenger spirals the slurry rush.
 
 ## Config
 
@@ -615,6 +637,8 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
 - **Ventilation items (L1):** `vent_duct_cassette` (100 m of duct for the reel gantry: 8 duct round an iron block), `gas_detector`.
 - **Paste fill items (L5):** `cement` (a 50 kg bag: one quicklime and one clay ball, shapeless, a placeholder until a cement kiln).
+- **Dry mill items (L6):** `heavy_mineral_concentrate`, a 100 kg bag of moist HMC with its assay as item data (no recipe; the filter
+  makes it).
 - **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
 Block items exist for every block above, including the ones with no crafting recipe, except `skip` and `paste_fill`.

@@ -473,3 +473,14 @@ Built while Tim was away on the draft spec `docs/multiblocks/paste-backfill.md`;
 - **Scenes:** NeoForge `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
   `paste_line_pressure`: **143 NeoForge scenes pass** (136 before, 7 new). Unit tests `PasteFillTest` (7), `FillVoidTest` (9) and
   `MachineTest`: 152 pass. The Fabric client film `paste` (`TAILINGS_ONLY=paste`).
+## L6: the dry mill (2026-11-10, branch `l6-dry-mill`)
+Built while Tim was away on the draft spec `docs/multiblocks/dry-mill.md`; decisions in `docs/questions/l6-dry-mill.md` (16 entries;
+#3, #9 and #14 most need Tim's eye). Nothing in an existing world changes: a plant without scavenger spirals carries no HMC.
+- **Built:** the `scavenger_spiral_bank` (another 45 % of the heavy minerals off the spirals' tails), the filter keeping that share as
+  heavy mineral concentrate, the gas-fired `fluid_bed_dryer`, the `rer_separator` (ilmenite), `ht_roll_separator` (rutile,
+  cassiterite) and `irm_separator` (monazite, zircon), and the `heavy_mineral_concentrate` bag. 50 + 45 = 95 %, the 4x. NO FEED, WET,
+  NO GAS, FULL, nowhere to go; the plant motor's PLC points on each.
+- **Proposed, not built:** the zircon compat to Wildcatter's chlorinator (L6-3).
+- **Art:** five models in Wildcatter's materials (`tools/models/drymill.py`); the HMC bag's icon from Ludo (1 credit); no placeholders.
+- **Scenes:** NeoForge `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`:
+  **142 NeoForge scenes pass** (136 before, 6 new). Unit tests `DryMillTest` (6) and `MachineTest`: 142 pass. The Fabric client film `dry_mill` (`TAILINGS_ONLY=dry_mill`).

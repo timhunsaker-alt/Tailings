@@ -41,6 +41,8 @@ public final class TailingsItems {
 	public static Item SKIP;
 	/** A 50 kg bag of cement (paste-backfill.md, L5): the paste mixer's binder, a placeholder until a cement kiln exists. */
 	public static Item CEMENT;
+	/** A 100 kg bag of moist heavy mineral concentrate, its assay kept (dry-mill.md, L6). */
+	public static Item HEAVY_MINERAL_CONCENTRATE;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -79,6 +81,8 @@ public final class TailingsItems {
 		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
 		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
 		CEMENT = item("cement");
+		ResourceKey<Item> hmc = ResourceKey.create(Registries.ITEM, Tailings.id("heavy_mineral_concentrate"));
+		HEAVY_MINERAL_CONCENTRATE = Registry.register(BuiltInRegistries.ITEM, hmc, new dev.wildcatter.tailings.item.HeavyMineralConcentrateItem(new Item.Properties().setId(hmc)));
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

@@ -75,6 +75,11 @@
     "tailings:paste_pump",
     "tailings:fill_bulkhead",
     "tailings:fill_outlet",
-    "tailings:paste_fill"
+    "tailings:paste_fill",
+    "tailings:scavenger_spiral_bank",
+    "tailings:fluid_bed_dryer",
+    "tailings:rer_separator",
+    "tailings:ht_roll_separator",
+    "tailings:irm_separator"
   ]
 }

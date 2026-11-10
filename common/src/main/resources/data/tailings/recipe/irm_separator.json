@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SHS",
+    "MRM",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "H": "minecraft:hopper",
+    "M": "minecraft:iron_block",
+    "R": "minecraft:redstone_block",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:irm_separator",
+    "count": 1
+  }
+}

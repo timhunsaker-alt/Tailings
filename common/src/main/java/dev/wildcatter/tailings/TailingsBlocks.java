@@ -119,6 +119,11 @@ public final class TailingsBlocks {
 	/** Placed paste fill (L5): wet when placed, set after a game day. A cubic metre of tails and cement: it drops nothing. */
 	public static final Block PASTE_FILL = block("paste_fill", props -> new dev.wildcatter.tailings.block.PasteFillBlock(props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY)
 			.strength(1.0F, 3.0F).sound(SoundType.MUD).noLootTable().isSuffocating((state, getter, pos) -> false)));
+	public static final Block SCAVENGER_SPIRAL_BANK = plant(Machine.SCAVENGER_SPIRAL_BANK, MapColor.METAL);
+	public static final Block FLUID_BED_DRYER = plant(Machine.FLUID_BED_DRYER, MapColor.COLOR_GRAY);
+	public static final Block RER_SEPARATOR = plant(Machine.RER_SEPARATOR, MapColor.COLOR_BLUE);
+	public static final Block HT_ROLL_SEPARATOR = plant(Machine.HT_ROLL_SEPARATOR, MapColor.COLOR_LIGHT_GRAY);
+	public static final Block IRM_SEPARATOR = plant(Machine.IRM_SEPARATOR, MapColor.COLOR_BLUE);
 	/** A skip's looks (shaft-and-hoist.md, L4), drawn by its entity: the block itself has no item and is never placed. */
 	public static final Block SKIP = block("skip", props -> new dev.wildcatter.tailings.block.SkipPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F)
 			.sound(SoundType.METAL).noOcclusion().noLootTable()));
@@ -140,7 +145,7 @@ public final class TailingsBlocks {
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
 					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
-					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP));
+					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -290,6 +295,11 @@ public final class TailingsBlocks {
 			case PASTE_FILTER -> PASTE_FILTER;
 			case PASTE_MIXER -> PASTE_MIXER;
 			case PASTE_PUMP -> PASTE_PUMP;
+			case SCAVENGER_SPIRAL_BANK -> SCAVENGER_SPIRAL_BANK;
+			case FLUID_BED_DRYER -> FLUID_BED_DRYER;
+			case RER_SEPARATOR -> RER_SEPARATOR;
+			case HT_ROLL_SEPARATOR -> HT_ROLL_SEPARATOR;
+			case IRM_SEPARATOR -> IRM_SEPARATOR;
 		};
 	}
 

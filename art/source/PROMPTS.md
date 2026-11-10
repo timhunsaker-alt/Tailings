@@ -78,3 +78,9 @@ in `tools/process_art.py` so it reads wetter than the set paste.
 | fill_bulkhead (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: rough grey sprayed shotcrete concrete wall of an underground mine bulkhead, bumpy sprayed surface with small aggregate, slightly damp, plain, no text |
 | paste_fill_wet (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: wet fresh cemented paste fill, smooth glossy pale grey-brown mud like thick toothpaste with a wet sheen and soft ripples, plain, no text |
 | paste_fill_set (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: cured cemented paste backfill, dry matte pale grey-beige weak rock with fine grain, faint layering and tiny pores, plain, no text |
+## L6 dry mill (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations, the first (a) kept (1 credit):
+
+| File | Prompt |
+|---|---|
+| heavy_mineral_concentrate (a) | A single small woven white polypropylene sack, top open, full of damp dark heavy mineral sand concentrate: black, dark grey and reddish-brown fine grains, game item icon, plain white background, no text |

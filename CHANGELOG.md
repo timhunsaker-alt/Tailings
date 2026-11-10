@@ -18,6 +18,19 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 - **Nothing changes in existing worlds.**
 - **Tests:** `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
   `paste_line_pressure`; `PasteFillTest`, `FillVoidTest`; the client film `paste`. Decisions in `docs/questions/l5-paste.md`.
+### L6: the dry mill (2026-11-10, decided while Tim was away)
+
+- **Scavenger spiral bank:** on the spiral bank's tails, it takes another 45 % of the ilmenite, rutile, zircon, monazite and
+  cassiterite as heavy mineral concentrate (HMC). The filter keeps that share apart: into a fluid-bed dryer touching it, or out as
+  100 kg bags of Heavy Mineral Concentrate that keep their assay.
+- **Fluid-bed dryer:** dries HMC on natural gas from a pipe at its east side (about 7.9 m³ a tonne), 2 t/h, and passes it to the
+  separators touching it in a line: the rare-earth roll magnet takes the ilmenite, the high-tension roll the rutile and cassiterite,
+  the induced-roll magnet the monazite and the zircon. Each pays its minerals at the top rung: with the spirals' half, 4x by the real
+  route. Reads NO GAS, WET (moist HMC into a separator), FULL.
+- **Nothing changes in existing plants:** without scavenger spirals the filter, leach and cells pay as before; the leach still takes
+  the heavy minerals for a plant without the dry mill.
+- **Tests:** `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`;
+  `DryMillTest`. Decisions in `docs/questions/l6-dry-mill.md`.
 
 ### L1: ventilation of the drive (2026-11-09, decided while Tim was away)
 

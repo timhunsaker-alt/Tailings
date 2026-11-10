@@ -273,6 +273,7 @@ final class Flotation {
 		@Override
 		public void tick(PlantBlockEntity part) {
 			pay(part);
+			DryMillStages.passHmc(part);
 			draw(part, Product.THICKENED_CONCENTRATE);
 			double waiting = part.back().held(Product.THICKENED_CONCENTRATE);
 			if (waiting < 1e-6) {
@@ -296,6 +297,8 @@ final class Flotation {
 					part.cake().addKg(mineral, cake.get(id) * taken.kg());
 				}
 			}
+			// the scavenger spirals' share is kept as heavy mineral concentrate for the dry mill, not paid here (dry-mill.md, L6-2)
+			part.hmc().add(dev.wildcatter.tailings.plant.DryMill.hmcIn(cake, taken.kg()));
 			part.say(Selective.mixed(taken.assay()) ? "filtering a BULK cake: lead and zinc concentrate mixed, the zinc goes to slag" : "filtering");
 			part.setChanged();
 		}
@@ -303,16 +306,21 @@ final class Flotation {
 
 	/** Pays each whole nugget into the output, then packs nine of a mineral's nuggets into its item. */
 	static void pay(PlantBlockEntity part) {
+		pay(part, OUTPUT_SLOTS);
+	}
+
+	/** As {@link #pay(PlantBlockEntity)}, into {@code slots} (the dry mill's separators have four). */
+	static void pay(PlantBlockEntity part, int[] slots) {
 		for (Mineral mineral : part.cake().minerals()) {
 			int nuggets = part.cake().takeNuggets(mineral);
 			int left = nuggets;
 			while (left > 0) {
 				ItemStack one = Feeds.stack(mineral.nuggetId(), 1);
-				if (one.isEmpty() || !part.emitTo(OUTPUT_SLOTS, one)) {
+				if (one.isEmpty() || !part.emitTo(slots, one)) {
 					break;
 				}
 				left--;
-				pack(part, mineral);
+				pack(part, mineral, slots);
 			}
 			if (left > 0) {
 				part.cake().putBack(mineral, left);
@@ -321,20 +329,20 @@ final class Flotation {
 	}
 
 	/** Nine of a mineral's nuggets in the output become one of the item the ladder pays for it. */
-	private static void pack(PlantBlockEntity part, Mineral mineral) {
+	private static void pack(PlantBlockEntity part, Mineral mineral, int[] slots) {
 		ItemStack nugget = Feeds.stack(mineral.nuggetId(), 1);
 		ItemStack item = Feeds.stack(mineral.phaseOneProductId(), 1);
-		if (item.isEmpty() || part.countIn(OUTPUT_SLOTS, nugget) < 9) {
+		if (item.isEmpty() || part.countIn(slots, nugget) < 9) {
 			return;
 		}
-		part.removeFrom(OUTPUT_SLOTS, nugget, 9);
-		if (!part.emitTo(OUTPUT_SLOTS, item)) {
-			part.emitTo(OUTPUT_SLOTS, Feeds.stack(mineral.nuggetId(), 9));
+		part.removeFrom(slots, nugget, 9);
+		if (!part.emitTo(slots, item)) {
+			part.emitTo(slots, Feeds.stack(mineral.nuggetId(), 9));
 		}
 	}
 
 	/** True when the cake has a nugget waiting that the output cannot take. */
-	private static boolean full(PlantBlockEntity part) {
+	static boolean full(PlantBlockEntity part) {
 		for (Mineral mineral : part.cake().minerals()) {
 			if (part.cake().held(mineral) >= mineral.nuggetAmount().doubleValue()) {
 				return true;

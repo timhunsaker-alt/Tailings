@@ -267,11 +267,24 @@ NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bu
 `paste_line_pressure`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`.
 - **Left out, planned (the spec's "Left out"):** uncemented hydraulic and rock fill; fill strength and exposing a fill wall; boreholes
   and their wear; paste rheology; a real cement kiln (cement is a crafted placeholder).
+## Later — L6: the dry mill (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/dry-mill.md](multiblocks/dry-mill.md), decisions in
+[questions/l6-dry-mill.md](questions/l6-dry-mill.md), branch `l6-dry-mill`. A `scavenger_spiral_bank` on the spirals' tails takes
+another 45 % of ilmenite, rutile, zircon, monazite and cassiterite to heavy mineral concentrate; the filter keeps it apart and passes
+it to a gas-fired `fluid_bed_dryer` touching it (or bags it, `heavy_mineral_concentrate`, 100 kg with its assay); the dryer feeds the
+`rer_separator` (ilmenite), the `ht_roll_separator` (rutile, cassiterite) and the `irm_separator` (monazite, and zircon), each paying
+its minerals at the top rung's rate: 50 + 45 = 95 %, the 4x, by the real route. The leach's exception stays for a plant without them.
+Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`,
+`dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client film `dry_mill`.
+- **Proposed, not built:** Wildcatter's chlorinator taking Tailings' `zircon_concentrate` (L6-3; questions #14).
+- **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
+  ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
 
 ## Later, not scheduled
 
 - Ventilation of the drive: built as L1 (above).
-- Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
+- Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
 - A shaft and hoist (headframe, skip) instead of the decline: built as L4 (above); the raise borer and the cage are still to build.
 - Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
@@ -316,6 +329,14 @@ NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bu
   less between winds) is not modelled (questions/l4-shaft.md, 8).
 - **A 3 t skip against a 1,555 t car (L4):** the hoist is right in tonnes but takes over five hours to lift one car's 576 items
   (questions/l4-shaft.md, 20).
+- **Only the scavengers' share goes through the dry mill (L6):** the filter still pays the spiral bank's 50 %; a real plant sends all
+  its HMC through (questions/l6-dry-mill.md, 3).
+- **The dry mill is 2 t/h (L6):** on heavy mineral sand ore the scavengers make about 7.5 t/h; the filter bags what the dryer cannot
+  take (questions/l6-dry-mill.md, 9).
+- **Dry HMC moves by touching (L6):** filter to dryer to each separator, no elevator or chute; the separators pay into their own
+  stacks, with no product bins (questions/l6-dry-mill.md, 6, 7).
+- **Each separator takes all of its mineral (L6):** no misplacement or middlings.
+- **No new L6 sounds:** the dryer uses Wildcatter's fan, the separators its motor hum.
 - **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
 - **The headframe bin feeds belts only (L4):** a hopper under it takes nothing (questions/l4-shaft.md, 12).
 
