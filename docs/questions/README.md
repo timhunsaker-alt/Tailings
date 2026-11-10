@@ -23,7 +23,14 @@ These are the only items that wait on you; everything else is built and only nee
 4. **Real residence times** (Wildcatter `plant-crane-gaps.md` #11): coking 18 h, digestion 1 h, precipitation 36 h as real holds.
    They change the game's pace, so they're not built. The plan is written.
 5. **Guy wires** (Wildcatter `protection-gaps.md` #20): should an overloaded, unguyed pole warn, lean, or break? The plan is written.
-6. **A pole transformer placed by command** (Wildcatter `protection-gaps.md` #21): turning it to face the pole changes which
+6. **Wildcatter Phase 15, the oilfield** (branch `phase15`, `phase15-oilfield.md`, 25 entries): salt domes, drilling mud, the BOP and
+   blowouts, built and tested (55 server scenes), but **not merged**. It changes existing worlds: domes move to a 192-block grid,
+   so fields under existing wells can change, and plain-water mud is LOW GEL (land rigs drill at half rate until bentonite is
+   mixed in). Say yes and it merges.
+7. **A firebox on piped gas** (Wildcatter `phase14-gas-power.md`, last entry): a firebox counts gas in an early game unit (a m3
+   burns in 0.4 s), so on real biogas or pipeline gas flows it never stays lit. The recommended fix gives the firebox one real
+   heat rate, which changes gas wells under fireboxes.
+8. **A pole transformer placed by command** (Wildcatter `protection-gaps.md` #21): turning it to face the pole changes which
    terminals are which in existing worlds.
 
 ## Every file, by wave
@@ -42,6 +49,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
 | Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
 | Tailings | `l2-l3-trains.md` (branch `l2-l3-trains`) | 20 | battery locomotives and their charger, bottom-dump cars over a track grizzly |
+| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
@@ -50,6 +58,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Wildcatter | `art-wave.md` | 7 | the Ludo art |
 | Wildcatter | `plc-gaps.md` | 12 | PLC gaps: cable cores, the 24 V supply, rack owners, ladder jumps, FBD wire routing, every signal run in the world |
 | Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
+| Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.
