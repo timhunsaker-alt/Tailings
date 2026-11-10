@@ -394,3 +394,15 @@ building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.
   `pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`: **114 pass** (102
   before, 12 new). Unit tests `DryStackTest` (110 unit tests pass). The Fabric client scene `pit_dry_stack` (`TAILINGS_ONLY=pit_dry_stack`) is written and
   compiles; it has not been run or filmed.
+
+## The playthrough runs again; pit_dry_stack filmed (2026-11-09)
+- **Motors run on for 60 s** (`PlantRates.MOTOR_RUN_ON_SECONDS`, proposed) after their part's work runs out. Since belts carry rock
+  in small pieces, the cone and the ball mill restarted direct on line on every few kilograms: the cone's cable burnt out and the
+  mill's set tripped on overcurrent, so the filmed playthrough stalled with nothing paid. Decisions in `docs/questions/playthrough.md`.
+- **The playthrough fails fast:** it checks every 30 game seconds that its cables stand, no set has tripped, and nothing reads NO
+  POWER or STALLED for a minute, and it follows the TBM when it sets itself down at the end of its course. It paid on every rung in
+  12 game minutes (filmed).
+- **pit_dry_stack** filmed for the first time: the dozer's berm now runs past the stake across the truck's whole tail.
+- **pit_dozer_cut** waits for the dozer to stop before it reads the ramp (it failed under a loaded server).
+- **The haul dispatch office** registers for trucks when it is loaded, not only when it first ticks (from the P3 branch).
+- 117 NeoForge scenes pass.
