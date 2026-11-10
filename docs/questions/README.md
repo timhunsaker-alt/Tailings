@@ -11,6 +11,10 @@ Format of an entry:
 - **Why:** the reason, with the real-world counterpart.
 - **Alternatives:** the other options and what they would change.
 
+## Tim's answers (2026-11-10)
+
+All of "Start here" below was answered on 2026-11-10: see [answers-2026-11-10.md](answers-2026-11-10.md), which the builds follow.
+
 ## Start here: what needs you (both mods)
 
 These are the only items that wait on you; everything else is built and only needs a yes or a change.
