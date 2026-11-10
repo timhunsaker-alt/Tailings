@@ -433,3 +433,37 @@ building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.
 - **pit_dozer_cut** waits for the dozer to stop before it reads the ramp (it failed under a loaded server).
 - **The haul dispatch office** registers for trucks when it is loaded, not only when it first ticks (from the P3 branch).
 - 117 NeoForge scenes pass.
+
+## Open pit P5: the pit switch house, trailing cables, the ultra truck, the big shovels (2026-11-09)
+
+Spec `docs/multiblocks/open-pit-p5-big-machines.md` (a draft decided on recommendation; "As built" at its end). Built while Tim was
+away on branch `p5-big-machines` (from `p3-blasting`, with `main` merged in; needs Wildcatter 0.6.0 as P3 does); what building it raised
+was decided on the best recommendation and logged in `docs/questions/p5-big-machines.md` (34 decisions). DESIGN.md, "The open pit (P5)".
+
+- **P5a, power:** `pit_switch_house` (3 x 3 x 6) on the world's medium voltage, four breaker outlets with ground check, definite-time
+  trips at 1.25 x the machine's peak for 1 s, an incoming breaker, a panel and PLC points (CLOSE, CLOSED, TRIPPED, AMPS per outlet). The
+  `trailing_cable` (400 m reels) puts each machine on the solver behind its cable's resistance as a constant-power load: `pit_switch_house`
+  reads the electric drill's 438 kW and 64 A on its outlet at 4,155 V, no diesel burnt; a load at 1.3 x its peak trips in 20 ticks, at
+  1.2 x it holds; an outlet with no cable will not close. `pit_switch_house_fed` feeds a house from a real 500 kW set through a unit
+  substation. `pit_cable_end`: a drill stops at CABLE END at 400 m of path, its outlet still closed. `pit_low_voltage`: on a weak feed
+  a drilling drill pulls its end to 3,609 V of 4,160 and stops, LOW VOLTAGE. The drill's panel has **Electric**.
+- **P5b, the ultra truck:** `ultra_haul_truck` (363 t, 2,828 kW net), the 100 t's class with its figures. `pit_ultra_haul`: up a 10 %
+  ramp loaded at 11.0 km/h (9.5 to 12.2), turned round at the top, backed to the bumper, 363 t into the pit hopper (134 bank blocks).
+  `pit_ultra_loader`: the wheel loader refuses it, "too high to load". Routes are surveyed for each truck's own box.
+- **P5c, the hydraulic shovel:** `hydraulic_shovel` (27 t bucket; 1,119 kW diesel or 860 kW on a cable). `pit_hyd_shovel`: in AUTO it
+  loads the ultra on its right in 13 passes of 27 t (351 t), then turns to the one on its left. `pit_hyd_electric`: NO CABLE until
+  coupled, then it digs on 542 kW from its outlet and burns no diesel.
+- **P5d, the rope shovel:** six big parts (`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`,
+  `shovel_dipper`); RUN on the crawlers' panel lifts them into one machine on its cable, STOP sets them down. `pit_rope_shovel_built`:
+  NOT BUILT names the missing boom; NO CABLE without a cable. `pit_rope_shovel`: it fills an ultra in 4 passes (362.5 t, the last a
+  part dipper), its outlet reading 3,500 kW hoisting and 600 kW the rest of the cycle, and sets down again with its cable on.
+- **What building it found:** whole muck blocks (2.0 t) fill a 27 t bucket to 26.3 t, which made 14 passes: shovels now take muck by
+  the quarter. A stepped 10 % ramp between stakes surveyed as blocked when the stakes' straight line ran under a step: the scene's stakes
+  stand at the ramp's foot and top. With its drives stopped a machine's volts come straight back, so LOW VOLTAGE holds 10 s rather than
+  hunting. Setting the rope shovel down needs the ground ahead clear for its boom.
+- **Models:** the switch house and the six parts in Wildcatter's materials (`tools/models/pit.py`); the ultra, the hydraulic shovel and
+  the lifted rope shovel by `tools/models/pit_vehicles.py` in Ludo's materials (the generator now hangs groups from groups, each on its
+  own hinge); the trailing cable drawn along the ground; the rope shovel's hoist and suspension ropes drawn as lines.
+- **Known gaps (P5):** script-drawn item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder`,
+  `hydraulic_shovel_placeholder` (`tools/models/p5_assets.py`); the rope shovel's PLC points are planned, not built; the drill is still one
+  machine (its parts planned); the cable is drawn straight; the rest are in ROADMAP's Known gaps.
