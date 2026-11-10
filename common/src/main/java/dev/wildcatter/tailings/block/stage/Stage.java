@@ -83,6 +83,11 @@ public interface Stage {
 			case STOCKPILE_HEAD -> PitLineStages.STOCKPILE_HEAD;
 			case RECLAIM_FEEDER -> PitLineStages.RECLAIM_FEEDER;
 			case BELT_WEIGHER -> PitLineStages.WEIGHER;
+			case SAG_MILL -> SagLineStages.SAG;
+			case PEBBLE_CRUSHER -> SagLineStages.PEBBLE;
+			case BALL_MILL_LARGE -> SagLineStages.BALL;
+			case CYCLONE_FEED_PUMP -> SagLineStages.PUMP;
+			case CYCLONE_CLUSTER_LARGE -> SagLineStages.CLUSTER;
 			case ORE_BIN -> Belts.BIN;
 			case SPIRAL_BANK -> Gravity.SPIRALS;
 			case SCAVENGER_BANK -> FullRecovery.SCAVENGER;

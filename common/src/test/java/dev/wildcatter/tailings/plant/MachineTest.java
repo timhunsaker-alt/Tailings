@@ -85,7 +85,12 @@ class MachineTest {
 			Map.entry(Machine.HEAVY_CONVEYOR_DRIVE, new int[] {2, 2, 3}),
 			Map.entry(Machine.STOCKPILE_HEAD, new int[] {3, 4, 4}),
 			Map.entry(Machine.RECLAIM_FEEDER, new int[] {2, 2, 6}),
-			Map.entry(Machine.BELT_WEIGHER, new int[] {2, 1, 2}));
+			Map.entry(Machine.BELT_WEIGHER, new int[] {2, 1, 2}),
+			Map.entry(Machine.SAG_MILL, new int[] {11, 11, 14}),
+			Map.entry(Machine.PEBBLE_CRUSHER, new int[] {4, 5, 4}),
+			Map.entry(Machine.BALL_MILL_LARGE, new int[] {9, 9, 16}),
+			Map.entry(Machine.CYCLONE_FEED_PUMP, new int[] {4, 4, 5}),
+			Map.entry(Machine.CYCLONE_CLUSTER_LARGE, new int[] {6, 6, 6}));
 
 	@Test
 	void everyPartIsItsSpecSize() {
@@ -108,5 +113,12 @@ class MachineTest {
 		assertEquals(0, Machine.GRIZZLY.watts());
 		assertEquals(96, Machine.BALL_MILL.cells());
 		assertEquals(192, Machine.THICKENER.cells());
+		// the big mills' twin-pinion drives: two motors each at the medium-voltage tier (sag-mill-line.md, P7b)
+		assertEquals(2, Machine.SAG_MILL.motors());
+		assertEquals(8_200_000, Machine.SAG_MILL.watts() * Machine.SAG_MILL.motors());
+		assertEquals(10_500_000, Machine.BALL_MILL_LARGE.watts() * Machine.BALL_MILL_LARGE.motors());
+		assertEquals(Machine.Supply.MEDIUM, Machine.SAG_MILL.supply());
+		assertEquals(Machine.Supply.MEDIUM, Machine.BALL_MILL_LARGE.supply());
+		assertEquals(1, Machine.BALL_MILL.motors());
 	}
 }

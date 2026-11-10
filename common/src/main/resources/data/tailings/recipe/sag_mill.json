@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IBI",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "B": "tailings:ball_mill",
+    "C": "minecraft:copper_block"
+  },
+  "result": {
+    "id": "tailings:sag_mill",
+    "count": 1
+  }
+}

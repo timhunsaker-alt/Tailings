@@ -35,9 +35,10 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class PitLineGameTests {
 	static final String[] SCENES = {"p7_gyratory_tip", "p7_gyratory_bridge", "p7_stockpile_cone", "p7_stockpile_live", "p7_stockpile_one", "p7_reclaim_rate", "p7_heavy_belt",
-			"p7_primary_line", "p7a_parts"};
+			"p7_primary_line", "p7a_parts", "p7_sag_grind", "p7_sag_overload", "p7_pebble_off", "p7_cyclones", "p7b_parts"};
 	static final Map<String, Integer> TICKS = Map.of("p7_gyratory_tip", 800, "p7_gyratory_bridge", 1600, "p7_stockpile_cone", 3000, "p7_stockpile_live", 9000, "p7_stockpile_one", 9000,
 			"p7_reclaim_rate", 1200, "p7_heavy_belt", 1200, "p7_primary_line", 1600, "p7a_parts", 200);
+	static final Map<String, Integer> MORE_TICKS = Map.of("p7_sag_grind", 1600, "p7_sag_overload", 800, "p7_pebble_off", 600, "p7_cyclones", 400, "p7b_parts", 200);
 	static final Map<String, Integer> PADDING = Map.of("p7_heavy_belt", 180, "p7_stockpile_cone", 60, "p7_stockpile_live", 60);
 	/** Chunks each scene reaches from its origin: {x from, x to, z from, z to}. */
 	private static final Map<String, int[]> REACH = Map.of("p7_heavy_belt", new int[] {-1, 2, -1, 11}, "p7_gyratory_tip", new int[] {-1, 3, -1, 4},
@@ -57,10 +58,15 @@ final class PitLineGameTests {
 		out.accept("p7_heavy_belt", wide("p7_heavy_belt", PitLineGameTests::heavyBelt));
 		out.accept("p7_primary_line", wide("p7_primary_line", PitLineGameTests::primaryLine));
 		out.accept("p7a_parts", wide("p7a_parts", PitLineGameTests::parts));
+		out.accept("p7_sag_grind", wide("p7_sag_grind", PitLineGameTests::sagGrind));
+		out.accept("p7_sag_overload", wide("p7_sag_overload", PitLineGameTests::sagOverload));
+		out.accept("p7_pebble_off", wide("p7_pebble_off", PitLineGameTests::pebbleOff));
+		out.accept("p7_cyclones", wide("p7_cyclones", PitLineGameTests::cyclones));
+		out.accept("p7b_parts", wide("p7b_parts", PitLineGameTests::partsB));
 	}
 
 	static int ticks(String scene, int otherwise) {
-		return TICKS.getOrDefault(scene, otherwise);
+		return TICKS.getOrDefault(scene, MORE_TICKS.getOrDefault(scene, otherwise));
 	}
 
 	static int padding(String scene, int otherwise) {
@@ -474,6 +480,218 @@ final class PitLineGameTests {
 		helper.assertTrue(crusher.inspect().getString().contains("NOT BUILT") || crusher.status().equals("idle"), Component.literal("alone it is not built: " + crusher.status()));
 		helper.assertTrue(Machine.GYRATORY_CRUSHER.supply() == Machine.Supply.MEDIUM, Component.literal("the gyratory's motor is on the medium-voltage tier"));
 		helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(new BlockPos(0, 2, 0))).getValue(BigPartBlock.FACING) == Direction.NORTH, Component.literal("facing north"));
+		helper.succeed();
+	}
+
+	// ---- P7b: the SAG mill line ---------------------------------------------------------------------------------------------------
+
+	/** The SAG line: the SAG at the origin, its pump box touching its south end, the cluster beside the large ball mill, piped. */
+	record Grinding(PlantBlockEntity sag, PlantBlockEntity pump, PlantBlockEntity cluster, PlantBlockEntity ball, PlantBlockEntity pebbles, PlantBlockEntity pebbleDrive,
+			PlantBlockEntity returnDrive) {
+		PlantBlockEntity[] all() {
+			return new PlantBlockEntity[] {sag, pump, cluster, ball, pebbles, pebbleDrive, returnDrive};
+		}
+
+		/** Water off the pipes, as the plant's pumps keep the SAG's and the pump box's levels. */
+		void water() {
+			sag.addWater(100_000);
+			pump.addWater(100_000);
+		}
+
+		/** The overflow drawn off, as flotation would; true if what it held carried an assay. */
+		boolean drain() {
+			boolean assayed = cluster.out().held(dev.wildcatter.fluid.Product.FINES_SLURRY) > 0 && !cluster.out().assayOf(dev.wildcatter.fluid.Product.FINES_SLURRY).isEmpty();
+			cluster.out().give(dev.wildcatter.fluid.Product.FINES_SLURRY, Double.MAX_VALUE);
+			return assayed;
+		}
+	}
+
+	static Grinding grinding(GameTestHelper helper) {
+		PlantBlockEntity sag = plant(helper, Machine.SAG_MILL, new BlockPos(0, 5, 0));
+		PlantBlockEntity pump = plant(helper, Machine.CYCLONE_FEED_PUMP, new BlockPos(3, 5, 14));
+		PlantBlockEntity cluster = plant(helper, Machine.CYCLONE_CLUSTER_LARGE, new BlockPos(4, 5, 22));
+		PlantBlockEntity ball = plant(helper, Machine.BALL_MILL_LARGE, new BlockPos(10, 5, 20));
+		// the cyclone feed: the pump's south face to the cluster's north face
+		TailingsGameTests.pipe(helper, new BlockPos(4, 5, 19), new BlockPos(4, 5, 20), new BlockPos(4, 5, 21));
+		// the ball mill's discharge: out under its south end, back under the cluster to the pump's east side
+		TailingsGameTests.pipe(helper, new BlockPos(10, 5, 36), new BlockPos(10, 4, 36), new BlockPos(9, 4, 36), new BlockPos(8, 4, 36), new BlockPos(7, 4, 36));
+		for (int z = 35; z >= 16; z--) {
+			TailingsGameTests.pipe(helper, new BlockPos(7, 4, z));
+		}
+		TailingsGameTests.pipe(helper, new BlockPos(7, 5, 16));
+		// the pebble belt off the SAG's east face to the pebble crusher, and its return belt to a chest
+		for (int x = 11; x <= 16; x++) {
+			helper.setBlock(new BlockPos(x, 5, 10), heavy(Direction.Axis.X));
+		}
+		PlantBlockEntity pebbleDrive = plant(helper, Machine.HEAVY_CONVEYOR_DRIVE, new BlockPos(15, 6, 8));
+		PlantBlockEntity pebbles = plant(helper, Machine.PEBBLE_CRUSHER, new BlockPos(17, 0, 9));
+		heavyRun(helper, 18, -1, 12, 18);
+		PlantBlockEntity returnDrive = plant(helper, Machine.HEAVY_CONVEYOR_DRIVE, new BlockPos(19, -1, 16));
+		helper.setBlock(new BlockPos(18, -1, 19), Blocks.CHEST);
+		Grinding g = new Grinding(sag, pump, cluster, ball, pebbles, pebbleDrive, returnDrive);
+		for (PlantBlockEntity part : g.all()) {
+			part.forceRunning();
+		}
+		g.water();
+		return g;
+	}
+
+	/**
+	 * p7_sag_grind: the SAG at its normal charge of copper ore grinds at 1,000 t/h; its undersize goes through the pump box, the cluster
+	 * and the large ball mill, and the cluster's overflow is fines slurry carrying the ore's assay; 20 % of what it grinds goes out as
+	 * pebbles to the pebble crusher, which sends them on crushed to gravel.
+	 */
+	private static void sagGrind(GameTestHelper helper) {
+		Grinding g = grinding(helper);
+		g.sag().receive(crushed(Rock.COPPER, PitLine.SAG_NORMAL_CHARGE_KG));
+		double[] added = {0};
+		boolean[] assayed = {false};
+		helper.onEachTick(() -> {
+			g.water();
+			assayed[0] |= g.drain();
+			double short_ = PitLine.SAG_NORMAL_CHARGE_KG - g.sag().hold().total();
+			if (short_ > 0) {
+				g.sag().receive(crushed(Rock.COPPER, short_));
+				added[0] += short_;
+			}
+		});
+		long[] at = {0};
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(g.cluster().pit().totalKg() > 100,
+						Component.literal("the cluster should classify the SAG's undersize" + describe(g.all()))))
+				.thenExecute(() -> {
+					helper.assertTrue(assayed[0], Component.literal("its overflow is fines slurry carrying the copper ore's assay"));
+					helper.assertTrue(g.ball().status().startsWith("grinding the underflow"), Component.literal("the ball mill grinds the underflow: " + g.ball().status()));
+					added[0] = 0;
+					at[0] = helper.getLevel().getGameTime();
+				})
+				.thenExecuteAfter(100, () -> {
+					double tph = added[0] / (helper.getLevel().getGameTime() - at[0]) * 20 * 3.6;
+					helper.assertTrue(Math.abs(tph - PitLine.TONNES_PER_HOUR) < 20, Component.literal("the SAG grinds 1,000 t/h at its normal charge, got " + tph + describe(g.sag())));
+					helper.assertTrue(g.pebbles().status().startsWith("crushing pebbles"), Component.literal("the pebble crusher crushes the pebbles: " + g.pebbles().status()));
+					helper.assertTrue(g.returnDrive().hold().kg(Rock.COPPER, SizeClass.GRAVEL) > 0, Component.literal("its gravel goes out on its belt" + describe(g.returnDrive())));
+					helper.assertTrue(!g.sag().status().contains("slower"), Component.literal("with the pebble crusher crushing it runs at full rate: " + g.sag().status()));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * p7_sag_overload: fed past its 35 % filling the SAG reads OVERLOAD, and the belt weigher on its feed belt holds its setpoint 10 %
+	 * back, 900 t/h; with the charge back down it comes back to 1,000.
+	 */
+	private static void sagOverload(GameTestHelper helper) {
+		Grinding g = grinding(helper);
+		for (int z = -6; z <= 1; z++) {
+			helper.setBlock(new BlockPos(5, 16, z), heavy(Direction.Axis.Z));
+		}
+		PlantBlockEntity feedDrive = plant(helper, Machine.HEAVY_CONVEYOR_DRIVE, new BlockPos(6, 16, -1));
+		PlantBlockEntity weigher = plant(helper, Machine.BELT_WEIGHER, new BlockPos(3, 16, -5));
+		feedDrive.forceRunning();
+		g.sag().receive(crushed(Rock.GRANITE, PitLine.SAG_OVERLOAD_KG + 5000));
+		helper.onEachTick(() -> {
+			g.water();
+			g.drain();
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> {
+					helper.assertTrue(g.sag().status().startsWith("OVERLOAD"), Component.literal("the SAG reads OVERLOAD: " + g.sag().status()));
+					helper.assertTrue(Math.abs(weigher.setpointTph() - 900) < 1e-6, Component.literal("the weigher holds 10 % back: " + weigher.setpointTph() + describe(weigher)));
+				})
+				.thenExecute(() -> {
+					double ma = g.sag().readMa(6);
+					helper.assertTrue(ma > 4 + 16 * PitLine.SAG_OVERLOAD_KG / PitLine.SAG_MOST_CHARGE_KG - 0.1, Component.literal("WEIGHT on the PLC reads its charge, " + ma + " mA"));
+					g.sag().hold().take(g.sag().hold().total() - 60_000);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(Math.abs(weigher.setpointTph() - 1000) < 1e-6 && !g.sag().status().startsWith("OVERLOAD"),
+						Component.literal("cleared, the setpoint comes back: " + weigher.setpointTph() + "; " + g.sag().status())))
+				.thenSucceed();
+	}
+
+	/** p7_pebble_off: with the pebble crusher's motor off the pebbles go round it uncrushed and the SAG grinds 15 % slower. */
+	private static void pebbleOff(GameTestHelper helper) {
+		Grinding g = grinding(helper);
+		g.pebbles().stopForced();
+		g.sag().receive(crushed(Rock.GRANITE, PitLine.SAG_NORMAL_CHARGE_KG));
+		double[] added = {0};
+		helper.onEachTick(() -> {
+			g.water();
+			g.drain();
+			double short_ = PitLine.SAG_NORMAL_CHARGE_KG - g.sag().hold().total((r, sz) -> true);
+			if (short_ > 0) {
+				g.sag().receive(crushed(Rock.GRANITE, short_));
+				added[0] += short_;
+			}
+		});
+		long[] at = {0};
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(g.pebbles().status().startsWith("BYPASSED"), Component.literal("the pebbles go round it: " + g.pebbles().status())))
+				.thenExecute(() -> {
+					added[0] = 0;
+					at[0] = helper.getLevel().getGameTime();
+				})
+				.thenExecuteAfter(100, () -> {
+					double tph = added[0] / (helper.getLevel().getGameTime() - at[0]) * 20 * 3.6;
+					helper.assertTrue(Math.abs(tph - 850) < 20, Component.literal("the SAG grinds 15 % slower, 850 t/h, got " + tph + describe(g.sag())));
+					helper.assertTrue(g.sag().status().contains("15 % slower"), Component.literal("and says why: " + g.sag().status()));
+					helper.assertTrue(g.returnDrive().hold().kg(Rock.GRANITE, SizeClass.CRUSHED) > 0 && g.returnDrive().hold().kg(Rock.GRANITE, SizeClass.GRAVEL) == 0,
+							Component.literal("its pebbles go back uncrushed" + describe(g.returnDrive())));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * p7_cyclones: 1,000 kg of the SAG's undersize through the pump box and the cluster, with the ball mill stopped: 286 kg of solids
+	 * (1 in 3.5) to the overflow at 35 % solids, 816 kg of fines slurry, and 714 kg of underflow into the ball mill; the pump box adds
+	 * the water to make the 54 % cyclone feed, and the cluster's PRESSURE reads on the PLC.
+	 */
+	private static void cyclones(GameTestHelper helper) {
+		Grinding g = grinding(helper);
+		g.ball().stopForced();
+		RockLoad under = new RockLoad();
+		under.add(Rock.COPPER, SizeClass.SAND, 1000);
+		g.pump().back().offer(dev.wildcatter.fluid.Product.MILL_DISCHARGE, 1000, dev.wildcatter.tailings.plant.Assays.dry(under));
+		double water = g.pump().water();
+		double[] pressure = {0};
+		helper.onEachTick(() -> pressure[0] = Math.max(pressure[0], g.cluster().readMa(0)));
+		helper.succeedWhen(() -> {
+			double fines = g.cluster().out().held(dev.wildcatter.fluid.Product.FINES_SLURRY);
+			double back = g.ball().back().held(dev.wildcatter.fluid.Product.MILL_DISCHARGE);
+			helper.assertTrue(Math.abs(fines - 1000 / 3.5 / 0.35) < 1, Component.literal("816 kg of fines slurry at 35 %, got " + fines + describe(g.pump(), g.cluster())));
+			helper.assertTrue(Math.abs(back - 1000 * 2.5 / 3.5) < 1, Component.literal("714 kg of underflow into the ball mill, got " + back));
+			double used = water - g.pump().water();
+			helper.assertTrue(Math.abs(used - 1000 * PitLine.pumpWaterPerKg(PitLine.SAG_SOLIDS)) < 1, Component.literal("the pump box adds " + 1000 * PitLine.pumpWaterPerKg(PitLine.SAG_SOLIDS) + " L, used " + used));
+			helper.assertTrue(pressure[0] > 4.1, Component.literal("the cluster's PRESSURE reads while it classifies, got " + pressure[0] + " mA"));
+			helper.assertTrue(g.cluster().points().size() == 1, Component.literal("the cluster has its PRESSURE point"));
+		});
+	}
+
+	/** p7b_parts: the P7b parts are their spec sizes; each big mill has two motor boxes on its west face, at its main cell and 4 m south. */
+	private static void partsB(GameTestHelper helper) {
+		Machine[] machines = {Machine.SAG_MILL, Machine.PEBBLE_CRUSHER, Machine.BALL_MILL_LARGE, Machine.CYCLONE_FEED_PUMP, Machine.CYCLONE_CLUSTER_LARGE};
+		int x = 0;
+		for (Machine machine : machines) {
+			BlockPos pos = new BlockPos(x, 2, 0);
+			PlantBlockEntity part = plant(helper, machine, pos);
+			int cells = 0;
+			BlockState state = helper.getLevel().getBlockState(helper.absolutePos(pos));
+			for (BlockPos cell : BigParts.cells(helper.absolutePos(pos), state)) {
+				if (helper.getLevel().getBlockState(cell).getBlock() == TailingsBlocks.plantBlock(machine)) {
+					cells++;
+				}
+			}
+			helper.assertTrue(cells == machine.cells(), Component.literal(machine + " should fill " + machine.cells() + " cells, got " + cells));
+			if (machine.motors() == 2) {
+				BlockPos main = helper.absolutePos(pos);
+				Direction box = dev.wildcatter.tailings.block.TailingsPartBlock.boxFace(state);
+				var voltage = dev.wildcatter.energy.Voltage.MEDIUM;
+				helper.assertTrue(part.hasPortAt(main, box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": the first pinion's box at its main cell"));
+				helper.assertTrue(part.hasPortAt(main.south(4), box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": the second pinion's box 4 m south"));
+				helper.assertTrue(!part.hasPortAt(main.south(2), box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": no box between them"));
+				helper.assertTrue(part.points().stream().anyMatch(p -> p.name().startsWith("WEIGHT")), Component.literal(machine + " has WEIGHT on the PLC"));
+				helper.assertTrue(part.inspect().getString().contains("2 x "), Component.literal(machine + " reads its two motors: " + part.inspect().getString()));
+			}
+			x += machine.width() + 1;
+		}
 		helper.succeed();
 	}
 }

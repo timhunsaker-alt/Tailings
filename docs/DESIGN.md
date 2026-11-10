@@ -695,6 +695,29 @@ parts' state `plant.PitState`, the stages `block.stage.PitLineStages` and `Belts
 - **Models and sound:** `tools/models/pitline.py`, in Wildcatter's materials. The gyratory sounds the cone crusher, the breaker the jaw,
   the feeders the apron feeder, the heavy drive the belt.
 
+## The pit line (P7b): the SAG mill line
+
+Spec: [multiblocks/sag-mill-line.md](multiblocks/sag-mill-line.md) (draft, decided on recommendation); decisions in
+[questions/p7-pit-line.md](questions/p7-pit-line.md) #20-#31. The stages are `block.stage.SagLineStages`; the numbers `plant.PitLine`.
+
+- **An SABC circuit at 1,000 t/h:** the `sag_mill` (11 x 11 x 14, a 9.75 m x 4.6 m mill on two 4.1 MW pinions), the `pebble_crusher`
+  (4 x 5 x 4, 300 kW), the `ball_mill_large` (9 x 9 x 16, 7.3 m x 11 m on two 5.25 MW pinions), the `cyclone_feed_pump` (4 x 4 x 5,
+  600 kW) and the `cyclone_cluster_large` (6 x 6 x 6, twelve 660 mm cyclones, no motor). Every motor at the medium-voltage tier.
+- **Twin pinions:** a big mill has two motors, boxes on its west face at the main cell and 4 m south; each gives half its power.
+- **The SAG:** crushed rock (and the pebble crusher's gravel) by a heavy belt over its feed end, water off a water pipe (75 % solids).
+  It grinds 1,000 t/h at its normal charge of about 83 t, in proportion below it, 15 % less unless its pebble belt runs into a running
+  pebble crusher. 20 % of the crushed rock it grinds leaves as pebbles out of its east face; the rest, the trommel's undersize, goes into
+  the box of the pump touching it, with its assay. Over about 120 t (35 % filling) OVERLOAD, and the weigher on its feed belt holds 10 %
+  back; at about 160 t its feed stops. WEIGHT on the PLC.
+- **The pebble crusher:** pebbles over its top to gravel out of its south end; with its motor stopped they go round it uncrushed.
+- **The pump:** the SAG's undersize in its box, the ball mill's discharge on pipe at its north face or either side; water to a 54 %
+  cyclone feed, up to 4,200 t/h, out on pipe at its south face.
+- **The cluster:** the cyclone feed in at its north face; 1 in 3.5 of the solids to the overflow at 35 %, fines slurry out on pipe at its
+  south face; the rest into the large ball mill it touches. PRESSURE on the PLC (90 kPa at 3,500 t/h).
+- **The ball mill:** grinds the underflow, 2,500 t/h, and puts it out on pipe under its south end at 70 %, back to the pump.
+- **Power:** 18.7 MW of mill motors; with P7a about 20 MW: a Wildcatter load needing a plant of that size.
+- **Models and sound:** `tools/models/sagline.py`; the mills sound the ball mill, the pebble crusher the cone, the pump the motor hum.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -766,6 +789,11 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `stockpile_head` | Iron, a heavy belt, a hopper (placeholder) | 3 x 4 x 4; drops the belt's load onto the pile (P7a) |
 | `reclaim_feeder` | Iron, a hopper, an apron feeder (placeholder) | 2 x 2 x 6, 55 kW, up to 500 t/h from under the pile (P7a) |
 | `belt_weigher` | Iron round a comparator (placeholder) | 2 x 1 x 2; RATE, SETPOINT, TOTAL; the feeders follow its setpoint (P7a) |
+| `sag_mill` | Iron blocks round a ball mill and a copper block (placeholder) | 11 x 11 x 14, 2 x 4.1 MW at the medium-voltage tier, 1,000 t/h (P7b) |
+| `pebble_crusher` | Iron round a cone crusher, industrial cable (placeholder) | 4 x 5 x 4, 300 kW; the SAG's pebbles to gravel (P7b) |
+| `ball_mill_large` | Iron blocks round a ball mill (placeholder) | 9 x 9 x 16, 2 x 5.25 MW; grinds the underflow (P7b) |
+| `cyclone_feed_pump` | Steel round a cauldron, industrial cable (placeholder) | 4 x 4 x 5, 600 kW; the cyclone feed (P7b) |
+| `cyclone_cluster_large` | Cyclone clusters round an iron block (placeholder) | 6 x 6 x 6, twelve 660 mm cyclones at 150 µm (P7b) |
 | `stockpile_rock` | None. The stockpile head makes it | Crushed rock, 2,025 kg; falls, settles and rolls in over a reclaim feeder (P7a) |
 | `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
 | `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |

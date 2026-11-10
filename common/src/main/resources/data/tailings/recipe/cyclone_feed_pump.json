@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "SCS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "C": "minecraft:cauldron",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:cyclone_feed_pump",
+    "count": 1
+  }
+}

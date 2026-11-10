@@ -145,11 +145,24 @@ public enum Machine {
 	/** A 1.5 m apron feeder in the reclaim tunnel under an opening in its roof, 500 t/h, 55 kW (P7a, proposed). */
 	RECLAIM_FEEDER("reclaim_feeder", "Reclaim Feeder", 2, 2, 6, 55_000, Supply.INDUSTRIAL),
 	/** A belt scale on the SAG feed belt: it reads t/h, and the reclaim feeders follow its setpoint (P7a). */
-	BELT_WEIGHER("belt_weigher", "Belt Weigher", 2, 1, 2, 0, Supply.NONE);
+	BELT_WEIGHER("belt_weigher", "Belt Weigher", 2, 1, 2, 0, Supply.NONE),
+	/**
+	 * The 9.75 m x 4.6 m (32 ft x 15 ft EGL) SAG mill and its trommel (sag-mill-line.md, P7b): 8.2 MW on a twin-pinion drive, two
+	 * 4.1 MW motors at the medium-voltage tier, their boxes on its west face. {@link #watts} is one motor.
+	 */
+	SAG_MILL("sag_mill", "SAG Mill", 11, 11, 14, dev.wildcatter.tailings.plant.PitLine.SAG_MOTOR_WATTS, Supply.MEDIUM),
+	/** A 300 kW class cone crusher at a 12 mm closed side, crushing the SAG's pebbles (P7b, unverified). */
+	PEBBLE_CRUSHER("pebble_crusher", "Pebble Crusher", 4, 5, 4, 300_000, Supply.MEDIUM),
+	/** A 7.3 m x 11 m (24 ft x 36 ft) overflow ball mill on two 5.25 MW pinions (P7b, proposed). {@link #watts} is one motor. */
+	BALL_MILL_LARGE("ball_mill_large", "Large Ball Mill", 9, 9, 16, dev.wildcatter.tailings.plant.PitLine.BALL_MILL_MOTOR_WATTS, Supply.MEDIUM),
+	/** The cyclone feed sump and its 600 kW slurry pump, about 1 m³/s at 25 m head (P7b, proposed). */
+	CYCLONE_FEED_PUMP("cyclone_feed_pump", "Cyclone Feed Pump", 4, 4, 5, 600_000, Supply.MEDIUM),
+	/** Twelve 660 mm hydrocyclones on a ring manifold, ten running, cut at 150 µm; the pump drives them (P7b, proposed). */
+	CYCLONE_CLUSTER_LARGE("cyclone_cluster_large", "Large Cyclone Cluster", 6, 6, 6, 0, Supply.NONE);
 
 	/** Motors on the part: the two pinions of the big mills' twin-pinion drives, one for every other part. */
 	public int motors() {
-		return 1;
+		return this == SAG_MILL || this == BALL_MILL_LARGE ? 2 : 1;
 	}
 
 	public enum Supply {

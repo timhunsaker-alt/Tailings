@@ -130,8 +130,8 @@ public final class PitLine {
 
 	/**
 	 * The SAG's ore charge. Its inside, about 9.5 m by 4.6 m inside its liners, is about 326 m³; at its 28 % filling with 12 % balls the
-	 * rock is 16 % of that at about 1.6 t a m³ of broken rock: about 85 t (proposed). OVERLOAD is the spec's 35 % filling: 23 % rock, so
-	 * 85 x 23 / 16, about 122 t.
+	 * rock is 16 % of that at about 1.6 t a m³ of broken rock: about 83 t (proposed). OVERLOAD is the spec's 35 % filling: 23 % rock, so
+	 * 83 x 23 / 16, about 120 t.
 	 */
 	public static final double SAG_INSIDE_M3 = Math.PI * 4.75 * 4.75 * 4.6;
 	public static final double CHARGE_BULK_T_PER_M3 = 1.6;

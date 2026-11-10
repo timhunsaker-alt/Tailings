@@ -97,6 +97,11 @@ public final class TailingsBlocks {
 	public static final Block STOCKPILE_HEAD = plant(Machine.STOCKPILE_HEAD, MapColor.METAL);
 	public static final Block RECLAIM_FEEDER = plant(Machine.RECLAIM_FEEDER, MapColor.COLOR_GRAY);
 	public static final Block BELT_WEIGHER = plant(Machine.BELT_WEIGHER, MapColor.METAL);
+	public static final Block SAG_MILL = plant(Machine.SAG_MILL, MapColor.COLOR_GRAY);
+	public static final Block PEBBLE_CRUSHER = plant(Machine.PEBBLE_CRUSHER, MapColor.COLOR_GRAY);
+	public static final Block BALL_MILL_LARGE = plant(Machine.BALL_MILL_LARGE, MapColor.COLOR_GRAY);
+	public static final Block CYCLONE_FEED_PUMP = plant(Machine.CYCLONE_FEED_PUMP, MapColor.COLOR_BLUE);
+	public static final Block CYCLONE_CLUSTER_LARGE = plant(Machine.CYCLONE_CLUSTER_LARGE, MapColor.COLOR_ORANGE);
 	public static final Block FUEL_BAY = plant(Machine.FUEL_BAY, MapColor.COLOR_YELLOW);
 	public static final Block HAUL_DISPATCH = plant(Machine.HAUL_DISPATCH, MapColor.TERRACOTTA_WHITE);
 	public static final Block MATRIX_FILL_POINT = plant(Machine.MATRIX_FILL_POINT, MapColor.COLOR_ORANGE);
@@ -188,7 +193,8 @@ public final class TailingsBlocks {
 					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
 					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR,
 					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR,
-					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER));
+					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER,
+					SAG_MILL, PEBBLE_CRUSHER, BALL_MILL_LARGE, CYCLONE_FEED_PUMP, CYCLONE_CLUSTER_LARGE));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -375,6 +381,11 @@ public final class TailingsBlocks {
 			case STOCKPILE_HEAD -> STOCKPILE_HEAD;
 			case RECLAIM_FEEDER -> RECLAIM_FEEDER;
 			case BELT_WEIGHER -> BELT_WEIGHER;
+			case SAG_MILL -> SAG_MILL;
+			case PEBBLE_CRUSHER -> PEBBLE_CRUSHER;
+			case BALL_MILL_LARGE -> BALL_MILL_LARGE;
+			case CYCLONE_FEED_PUMP -> CYCLONE_FEED_PUMP;
+			case CYCLONE_CLUSTER_LARGE -> CYCLONE_CLUSTER_LARGE;
 		};
 	}
 

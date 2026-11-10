@@ -4,6 +4,16 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P7b — the SAG mill line (2026-11-10, decided while Tim was away)
+
+- **An SABC circuit at 1,000 t/h:** the `sag_mill` (9.75 m, two 4.1 MW pinion motors), the `pebble_crusher`, the `ball_mill_large`
+  (7.3 m x 11 m, two 5.25 MW pinions), the `cyclone_feed_pump` (600 kW) and the `cyclone_cluster_large` (twelve 660 mm cyclones) turn
+  the stockpile's crushed rock into fines slurry at 150 µm, carrying its assay, on steel pipe. All their motors at the medium-voltage tier.
+- **The SAG's charge:** it grinds its full rate at its normal charge; overfed past 35 % filling it reads OVERLOAD and the belt weigher
+  holds its feed 10 % back. With the pebble crusher off its pebbles go round uncrushed and it grinds 15 % slower.
+- **PLC:** WEIGHT on each mill, PRESSURE on the cluster.
+- **P7c (pit flotation) is planned, not built.** Nothing changes in existing worlds. Decisions in `docs/questions/p7-pit-line.md`.
+
 ### Open pit P7a — the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, decided while Tim was away)
 
 - **The primary:** trucks tip into the `gyratory_pocket` (400 t) standing on the `gyratory_crusher` (450 kW at the medium-voltage tier),

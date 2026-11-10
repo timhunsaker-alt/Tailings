@@ -379,5 +379,10 @@
   "block.tailings.reclaim_feeder": "Reclaim Feeder",
   "block.tailings.belt_weigher": "Belt Weigher",
   "block.tailings.heavy_belt_conveyor": "Heavy Belt Conveyor",
-  "block.tailings.stockpile_rock": "Stockpile Rock"
+  "block.tailings.stockpile_rock": "Stockpile Rock",
+  "block.tailings.sag_mill": "SAG Mill",
+  "block.tailings.pebble_crusher": "Pebble Crusher",
+  "block.tailings.ball_mill_large": "Large Ball Mill",
+  "block.tailings.cyclone_feed_pump": "Cyclone Feed Pump",
+  "block.tailings.cyclone_cluster_large": "Large Cyclone Cluster"
 }

@@ -2,6 +2,18 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## P7b: the SAG mill line (2026-11-10, branch `p7-pit-line`)
+Built while Tim was away on the draft spec `docs/multiblocks/sag-mill-line.md`; decisions in `docs/questions/p7-pit-line.md` (#20-#31;
+#21 and #27 most need Tim). Five new parts; a part may now have two motors. Nothing in an existing world changes. P7c (pit flotation)
+is not built: its plan is in ROADMAP (#32).
+- **Built:** the `sag_mill` (two 4.1 MW pinion motors; grinds 1,000 t/h at its 83 t normal charge; OVERLOAD over 120 t, the weigher
+  10 % back), the `pebble_crusher` (pebbles to gravel; bypassed, the SAG 15 % slower), the `ball_mill_large` (two 5.25 MW pinions; the
+  underflow), the `cyclone_feed_pump` (a 54 % cyclone feed) and the `cyclone_cluster_large` (150 µm; fines slurry at 35 % with its
+  assay; PRESSURE on the PLC). WEIGHT on the mills.
+- **Art:** five models in Wildcatter's materials (`tools/models/sagline.py`). No Ludo credits.
+- **Scenes:** NeoForge `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests in `PitLineTest` (10
+  in all) and `MachineTest`. The Fabric client film `p7_line` (`TAILINGS_ONLY=p7_line`).
+
 ## P7a: the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, branch `p7-pit-line`)
 Built while Tim was away on the draft spec `docs/multiblocks/primary-gyratory-stockpile.md`; decisions in
 `docs/questions/p7-pit-line.md` (#1-#19; #11 and #14 most need Tim). Nothing in an existing world changes: new parts, a heavy belt and

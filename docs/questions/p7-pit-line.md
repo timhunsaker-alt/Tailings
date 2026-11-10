@@ -4,7 +4,7 @@ Tim (2026-11-09): "make decisions best recommendation and complete the rest of t
 Built on branch `p7-pit-line` (cut from `p5-big-machines`) from the draft specs
 [primary-gyratory-stockpile.md](../multiblocks/primary-gyratory-stockpile.md) (P7a), [sag-mill-line.md](../multiblocks/sag-mill-line.md)
 (P7b) and [pit-flotation.md](../multiblocks/pit-flotation.md) (P7c), whose own choices are in `specs-tailings.md` (P7-1 to P7-10). Format
-as in `README.md` here. **#11, #14 and the P7b entries marked "needs you" most need your eye.** Nothing here changes an existing world (#1).
+as in `README.md` here. **#11, #14, #21 and #27 most need your eye.** Nothing here changes an existing world (#1).
 
 ## P7a: the primary gyratory, the coarse-ore stockpile and its reclaim
 
@@ -153,3 +153,103 @@ as in `README.md` here. **#11, #14 and the P7b entries marked "needs you" most n
   on P7a; the stockpile block's texture is a script-drawn placeholder (#10), listed under Known gaps.
 - **Why:** the powered parts' recipes are placeholders plant-wide (ROADMAP, Known gaps).
 - **Alternatives:** Ludo art for the stockpile block's texture (about 1 credit).
+
+## P7b: the SAG mill line
+
+### 20. Twin-pinion drives: two motors, two boxes
+- **Chosen:** the SAG (2 x 4.1 MW) and the large ball mill (2 x 5.25 MW) each have two motors at the medium-voltage tier, their terminal
+  boxes on the west face at the main cell and 4 m south of it. Each pinion gives half the mill's power: on one motor the mill turns at
+  half its rate. Each reads its own volts, amps and watts in the readout; AMPS on the PLC is the first pinion's.
+- **Why:** P7-5 and the spec: dual-pinion drives are real to about 9-12 MW; two boxes is what a real twin-pinion mill has.
+- **Alternatives:** one 8.2 MW motor box (one cable carrying about 1,400 A at 4.16 kV); motors at the generator tier (P7-5's alternative).
+
+### 21. Starting a big mill (needs you)
+- **Chosen:** no rule of its own. The mills' motors start as Wildcatter's motors do: direct on line they draw six times their full-load
+  current, about 4,300 A for each 4.1 MW motor at 4.16 kV, which trips a breaker set for the running current; through a soft starter
+  they draw less, and on a VFD they never draw locked-rotor current. There is no NOT STARTED interlock and no `p7_sag_start` scene: it
+  needs a supply of over 8 MW, which no scene builds yet.
+- **Why:** the physics is already Wildcatter's; a second rule on top would disagree with it. Real big mills start on a liquid resistance
+  starter or a VFD for exactly this reason.
+- **Question:** should a mill refuse a direct start outright (NOT STARTED), as the spec proposed, or is the breaker tripping enough?
+- **Alternatives:** an interlock that reads whether a starter or drive feeds the motor (Wildcatter's motor knows only "drive-fed").
+
+### 22. The SAG's charge, OVERLOAD and the weigher
+- **Chosen:** the SAG's hold is its rock charge. Its normal charge is about 83 t (16 % of its 326 m³ inside, at 28 % filling with 12 %
+  balls, at 1.6 t a m³ of broken rock); it grinds its full 1,000 t/h at that charge and less below it, in proportion. Over the spec's
+  35 % filling (about 120 t) it reads OVERLOAD and keeps grinding; at 40 % (about 160 t) its feed belt stops. While it reads OVERLOAD the
+  belt weigher on its feed belt holds its setpoint 10 % back, and gives it back once the mill has cleared.
+- **Why:** real SAG control holds the mill's weight on its bearings by trimming the feed; a rate that follows the charge makes the
+  charge settle where feed and grind meet, as a real mill's does.
+- **Alternatives:** a fixed rate with OVERLOAD a stall (a mill does not stop when overfed); a fallback that steps down 10 % each 10 s
+  (harsher; the same end).
+
+### 23. Pebbles and the pebble crusher
+- **Chosen:** 20 % of the crushed rock the SAG grinds leaves as pebbles (still the crushed class) out of its east face onto a belt; the
+  pebble crusher makes them gravel; the SAG takes gravel and grinds all of it to undersize. With the pebble crusher's motor stopped the
+  pebbles go round it uncrushed (BYPASSED). The SAG grinds 15 % slower unless its pebble belt delivers into a pebble crusher that is
+  running. Getting the crushed pebbles back onto the SAG's feed belt is the player's belt work.
+- **Why:** the spec's figures; a bypass chute round the pebble crusher is real.
+- **Alternatives:** pebbles as a size class of their own (every part would have to know it).
+
+### 24. The pump takes the ball mill's discharge on its sides as well
+- **Chosen:** the cyclone feed pump takes the ball mill's discharge on pipe at its north face or either side.
+- **Why:** the spec puts the SAG against the pump's north face (the undersize by touching) and the pipe on the same face; with a part as
+  wide as the SAG there, the pipe needs another face.
+- **Alternatives:** the SAG touching the pump's side instead (the spec's drawing has the pump at the SAG's discharge end).
+
+### 25. The water
+- **Chosen:** the SAG takes water to grind at 75 % solids; the pump box takes the rest to make a cyclone feed of about 54 % solids, so the
+  underflow leaves at the ball mill's 70 % and the overflow at 35 % with no water of their own. All of the line's 516 L/s of fresh water
+  leaves in the overflow; the ball mill takes none. NO WATER on the SAG and the pump.
+- **Why:** it closes the mass balance the spec gives (75 %, 70 %, 35 %, 250 % circulating load); real cyclone feeds are 50-60 % solids.
+- **Alternatives:** water at the cyclones, as the small plant's cluster takes it.
+
+### 26. The cyclone cluster has no motor
+- **Chosen:** the twelve 660 mm cyclones are driven by the pump's 600 kW; the cluster has no motor box. It is rated 20 % over the design
+  3,500 t/h of feed (ten running, two spare) and its PLC point is PRESSURE (4-20 mA over 0-200 kPa), 90 kPa at the design feed and going
+  with the feed squared. The pump is rated the same.
+- **Why:** a cyclone has no moving parts; its feed pressure is what a real plant reads.
+- **Alternatives:** a gauge on the pump instead.
+
+### 27. The large-bore pipe (P7-6, needs you)
+- **Chosen:** the line runs on Wildcatter's steel pipe as it is. Wildcatter 0.6.0's pipe holds nothing and sets no flow limit, so one
+  pipe carries the cyclone feed's 1 m³/s; the parts' 500 mm nozzles are drawn in their models. A large-bore slurry line with its own
+  rating stays proposed for Wildcatter (P7-6).
+- **Why:** nothing in Wildcatter stops it, and a new Wildcatter pipe is outside this branch.
+- **Question:** build Wildcatter's large-bore slurry line (and a rating for the small pipe), or leave the pipe unrated?
+- **Alternatives:** several small pipes in parallel (tiling; and still unrated).
+
+### 28. Liberation and the assay
+- **Chosen:** as the small plant: the slurry carries its assay from the SAG on, and the flotation stage treats fines as 90 % liberated.
+- **Why:** the spec says the same 90 %.
+- **Alternatives:** none.
+
+### 29. Where the overflow goes before P7c
+- **Chosen:** the cluster's fines slurry goes out on pipe to whatever takes fines slurry: today the 50 t/h plant's conditioning tank and
+  bank. One bank takes a twentieth of the line; when nothing draws the overflow the cluster's hold fills and the whole line backs up and
+  slows, as a real one would.
+- **Why:** P7c is the line's own flotation; until it is built the line runs only as fast as what it feeds.
+- **Alternatives:** a tails pond the line can dump to (it would throw away the ore).
+
+### 30. The PLC points
+- **Chosen:** each mill has the plant's motor points and WEIGHT (4-20 mA): the SAG's charge over its 40 % filling, the ball mill's
+  underflow waiting over 10 s of its feed. The pump has the plant's motor points; the cluster PRESSURE only (#26).
+- **Why:** the spec's lists.
+- **Alternatives:** none.
+
+### 31. Art, sound and recipes
+- **Chosen:** five models in Wildcatter's materials (`tools/models/sagline.py`); the mills sound the ball mill (louder), the pebble crusher
+  the cone crusher, the pump Wildcatter's motor hum. Placeholder recipes (iron blocks round a ball mill for each mill; the small cyclone
+  clusters round an iron block for the large one). No Ludo credits spent on P7.
+- **Why:** as every plant wave; the parts have no icons of their own to make (their items are their models).
+- **Alternatives:** Ludo icons for the stockpile block (#10).
+
+## P7c: pit flotation and the tails
+
+### 32. P7c is not built: a written plan instead
+- **Chosen:** P7a and P7b are built, tested, documented and filmed; P7c (the tank-cell row, the column cleaners, the large blower and the
+  45 m tails thickener) is left with a plan in ROADMAP ("P7c, the plan").
+- **Why:** Tim's instruction for a session that cannot do all of P7. Two things in P7c want their own care: the 45 m thickener is 12,150
+  cells, about 50 MB of piece models at one per cell, which wants a change to the model tool first; and the row's recovery split must pay
+  through the existing filter without changing what the small bank pays.
+- **Alternatives:** a half-built P7c (ruled out by Tim).

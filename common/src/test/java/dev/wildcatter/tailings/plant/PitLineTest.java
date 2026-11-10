@@ -94,4 +94,50 @@ class PitLineTest {
 		assertEquals(750, saved.ownSetpoint(), 1e-9);
 		assertEquals(250_000, saved.totalKg(), 1e-9);
 	}
+
+	// ---- P7b: the SAG mill line ------------------------------------------------------------------------------------------------
+
+	@Test
+	void bondsLawSizesTheBallMill() {
+		// from the SAG's 2 mm transfer size to 150 µm at Wi 15: 8.9 kWh/t, 8.9 MW at 1,000 t/h
+		assertEquals(8.9, PitLine.ballMillKwhPerTonne(), 0.05);
+		assertTrue(PitLine.ballMillKwhPerTonne() * PitLine.TONNES_PER_HOUR * 1000 < 2 * PitLine.BALL_MILL_MOTOR_WATTS, "the 10.5 MW mill covers it");
+		// scaled from an 18 x 28 ft mill at 4.1 MW by D^2.5 L: about 10.8 MW for 24 x 36 ft, the spec's "about 10.5"
+		double scaled = PitLine.scaledMillWatts(4_100_000, 18, 28, 24, 36);
+		assertEquals(10_800_000, scaled, 100_000);
+		assertEquals(1.0, scaled / (2 * PitLine.BALL_MILL_MOTOR_WATTS), 0.04);
+		// the SAG's 8.2 MW at 1,000 t/h is 8.2 kWh/t, inside real SAG mills' 5-12; about 17 MW of grinding drawn, 18.7 installed
+		assertEquals(8.2, 2.0 * PitLine.SAG_MOTOR_WATTS / 1000 / PitLine.TONNES_PER_HOUR, 1e-9);
+		assertEquals(18.7, (2.0 * PitLine.SAG_MOTOR_WATTS + 2.0 * PitLine.BALL_MILL_MOTOR_WATTS) / 1e6, 0.01);
+	}
+
+	@Test
+	void theSagChargeAndItsOverload() {
+		assertEquals(326, PitLine.SAG_INSIDE_M3, 1);
+		assertEquals(83_400, PitLine.SAG_NORMAL_CHARGE_KG, 500);
+		assertEquals(119_900, PitLine.SAG_OVERLOAD_KG, 1000);
+		assertTrue(PitLine.SAG_MOST_CHARGE_KG > PitLine.SAG_OVERLOAD_KG);
+		// at its normal charge it grinds its full rate; with no pebble crusher 15 % less; half charged, half
+		assertEquals(PitLine.KG_PER_TICK, PitLine.sagGrindKg(PitLine.SAG_NORMAL_CHARGE_KG, 1, true), 1e-9);
+		assertEquals(0.85 * PitLine.KG_PER_TICK, PitLine.sagGrindKg(PitLine.SAG_NORMAL_CHARGE_KG, 1, false), 1e-9);
+		assertEquals(0.5 * PitLine.KG_PER_TICK, PitLine.sagGrindKg(PitLine.SAG_NORMAL_CHARGE_KG / 2, 1, true), 1e-9);
+		assertEquals(PitLine.KG_PER_TICK, PitLine.sagGrindKg(PitLine.SAG_OVERLOAD_KG, 1, true), 1e-9, "overfed, it grinds no faster");
+		assertTrue(PitLine.sagGrindKg(5, 1, true) <= 5, "never more than it holds");
+	}
+
+	@Test
+	void theCycloneCircuitsWaterBalances() {
+		// a 54 % cyclone feed splits into 70 % underflow and 35 % overflow with no water of its own
+		assertEquals(0.544, PitLine.cycloneFeedSolids(), 0.001);
+		double feedWater = (1 + PitLine.CIRCULATING_LOAD) * PlantRates.waterPerKg(PitLine.cycloneFeedSolids());
+		double outWater = PitLine.CIRCULATING_LOAD * PlantRates.waterPerKg(PitLine.MILL_SOLIDS) + PlantRates.waterPerKg(PitLine.OVERFLOW_SOLIDS);
+		assertEquals(outWater, feedWater, 1e-9);
+		// all the line's fresh water leaves in the overflow: 516 L/s; the overflow is 0.62 m3/s of slurry
+		assertEquals(516, PitLine.freshWaterLitresPerSecond(), 1);
+		assertEquals(0.62, PitLine.overflowM3PerSecond(), 0.005);
+		double sagWater = PlantRates.waterPerKg(PitLine.SAG_SOLIDS) + PitLine.pumpWaterPerKg(PitLine.SAG_SOLIDS);
+		assertEquals(PlantRates.waterPerKg(PitLine.cycloneFeedSolids()), sagWater, 1e-9, "the SAG's water and the pump box's make the cyclone feed");
+		assertEquals(3500, PitLine.CYCLONE_FEED_TPH, 1e-9);
+		assertEquals(2500, PitLine.BALL_MILL_TPH, 1e-9);
+	}
 }

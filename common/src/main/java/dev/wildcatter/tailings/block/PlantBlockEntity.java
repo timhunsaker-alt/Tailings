@@ -80,6 +80,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 					new Point(String.format("SETPOINT 4-20 mA, %.0f t/h", dev.wildcatter.tailings.plant.PitLine.WEIGHER_SPAN_TPH), true, Signal.MA),
 					new Point("TOTAL, A PULSE EACH 100 t", false, Signal.PULSE));
 		}
+		if (machine() == Machine.CYCLONE_CLUSTER_LARGE) {
+			// the cyclones' feed pressure (sag-mill-line.md, P7b): the pump drives them, so it is their only point
+			return java.util.List.of(new Point(String.format("PRESSURE 4-20 mA, %.0f kPa", dev.wildcatter.tailings.block.stage.SagLineStages.PRESSURE_SPAN_KPA), false, Signal.MA));
+		}
 		if (motor == null) {
 			return java.util.List.of();
 		}
@@ -101,6 +105,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			// a boulder in the bowl, and the dump pocket over it full (FILL is the pocket's level)
 			out.add(new Point("BRIDGED", false));
 			out.add(new Point("POCKET FULL", false));
+		} else if (machine() == Machine.SAG_MILL || machine() == Machine.BALL_MILL_LARGE) {
+			// the mill's weight on its bearings, over its rated charge (P7b)
+			out.add(new Point("WEIGHT 4-20 mA, RATED CHARGE", false, Signal.MA));
 		} else if (machine() == Machine.RECLAIM_FEEDER) {
 			out.add(new Point(String.format("SPEED 4-20 mA, %.0f t/h", dev.wildcatter.tailings.plant.PitLine.RECLAIM_FEEDER_TPH), false, Signal.MA));
 		} else if (machine() == Machine.VENT_FAN) {
@@ -192,8 +199,18 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.BELT_WEIGHER) {
 			return point == 0 ? dev.wildcatter.tailings.plant.PlcScale.ma(pit.rateTph(), 0, dev.wildcatter.tailings.plant.PitLine.WEIGHER_SPAN_TPH) : 4;
 		}
+		if (machine() == Machine.CYCLONE_CLUSTER_LARGE) {
+			return dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.SagLineStages.pressureKpa(pit.rateTph()), 0,
+					dev.wildcatter.tailings.block.stage.SagLineStages.PRESSURE_SPAN_KPA);
+		}
 		if (motor == null) {
 			return 0;
+		}
+		if (machine() == Machine.SAG_MILL && point == 6) {
+			return 4 + 16 * Math.min(1.03, hold.total() / dev.wildcatter.tailings.plant.PitLine.SAG_MOST_CHARGE_KG);
+		}
+		if (machine() == Machine.BALL_MILL_LARGE && point == 6) {
+			return 4 + 16 * Math.min(1.03, back.held(Product.MILL_DISCHARGE) / (dev.wildcatter.tailings.plant.PitLine.SLURRY_HOLD_SECONDS * dev.wildcatter.tailings.plant.PitLine.BALL_MILL_TPH / 3.6));
 		}
 		if (machine() == Machine.RECLAIM_FEEDER && point == 6) {
 			return dev.wildcatter.tailings.plant.PlcScale.ma(feederTph, 0, dev.wildcatter.tailings.plant.PitLine.RECLAIM_FEEDER_TPH);
@@ -391,6 +408,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A game test's shorter press cycle (not saved). */
 	private int fast = 1;
 	private Motor motor;
+	/** The second pinion's motor of a twin-pinion mill (sag-mill-line.md, P7b), its box on the west face 4 m south of the main cell; else null. */
+	private @Nullable Motor motor2;
 	/** A ventilation fan's duct line (ventilation.md); null for every other part. */
 	private final @Nullable VentState vent;
 	/** A DMS cyclone module's medium and counts (dense-medium-separation.md, L7); null for every other part. */
@@ -420,6 +439,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine.watts() > 0) {
 			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
 			motor = new Motor(true, voltage, machine.watts());
+			if (machine.motors() == 2) {
+				motor2 = new Motor(true, voltage, machine.watts());
+			}
 		}
 		vent = machine == Machine.VENT_FAN ? new VentState() : null;
 		dms = machine == Machine.DMS_MODULE ? new dev.wildcatter.tailings.plant.DmsState() : null;
@@ -553,11 +575,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (forced || motor == null) {
 			return 1;
 		}
-		return motor.output();
+		// a twin-pinion mill turns on either pinion, each giving half its power
+		return motor2 == null ? motor.output() : (motor.output() + motor2.output()) / 2;
 	}
 
 	public boolean running() {
-		return forced || (motor != null && motor.output() > 0);
+		return forced || (motor != null && motor.output() > 0) || (motor2 != null && motor2.output() > 0);
+	}
+
+	/** The cell of a twin-pinion mill's second motor box: 4 m south of the main cell, turned with the part. */
+	private BlockPos secondBox() {
+		return worldPosition.relative(PartFrame.world(getBlockState(), Direction.SOUTH), 4);
 	}
 
 	/** It has work: its motor should run. */
@@ -1291,14 +1319,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** The motor box is on the west face of the main cell, turned with the part. */
 	@Override
 	public boolean hasPortAt(BlockPos cell, Direction face, Conductor role, Voltage voltage) {
-		return motor != null && cell.equals(worldPosition) && face == TailingsPartBlock.boxFace(getBlockState()) && voltage == motor.voltage()
-				&& role != Conductor.N;
+		return motor != null && (cell.equals(worldPosition) || motor2 != null && cell.equals(secondBox())) && face == TailingsPartBlock.boxFace(getBlockState())
+				&& voltage == motor.voltage() && role != Conductor.N;
 	}
 
 	@Override
 	public void build(Circuit circuit) {
 		if (motor != null) {
 			motor.build(circuit, worldPosition, List.of(TailingsPartBlock.boxFace(getBlockState())));
+			if (motor2 != null) {
+				motor2.build(circuit, secondBox(), List.of(TailingsPartBlock.boxFace(getBlockState())));
+			}
 		}
 	}
 
@@ -1308,12 +1339,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			// a started motor runs on through a gap in its feed instead of stopping and starting again on the next few kilograms
 			boolean runningOn = runOn > 0 && motor.state() != dev.wildcatter.circuit.Motor.State.STOPPED;
 			motor.apply(circuit, ticks, (demand || runningOn) && plcAllows());
+			if (motor2 != null) {
+				motor2.apply(circuit, ticks, (demand || runningOn) && plcAllows());
+			}
 		}
 	}
 
 	@Override
 	public Component inspect() {
-		String power = motor == null ? "no motor" : motor.describe();
+		String power = motor == null ? "no motor" : motor2 == null ? motor.describe() : "pinion 1: " + motor.describe() + "; pinion 2: " + motor2.describe();
 		StringBuilder held = new StringBuilder();
 		if (!hold.isEmpty()) {
 			held.append(String.format("; holds %.0f kg of rock", hold.total()));
@@ -1405,7 +1439,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			}
 		}
-		return Component.literal(machine().displayName() + " (" + machine().watts() / 1000.0 + " kW): " + status + held + "; " + power);
+		String rating = machine().motors() == 2 ? "2 x " + machine().watts() / 1000.0 + " kW" : machine().watts() / 1000.0 + " kW";
+		return Component.literal(machine().displayName() + " (" + rating + "): " + status + held + "; " + power);
 	}
 
 	@Override

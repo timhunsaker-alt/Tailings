@@ -1,0 +1,6 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/ball_mill_large/item"
+ }
+}
