@@ -95,7 +95,7 @@ public final class DryMillStages {
 		while (store.total() >= DryMill.ITEM_KG - 1e-6) {
 			HeavyMinerals before = new HeavyMinerals();
 			before.add(store);
-			Map<Mineral, Integer> bag = DryMill.bag(store);
+			HeavyMinerals bag = DryMill.bagged(store);
 			if (bag == null) {
 				break;
 			}
@@ -187,7 +187,7 @@ public final class DryMillStages {
 				}
 				DryMill.Pass pass = DryMill.separate(self, part.hmc().take(max));
 				for (Mineral mineral : pass.product().minerals()) {
-					part.cake().addKg(mineral, pass.product().kg(mineral) * DryMill.pay(mineral));
+					part.cake().addKg(mineral, pass.product().pay(mineral));
 				}
 				if (next != null && !pass.rest().isEmpty()) {
 					next.hmc().add(pass.rest());

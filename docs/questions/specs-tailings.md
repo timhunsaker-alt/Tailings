@@ -372,6 +372,7 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
   (TBM, blast) is the plant's real feed. Nothing pays over the block.
 - **Alternatives:** (a) count a raw item as a quarter of a block (it then pays 1 ingot through the plant: no gain, but no refusal); (b)
   disable Fortune on ores (changes vanilla, against Decision 1); (c) leave it (Fortune and copper multiply the ladder).
+- **Tim (2026-11-10):** ore blocks only (Silk Touch, the TBM, blasting); raw ore items get no plant value. Built (answers-2026-11-10.md #3).
 
 ### X-2. Which extra vanilla ores join the ladder (redstone, lapis)?
 - **Chosen:** **neither.** Recommended instead, later and only if Tim wants more: **diamond**, by its real route (DMS on the gravel face,
@@ -388,3 +389,4 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
   10.5 / 14.
 - **Why:** with raw items refused (X-1), a copper-ore block through the plant otherwise pays no more than mining it plainly.
 - **Alternatives:** keep 4 (the plant is pointless for vanilla copper ore, useful only for its nuggets); 8 (half-way).
+- **Tim (2026-11-10):** ore blocks only (#3); copper's block amount was not part of the answer, so it stays 4 (answers-2026-11-10.md #3).

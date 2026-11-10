@@ -19,8 +19,8 @@ import org.jspecify.annotations.Nullable;
  * Dense-medium separation (docs/multiblocks/dense-medium-separation.md, L7) on the double-deck screen's gravel face: the deslime
  * screen, the DMS cyclone module, its two drain-and-rinse screens and the medium recovery. Gravel from a belt over the deslime
  * screen's north end loses its -1 mm to a belt on the screen's east face and goes into the module touching it. The module splits it
- * by each rock's density against the medium's: the floats into the drain-and-rinse screen on its north side, which pays them out as
- * vanilla gravel for a hopper under it; the sinks into the one on its south side, which puts them on a belt off its south end, on to
+ * by each rock's density against the medium's: the floats into the drain-and-rinse screen on its north side, which puts them on a
+ * belt off its north end (or, with no belt there, pays them out as vanilla gravel for a hopper under it); the sinks into the one on its south side, which puts them on a belt off its south end, on to
  * the cone. The medium recovery touching the module makes up the ferrosilicon it loses.
  */
 public final class DenseMediumStages {
@@ -195,8 +195,10 @@ public final class DenseMediumStages {
 	};
 
 	/**
-	 * A drain-and-rinse screen: on the module's north side it drains the floats and pays them out as vanilla gravel, 1.9 t a block, for
-	 * a hopper under it or a hand; on its south side it drains the sinks onto a belt off its own south end.
+	 * A drain-and-rinse screen: on the module's north side it drains the floats onto a belt off its own north end, as gravel with their
+	 * rock, for the plant to treat again (the light ores among them can be recovered; Tim, 2026-11-10); with no belt there it pays them
+	 * out as vanilla gravel, 1.9 t a block, for a hopper under it or a hand. On the module's south side it drains the sinks onto a belt
+	 * off its own south end.
 	 */
 	static final Stage DRAIN_RINSE = new Stage() {
 		@Override
@@ -206,11 +208,12 @@ public final class DenseMediumStages {
 			if (floats) {
 				payGravel(part);
 			}
+			PlantBlockEntity.Sink belt = module == null ? null : part.sink(part.side(floats ? Direction.NORTH : Direction.SOUTH));
+			boolean gravel = floats && belt == null;
 			if (part.hold().isEmpty()) {
-				part.say(module == null ? "NOT BUILT: needs a DMS Cyclone Module touching it" : floats && full(part) ? "FULL: take the gravel" : "NO FEED");
+				part.say(module == null ? "NOT BUILT: needs a DMS Cyclone Module touching it" : gravel && full(part) ? "FULL: take the gravel" : "NO FEED");
 				return;
 			}
-			PlantBlockEntity.Sink belt = floats ? null : part.sink(part.side(Direction.SOUTH));
 			if (!floats && belt == null) {
 				part.say(Crushing.NOWHERE + " (a belt on its south end for the sinks, to the cone)");
 				return;
@@ -221,7 +224,7 @@ public final class DenseMediumStages {
 				return;
 			}
 			double max = DenseMedium.SCREEN_KG_PER_TICK * part.strength() * part.fast();
-			if (floats) {
+			if (gravel) {
 				if (full(part)) {
 					part.say("FULL: take the gravel");
 					return;
@@ -234,9 +237,12 @@ public final class DenseMediumStages {
 				return;
 			}
 			RockLoad taken = part.hold().take(max);
-			if (floats) {
+			if (gravel) {
 				part.made().add(taken);
 				part.say("draining the floats: " + Crushing.main(taken) + " out as gravel");
+			} else if (floats) {
+				belt.put(taken);
+				part.say("draining the floats: " + Crushing.main(taken) + " on the belt, back to the plant");
 			} else {
 				belt.put(taken);
 				part.say("draining the sinks: " + Crushing.main(taken) + " on to the cone");

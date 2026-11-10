@@ -114,7 +114,7 @@ for when I get back"). PROGRESS.md, "Open pit P4", has what was built.
 
 ### 17. PLC points for the press and the load-out
 - **Chosen:** left out for now; the press, the thickener and the load-out frame have the standard motor points (RUN, RUNNING,
-  STALLED, AUTO, AMPS, FILL). The spec's LEVEL, FULL, LOADING and CYCLE are a Known gap.
+  STALLED, AUTO, AMPS, FILL). The spec's LEVEL, FULL, LOADING and CYCLE were a Known gap; **built in gaps2** (gaps2.md #2).
 - **Why:** the plant's points are one shared list per motor; giving a part its own points is a change to that list for every part.
 
 ### 18. Sounds

@@ -668,3 +668,42 @@ Spec `docs/multiblocks/dragline.md` (approved by Tim; "As built" at its end). Bu
   left), `dragline_hard`, `dragline_plc`: the full suite, **186 pass** (180 before, 6 new). Unit tests: **198 pass** (`DraglineTest`
   new, `MachineTest` sizes). Client film `dragline` (`TAILINGS_ONLY=dragline`, `fabric/build/scene-videos/dragline.mov`, about
   3 minutes): the parts, the lift, 25 cycles cast into the last strip's hole, five steps, DONE with the strip uncovered.
+
+## gaps2: known gaps closed by adding behaviour (2026-11-10, branch `gaps2`)
+Closed while Tim was away, from ROADMAP's Known gaps; decisions in `docs/questions/gaps2.md` (8 entries). #4, #5 and #6 would change
+what an existing world does, so they are off by default behind `config/tailings-rules.properties` (`OptInRules`).
+- **Built:** the tailings filter's CYCLE and FULL and the load-out frame's LEVEL, FULL and LOADING PLC points (P4); LEVEL, FLOW and
+  DENSITY on the paste filter and mixer, DENSITY from a slurry's marked solids (L5); the headframe bin into a hopper or chest under it
+  (L4, `headframe_hopper`); wet paste spilling from a breached stone wall as from a bulkhead (L5, `paste_wall_breach`); paste making up
+  the time its chunk was unloaded (`paste.PasteClock`, L5, `paste_unloaded_cure`). The last three are off by default; their scenes turn
+  them on and hand them back.
+- **Checked, no code:** the fuel bay fills by pipe (P2a); muck tipped onto wet paste already rests on it (the Known gap was wrong).
+- **Left:** DMS floats on a belt (balance: the light ores would be recovered, l7-dms.md #4); battery locomotive PLC points (a moving
+  entity; the spec puts them on the charger, which has them).
+- **Scenes:** NeoForge `gaps_fuel_bay_pipe`, `gaps_press_points`, `gaps_loadout_points`, `gaps_paste_gauges`,
+  `gaps_headframe_hopper`, `gaps_paste_wall_breach`, `gaps_paste_catch_up`, `gaps_muck_on_paste`: **the full suite passes, 167
+  required tests** (159 before, 8 new); `build` passes.
+
+## Tim's answers built (2026-11-10, branch `answers`)
+Built from `docs/questions/answers-2026-11-10.md` (each answer marked there, and each matching entry in the wave question files).
+- **World rules (#5, #23):** `OptInRules` is now saved with the world (`data/tailings/rules.dat`) and set by `/tailings rule <name>
+  <true|false>` (operators; `/tailings rule` lists them). `ventilation_interlock`, `stale_air`, `headframe_hopper`,
+  `paste_unloaded_cure` and `dry_mill_all_hmc` are on in a new world (game time 0 and no Tailings data when its rules are made);
+  `paste_wall_breach` is off; a world saved before them has every rule off. The two old config files are read once, as a seed.
+  `mine.VentRules` is gone.
+- **Paste pace (#6):** a placed block stands for 10 m³ of the line's paste; a 360 m³ branch fills in about an hour.
+- **DMS floats on a belt (#7):** off the floats screen's north end, back to the plant as gravel with their rock. The ferrosilicon
+  placeholder stays until Wildcatter 0.7.0.
+- **XRT reverse (#8):** the sneaking click's second round of five steps, and PLC point 9 REVERSE.
+- **All HMC through the dry mill (#9):** the world rule `dry_mill_all_hmc`; each heap and bag of HMC carries what it pays. The
+  chlorinator compat needs a Wildcatter change, written in the answers file under "Wildcatter needs".
+- **gaps2 #2, #3 (#14):** the press's CYCLE is a one-second bit; the paste mixer's LEVEL and DENSITY read its paste hopper.
+- **Ore blocks only (#3):** raw iron, copper and gold and the Wildcatter ores' mined drops were plant feed (a whole block each); now
+  they are refused.
+- **Scenes:** NeoForge `rules_new_world`, `rules_existing_world`, `rules_command`, `raw_ore_refused`, `vent_new_world`, `paste_pace`,
+  `dry_mill_all_hmc`, `dms_floats_belt`, `xrt_reverse`, `gaps_press_cycle_bit`; `gaps_press_points` and `gaps_paste_gauges` changed;
+  the gaps2 rule scenes set the world rule and put it back. The test world is new, so scenes run with the rules on; an older world's
+  scenes (`vent_default_off`, `dry_mill_ladder`, `rules_existing_world`) run in a batch with every rule off (`RulesEnvironment`), and
+  the scenes that turn rules on and off in a batch of their own. **The full suite passes, 177 required tests** (167 before, 10 new);
+  `build` passes. Unit tests added to `DryMillTest`, `XrtSortingTest`, `PasteFillTest`, `AirflowTest`. The Fabric client film
+  `dms_floats_belt` (`TAILINGS_ONLY=dms_floats_belt`).

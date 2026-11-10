@@ -118,7 +118,7 @@ public enum Mineral {
 		return "tailings:" + name().toLowerCase() + "_concentrate";
 	}
 
-	/** What one pass of the 50% machine returns for a whole ore block or one mined drop. */
+	/** What one pass of the 50% machine returns for a whole ore block (a mined drop is no plant feed; specs-tailings.md X-1). */
 	public String phaseOneProductId() {
 		return smeltedId != null ? smeltedId : concentrateId();
 	}

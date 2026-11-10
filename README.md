@@ -28,6 +28,8 @@ Phases 1 through 3 are in the game. The current phase is a realignment with Wild
 - **Hand mill (2x).** A stamp mill and a hand screen break rock down the size ladder (crushed, gravel, sand). A shaking table and a magnetic separator pay the 50% route. Nine nuggets craft into one mineral item. Iron and gold use the vanilla nuggets.
 - **Concentrator (3x).** A true-size crushing circuit (grizzly, jaw, belt, screen, cone, ball mill, cyclones) grinds sand to fines. A flotation bank (conditioner, four roughers, two scavengers, two cleaners, blower, thickener, filter) pays 75% for the sulfides and for vanilla copper and gold. The motors are Wildcatter's, at 480 V or 4.16 kV.
 - **The mine.** A moving tunnel drill cuts an 8×8 face and leaves a 6×6 lined drive, with smooth 1-in-2 ramps, a stair walkway, and twin mine rail. It pauses when the muck buffer is full. A traction rectifier feeds the rail. A locomotive hauls up to ten cars (nine stacks each) to a dump that sorts the load. Fed rails power lights and signals. Trains hurt players and mobs unless `config/tailings-train.properties` says otherwise. A running drill or train keeps its own chunks loaded with a ticket that lets go about 10 s after it stops.
+- **Ore blocks only.** The plant takes ore blocks (Silk Touch, the drill, a blast), not raw ore items or an ore's mined drop.
+- **World rules.** What would change an existing world (the drill's NO VENTILATION interlock, stale air, the paste rules, the all-HMC dry mill) is a rule saved with the world: on in a new world (all but the paste wall breach, which is off until set), off in one saved before them. An operator lists and sets them with `/tailings rule`.
 
 ## Docs
 

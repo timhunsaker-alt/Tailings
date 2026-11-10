@@ -2,6 +2,7 @@ package dev.wildcatter.tailings.mine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -74,10 +75,11 @@ class AirflowTest {
 	}
 
 	@Test
-	void theRulesAreOffUnlessTheConfigTurnsThemOn() {
-		assertFalse(VentRules.flag(java.util.List.of(), "interlock"));
-		assertFalse(VentRules.flag(java.util.List.of("stale_air=true"), "interlock"));
-		assertTrue(VentRules.flag(java.util.List.of(" interlock=true "), "interlock"));
-		assertFalse(VentRules.flag(java.util.List.of("interlock=yes"), "interlock"));
+	void theOldFileOnlyCountsWhereItSaysSo() {
+		// read once, when a world's rules are made: a key not there leaves the world's default
+		assertNull(dev.wildcatter.tailings.RuleFile.value(java.util.List.of(), "interlock"));
+		assertNull(dev.wildcatter.tailings.RuleFile.value(java.util.List.of("stale_air=true"), "interlock"));
+		assertEquals(Boolean.TRUE, dev.wildcatter.tailings.RuleFile.value(java.util.List.of(" interlock=true "), "interlock"));
+		assertEquals(Boolean.FALSE, dev.wildcatter.tailings.RuleFile.value(java.util.List.of("interlock=yes"), "interlock"));
 	}
 }

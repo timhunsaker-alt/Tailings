@@ -71,4 +71,12 @@ class PasteFillTest {
 		assertEquals(24_000, PasteFill.cureStepTicks() * PasteFill.CURE_STEPS);
 		assertEquals(3_000, PasteFill.cureStepTicks());
 	}
+
+	@Test
+	void aDriveBranchFillsInAboutAnHour() {
+		// Tim, 2026-11-10 (l5-paste.md #19): ten times the real pace; the cure stays a game day
+		assertEquals(200, PasteFill.kgPerBlock(), 1e-9);
+		assertEquals(1.03, PasteFill.hoursToFill(360), 0.01);
+		assertEquals(24_000, PasteFill.CURE_TICKS);
+	}
 }

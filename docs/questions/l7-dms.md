@@ -42,6 +42,7 @@ an existing world (#1).
 - **Question:** is this trap acceptable, or should the module pass rocks it should never see (anything lighter than the medium's
   bottom, 2.6) straight through to the sinks? The player can already keep them off the DMS line with the ore sorter.
 - **Alternatives:** pass-through for those rocks (unreal but forgiving); a warning on the module only.
+- **Tim (2026-11-10):** floats ride a belt, so the light ores can be recovered. Built: see #11 (answers-2026-11-10.md #7).
 
 ### 5. The sinks go round again (needs you)
 - **Chosen:** the sinks go out on a belt off the sinks screen's south end, to the cone as the spec says. The cone's gravel comes back
@@ -78,6 +79,7 @@ an existing world (#1).
   ferroalloys. When it exists, the recipe should become FeSi 75 diluted with steel scrap, or a direct conversion.
 - **Question:** keep this recipe until then, or make it from Wildcatter's steel and silicon items when they exist?
 - **Alternatives:** magnetite medium from the magnetic separator (real for coal; too light for a 2.75 medium in practice).
+- **Tim (2026-11-10):** make the medium from Wildcatter's ferrosilicon bag (FeSi 75 + iron to FeSi 15) once Phase 17 is released; keep the placeholder until then. Kept; it waits for Wildcatter 0.7.0 (answers-2026-11-10.md #7).
 
 ### 9. Ferrosilicon losses, and no starting charge
 - **Chosen:** 0.3 kg a tonne of feed *(proposed; real 0.1-0.5)* comes out of the medium recovery's hopper (1 t, 40 bags). With an
@@ -99,6 +101,7 @@ an existing world (#1).
 - **Why:** the spec (1 block for each 1.9 t, open-pit.md's loose gravel); belts carry plant rock by kind and size, and gravel is not a
   plant rock. A block of rock (2.7 t) gives about 1.4 blocks of gravel: it bulks.
 - **Alternatives:** floats on a belt as rock to a stockpile bin (a new kind of load).
+- **Tim (2026-11-10):** floats ride a belt. Built: a belt off the floats screen's north end takes the floats as gravel with their rock, back to the plant; with no belt there, vanilla gravel as before (answers-2026-11-10.md #7).
 
 ### 12. The rates and the water
 - **Chosen:** the module 60 t/h *(unverified, the spec)*, the deslime and both drain-and-rinse screens the same; 0.15 L of make-up

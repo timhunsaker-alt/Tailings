@@ -37,9 +37,9 @@ import net.minecraft.world.phys.Vec3;
  * in stale air; a booster on 3.5 km of duct; and a world with the rules off (the default) runs as before.
  */
 final class VentGameTests {
-	static final String[] SCENES = {"vent_fresh", "vent_cassette", "vent_stale_player", "vent_booster", "vent_default_off", "vent_parts"};
-	static final Set<String> LONG = Set.of("vent_fresh", "vent_cassette", "vent_stale_player", "vent_default_off");
-	private static final Map<String, Integer> PADDING = Map.of("vent_fresh", 80, "vent_cassette", 80, "vent_stale_player", 80, "vent_default_off", 60);
+	static final String[] SCENES = {"vent_fresh", "vent_cassette", "vent_stale_player", "vent_booster", "vent_default_off", "vent_parts", "vent_new_world"};
+	static final Set<String> LONG = Set.of("vent_fresh", "vent_cassette", "vent_stale_player", "vent_default_off", "vent_new_world");
+	private static final Map<String, Integer> PADDING = Map.of("vent_fresh", 80, "vent_cassette", 80, "vent_stale_player", 80, "vent_default_off", 60, "vent_new_world", 60);
 
 	private VentGameTests() {
 	}
@@ -51,6 +51,7 @@ final class VentGameTests {
 		out.accept("vent_booster", VentGameTests::booster);
 		out.accept("vent_default_off", VentGameTests::defaultOff);
 		out.accept("vent_parts", VentGameTests::parts);
+		out.accept("vent_new_world", VentGameTests::newWorld);
 	}
 
 	static int padding(String scene, int otherwise) {
@@ -248,8 +249,8 @@ final class VentGameTests {
 	}
 
 	/**
-	 * With nothing in config/tailings-ventilation.properties (every world before L1), a TBM with no ventilation at all reads POOR AIR
-	 * and drives on past the grace, as it always has.
+	 * In a world saved before the world rules (vent_default_off runs with them off, as every world before L1 loads), a TBM with no
+	 * ventilation at all reads POOR AIR and drives on past the grace, as it always has.
 	 */
 	private static void defaultOff(GameTestHelper helper) {
 		BlockPos c = new BlockPos(4, 40, 20);
@@ -264,6 +265,27 @@ final class VentGameTests {
 			helper.assertTrue(machine.core().status() != DrillCodes.NO_VENTILATION && machine.core().drill().advanceCount() >= 8,
 					Component.literal("and drives on with the interlock off, at " + machine.core().readout()));
 			helper.succeed();
+		});
+	}
+
+	/**
+	 * In a new world (vent_new_world) the world's {@code ventilation_interlock} rule is on (Tim, 2026-11-10, l1-ventilation.md #1, #2):
+	 * a TBM with no ventilation reads POOR AIR, then stops NO VENTILATION after the grace (shortened for the scene), without a test
+	 * forcing the interlock on.
+	 */
+	private static void newWorld(GameTestHelper helper) {
+		helper.assertTrue(dev.wildcatter.tailings.OptInRules.on(helper.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.VENTILATION_INTERLOCK)
+				&& dev.wildcatter.tailings.OptInRules.on(helper.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.STALE_AIR),
+				Component.literal("a new world has the interlock and stale air on"));
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = TailingsGameTests.tbm(helper, c, 24, true);
+		TailingsGameTests.feed(helper, c);
+		cab.core().setTestInterlock(false, 60);   // not forced: the world's rule; a 3 s grace for the scene
+		TailingsGameTests.go(cab, 10);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = TailingsGameTests.machine(helper, c);
+			helper.assertTrue(machine != null && machine.core().status() == DrillCodes.NO_VENTILATION,
+					Component.literal("no fan: it should stop NO VENTILATION, at " + (machine == null ? "no machine" : machine.core().readout())));
 		});
 	}
 

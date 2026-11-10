@@ -30,5 +30,8 @@ public final class TailingsFabric implements ModInitializer {
 				.build());
 		// the drive's air: players in stale air, once a second (ventilation.md)
 		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_LEVEL_TICK.register(dev.wildcatter.tailings.block.VentNetwork::tickPlayers);
+		// the world's rules (OptInRules): made at server start, before the first tick, and changed by /tailings rule
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(dev.wildcatter.tailings.OptInRules::serverStarted);
+		net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register((dispatcher, registry, selection) -> dev.wildcatter.tailings.TailingsCommands.register(dispatcher));
 	}
 }

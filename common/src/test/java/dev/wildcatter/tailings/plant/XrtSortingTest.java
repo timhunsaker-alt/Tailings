@@ -94,9 +94,32 @@ class XrtSortingTest {
 		for (int i = 0; i < 10; i++) {
 			back.nextStep();
 		}
-		assertEquals(state.step(), back.step(), "five steps round");
+		assertEquals(state.step(), back.step(), "five steps, then the five in reverse, round");
+		assertEquals(state.reverse(), back.reverse());
 		XrtSorting.State blank = new XrtSorting.State();
 		blank.load("");
 		assertEquals(XrtSorting.DEFAULT_STEP, blank.step());
+	}
+
+	@Test
+	void reverseKeepsWhatReadsUnderTheThreshold() {
+		// Tim, 2026-11-10 (l8-xrt.md #5): graphite reads under quartz, so only reverse can upgrade it
+		int step = XrtSorting.DEFAULT_STEP;
+		assertEquals(0.05, XrtSorting.productShare(Rock.GRAPHITE, step), EPS);
+		assertEquals(0.97, XrtSorting.productShare(Rock.GRAPHITE, step, true), EPS);
+		assertEquals(0.97, XrtSorting.productShare(Rock.GALENA, step), EPS);
+		assertEquals(0.05, XrtSorting.productShare(Rock.GALENA, step, true), EPS);
+		XrtSorting.State state = new XrtSorting.State();
+		assertFalse(state.reverse(), "a new sorter sorts as built");
+		for (int i = state.step(); i < XrtSorting.THRESHOLDS.length; i++) {
+			state.nextStep();
+		}
+		assertTrue(state.reverse() && state.step() == 0, "past HIGH the screen goes to LOW in reverse");
+		XrtSorting.State back = new XrtSorting.State();
+		back.load(state.save());
+		assertTrue(back.reverse(), "reverse is saved");
+		back.load("1|0|0");
+		assertFalse(back.reverse(), "a sorter saved before it loads as built");
+		assertTrue(XrtSorting.describe(0, true).contains("REVERSE"));
 	}
 }

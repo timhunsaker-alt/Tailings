@@ -27,3 +27,4 @@ Decisions taken outside any one agent's wave, in the order they came up.
 - The plant counts one raw ore item as a whole ore block, so Fortune multiplies ore (about 8.8 iron ingots a block at Fortune III,
   plain copper about 14). The recommendation is to take only ore blocks (Silk Touch) and refuse raw items, but that changes how
   everyone feeds the plant, so it is not built. See `specs-tailings.md`, X-1 and X-3.
+- **Tim (2026-11-10):** ore blocks only; raw ore items get no plant value. Built: raw iron, copper and gold and every Wildcatter ore's mined drop are no plant feed (answers-2026-11-10.md #3).

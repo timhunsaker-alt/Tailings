@@ -9,7 +9,8 @@ import java.util.List;
 
 /**
  * A slurry part's level and density gauges (docs/questions/plc-13i.md). They read its feed tank, the inlet buffer a part draws its
- * feed into off the pipe; the mill, the cyclones and the heap pad have none, and read their discharge sump. A part backed up by a full
+ * feed into off the pipe; the mill, the cyclones and the heap pad have none, and read their discharge sump; the paste mixer reads its
+ * paste hopper. A part backed up by a full
  * outlet stops drawing down its feed, so its feed tank fills: the level shows it.
  */
 public final class SlurryGauge {
@@ -26,6 +27,10 @@ public final class SlurryGauge {
 			case CYCLONE -> Grinding.OVERFLOW_HOLD;
 			case SPIRAL_BANK, SCAVENGER_SPIRAL_BANK, CONDITIONER, ACTIVATION_TANK, FLOTATION_BANK, THICKENER, FILTER, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER,
 					ELECTROWINNING_BANK, HEAP_PAD -> Flotation.HOLD;
+			// the paste filter's feed of thickened tails (paste-backfill.md, L5; docs/questions/gaps2.md #3)
+			case PASTE_FILTER -> Flotation.HOLD;
+			// the mixer's paste hopper, what the pump draws on (Tim, 2026-11-10, gaps2.md #3)
+			case PASTE_MIXER -> Paste.PASTE_HOLD;
 			default -> 0;
 		};
 	}
@@ -37,7 +42,7 @@ public final class SlurryGauge {
 
 	private static SlurryHold tank(PlantBlockEntity part) {
 		return switch (part.machine()) {
-			case BALL_MILL, CYCLONE, HEAP_PAD -> part.out();
+			case BALL_MILL, CYCLONE, HEAP_PAD, PASTE_MIXER -> part.out();
 			default -> part.back();
 		};
 	}
@@ -58,6 +63,15 @@ public final class SlurryGauge {
 		return hold <= 0 ? 0 : heldKg(part) / hold;
 	}
 
+	/**
+	 * A product's density as its tank holds it: the solids its assay is marked with (thickened tails and paste carry
+	 * {@code tailings:solids}, as Wildcatter 0.5.1 has no product for them), else the product's own.
+	 */
+	private static double density(Product product, SlurryHold tank) {
+		double marked = tank.assayOf(product).get(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY);
+		return marked > 0 ? PlcScale.density(marked) : PlcScale.density(product);
+	}
+
 	/** The density of what its tank holds, kg/L; an empty tank reads as water. */
 	public static double density(PlantBlockEntity part) {
 		SlurryHold tank = tank(part);
@@ -65,7 +79,7 @@ public final class SlurryGauge {
 		for (Product product : SLURRIES) {
 			double held = tank.held(product);
 			kg += held;
-			litres += held / PlcScale.density(product);
+			litres += held / density(product, tank);
 		}
 		return litres <= 1e-9 ? PlcScale.DENSITY_LOW : kg / litres;
 	}

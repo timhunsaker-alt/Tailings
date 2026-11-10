@@ -3,9 +3,7 @@ package dev.wildcatter.tailings.block;
 import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.mine.Airflow;
-import dev.wildcatter.tailings.mine.VentRules;
 import dev.wildcatter.tailings.plant.Machine;
-import dev.wildcatter.tailings.platform.Platform;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * The drive's air in the world (docs/multiblocks/ventilation.md): each ventilation fan reads its duct line once a second and says here
  * where it ends and the air it gives there. The bore is fresh from the portal to the duct's end plus 30 m, and beside the duct; a TBM's
  * back-up, a player or a gas detector asks {@link #airAt}. Players in a drive's stale air are counted here each second, and suffer only
- * where {@code config/tailings-ventilation.properties} turns stale air on ({@link VentRules}).
+ * where the world's {@code stale_air} rule is on ({@link dev.wildcatter.tailings.OptInRules}).
  */
 public final class VentNetwork {
 	/** A fan's line as last read: where it ends, its length, its air, and when it was read. */
@@ -55,7 +53,7 @@ public final class VentNetwork {
 	private static final Map<Level, Map<Long, Long>> CELLS = new WeakHashMap<>();
 	/** Seconds each player has spent in stale air, and in fresh air since. Not saved. */
 	private static final Map<UUID, int[]> PLAYERS = new HashMap<>();
-	/** Players a game test makes feel stale air whatever the config says. */
+	/** Players a game test makes feel stale air whatever the world's rule says. */
 	public static final Set<UUID> TEST_STALE = new HashSet<>();
 
 	private VentNetwork() {
@@ -291,7 +289,7 @@ public final class VentNetwork {
 	// ---- players --------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * Once a second: each player in a drive's stale air counts it, and one holding a gas detector sees the reading. Where the config turns
+	 * Once a second: each player in a drive's stale air counts it, and one holding a gas detector sees the reading. Where the world's rule turns
 	 * stale air on (or a test does for its player), 30 s of it gives Mining Fatigue I and 2 minutes Weakness I; 5 s of fresh air clears
 	 * them (within the spec's 10 s).
 	 */
@@ -299,7 +297,7 @@ public final class VentNetwork {
 		if (level.getGameTime() % 20 != 0) {
 			return;
 		}
-		boolean rule = VentRules.staleAir(level.getServer(), Platform.INSTANCE.configDir().resolve("tailings-ventilation.properties"));
+		boolean rule = dev.wildcatter.tailings.OptInRules.on(level.getServer(), dev.wildcatter.tailings.OptInRules.STALE_AIR);
 		for (ServerPlayer player : level.players()) {
 			if (player.isSpectator()) {
 				continue;

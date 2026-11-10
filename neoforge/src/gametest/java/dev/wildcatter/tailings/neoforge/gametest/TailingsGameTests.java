@@ -92,6 +92,8 @@ public class TailingsGameTests {
 			"dump_station", "dump_waits", "traction_dc", "tbm_train_stops", "tbm_train_turns", "byproducts", "selective_float", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "flotation", "dump_signal", "bulk_concentrate", "screen_gravel", "playthrough_crushing");
 
 	public TailingsGameTests(IEventBus modBus) {
+		// Tailings' world rules for a batch of scenes (RulesEnvironment)
+		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_ENVIRONMENT_DEFINITION_TYPE, helper -> helper.register(id("tailings_rules"), RulesEnvironment.CODEC)));
 		modBus.addListener(RegisterEvent.class, event -> event.register(Registries.TEST_FUNCTION, helper -> {
 			helper.register(id("registers"), loaded(TailingsGameTests::registers));
 			helper.register(id("stamp"), loaded(TailingsGameTests::stamp));
@@ -169,6 +171,8 @@ public class TailingsGameTests {
 			XrtGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			PitLineGameTests.register((name, scene) -> helper.register(id(name), scene));
 			PitFlotationGameTests.register((name, scene) -> helper.register(id(name), scene));
+			Gaps2GameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			AnswersGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			helper.register(id("belt_transit"), loaded(TailingsGameTests::beltTransit));
 			helper.register(id("feed_face"), loaded(TailingsGameTests::feedFace));
 			helper.register(id("screen_gravel"), loaded(TailingsGameTests::screenGravel));
@@ -238,13 +242,17 @@ public class TailingsGameTests {
 			helper.register(id("dragline_plc"), wide("dragline_plc", DraglineGameTests::plc));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
+			// the test world is a new world, so Tailings' world rules are on (OptInRules); scenes of a world saved before them run in a
+			// batch of their own with every rule off, and scenes that turn a rule on and off run in another, apart from the rest
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			Holder<TestEnvironmentDefinition<?>> existing = event.registerEnvironment(id("existing_world"), RulesEnvironment.existingWorld());
+			Holder<TestEnvironmentDefinition<?>> ruleScenes = event.registerEnvironment(id("rule_scenes"), new RulesEnvironment(dev.wildcatter.tailings.OptInRules.NEW_WORLD));
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, Gaps2GameTests.SCENES, AnswersGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitFlotationGameTests.ticks(scene, PitLineGameTests.ticks(scene, PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) ? 1600 : 400))))))), 1, true,
+						new TestData<>(AnswersGameTests.EXISTING_WORLD.contains(scene) ? existing : AnswersGameTests.RULE_SCENES.contains(scene) ? ruleScenes : plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), PitFlotationGameTests.ticks(scene, PitLineGameTests.ticks(scene, AnswersGameTests.ticks(scene, Gaps2GameTests.ticks(scene, PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) || Gaps2GameTests.LONG.contains(scene) || AnswersGameTests.LONG.contains(scene) ? 1600 : 400))))))))), 1, true,
 								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, PitFlotationGameTests.padding(scene, PitLineGameTests.padding(scene, VentGameTests.padding(scene, TrainsGameTests.padding(scene, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40)))))))));
 			}
 		});

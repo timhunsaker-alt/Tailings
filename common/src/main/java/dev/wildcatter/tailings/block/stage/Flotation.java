@@ -296,9 +296,16 @@ final class Flotation {
 			}
 			Slurry.Taken taken = use(part, Product.THICKENED_CONCENTRATE, Math.min(FEED_PER_TICK * part.strength(), waiting));
 			SlurryAssay cake = Selective.cake(taken.assay());
+			// the world's dry_mill_all_hmc rule (on in new worlds): with a dryer touching it, the spiral bank's heavy minerals are HMC too,
+			// paid by the separators at the filter's own 1.0 a kg (l6-dry-mill.md #3); off, or with no dryer, they are paid here as before
+			boolean allHmc = part.touching(Machine.FLUID_BED_DRYER) != null
+					&& dev.wildcatter.tailings.OptInRules.on(part.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.DRY_MILL_ALL_HMC);
 			for (String id : cake.minerals()) {
 				Mineral mineral = Assays.mineral(id);
-				if (mineral != null) {
+				if (mineral != null && allHmc && dev.wildcatter.tailings.plant.DryMill.takes(mineral)) {
+					double kg = cake.get(id) * taken.kg();
+					part.hmc().add(mineral, kg, kg * dev.wildcatter.tailings.plant.DryMill.PRIMARY_PAY);
+				} else if (mineral != null) {
 					part.cake().addKg(mineral, cake.get(id) * taken.kg());
 				}
 			}

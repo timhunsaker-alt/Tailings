@@ -88,7 +88,7 @@ world (#21).
 
 ### 12. The headframe bin holds kilograms and feeds a belt
 - **Chosen:** 100 t of rock by rock and size (as the plant's belts carry it), out of its bottom onto a belt under it at the belt's rate.
-  A hopper under it takes nothing.
+  A hopper under it takes nothing. **Since gaps2**, with `headframe_hopper` on (off by default), a hopper or chest under it (with no belt) takes its rock as items (gaps2.md #4).
 - **Why:** the spec: "feeding a belt to the plant". The plant's belts already carry kilograms.
 - **Alternatives:** an item bin like the ore bin (8,192 items), so hoppers could empty it.
 

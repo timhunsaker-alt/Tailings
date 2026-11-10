@@ -71,7 +71,10 @@ public final class DryMill {
 		return machine == Machine.RER_SEPARATOR || machine == Machine.HT_ROLL_SEPARATOR || machine == Machine.IRM_SEPARATOR;
 	}
 
-	/** What a separator pays a kg won: the top rung's rate for what does not float (1.11), so 45 % pays as 50 % and the line makes 4x. */
+	/**
+	 * What a separator pays a kg won of the scavenger spirals' share: the top rung's rate for what does not float (1.11), so 45 % pays
+	 * as 50 % and the line makes 4x. A heap carries its own pay ({@link HeavyMinerals#pay}).
+	 */
 	public static double pay(Mineral mineral) {
 		return FullRecoveryRates.topRungPay(mineral);
 	}
@@ -154,7 +157,7 @@ public final class DryMill {
 		HeavyMinerals product = new HeavyMinerals();
 		HeavyMinerals rest = new HeavyMinerals();
 		for (Mineral mineral : feed.minerals()) {
-			(separator(mineral) == separator ? product : rest).add(mineral, feed.kg(mineral));
+			(separator(mineral) == separator ? product : rest).addAll(feed, mineral);
 		}
 		return new Pass(product, rest);
 	}
@@ -164,21 +167,45 @@ public final class DryMill {
 	 * while it holds under a bag.
 	 */
 	public static @Nullable Map<Mineral, Integer> bag(HeavyMinerals store) {
+		HeavyMinerals bag = bagged(store);
+		if (bag == null) {
+			return null;
+		}
+		Map<Mineral, Integer> out = new java.util.EnumMap<>(Mineral.class);
+		for (Mineral mineral : bag.minerals()) {
+			out.put(mineral, (int) Math.round(bag.kg(mineral)));
+		}
+		return out;
+	}
+
+	/** As {@link #bag}, the bag with what it pays: a bag holding the spiral bank's share keeps its lower rate. */
+	public static @Nullable HeavyMinerals bagged(HeavyMinerals store) {
 		double total = store.total();
 		if (total < ITEM_KG - 1e-6) {
 			return null;
 		}
-		Map<Mineral, Integer> bag = new java.util.EnumMap<>(Mineral.class);
+		Map<Mineral, Integer> whole = new java.util.EnumMap<>(Mineral.class);
 		for (Mineral mineral : store.minerals()) {
-			int whole = (int) Math.floor(store.kg(mineral) * ITEM_KG / total + 1e-9);
-			if (whole > 0) {
-				bag.put(mineral, whole);
+			int kg = (int) Math.floor(store.kg(mineral) * ITEM_KG / total + 1e-9);
+			if (kg > 0) {
+				whole.put(mineral, kg);
 			}
 		}
-		if (bag.isEmpty()) {
+		if (whole.isEmpty()) {
 			return null;
 		}
-		bag.forEach((mineral, kg) -> store.remove(mineral, kg));
+		HeavyMinerals bag = new HeavyMinerals();
+		whole.forEach((mineral, kg) -> {
+			double rate = store.rate(mineral);
+			store.remove(mineral, kg);
+			bag.add(mineral, kg, kg * rate);
+		});
 		return bag;
 	}
+
+	/**
+	 * What the spiral bank's own share pays a kg in the dry mill, when the world's {@code dry_mill_all_hmc} rule sends it there: 1.0,
+	 * as the filter pays it, so the line's 2x moves to the separators without changing (l6-dry-mill.md #3).
+	 */
+	public static final double PRIMARY_PAY = 1.0;
 }

@@ -107,6 +107,49 @@ Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
   left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
   detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
   shot fires with a machine or vehicle in the rock it breaks.
+
+### Tim's answers built (2026-11-10, branch `answers`)
+
+- **World rules:** what changes how an existing world plays is now a rule saved with the world, not a config file: the drill's NO
+  VENTILATION interlock (`ventilation_interlock`), `stale_air`, `headframe_hopper`, `paste_unloaded_cure` and the new
+  `dry_mill_all_hmc` are on in a new world; `paste_wall_breach` is off until set. A world saved before this version loads with every
+  rule off. `/tailings rule` lists them; `/tailings rule <name> <true|false>` sets one (operators). The old
+  `config/tailings-rules.properties` and `config/tailings-ventilation.properties` are read once, when a world's rules are made.
+- **Paste fills ten times as fast:** a placed block of paste fill stands for 10 m³ of the line's paste, so a 360 m³ drive branch fills
+  in about an hour; the cure is still a game day.
+- **All heavy mineral concentrate through the dry mill** (`dry_mill_all_hmc`): a filter with a dryer touching it sends the spiral
+  bank's share there too, paid at 1.0 a kg; the line still makes 4x. Off, or with no dryer, as before.
+- **DMS floats on a belt:** a belt off the floats screen's north end takes the floats back to the plant as gravel with their rock, so
+  the light ores (rock salt, potash, borax and the rest) can be recovered. With no belt, vanilla gravel as before.
+- **X-ray sorter reverse mode:** past HIGH the sneaking click steps through the five thresholds in reverse, keeping what reads under
+  the threshold (graphite, magnesite, borax, bauxite at LOW); the PLC's new REVERSE point (9) sets it in AUTO. A new sorter sorts as
+  before.
+- **PLC:** the tailings filter's CYCLE is a one-second bit at each cake drop (it was a pulse count); the paste mixer's LEVEL and
+  DENSITY read its paste hopper.
+- **Ore blocks only:** raw iron, copper and gold and every Wildcatter ore's mined drop are no longer plant feed.
+- **Waits on Wildcatter:** the chlorinator taking Tailings' zircon concentrate (the request is in
+  `docs/questions/answers-2026-11-10.md`); the medium from Wildcatter's ferrosilicon (0.7.0).
+- **Tests:** `rules_new_world`, `rules_existing_world`, `rules_command`, `raw_ore_refused`, `vent_new_world`, `paste_pace`,
+  `dry_mill_all_hmc`, `dms_floats_belt`, `xrt_reverse`, `gaps_press_cycle_bit`; the Fabric client film `dms_floats_belt`.
+
+### gaps2: known gaps closed (2026-11-10, decided while Tim was away)
+
+- **Press and load-out PLC points:** the tailings filter adds CYCLE (a pulse each cake drop) and FULL; the load-out frame adds LEVEL
+  (the bin's 400 t over 4-20 mA), FULL and LOADING. Added after the motor's six points, so existing wiring reads the same.
+- **Paste filter and mixer gauges:** LEVEL, FLOW and DENSITY on their feed tanks, as every slurry part has; DENSITY reads a tails
+  slurry's marked solids (thickened tails 1.61 kg/L, paste 1.97) rather than plain tails'.
+- **Three fixes off by default,** as they would change existing worlds; each is a key in the new `config/tailings-rules.properties`:
+  - `headframe_hopper=true`: with no belt under it, a hopper or chest under a headframe bin takes its rock as items, a block's worth
+    (2.7 t) an item, at the belt's rate.
+  - `paste_wall_breach=true`: removing any solid block beside wet paste, with open ground in its place, lets the paste run out as a
+    broken bulkhead does.
+  - `paste_unloaded_cure=true`: a chunk's wet paste makes up the time its chunk was unloaded on its first cure step back (from its
+    first step with the rule on; earlier waiting is not jumped forward).
+- **Checked:** the fuel bay fills its day tank by pipe; muck tipped onto wet paste rests on it (the Known gap that said otherwise was
+  wrong).
+- **Tests:** `gaps_fuel_bay_pipe`, `gaps_press_points`, `gaps_loadout_points`, `gaps_paste_gauges`, `gaps_headframe_hopper`,
+  `gaps_paste_wall_breach`, `gaps_paste_catch_up`, `gaps_muck_on_paste`. Decisions in `docs/questions/gaps2.md`.
+
 ### L7: dense-medium separation (2026-11-10, decided while Tim was away)
 
 - **Deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery:** on the belt off the double-deck screen's gravel

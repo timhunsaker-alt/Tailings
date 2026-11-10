@@ -32,6 +32,7 @@ existing world (#1).
 - **Real counterpart:** a real mineral sands plant sends all its HMC, primary and scavenger, through the dry mill.
 - **Alternatives:** the whole HMC through the dry mill, the separators paying the primary share at 1.0 and the scavenger share at 1.11
   (truer flow; the dry mill would then carry the 2x as well, and the filter's 2x would move for anyone who builds a dryer).
+- **Tim (2026-11-10):** all HMC through the dry mill, as a per-world rule on in new worlds. Built: `dry_mill_all_hmc`; a filter with a dryer touching it sends the spiral bank's share too, paid at 1.0 a kg (the scavengers' at 1.11), so the line still makes 4x; with no dryer, or the rule off, as before (answers-2026-11-10.md #9).
 
 ### 4. Which minerals the dry mill takes
 - **Chosen:** ilmenite, rutile, zircon, monazite and cassiterite (L6-1's list). Iron, chromite and scheelite, which the spirals also
@@ -108,6 +109,7 @@ existing world (#1).
 - **Recommendation:** yes, as a tag in Wildcatter (`#wildcatter:zircon_feed`) holding its own zircon and, when Tailings is present,
   Tailings' `zircon_concentrate` at its item's 56.25 kg. Nothing was built: it changes Wildcatter.
 - **Alternatives:** a crafting conversion in Tailings; leave the two chains apart.
+- **Tim (2026-11-10):** yes, Wildcatter's chlorinator takes Tailings' zircon concentrate. Not buildable from Tailings' side (no Wildcatter tag or API takes it); what Wildcatter needs is written in (answers-2026-11-10.md "Wildcatter needs").
 
 ### 15. Recipes and art
 - **Chosen:** placeholder recipes of Wildcatter steel, an industrial cable and a distinct centre each (a bucket, a blast furnace,

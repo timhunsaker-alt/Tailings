@@ -11,8 +11,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The X-ray transmission ore sorter and its compressor (docs/multiblocks/xrt-ore-sorter.md, L8). Crushed rock or gravel comes in by a
- * belt over its north (feed) end, a hopper or a hand; each piece is read and the ones over the threshold are blown by the ejectors off
- * its south (discharge) end onto the product belt; the rest drop out of its east face onto the waste belt. With no air it ejects
+ * belt over its north (feed) end, a hopper or a hand; each piece is read and the ones over the threshold (in reverse, under it) are
+ * blown by the ejectors off its south (discharge) end onto the product belt; the rest drop out of its east face onto the waste belt. With no air it ejects
  * nothing, so it stops rather than send ore to waste.
  */
 final class Xrt {
@@ -62,9 +62,10 @@ final class Xrt {
 				return;
 			}
 			int step = part.xrtStep();
+			boolean reverse = part.xrtReverse();
 			RockLoad toProduct = new RockLoad();
 			RockLoad toWaste = new RockLoad();
-			split(part.hold(), step, toProduct, toWaste);
+			split(part.hold(), step, reverse, toProduct, toWaste);
 			double total = part.hold().total();
 			double productShare = toProduct.total() / total;
 			double gravel = part.hold().total((rock, size) -> size == SizeClass.GRAVEL) / total;
@@ -82,7 +83,7 @@ final class Xrt {
 			RockLoad taken = part.hold().take(max);
 			toProduct.clear();
 			toWaste.clear();
-			split(taken, step, toProduct, toWaste);
+			split(taken, step, reverse, toProduct, toWaste);
 			if (!toProduct.isEmpty()) {
 				product.put(toProduct);
 			}
@@ -90,15 +91,15 @@ final class Xrt {
 				waste.put(toWaste);
 			}
 			part.xrt().sent(toProduct.total(), toWaste.total());
-			part.say("sorting " + Crushing.main(taken));
+			part.say((reverse ? "sorting in reverse " : "sorting ") + Crushing.main(taken));
 			part.setChanged();
 		}
 	};
 
-	/** Each rock's kg split two ways at {@code step}, keeping its size. */
-	static void split(RockLoad load, int step, RockLoad toProduct, RockLoad toWaste) {
+	/** Each rock's kg split two ways at {@code step} (in reverse, keeping what reads under it), keeping its size. */
+	static void split(RockLoad load, int step, boolean reverse, RockLoad toProduct, RockLoad toWaste) {
 		load.forEach((rock, size, kg) -> {
-			double share = XrtSorting.productShare(rock, step);
+			double share = XrtSorting.productShare(rock, step, reverse);
 			toProduct.add(rock, size, kg * share);
 			toWaste.add(rock, size, kg * (1 - share));
 		});

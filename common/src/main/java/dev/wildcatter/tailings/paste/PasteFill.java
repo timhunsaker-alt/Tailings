@@ -43,6 +43,14 @@ public final class PasteFill {
 	/** The longest line the pump will trace: a little past where it reads LINE PRESSURE on the flat. */
 	public static final int MOST_LINE_PIPES = 1_500;
 
+	/**
+	 * The fill's game pace (Tim, 2026-11-10, l5-paste.md #19): each placed block of paste fill stands for this many cubic metres of
+	 * the paste the line delivers, so a void fills ten times as fast as the real 34 m3 an hour: a 360 m3 drive branch in about an
+	 * hour of play, not eleven. Everything up the line (the filter, the mixer, the pump, the cement) runs at its real rate; the cure
+	 * stays one game day.
+	 */
+	public static final int FILL_SCALE = 10;
+
 	/** The largest void an outlet fills, cells (proposed, as the lined cell's basin search). */
 	public static final int MOST_CELLS = 20_000;
 	/** Wet paste sets in one game day, 20 minutes (scaled from 28 days to design strength), in this many steps. */
@@ -95,6 +103,16 @@ public final class PasteFill {
 	public static double cakeFor(double pasteKg) {
 		double tails = pasteKg * PASTE_SOLIDS / (1 + BINDER);
 		return tails / (1 + UNDERFLOW_SOLIDS * trimPerKgCake());
+	}
+
+	/** Kg of delivered paste that makes one placed block of paste fill: a cubic metre's 2.0 t over {@link #FILL_SCALE}, 200 kg. */
+	public static double kgPerBlock() {
+		return PASTE_KG_PER_M3 / FILL_SCALE;
+	}
+
+	/** Hours for the pump at its rating to fill {@code m3} cubic metres of void (placed blocks). */
+	public static double hoursToFill(double m3) {
+		return m3 * kgPerBlock() / (PUMP_M3_PER_HOUR * PASTE_KG_PER_M3);
 	}
 
 	/** The pump's full rate, kg of paste a tick. */

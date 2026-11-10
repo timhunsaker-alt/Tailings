@@ -11,6 +11,10 @@ Format of an entry:
 - **Why:** the reason, with the real-world counterpart.
 - **Alternatives:** the other options and what they would change.
 
+## Tim's answers (2026-11-10)
+
+All of "Start here" below was answered on 2026-11-10: see [answers-2026-11-10.md](answers-2026-11-10.md), which the builds follow.
+
 ## Start here: what needs you (both mods)
 
 These are the only items that wait on you; everything else is built and only needs a yes or a change.
@@ -44,16 +48,43 @@ These are the only items that wait on you; everything else is built and only nee
 13. **The XRT sorter** (`l8-xrt.md` #3, #5, #6): the default threshold (Zeff 12.0) sits just above deepslate (11.96) and below
     silver ore (12.08); light ores (graphite, bauxite, borax) read below quartz and go to waste unless a reverse mode is added; it has
     its own 160 kW compressor because Wildcatter's is a small instrument-air unit.
+14. **The walking dragline** (branch `p5-big-machines`, `p6-dragline.md` #1, #3, #18): the boom is five 15 m parts, not ten of 7.5 m
+    (a cell is a whole metre); its house fills its whole 5,760-cell box (a hollow shell would save about 15,000 block states); and its PLC
+    points are on its switch house outlet, not its tub, since the tub lifts and walks.
+15. **The pit line** (branch `p5-big-machines`, `p7-pit-line.md` #11, #14, #21, #27): three close reclaim feeders draw 41 % of a pile
+    (one draws 26 %); the weigher's 50 t/h step; whether a big mill should refuse a direct start or just trip its breaker; whether
+    Wildcatter should get a large-bore slurry pipe. P7c, pit flotation (#33, #36, #37, #40): turn the shared empty model on for the older
+    big parts too (about 10,000 fewer files); the row's air on instrument tubing or a real air header; should the concentrate
+    thickener refuse uncleaned concentrate; and Wildcatter's decant tower takes about 72 t/h against the line's 1,670 t/h, so raise its
+    rate? P5, P6 and P7 (all of it) pass 205 server scenes together and merge to main after the Wildcatter v0.6.0 release.
+16. **The gaps2 fixes** (merged, `gaps2.md`): three are built but **off by default** in `config/tailings-rules.properties`, as
+    they would change existing worlds. Should each default on? #4 `headframe_hopper` (a hopper under a headframe bin takes its rock as
+    items), #5 `paste_wall_breach` (a solid wall mined out beside wet paste spills it), #6 `paste_unloaded_cure` (paste makes up the
+    time its chunk was unloaded). And two that are on: #2, the press's and load-out's new PLC points (CYCLE as a pulse counter or a
+    one-second bit?), and #3, the paste filter's and mixer's gauges (should the mixer's LEVEL read its paste hopper, not its trim?).
+17. **Wildcatter Phase 16, the uranium routes** (branch `phase16`, `phase16-uranium.md`, 30 entries): ADU yellowcake and the uranium
+    calciner, conversion's cathode hydrogen, the ash bed and KOH scrubber, product assay with spin-up and cascade cooling, ISR CO2, the
+    bleed to a disposal well and satellite IX. Built and tested (53 server scenes, 360 unit tests), not merged to master so the v0.6.0
+    release stays as you left it. Needs you: #8 and #21, should `fluorinatorAshBed` and `cascadeSpinUp` (off by default in
+    `config/wildcatter.properties`) be on for new worlds? Worth a look: #1 (the ADU drum is its own item), #19 (a placed fuel assembly
+    forgets its assay).
 
-14. **The walking dragline** (`p6-dragline.md` #1, #3, #18): the boom is five 15 m parts, not ten of 7.5 m (a cell is a whole metre);
-    its house fills its whole 5,760-cell box (a hollow shell would save about 15,000 block states); and its PLC points are on its
-    switch house outlet, not its tub, since the tub lifts and walks.
-15. **The pit line** (`p7-pit-line.md` #11, #14, #21, #27): three close reclaim feeders draw 41 % of a pile (one draws 26 %); the
-    weigher's 50 t/h step; whether a big mill should refuse a direct start or just trip its breaker; whether Wildcatter should get a
-    large-bore slurry pipe (the line's 1 m³/s runs on the unrated steel pipe today). P7c, now built (#33, #36, #37, #40): whether the
-    older big parts should share one empty model too; the row's air line is Wildcatter's instrument air tubing; the column cleaners are
-    optional; Wildcatter's lined cell takes 72 t/h against the line's 1,670 t/h of underflow.
-
+18. **Wildcatter Phase 17a, the ferroalloys** (branch `phase17`, `phase17-ferroalloys.md`, 19 entries): the furnace transformer (15
+    taps), an 8 MW submerged arc furnace at PF 0.80 (ferrochrome, ferromanganese, ferrosilicon), a 3 Mvar capacitor bank lifting the
+    feeder to PF 0.935, the moly roaster (its SO2 to the acid plant) and the aluminothermic vessel (ferromolybdenum, ferrotungsten).
+    Nothing changes in existing worlds; not merged to master, for the same reason as Phase 16. Needs you: #1 (Tailings' DMS could take
+    Wildcatter's ferrosilicon instead of its placeholder recipe), #7 (green anodes stand in for electrode paste), #14 (one vessel batch
+    is one bag; iron ingots for mill scale).
+19. **Wildcatter Phase 18, phosphate** (branch `phase18`, `phase18-phosphate.md`, 22 entries): the phosphoric acid line and its
+    gypsum, granulation (TSP, DAP on the ammonia plant), potash, and the first cycle of uranium from phosphoric acid (the second waits
+    on Phase 16). Nothing changes in existing worlds. Needs you: #3 (acid on the reactor's south side), #15 (Farmings must read
+    `c:fertilizers`), #17 (without Phase 16 the strip fills at 326 kg and the acid bypasses it), #19 (a stand-in extractant recipe).
+20. **Wildcatter Phase 19a and 19b, the reactor** (branch `phase19`, `phase19-reactor.md`, 21 entries): containment with recombiners
+    and igniters, the relief tank, dry casks, fresh-fuel inspection, contamination. Every rule that changes a running reactor is off by
+    default in `config/wildcatter.properties` (`reactorLtop`, `reactorHeatupLimit`, `reactorRealHeatup`, `reactorDeltaTTrips`,
+    `reactorContamination`, `fuelHandlingDamage`). Needs you: #1-4, 6, 7 (on for new worlds?), #5 (the OP delta-T constants are
+    unverified), #8 (per-world rules instead of a server file), #18 (fuel takes about 160 world days to cool enough for a cask, so
+    count cooling 100x for cask eligibility?).
 ## Every file, by wave
 
 | Mod | File | Entries | What |
@@ -63,8 +94,6 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `p2b-dispatch.md` | 12 | the haul dispatch office |
 | Tailings | `p4-dry-stack.md` | 20 | the tailings filter, the load-out, dumps, berms, the track dozer |
 | Tailings | `p3-blasting.md` (branch `p3-blasting`) | 19 | the blasthole drill, charging, the blasting machine, the shot |
-| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 38 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
-| Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
 | Tailings | `tbm-gaps.md` | 12 | the TBM, its gantries and the mine trains |
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |
@@ -78,8 +107,11 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
 | Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
 | Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
+| Tailings | `gaps2.md` (branch `gaps2`) | 8 | known gaps closed by adding: fuel bay pipe scene, press and load-out PLC points, paste filter and mixer gauges, the headframe bin into a hopper, a wall breached beside wet paste, paste curing while unloaded, muck on paste (#4, #5, #6 off by default: should they default on?) |
+| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 38 | the pit switch house, trailing cables, the ultra truck, the hydraulic and rope shovels |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
-| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 44 | the pit line: the gyratory and its pocket, the stockpile and its reclaim (P7a); the SAG line (P7b); pit flotation and the 45 m thickener (P7c, branch `p7c-pit-flotation`) (#11, #14, #21, #27, #33, #36, #37, #40 need you) |
+| Tailings | `p6-dragline.md` (branch `p5-big-machines`) | 20 | the walking dragline: its parts, strip, cast, walk, power, PLC points on its outlet |
+| Tailings | `p7-pit-line.md` (branch `p5-big-machines`) | 44 | the gyratory and stockpile (P7a), the SAG line (P7b), pit flotation and the 45 m thickener (P7c) |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
@@ -89,6 +121,10 @@ These are the only items that wait on you; everything else is built and only nee
 | Wildcatter | `plc-gaps.md` | 12 | PLC gaps: cable cores, the 24 V supply, rack owners, ladder jumps, FBD wire routing, every signal run in the world |
 | Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
 | Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
+| Wildcatter | `phase16-uranium.md` (branch `phase16`) | 30 | ADU and the calciner, cathode H2, ash bed, KOH, product assay, spin-up, cooling, ISR CO2, bleed, satellites |
+| Wildcatter | `phase17-ferroalloys.md` (branch `phase17`) | 19 | the furnace transformer, the SAF at PF 0.80, the capacitor bank, the moly roaster, the aluminothermic vessel |
+| Wildcatter | `phase18-phosphate.md` (branch `phase18`) | 22 | phosphoric acid, gypsum, TSP and DAP, potash, uranium from phosphoric acid (first cycle) |
+| Wildcatter | `phase19-reactor.md` (branch `phase19`) | 21 | containment, PARs and igniters, the relief tank, LTOP, heat-up, delta-T trips, dry casks, contamination, inspection |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.

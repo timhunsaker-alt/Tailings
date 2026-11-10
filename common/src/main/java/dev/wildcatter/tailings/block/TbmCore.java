@@ -115,7 +115,7 @@ public final class TbmCore {
 	private boolean radon;
 	/** Ticks it has driven in poor air: past {@link #AIR_GRACE_TICKS}, with the interlock on, it stops. */
 	private int poorTicks;
-	/** For the tests: the ventilation interlock on for this machine whatever the config says, and a shorter grace. */
+	/** For the tests: the ventilation interlock on for this machine whatever the world's rule says, and a shorter grace. */
 	private boolean testInterlock;
 	private int testGrace;
 	/** A minute of poor air before the interlock stops it: time for the crew to walk out (ventilation.md, proposed). */
@@ -182,10 +182,9 @@ public final class TbmCore {
 		poorTicks = poor && running ? poorTicks + ticks : 0;
 	}
 
-	/** True when the interlock is on (config/tailings-ventilation.properties, or a test) and the air has been poor a minute. */
+	/** True when the interlock is on (the world's {@code ventilation_interlock} rule, or a test) and the air has been poor a minute. */
 	public boolean airStops(Level level) {
-		boolean on = testInterlock || level.getServer() != null && dev.wildcatter.tailings.mine.VentRules.interlock(level.getServer(),
-				dev.wildcatter.tailings.platform.Platform.INSTANCE.configDir().resolve("tailings-ventilation.properties"));
+		boolean on = testInterlock || dev.wildcatter.tailings.OptInRules.on(level.getServer(), dev.wildcatter.tailings.OptInRules.VENTILATION_INTERLOCK);
 		return on && poorTicks >= (testGrace > 0 ? testGrace : AIR_GRACE_TICKS);
 	}
 

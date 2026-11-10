@@ -27,8 +27,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * the PLC's threshold and its tonne pulses; what it refuses.
  */
 final class XrtGameTests {
-	static final String[] SCENES = {"xrt_split", "xrt_threshold", "xrt_no_air", "xrt_plc", "xrt_refuses"};
-	static final Set<String> LONG = Set.of("xrt_split", "xrt_threshold", "xrt_plc");
+	static final String[] SCENES = {"xrt_split", "xrt_threshold", "xrt_no_air", "xrt_plc", "xrt_refuses", "xrt_reverse"};
+	static final Set<String> LONG = Set.of("xrt_split", "xrt_threshold", "xrt_plc", "xrt_reverse");
 
 	private XrtGameTests() {
 	}
@@ -39,6 +39,7 @@ final class XrtGameTests {
 		out.accept("xrt_no_air", XrtGameTests::noAir);
 		out.accept("xrt_plc", XrtGameTests::plc);
 		out.accept("xrt_refuses", XrtGameTests::refuses);
+		out.accept("xrt_reverse", XrtGameTests::reverse);
 	}
 
 	private static BlockState belt(Direction.Axis axis) {
@@ -154,7 +155,7 @@ final class XrtGameTests {
 					helper.assertTrue(near(line.toWaste().kg(Rock.MOLYBDENITE, SizeClass.CRUSHED), 475), Component.literal("at HIGH the low-grade molybdenum ore is waste: " + line.says()));
 					helper.assertTrue(near(line.toProduct().kg(Rock.GALENA, SizeClass.CRUSHED), 485), Component.literal("and the galena ore still product: " + line.says()));
 					sorter.stepThreshold();
-					helper.assertTrue(sorter.xrtStep() == 0, Component.literal("one more click goes round to LOW"));
+					helper.assertTrue(sorter.xrtStep() == 0 && sorter.xrtReverse(), Component.literal("one more click goes round to LOW, in reverse: " + sorter.status()));
 				})
 				.thenSucceed();
 	}
@@ -230,5 +231,56 @@ final class XrtGameTests {
 					helper.assertTrue(Math.abs(p / (p + w) - 0.05) < 0.01, Component.literal("5 % of it with the product, got " + p / (p + w)));
 				})
 				.thenSucceed();
+	}
+
+	/**
+	 * xrt_reverse (Tim, 2026-11-10, l8-xrt.md #5): a new sorter sorts as built. Four sneaking clicks from the default step take its
+	 * screen past HIGH to LOW in reverse: the ejectors then blow what reads under the threshold, so crushed graphite schist (it reads
+	 * under quartz) is 97 % product and andesite 95 % waste. In AUTO the PLC's REVERSE point sets it over the screen's; the PLC quiet, the
+	 * screen's comes back.
+	 */
+	private static void reverse(GameTestHelper helper) {
+		Line line = line(helper, 4, true);
+		PlantBlockEntity sorter = line.sorter();
+		helper.assertTrue(!sorter.xrtReverse() && sorter.xrtStep() == XrtSorting.DEFAULT_STEP, Component.literal("a new sorter sorts as built: " + sorter.status()));
+		helper.assertTrue(sorter.points().size() == 10 && sorter.points().get(9).name().startsWith("REVERSE") && sorter.points().get(9).output()
+				&& sorter.points().get(9).signal() == ControlDevice.Signal.BOOL, Component.literal("point 9 is REVERSE, a PLC output: " + sorter.points()));
+		net.minecraft.world.entity.player.Player player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+		player.setShiftKeyDown(true);
+		for (int i = 0; i < 4; i++) {
+			helper.useBlock(new BlockPos(3, 5, 5), player);
+		}
+		helper.assertTrue(sorter.xrtReverse() && sorter.xrtStep() == 0 && sorter.status().contains("REVERSE"), Component.literal("four sneaking clicks: LOW in reverse, got " + sorter.status()));
+		boolean[] plc = {false};
+		helper.startSequence()
+				.thenExecute(() -> {
+					RockLoad two = load(Rock.GRAPHITE, 500);
+					two.add(load(Rock.ANDESITE, 500));
+					sorter.receive(two);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(near(line.toProduct().total() + line.toWaste().total(), 1000), Component.literal("sorted in reverse: " + line.says())))
+				.thenExecute(() -> {
+					helper.assertTrue(near(line.toProduct().kg(Rock.GRAPHITE, SizeClass.CRUSHED), 485), Component.literal("97 % of the graphite schist kept as product: " + line.says()));
+					helper.assertTrue(near(line.toWaste().kg(Rock.ANDESITE, SizeClass.CRUSHED), 475), Component.literal("95 % of the andesite to waste: " + line.says()));
+					// the screen back as built, then the PLC's REVERSE in AUTO
+					sorter.xrt().setReverse(false);
+					sorter.xrt().setStep(XrtSorting.DEFAULT_STEP);
+					BlockPos at = helper.absolutePos(new BlockPos(2, 4, 2));
+					sorter.cycleHoa(at);
+					sorter.cycleHoa(at);   // HAND, OFF, AUTO
+					plc[0] = true;
+				})
+				.thenExecuteAfter(2, () -> helper.assertTrue(sorter.xrtReverse() && !sorter.xrt().reverse() && sorter.inspect().getString().contains("(PLC)"),
+						Component.literal("the PLC's REVERSE sets it; the screen keeps its own: " + sorter.inspect().getString())))
+				.thenExecute(() -> plc[0] = false)
+				.thenExecuteAfter(15, () -> helper.assertTrue(!sorter.xrtReverse(), Component.literal("the PLC quiet, the screen's setting again: " + sorter.inspect().getString())))
+				.thenSucceed();
+		helper.onEachTick(() -> {
+			if (plc[0]) {
+				long now = helper.getLevel().getGameTime();
+				sorter.commandPoint(0, true, now);
+				sorter.commandPoint(9, true, now);
+			}
+		});
 	}
 }
