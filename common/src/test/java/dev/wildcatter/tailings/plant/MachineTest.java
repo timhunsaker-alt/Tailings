@@ -48,7 +48,9 @@ class MachineTest {
 			Map.entry(Machine.LOADOUT_BIN, new int[] {10, 7, 10}),
 			Map.entry(Machine.TRACK_GRIZZLY, new int[] {1, 1, 4}),
 			Map.entry(Machine.DUMP_CAM_RAIL, new int[] {1, 1, 4}),
-			Map.entry(Machine.BATTERY_CHARGER, new int[] {2, 2, 1}));
+			Map.entry(Machine.BATTERY_CHARGER, new int[] {2, 2, 1}),
+			Map.entry(Machine.VENT_FAN, new int[] {3, 3, 5}),
+			Map.entry(Machine.BOOSTER_FAN, new int[] {2, 2, 3}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

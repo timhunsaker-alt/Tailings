@@ -252,6 +252,10 @@ public class DrillBlockEntity extends BlockEntity implements Inspectable, Worldl
 		if (core.junction() != null && level.getBlockEntity(core.junction()) instanceof CableJunctionBlockEntity reporting) {
 			reporting.report(core, level, button -> press(button, null));
 		}
+		if (level.getGameTime() % 20 == 0 && core.drill().advanceCount() > 0) {
+			BlockPos tail = core.backupTail();
+			core.setAir(VentNetwork.airAt(level, tail).flow(), VentNetwork.radonRock(level, tail), 20);
+		}
 		if (!core.running() || !(level instanceof ServerLevel server)) {
 			return;
 		}

@@ -4,6 +4,20 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### L1: ventilation of the drive (2026-11-09, decided while Tim was away)
+
+- **Ventilation fan and duct:** a 75 kW `vent_fan` at the portal blows through `vent_duct` (laid like pipe) to the drive; a 30 kW
+  `booster_fan` in the line carries it past about 3 km. Click a duct for its air; the fan's readout gives its flow, pressure and the
+  air at the duct's end. The drive needs 10.8 m³/s (0.3 m/s across the bore).
+- **The TBM's duct cassette:** click the reel gantry with a Duct Cassette and the machine pays out 100 m of duct, a metre a block,
+  at the crown just behind its back-up. Its screen, its readout and a new junction signal (AIR AT BACK-UP) read the air there.
+- **Gas detector:** hold it in a drive to read the air, STALE AIR, and RADON in tuff and sandstone.
+- **Nothing changes in existing worlds:** a TBM with no ventilation reads POOR AIR and keeps driving. The interlock (NO VENTILATION)
+  and stale air's Mining Fatigue and Weakness are off unless `config/tailings-ventilation.properties` turns them on (`interlock=true`,
+  `stale_air=true`).
+- **Tests:** `vent_fresh`, `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off`, `vent_parts`; `AirflowTest`.
+  Decisions in `docs/questions/l1-ventilation.md`.
+
 ### L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, decided while Tim was away)
 
 - **Battery locomotive:** an 8 t locomotive on its own 58 kWh traction battery runs on any mine rail, with or without a rectifier:

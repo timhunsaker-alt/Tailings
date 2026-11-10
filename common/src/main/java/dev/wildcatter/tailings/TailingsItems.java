@@ -34,6 +34,9 @@ public final class TailingsItems {
 	public static Item WHEEL_LOADER;
 	public static Item TRACK_DOZER;
 	public static Item SURVEY_BOOK;
+	/** 100 m of lay-flat duct for the TBM's reel gantry, and the gas detector (ventilation.md, L1). */
+	public static Item DUCT_CASSETTE;
+	public static Item GAS_DETECTOR;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -65,6 +68,10 @@ public final class TailingsItems {
 		for (TbmGantry gantry : TbmGantry.values()) {
 			GANTRIES.put(gantry, item(gantry.id()));
 		}
+		ResourceKey<Item> cassette = ResourceKey.create(Registries.ITEM, Tailings.id("vent_duct_cassette"));
+		DUCT_CASSETTE = Registry.register(BuiltInRegistries.ITEM, cassette, new Item(new Item.Properties().setId(cassette).stacksTo(16)));
+		ResourceKey<Item> detector = ResourceKey.create(Registries.ITEM, Tailings.id("gas_detector"));
+		GAS_DETECTOR = Registry.register(BuiltInRegistries.ITEM, detector, new dev.wildcatter.tailings.item.GasDetectorItem(new Item.Properties().setId(detector).stacksTo(1)));
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

@@ -295,6 +295,10 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			junction.draw(TbmCore.BEAM_WATTS, core.auxWatts());
 		}
 		lockChunks(server);
+		if (server.getGameTime() % 20 == 0) {
+			BlockPos tail = core.backupTail();
+			core.setAir(dev.wildcatter.tailings.block.VentNetwork.airAt(server, tail).flow(), dev.wildcatter.tailings.block.VentNetwork.radonRock(server, tail), 20);
+		}
 		if (core.waitTicks() > 0) {
 			core.countDown();
 			place();
@@ -302,7 +306,11 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 		}
 		place();
 		WorldGround ground = new WorldGround(server, core.program().heading());
+		boolean lining = core.drill().linePending();
 		core.drill().line(ground);
+		if (lining && !core.drill().linePending()) {
+			core.payDuct(server);   // the cassette pays out a metre of duct for each block advanced
+		}
 		if (!core.running()) {
 			if (server.getGameTime() % 20 == 0) {
 				setDown(server);

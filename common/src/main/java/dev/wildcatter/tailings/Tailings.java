@@ -58,6 +58,9 @@ public final class Tailings {
 			output.accept(new ItemStack(gantry));
 		}
 		output.accept(new ItemStack(TailingsBlocks.LINING));
+		output.accept(new ItemStack(TailingsBlocks.VENT_DUCT));
+		output.accept(new ItemStack(TailingsItems.DUCT_CASSETTE));
+		output.accept(new ItemStack(TailingsItems.GAS_DETECTOR));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));
 		output.accept(new ItemStack(TailingsBlocks.TRACTION_RECTIFIER));
 		output.accept(new ItemStack(TailingsBlocks.BELT_CONVEYOR));

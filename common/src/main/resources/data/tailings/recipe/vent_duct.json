@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WSW",
+    "W W",
+    "WSW"
+  ],
+  "key": {
+    "W": "minecraft:yellow_wool",
+    "S": "minecraft:string"
+  },
+  "result": {
+    "id": "tailings:vent_duct",
+    "count": 8
+  }
+}

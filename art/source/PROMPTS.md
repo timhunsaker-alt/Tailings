@@ -58,3 +58,12 @@ Items, `item-icon`, Photorealistic 3D, 2 variations each, the first (a) kept; re
 | battery_locomotive (a) | A single small yellow underground mining battery locomotive seen from the side at three-quarter view, low steel frame on rail wheels, a large grey steel traction battery box on its middle, a small driver's cab at one end, a headlight, generic, no brand names |
 | bottom_dump_car (a) | A single small underground mine ore car with a drop-bottom, weathered grey steel box body with rust streaks on four small rail wheels, two hinged floor doors hanging open underneath, seen at three-quarter view, generic |
 | loco_battery (a) | A single lead-acid traction battery box for a mining locomotive: a rectangular steel tray painted grey holding rows of battery cells with red and black terminal caps, two lifting lugs on top and a heavy cable connector, three-quarter view, generic |
+
+## L1 ventilation (2026-11-09)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the better kept (3 credits).
+
+| File | Kind | Prompt |
+|---|---|---|
+| vent_duct (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: bright yellow PVC-coated polyester fabric of a flexible mine ventilation duct, slightly glossy, with a faint woven texture, a stitched seam and light dust, plain, no text |
+| vent_duct_cassette (b) | item-icon | A single cassette of folded yellow lay-flat ventilation duct for a tunnel boring machine: a steel drum frame holding concertina-folded yellow fabric duct, game item icon, plain white background, no text |
+| gas_detector (a) | item-icon | A single handheld personal multi-gas detector for underground mining: a small rugged yellow and black plastic case with a dark display window and a clip, generic, no brand names, game item icon, plain white background, no text |

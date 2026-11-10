@@ -427,3 +427,20 @@ Built while Tim was away on the draft specs `docs/multiblocks/battery-locomotive
   `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump` (`TAILINGS_ONLY=battery_bottom_dump`) passes and is filmed: four cars of
   copper ore and cobble dropped on the move at up to 3 m/s, doors open over the grizzly and shut past it, 1,268 items in the pocket.
 - **The film found:** its first layout set the charger across the track and ended before the last car reached the grizzly.
+
+## L1: ventilation of the drive (2026-11-09, branch `l1-ventilation`)
+Built while Tim was away on the draft spec `docs/multiblocks/ventilation.md`; decisions in `docs/questions/l1-ventilation.md` (19
+entries; #1 and #2 need Tim).
+- **The fan and duct:** the `vent_fan` (3 x 3 x 5, 75 kW on the industrial tier, a Wildcatter motor with the plant's PLC points and
+  FLOW) reads its `vent_duct` line once a second, through any `booster_fan` (2 x 2 x 3, 30 kW): fan curves against Darcy friction
+  and 1 % leakage a 100 m (`mine.Airflow`). One fan carries 10.8 m³/s about 3.2 km; a booster carries 3.5 km.
+- **The TBM:** reads the air at its back-up (screen, readout, junction AIR AT BACK-UP); its reel gantry takes a 100 m
+  `vent_duct_cassette` and pays duct out a metre a block. With `interlock=true` in `config/tailings-ventilation.properties` it holds
+  NO VENTILATION after 60 s of poor air.
+- **Players:** the `gas_detector` reads fresh or STALE AIR and RADON; with `stale_air=true`, Mining Fatigue after 30 s and Weakness
+  after 2 minutes of stale air. **Both rules are off by default: existing worlds run as before.**
+- **Art:** three Ludo pictures (3 credits: the duct fabric, the cassette and detector icons); the fans in Wildcatter's materials
+  (`tools/models/vent.py`). No placeholders.
+- **Tests:** NeoForge `vent_fresh`, `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off`, `vent_parts`;
+  `AirflowTest` (with the rules' parsing).
+

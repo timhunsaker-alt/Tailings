@@ -86,6 +86,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			for (String side : SIDE_POINTS) {
 				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
 			}
+		} else if (machine() == Machine.VENT_FAN) {
+			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/s", VENT_FLOW_HIGH), false, Signal.MA));
 		} else if (dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
 			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f L/s", dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH), false, Signal.MA));
@@ -150,6 +152,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (motor == null) {
 			return 0;
 		}
+		if (point == 6 && vent != null) {
+			return dev.wildcatter.tailings.plant.PlcScale.ma(vent.air().fanFlow(), 0, VENT_FLOW_HIGH);
+		}
 		if (point >= 6 && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
 			return switch (point) {
 				case 6 -> 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.SlurryGauge.level(this));
@@ -185,7 +190,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case WEIGHT -> hold.total();
 			case LEVEL -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100
 					: hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
-			case FLOW -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? flowLitres : Double.NaN;
+			case FLOW -> vent != null ? vent.air().fanFlow() : dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? flowLitres : Double.NaN;
 			case DENSITY -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.density(this) : Double.NaN;
 			default -> Double.NaN;
 		};
@@ -232,6 +237,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A game test's shorter press cycle (not saved). */
 	private int fast = 1;
 	private Motor motor;
+	/** A ventilation fan's duct line (ventilation.md); null for every other part. */
+	private final @Nullable VentState vent;
+	/** A ventilation fan's FLOW signal spans 0-15 m³/s, its rating (ventilation.md). */
+	public static final double VENT_FLOW_HIGH = 15;
 	private boolean demand;
 	private boolean forced;
 	private boolean loading;
@@ -249,6 +258,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
 			motor = new Motor(true, voltage, machine.watts());
 		}
+		vent = machine == Machine.VENT_FAN ? new VentState() : null;
+	}
+
+	/** A ventilation fan's duct line, or null. */
+	public @Nullable VentState vent() {
+		return vent;
 	}
 
 	public Machine machine() {
@@ -1112,6 +1127,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		StringBuilder bin = new StringBuilder();
 		binned.forEach((id, n) -> bin.append(bin.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("binned", bin.toString());
+		if (vent != null) {
+			vent.save(output);
+		}
 	}
 
 	@Override
@@ -1152,6 +1170,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		cycles = input.getIntOr("cycles", 0);
 		sorter.load(input.getStringOr("sort", ""));
 		selective = input.getBooleanOr("selective", false);
+		if (vent != null) {
+			vent.load(input);
+		}
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {
 			int eq = part.lastIndexOf('=');
@@ -1217,6 +1238,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
 		super.preRemoveSideEffects(pos, state);
+		if (level != null && vent != null) {
+			VentNetwork.forget(level, pos);
+		}
 		if (level != null) {
 			Containers.dropContents(level, pos, this);
 			binned.forEach((id, n) -> {

@@ -108,6 +108,22 @@ public final class TbmCore {
 	private boolean pumping;
 	private boolean conveying;
 	private boolean auxPower = true;
+	/** Metres of duct left in the cassette on the reel gantry (ventilation.md); none until one is loaded. */
+	private int ductLeft;
+	/** The air at the back-up's tail, m³/s, as last read (-1: not yet read); and whether its rock gives off radon. */
+	private double air = -1;
+	private boolean radon;
+	/** Ticks it has driven in poor air: past {@link #AIR_GRACE_TICKS}, with the interlock on, it stops. */
+	private int poorTicks;
+	/** For the tests: the ventilation interlock on for this machine whatever the config says, and a shorter grace. */
+	private boolean testInterlock;
+	private int testGrace;
+	/** A minute of poor air before the interlock stops it: time for the crew to walk out (ventilation.md, proposed). */
+	public static final int AIR_GRACE_TICKS = 1_200;
+	/** Where the cassette pays duct out: at the crown of the bore's left side, just behind the conveyor gantry (the back-up's tail). */
+	public static final int DUCT_ROW = TbmGantry.LOADING_ROW;
+	public static final int DUCT_ACROSS = 1;
+	public static final int DUCT_UP = 6;
 
 	public boolean forced() {
 		return forced;
@@ -124,6 +140,99 @@ public final class TbmCore {
 
 	public void setTestCable(int metres) {
 		testCable = metres;
+	}
+
+	public void setTestInterlock(boolean on, int graceTicks) {
+		testInterlock = on;
+		testGrace = graceTicks;
+	}
+
+	// ---- ventilation (ventilation.md, L1) -----------------------------------------------------------------------------------------
+
+	public int ductLeft() {
+		return ductLeft;
+	}
+
+	public void setDuctLeft(int metres) {
+		ductLeft = Math.max(0, metres);
+	}
+
+	/** A new cassette goes on when the one aboard is nearly spent (under 10 m); what was left is paid out first. */
+	public boolean loadCassette() {
+		if (ductLeft >= 10) {
+			return false;
+		}
+		ductLeft += dev.wildcatter.tailings.mine.Airflow.CASSETTE_METRES;
+		return true;
+	}
+
+	public double air() {
+		return air;
+	}
+
+	public boolean radon() {
+		return radon;
+	}
+
+	/** The air at the back-up, read once a second; while it drives in poor air it counts toward the interlock. */
+	public void setAir(double flow, boolean radonRock, int ticks) {
+		air = flow;
+		radon = radonRock;
+		boolean poor = flow + 1e-9 < dev.wildcatter.tailings.mine.Airflow.NEED;
+		poorTicks = poor && running ? poorTicks + ticks : 0;
+	}
+
+	/** True when the interlock is on (config/tailings-ventilation.properties, or a test) and the air has been poor a minute. */
+	public boolean airStops(Level level) {
+		boolean on = testInterlock || level.getServer() != null && dev.wildcatter.tailings.mine.VentRules.interlock(level.getServer(),
+				dev.wildcatter.tailings.platform.Platform.INSTANCE.configDir().resolve("tailings-ventilation.properties"));
+		return on && poorTicks >= (testGrace > 0 ? testGrace : AIR_GRACE_TICKS);
+	}
+
+	/** The back-up's tail, where the crew works: the middle of the bore at the duct row. */
+	public BlockPos backupTail() {
+		return new BlockPos(drill.worldX(3, -DUCT_ROW), drill.worldY(3, -DUCT_ROW), drill.worldZ(3, -DUCT_ROW));
+	}
+
+	/**
+	 * After each advance the cassette pays out a metre of duct at the crown just behind the back-up, joined to the duct behind it: down
+	 * a decline the crown drops a block every two slices, so where it does a second metre joins the two. Nothing is paid out with the
+	 * cassette empty, or where the cell is taken.
+	 */
+	public void payDuct(Level level) {
+		if (ductLeft <= 0) {
+			return;
+		}
+		BlockPos at = new BlockPos(drill.worldX(DUCT_ACROSS, -DUCT_ROW), drill.worldY(DUCT_UP, -DUCT_ROW), drill.worldZ(DUCT_ACROSS, -DUCT_ROW));
+		BlockPos before = new BlockPos(drill.worldX(DUCT_ACROSS, -DUCT_ROW - 1), drill.worldY(DUCT_UP, -DUCT_ROW - 1), drill.worldZ(DUCT_ACROSS, -DUCT_ROW - 1));
+		if (!placeDuct(level, at)) {
+			return;
+		}
+		if (before.getY() > at.getY() && level.getBlockState(before).getBlock() instanceof VentDuctBlock && ductLeft > 0) {
+			placeDuct(level, new BlockPos(before.getX(), at.getY(), before.getZ()));
+		}
+	}
+
+	private boolean placeDuct(Level level, BlockPos at) {
+		net.minecraft.world.level.block.state.BlockState there = level.getBlockState(at);
+		if (there.getBlock() instanceof VentDuctBlock) {
+			return true;
+		}
+		if (!there.isAir() && !there.canBeReplaced()) {
+			return false;
+		}
+		level.setBlock(at, VentDuctBlock.withArms(TailingsBlocks.VENT_DUCT.defaultBlockState(), level, at), 3);
+		ductLeft--;
+		return true;
+	}
+
+	/** "air 0.33 m/s (12.0 m3/s) at the back-up; duct cassette 64 m". */
+	public String airLine() {
+		String reading = air < 0 ? "no air reading yet" : dev.wildcatter.tailings.mine.Airflow.describe(air) + " at the back-up";
+		if (air >= 0 && air + 1e-9 < dev.wildcatter.tailings.mine.Airflow.NEED && radon) {
+			reading += ", RADON";
+		}
+		return reading + "; duct cassette " + ductLeft + " m";
 	}
 
 	public @Nullable UUID gantry(TbmGantry kind) {
@@ -290,6 +399,11 @@ public final class TbmCore {
 		if (fault != null) {
 			report(DrillCodes.NOT_BUILT, "NOT BUILT: needs the " + fault);
 			return Advance.stopped(Advance.Stop.NONE, "gantry");
+		}
+		if (airStops(level)) {
+			// the cutterhead's gas interlock: it holds until duct air reaches the back-up again
+			report(DrillCodes.NO_VENTILATION, "NO VENTILATION");
+			return Advance.stopped(Advance.Stop.NONE, "air");
 		}
 		pumping = false;
 		WorldGround ground = new WorldGround(level, program.heading());
@@ -515,7 +629,7 @@ public final class TbmCore {
 
 	public String readout() {
 		return statusLine()
-				+ "; floor Y " + drill.floorY() + "; " + drill.advanceCount() + " blocks driven; cable left " + cableLeft() + " m";
+				+ "; floor Y " + drill.floorY() + "; " + drill.advanceCount() + " blocks driven; cable left " + cableLeft() + " m; " + airLine();
 	}
 
 	public void save(ValueOutput output) {
@@ -553,6 +667,12 @@ public final class TbmCore {
 			output.putString("gantry_" + kind.id(), gantries[kind.ordinal()] == null ? "" : gantries[kind.ordinal()].toString());
 		}
 		output.putLong("junction", junction == null ? Long.MIN_VALUE : junction.asLong());
+		output.putInt("ductLeft", ductLeft);
+		output.putDouble("air", air);
+		output.putBoolean("radon", radon);
+		output.putInt("poorTicks", poorTicks);
+		output.putBoolean("testInterlock", testInterlock);
+		output.putInt("testGrace", testGrace);
 	}
 
 	public void load(ValueInput input) {
@@ -597,6 +717,12 @@ public final class TbmCore {
 		}
 		long at = input.getLongOr("junction", Long.MIN_VALUE);
 		junction = at == Long.MIN_VALUE ? null : BlockPos.of(at);
+		ductLeft = input.getIntOr("ductLeft", 0);
+		air = input.getDoubleOr("air", -1);
+		radon = input.getBooleanOr("radon", false);
+		poorTicks = input.getIntOr("poorTicks", 0);
+		testInterlock = input.getBooleanOr("testInterlock", false);
+		testGrace = input.getIntOr("testGrace", 0);
 	}
 
 	private static <T extends Enum<T>> T enumOr(Class<T> type, String name, T fallback) {

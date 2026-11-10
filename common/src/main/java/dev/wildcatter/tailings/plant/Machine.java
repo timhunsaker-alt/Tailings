@@ -62,7 +62,11 @@ public enum Machine {
 	/** The cam rail beside a track grizzly that opens each bottom-dump car's doors, with its closing ramp at the far end (L3). */
 	DUMP_CAM_RAIL("dump_cam_rail", "Dump Cam Rail", 1, 1, 4, 0, Supply.NONE),
 	/** A traction battery charger on a wall, plugged into a three-phase 30 A receptacle, 20 kW (battery-locomotive.md, L2). */
-	BATTERY_CHARGER("battery_charger", "Battery Charger", 2, 2, 1, 0, Supply.NONE);
+	BATTERY_CHARGER("battery_charger", "Battery Charger", 2, 2, 1, 0, Supply.NONE),
+	/** The drive's forcing fan at the portal (ventilation.md, L1): a 1.8 m axial fan with its silencer and inlet bell, 75 kW; its outlet on its south face. */
+	VENT_FAN("vent_fan", "Ventilation Fan", 3, 3, 5, 75_000, Supply.INDUSTRIAL),
+	/** An in-line booster in the duct for long drives (ventilation.md, L1), 30 kW (proposed): in at its north face, out at its south. */
+	BOOSTER_FAN("booster_fan", "Booster Fan", 2, 2, 3, 30_000, Supply.INDUSTRIAL);
 
 	public enum Supply {
 		NONE,

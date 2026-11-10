@@ -144,6 +144,29 @@ Chunk tickets (`block.ChunkRunner`): while running, the drill refreshes a `taili
 
 The parts' recipes are placeholders: eight iron ingots around a copper ingot; the junction is seven. The pump recipe is eight iron ingots around a water bucket.
 
+## Ventilation of the drive (L1)
+
+Spec: [multiblocks/ventilation.md](multiblocks/ventilation.md) (draft, decided on recommendation); decisions in
+[questions/l1-ventilation.md](questions/l1-ventilation.md). The figures are in `mine.Airflow` (unit-tested in `AirflowTest`).
+- **Off by default:** nothing stops or harms anything unless `config/tailings-ventilation.properties` says so (`mine.VentRules`):
+  `interlock=true` stops a TBM after 60 s with no duct air at its back-up, NO VENTILATION (it holds, and drives on when the air is back);
+  `stale_air=true` gives a player in a drive's stale air Mining Fatigue I after 30 s and Weakness I after 2 minutes, cleared after 5 s of
+  fresh air. Off, both are readings only.
+- **The air:** the bore needs 0.3 m/s over its 36 m², 10.8 m³/s. The `vent_fan` (3 x 3 x 5, 75 kW, a plant part on the industrial
+  tier, `block.stage.Vent`) runs whenever its motor may and once a second reads its duct out of its south face (`VentNetwork.read`):
+  `vent_duct` blocks, joined like pipe, and any `booster_fan` (2 x 2 x 3, 30 kW) the duct enters at its north face. The fans' curves
+  (3 kPa and 1.5 kPa shut off, 25 m³/s free, scaled by the fan laws for the motor's output) against the duct's Darcy friction (1.4 m,
+  f 0.02) and 1 % leakage a 100 m give the air at the line's farthest end. The line (`block.VentState`) is saved with the fan; a cell in
+  a chunk not loaded is taken as last read, and a fan with duct keeps its chunk with the `tailings:runner` ticket.
+- **Fresh** (`VentNetwork.airAt`): within 30 m of a line's end or 5 m of its duct, with 10.8 m³/s. A **drive** is out of sight of the
+  sky over the TBM's floor, walkway, slope, rail or switch. Stale air near tuff or sandstone reads RADON (a reading only).
+- **The TBM** reads the air at its back-up's tail once a second (`TbmCore.setAir`): its screen (`air 0.33/0.30 m/s, duct 64 m`), its
+  readout and its junction's AIR AT BACK-UP (4-20 mA over 0-15 m³/s, the junction's eleventh point). Its reel gantry takes a
+  `vent_duct_cassette` (100 m, by a click, when under 10 m is left); each block advanced it pays a metre of duct out at the crown of
+  the bore's left side just behind the conveyor gantry (`TbmCore.payDuct`), with a second metre where the decline drops.
+- **The fan's PLC points:** the motor's, and FLOW (4-20 mA over 0-15 m³/s) as its seventh.
+- **The gas detector** (`gas_detector`): held in a drive it reads the air each second on the action bar; a click reads it once.
+
 ## Haulage
 
 `haul.Haul` is the numbers. A real Granby car is about 3 t (`REAL_CAR_KG`). That constant is documentation. The game car holds `CAR_STACKS` 9 times `STACK` 64 = 576 items of any mix. `MAX_CARS` is 10. The dump pocket holds one such train (`POCKET_ITEMS`). Each product bin and the waste bin hold 8192. The rectifier is 300 kW (`RECTIFIER_WATTS`), 480 V AC in. The DC side stays inside the block. There is no DC tier in the solver.
@@ -406,15 +429,17 @@ building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The f
 
 ## Config
 
-Only one file. It is not created for you.
+Two files. Neither is created for you.
 
-`config/tailings-train.properties`
+`config/tailings-train.properties`, and since L1 `config/tailings-ventilation.properties`:
 
 | Key | Default if missing | Meaning |
 |---|---|---|
 | `damage` | `true` | Whether the locomotive hurts living entities in the consist box |
 | `amount` | `8` | Damage per hit. A bad number falls back to 8 |
 | `truck_damage` | `8` | Damage per hit from a moving haul truck or wheel loader (over 1 m/s). `damage=false` turns it off too |
+| `interlock` (ventilation) | `false` | A TBM with no duct air at its back-up for 60 s stops, NO VENTILATION |
+| `stale_air` (ventilation) | `false` | Players in a drive's stale air get Mining Fatigue, then Weakness |
 
 There is no other Tailings config, and no Tailings gamerule.
 
@@ -463,6 +488,8 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `truck_dump_wall` | Smooth stone around an iron ingot (placeholder) | 12 x 5 x 2: 3 m retaining wall and a 1.5 m bumper a reversing truck stops against |
 | `pit_hopper` | Iron, a hopper and smooth stone (placeholder) | 10 x 6 x 6, 400 t of bank blocks. A truck whose tail is over it tips in; the apron feeder touching it draws it out. It refuses soil |
 | `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
+| `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
+| `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |
 | `dry_tails` | None. The tailings filter makes it | The filter's cake, 1.8 t a block: falls like sand, tipped on dumps, dug and pushed as soft ground (P4) |
 
 Stamp mill:
@@ -514,6 +541,7 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`. No crafting recipe. The 50% machines produce them.
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
+- **Ventilation items (L1):** `vent_duct_cassette` (100 m of duct for the reel gantry: 8 duct round an iron block), `gas_detector`.
 
 Block items exist for every block above, including the ones with no crafting recipe.
 

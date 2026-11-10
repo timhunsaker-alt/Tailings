@@ -14,6 +14,8 @@ public final class DrillCodes {
 	public static final int STOP_BUFFER = 9;
 	public static final int STOP_BLOCKED = 10;
 	public static final int NOT_BUILT = 11;
+	/** No duct air at the back-up for 60 s, where the ventilation interlock is on (ventilation.md, L1). */
+	public static final int NO_VENTILATION = 12;
 
 	public static final int LACK_NONE = 0;
 	public static final int LACK_SEGMENTS = 1;
@@ -86,6 +88,7 @@ public final class DrillCodes {
 			case STOP_EMPTY -> "stopped: out of stock";
 			case STOP_BUFFER -> "paused: muck buffer full";
 			case STOP_BLOCKED -> "stopped: blocked";
+			case NO_VENTILATION -> "NO VENTILATION";
 			default -> "idle";
 		};
 		return lackText.isEmpty() ? base : base + " (" + lackText + ")";

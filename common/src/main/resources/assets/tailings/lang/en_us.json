@@ -312,5 +312,10 @@
   "item.tailings.loco_battery": "Traction Battery",
   "block.tailings.track_grizzly": "Track Grizzly",
   "block.tailings.dump_cam_rail": "Dump Cam Rail",
-  "block.tailings.battery_charger": "Battery Charger"
+  "block.tailings.battery_charger": "Battery Charger",
+  "block.tailings.vent_fan": "Ventilation Fan",
+  "block.tailings.booster_fan": "Booster Fan",
+  "block.tailings.vent_duct": "Ventilation Duct",
+  "item.tailings.vent_duct_cassette": "Duct Cassette",
+  "item.tailings.gas_detector": "Gas Detector"
 }

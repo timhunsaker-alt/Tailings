@@ -48,7 +48,7 @@ What the revisions in pull request 7 delivered, and what the later art pull requ
 
 Pull request 3, between the phases, is docs only: an unscheduled PLC idea. See Ideas below.
 
-Ventilation (old 3c) was only a proposal. It is not in the game.
+Ventilation (old 3c) was only a proposal then. It is built as L1 (below).
 
 ## Realignment with Wildcatter (R) — done
 
@@ -228,9 +228,23 @@ tests `BatteryTest`; the client film `battery_bottom_dump`.
   doors jamming on sticky muck and frozen loads; oversize and a rock breaker on the track grizzly; rotary car dumpers. The shaft's
   measuring pocket (L4) is the next user of the bottom-dump station.
 
+## Later — L1: ventilation of the drive (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/ventilation.md](multiblocks/ventilation.md), decisions in
+[questions/l1-ventilation.md](questions/l1-ventilation.md). The `vent_fan` (75 kW) blows through `vent_duct` laid like pipe, with
+`booster_fan`s (30 kW) for long drives; the TBM's reel gantry takes a `vent_duct_cassette` and pays duct out as it advances; the cab,
+the junction's AIR AT BACK-UP and the `gas_detector` read the air (10.8 m³/s, 0.3 m/s, needed) and RADON in tuff and sandstone.
+**The interlock (NO VENTILATION) and stale air's effects are off unless `config/tailings-ventilation.properties` turns them on**, so
+existing drives run as before (questions #1, #2 for Tim). NeoForge scenes `vent_fresh`, `vent_cassette`, `vent_stale_player`,
+`vent_booster`, `vent_default_off`, `vent_parts`; unit tests `AirflowTest`.
+- **Left out, planned (the spec's "Left out"):** a network solver (Hardy Cross), return airways, regulators and doors; a shaft as the
+  return airway (with L4, shaft-and-hoist.md, Later); heat from the rock at depth and refrigeration; real gases (methane, blasting
+  fumes, diesel particulate) and the diesel rule (0.06 m³/s a kW) for when a diesel machine goes below; the battery bay's hydrogen
+  (L2). A per-world rule in place of the config file (questions #2).
+
 ## Later, not scheduled
 
-- Ventilation of the drive.
+- Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
 - A shaft and hoist (headframe, skip) instead of the decline.
@@ -241,6 +255,12 @@ tests `BatteryTest`; the client film `battery_bottom_dump`.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
+  1 and 2); until then ventilation is readings only.
+- **The duct is drawn a metre round (L1):** the real 1.4 m does not fit a block; its friction is worked at 1.4 m.
+- **A duct line is one line (L1):** at a branch the farther end gets the air; the rest is not counted.
+- **No new L1 sounds:** the fans use Wildcatter's fan loop.
 
 - **Charging takes 2.6 real hours (L2):** built at the real 18 kW into a 46 kWh battery; whether to scale it is a question for Tim
   (questions/l2-l3-trains.md, 12).

@@ -125,6 +125,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_dry_stack")) {
 				pitDryStack(context, world, server);
 			}
+			if (only("vent")) {
+				vent(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -305,6 +308,93 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		} else {
 			heard(scene, "tailings:tbm_cutter", "tailings:ring_set", "tailings:muck_load", "tailings:belt_conveyor", "wildcatter:motor_hum", "wildcatter:structure_formed");
 		}
+	}
+
+	/**
+	 * The drive's ventilation, filmed (ventilation.md, L1): a fan blows through hand-laid duct to the TBM's back-up, and the reel
+	 * gantry's cassette pays duct out at the crown a metre a block as the machine bores; the air at the back-up is logged.
+	 */
+	private void vent(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int cx = 140, cz = 220;
+		BlockPos c = new BlockPos(cx, y, cz);
+		BlockPos beam = c.offset(3, 3, 3);
+		BlockPos[] fanAt = {null};
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int z = 1; z <= 24; z++) {
+				for (int x = -2; x < 10; x++) {
+					for (int yy = -2; yy < 10; yy++) {
+						level.setBlock(c.offset(x, yy, -z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.CUTTERHEAD, c);
+			part(level, TailingsBlocks.SEGMENT_ERECTOR, c.offset(0, 0, 1));
+			part(level, TailingsBlocks.MAIN_BEAM, beam);
+			part(level, TailingsBlocks.TRACK_LAYER, c.offset(1, 2, 8));
+			level.setBlock(c.offset(-2, 0, 14), TailingsBlocks.CABLE_JUNCTION.defaultBlockState(), Block.UPDATE_ALL);
+			BlockState track = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+			for (int z = 11; z <= 40; z++) {
+				level.setBlock(c.offset(2, 1, z), track, Block.UPDATE_ALL);
+				level.setBlock(c.offset(5, 1, z), track, Block.UPDATE_ALL);
+			}
+			DrillBlockEntity cab = (DrillBlockEntity) level.getBlockEntity(beam);
+			cab.forceRunning();
+			cab.program().setTargetY(c.getY() + 1);
+			cab.program().setFlatLength(32);
+			cab.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
+			cab.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
+			cab.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
+			cab.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+			cab.core().setTestTicks(40);
+			for (TbmGantry kind : TbmGantry.values()) {
+				GantryEntity gantry = GantryEntity.place(level, c.offset(2, 1, kind.row()), kind, Direction.NORTH);
+				System.out.println("[tailings-test] " + kind.displayName() + ": " + gantry.couple());
+			}
+			cab.core().loadCassette();
+			cab.press(10, null);
+			var drill = cab.core().drill();
+			BlockPos end = new BlockPos(drill.worldX(dev.wildcatter.tailings.block.TbmCore.DUCT_ACROSS, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW),
+					drill.worldY(dev.wildcatter.tailings.block.TbmCore.DUCT_UP, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW),
+					drill.worldZ(dev.wildcatter.tailings.block.TbmCore.DUCT_ACROSS, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW));
+			BlockState duct = TailingsBlocks.VENT_DUCT.defaultBlockState();
+			for (int z = 0; z <= 14; z++) {
+				level.setBlock(end.offset(0, 0, z), duct, Block.UPDATE_ALL);
+			}
+			for (int x = 1; x <= 4; x++) {
+				level.setBlock(end.offset(x, 0, 14), duct, Block.UPDATE_ALL);
+			}
+			fanAt[0] = end.offset(3, -1, 9);
+			plant(level, Machine.VENT_FAN, fanAt[0]).forceRunning();
+			// the fan's skid on a pad of stone
+			for (int x = 3; x <= 5; x++) {
+				for (int z = 9; z <= 13; z++) {
+					level.setBlock(end.offset(x, -2, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+				}
+			}
+		});
+		server.runCommand("tp @p " + (cx + 14) + " " + (y + 9) + " " + (cz + 46) + " 145 18");
+		context.waitTicks(40);
+		Filming film = film(context, world, "vent");
+		context.takeScreenshot("tailings-vent-fan");
+		for (int t = 0; t < 24; t++) {
+			context.waitTicks(20);
+			if (t == 6) {
+				server.runCommand("tp @p " + (cx + 22) + " " + (y + 9) + " " + (cz + 22) + " 110 20");
+			}
+			server.runOnServer(srv -> {
+				for (TbmEntity machine : srv.overworld().getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(60))) {
+					machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+					System.out.println("[tailings-test] vent: " + machine.core().readout());
+				}
+				if (srv.overworld().getBlockEntity(fanAt[0]) instanceof PlantBlockEntity fan) {
+					System.out.println("[tailings-test] vent fan: " + fan.status());
+				}
+			});
+		}
+		context.takeScreenshot("tailings-vent-paid-out");
+		film.stop();
+		heard("vent", "wildcatter:fan");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {

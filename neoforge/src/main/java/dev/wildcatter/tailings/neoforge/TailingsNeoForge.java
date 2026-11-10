@@ -46,6 +46,12 @@ public final class TailingsNeoForge {
 				}
 			});
 		});
+		// the drive's air: players in stale air, once a second (ventilation.md)
+		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.tick.LevelTickEvent.Post.class, event -> {
+			if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
+				dev.wildcatter.tailings.block.VentNetwork.tickPlayers(level);
+			}
+		});
 		if (FMLEnvironment.getDist() == Dist.CLIENT) {
 			dev.wildcatter.tailings.neoforge.client.TailingsNeoForgeClient.init(modBus);
 		}

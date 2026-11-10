@@ -93,6 +93,8 @@ public interface Stage {
 			case TAILINGS_FILTER -> DryStackStages.FILTER;
 			case LOADOUT_BIN -> DryStackStages.BIN;
 			case LOADOUT_FRAME -> DryStackStages.FRAME;
+			case VENT_FAN -> Vent.FAN;
+			case BOOSTER_FAN -> Vent.BOOSTER;
 			default -> Idle.INSTANCE;
 		};
 	}
