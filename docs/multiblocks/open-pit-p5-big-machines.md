@@ -1,6 +1,6 @@
 # Open pit P5: the pit switch house and trailing cables, the 360 t ultra truck, the hydraulic front shovel, the electric rope shovel
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** The choices are listed in
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved. Built (P5a-P5d): see "As built" at the end.** The choices are listed in
 [../questions/specs-tailings.md](../questions/specs-tailings.md) (P5 section).
 
 This fills in open-pit.md's P5 machines ("Pit power", "Haul trucks" for the ultra class, "Loaders" for the two shovels) so they can
@@ -167,3 +167,30 @@ and is to be checked before approval.
 - A 250 t class shovel maker's product pages: 1,119 kW (QSKTA50); 258 t; 15.0-16.5 m³ heaped; 10,350 mm dump height; 14,060 mm reach; 3,720 mm dig
   depth; 8,040 mm upper width; 6,000 mm undercarriage. Its electric variant: 860 kW.
 - open-pit.md's sources for the 4100-class rope shovel.
+
+## As built (P5a-P5d, 2026-11-09; decided while Tim was away, see [../questions/p5-big-machines.md](../questions/p5-big-machines.md))
+
+Everything above is built, with these readings and additions (each a numbered decision there):
+- **The switch house** is a plant part on Wildcatter's big parts with one block entity: a circuit part, a PLC device and a panel
+  (decisions 1, 12). Each closed outlet puts its cable on the solver as a resistance a phase of its whole length and the machine as a
+  constant-power star at 0.95 at the far end (2, 3). Trips are definite time, 1.25 x the machine's peak current for 1 s, capped at
+  1,200 A, held until reset on the panel; the PLC cannot reset (4). The ground check needs the machine to have answered within 2 s, to
+  close and to stay closed (7). Scenes feed it with an ideal supply hook; `pit_switch_house_fed` feeds one from a real set (13).
+- **The cable** pays out along the path, reeling in as the machine comes back, never under the straight line (5); at CABLE END the move
+  is refused and the outlet stays closed; a jump of over 8 m tears it out, a ground fault (6). A reel takes the house's first free
+  outlet (8). It is drawn along the straight line, lying on the ground (9).
+- **Electric machines** stop under 90 % at their end, LOW VOLTAGE, and their drives hold off 10 s before trying again (11, 30). The drill's
+  electric option is a panel setting at its diesel's 600 kW (10).
+- **The ultra** is its own entity type, a subclass of the 100 t truck with its figures (15), driving on the net 2,828 kW: 11.0 km/h up
+  10 % loaded in `pit_ultra_haul` (16). Each truck surveys its route for its own box; lanes and turning room scale with it (17). The
+  wheel loader refuses it, "too high to load" (18).
+- **The shovels** share one class (21). Muck comes out of the face a quarter of a bank block at a time, so a bucket fills to its rating
+  (22). A truck with under half a bucket of room is loaded and sent on; else the last pass is a part bucket (23): 13 passes of 27 t
+  (351 t) for the hydraulic shovel, 3 x 99.9 t and a 62.8 t part dipper for the rope shovel. The figures the spec left open (dump arcs,
+  dig and swing split, AUTO reach) are in decisions 24 and 31.
+- **The hydraulic shovel's** electric variant is a panel setting; AUTO can be set from the panel (25).
+- **The rope shovel's** parts are built with the crawlers and house standing and the boom, handle and dipper laid on the ground ahead
+  (27); RUN lifts it into one machine drawn by its own model, STOP sets it down if the cells are free (28); it draws 3.5 MW hoisting
+  and 0.6 MW the rest (29). Its PLC points are planned, not built (32, ROADMAP Known gaps).
+- **Not built:** the rope shovel's PLC points (planned on its outlet); the spec's Left out list (ROADMAP, Later).
+

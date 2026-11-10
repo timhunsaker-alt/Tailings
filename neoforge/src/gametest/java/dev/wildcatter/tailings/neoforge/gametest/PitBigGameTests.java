@@ -41,8 +41,8 @@ import net.minecraft.world.item.ItemStack;
  */
 final class PitBigGameTests {
 	static final String[] SCENES = {"pit_switch_house", "pit_cable_end", "pit_ultra_haul", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric",
-			"pit_rope_shovel_built", "pit_rope_shovel", "pit_low_voltage"};
-	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_low_voltage", 1200), Map.entry("pit_switch_house", 1200), Map.entry("pit_cable_end", 1600),
+			"pit_rope_shovel_built", "pit_rope_shovel", "pit_low_voltage", "pit_switch_house_fed"};
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_low_voltage", 1200), Map.entry("pit_switch_house_fed", 1200), Map.entry("pit_switch_house", 1200), Map.entry("pit_cable_end", 1600),
 			Map.entry("pit_ultra_haul", 7200), Map.entry("pit_ultra_loader", 400), Map.entry("pit_hyd_shovel", 2400), Map.entry("pit_hyd_electric", 1200),
 			Map.entry("pit_rope_shovel_built", 400), Map.entry("pit_rope_shovel", 3000));
 	static final Map<String, Integer> PADDING = Map.of("pit_switch_house", 60, "pit_cable_end", 60, "pit_ultra_haul", 200, "pit_ultra_loader", 60,
@@ -54,7 +54,7 @@ final class PitBigGameTests {
 
 	static int[] reach(String scene) {
 		return switch (scene) {
-			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage" -> new int[] {-1, 4, -1, 4};
+			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage", "pit_switch_house_fed" -> new int[] {-1, 4, -1, 4};
 			case "pit_ultra_haul" -> new int[] {-3, 4, -1, 11};
 			case "pit_rope_shovel_built", "pit_rope_shovel" -> new int[] {-1, 5, -1, 6};
 			default -> new int[] {-1, 2, -1, 2};
@@ -474,5 +474,38 @@ final class PitBigGameTests {
 				.thenIdle(40)
 				.thenExecute(() -> helper.assertTrue(!drill.cable().live(), Component.literal("and stay stopped a while: " + drill.powerInfo())))
 				.thenSucceed();
+	}
+
+	/**
+	 * The switch house on Wildcatter's own medium voltage, not the scenes' ideal supply: a 500 kW diesel set at the industrial voltage,
+	 * stepped up by a unit substation run backward, medium-voltage cable to the house's north face. An electric drill on outlet 1 has
+	 * power at the nominal volts.
+	 */
+	static void switchHouseFed(GameTestHelper helper) {
+		BlockPos panel = new BlockPos(8, 2, 3);
+		var set = TbmGapsGameTests.genset(helper, panel);
+		net.minecraft.world.level.block.Block sub = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "unit_substation"));
+		BlockPos main = panel.east(4);
+		helper.setBlock(main, sub.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.SOUTH));
+		dev.wildcatter.multiblock.BigParts.grow(helper.getLevel(), helper.absolutePos(main), helper.getLevel().getBlockState(helper.absolutePos(main)));
+		TbmGapsGameTests.put(helper, "cable_mv", panel.east(5));
+		TbmGapsGameTests.put(helper, "cable_mv", panel.east(6));
+		TbmGapsGameTests.put(helper, "cable_mv", panel.east(7));
+		floor(helper, 0, 40, 1, 1, 12, 40);
+		PitSwitchHouseBlockEntity house = part(helper, TailingsBlocks.PIT_SWITCH_HOUSE, panel.east(7).south(), PitSwitchHouseBlockEntity.class);
+		TbmGapsGameTests.start(helper, panel);
+		BlastholeDrillEntity drill = electricDrill(helper, 26.5, 2, 26.5, 0);
+		String why = couple(helper, house, drill);
+		helper.assertTrue(why == null, Component.literal("the drill should couple: " + why));
+		helper.runAfterDelay(400, () -> helper.succeedWhen(() -> {
+			helper.assertTrue(set.breakerClosed(), Component.literal("the set should be on: " + set.inspect().getString()));
+			helper.assertTrue(house.fed(), Component.literal("the medium voltage on the house's bus: " + house.inspect().getString()));
+			if (house.state(0) != PitSwitchHouseBlockEntity.State.CLOSED) {
+				house.close(0);
+			}
+			double nominal = Voltage.MEDIUM.lineToLine();
+			helper.assertTrue(drill.cable().live() && Math.abs(house.volts(0) - nominal) < nominal * 0.05,
+					Component.literal("the drill has power at about " + Math.round(nominal) + " V: " + house.inspect().getString() + "; " + drill.powerInfo()));
+		}));
 	}
 }

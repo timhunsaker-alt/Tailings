@@ -199,7 +199,7 @@ against machines in the shot. NeoForge scenes `pit_drill_pattern`, `pit_drill_sh
 `pit_blast_blowout`, `pit_blast_boxcut`, `pit_misfire`, `pit_blast_guard`, `pit_blast_plc`; unit tests `BlastingTest`; client film
 `pit_blast` (written, to be filmed).
 
-Next: P5 (the big shovels and the ultra truck; the drill's parts and its electric drive), P6
+Next (after P4 and P5, below): P6
 (the dragline), P7 (the pit-sized plant).
 
 ## Open pit — P4: dry stack, the truck load-out, waste dumps, berms, the track dozer (2026-11-09)
@@ -212,6 +212,22 @@ berms and paddock dumps; NO BERM; a truck backed over a crest is wrecked; the `t
 rock). NeoForge scenes `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`,
 `pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`; unit tests
 `DryStackTest`; the client scene `pit_dry_stack` (written, not yet filmed).
+
+## Open pit — P5: the pit switch house, trailing cables, the ultra truck, the big shovels (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/open-pit-p5-big-machines.md](multiblocks/open-pit-p5-big-machines.md), decided on
+recommendation (decisions in [questions/p5-big-machines.md](questions/p5-big-machines.md), 34). P5a: the `pit_switch_house` on the
+world's medium voltage (four breaker outlets, ground check, trips, a PLC device), the `trailing_cable` (400 m reels, paid out along the
+path, CABLE END, its resistance on the solver, drawn on the ground), LOW VOLTAGE, and the drill's electric option. P5b: the
+`ultra_haul_truck` (363 t; routes surveyed for its own box, 40 m to turn, 2-block berms; too high for the wheel loader). P5c: the
+`hydraulic_shovel` (27 t, diesel or electric; double-side loading in AUTO; 13 passes to an ultra). P5d: the rope shovel as six big parts
+(`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`, `shovel_dipper`), lifted into one machine by RUN and
+set down by STOP, on its cable at 3.5 MW hoisting; 4 passes to an ultra. NeoForge scenes `pit_switch_house`, `pit_switch_house_fed`,
+`pit_cable_end`, `pit_low_voltage`, `pit_ultra_haul`, `pit_ultra_loader`, `pit_hyd_shovel`, `pit_hyd_electric`, `pit_rope_shovel_built`,
+`pit_rope_shovel`; unit tests `PitPowerTest`; client film `pit_big`.
+
+Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant). Planned from P5 (Known gaps below): the rope
+shovel's PLC points through its outlet; the drill as four parts.
 
 ## Plant gaps (2026-11-09, closed while Tim was away)
 
@@ -233,6 +249,8 @@ into the playthrough.
 - Bottom-dump cars over a grizzly.
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
 - Paste backfill of old stopes with tailings.
+- From P5's spec, Left out: electric-drive and trolley-assist ultra trucks; tyre heat and the ton-km-per-hour limit; cable damage,
+  cable crossings and the cable reel truck; shovel tooth wear and the dipper's door trip as its own action.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
@@ -241,7 +259,28 @@ into the playthrough.
   `blasthole*_placeholder` and `blasting_machine*_placeholder` block textures, and the six item icons are drawn by script
   (`tools/models/pit_blast_vehicles.py`, `tools/models/blast_assets.py`). The matrix fill point is drawn in Wildcatter's materials.
 - **The drill is one machine, not four parts (P3, decision 1):** no build check, no lift into a contraption, no parts to place; and so
-  no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW) and no electric drive until the parts come (P5).
+  no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW). Its electric drive came in P5a (a panel setting). Plan: four big parts
+  (crawlers, deck, mast, dust collector) built and lifted as the rope shovel's are (`RopeShovelBlockEntity` is the pattern: a layout
+  class, a check naming the missing part, RUN lifts into the existing `BlastholeDrillEntity`, STOP sets down), and its PLC points on
+  its switch house outlet as the rope shovel's below.
+- **Placeholder art (P5):** the item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder` and
+  `hydraulic_shovel_placeholder` are drawn by script (`tools/models/p5_assets.py`). The switch house and the rope shovel's six parts are
+  drawn in Wildcatter's materials; the ultra's, the hydraulic shovel's and the lifted rope shovel's skins are painted by
+  `tools/models/pit_vehicles.py` in Ludo's materials. So the rope shovel standing as its parts and running as one machine look alike in
+  shape but not in paint.
+- **The rope shovel has no PLC points (P5d, decision 32):** the spec's RUN, RUNNING, AUTO, PASSES (pulse) and POWER (4-20 mA). Plan:
+  each switch house outlet gets the machine's points as a second device on the house (the cable's pilot pair), read from what the
+  machine reports each tick, as the TBM's points are on its cable junction; PLC RUN in AUTO would lift and start it, its off set it down.
+- **The cable is drawn straight (P5a, decision 9):** from the coupler to the machine along the ground, not along the path it counts; it
+  is drawn while the machine is near enough to be tracked (about 256 blocks for the rope shovel).
+- **Cables are not damaged, bridged or carried (P5, spec Left out):** trucks and dozers drive over them; no cable crossings, no reel
+  truck to move one, no damage.
+- **A shovel moves as one box (P5c, P5d):** its house swings in the drawing only; the swing does not collide, and the rope shovel's box is
+  its crawlers and house (15 x 14.4 m), not its boom.
+- **A shovel loads trucks that stop beside it (P5c):** double-side loading works with two LOAD routes, one on each side; nothing spots the
+  trucks for it (real practice has the operator's horn), and a route's LOAD stake marks where its truck stands.
+- **The switch house is fed by an ideal supply in most scenes (P5a, decision 13):** `pit_switch_house_fed` feeds one from a real 500 kW
+  set through a unit substation; a pit-sized supply for a rope shovel (a plant of gas turbines on the loop) has no scene.
 - **Patterns run square to the grid (P3):** GO turns the drill to the nearest of the four ways.
 - **No flyrock in the air (P3):** a piece lands after its flight time with no entity drawn on the way; one landing in an unloaded
   chunk is lost. No camera shake for players near a blast.

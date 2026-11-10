@@ -431,6 +431,56 @@ building it are in [questions/p4-dry-stack.md](questions/p4-dry-stack.md). The f
   `tools/models/pit_vehicles.py` in Ludo's materials, on tracks: treads over a round idler and sprocket a side, its blade group raised
   and lowered by the blade's position.
 
+## The open pit (P5): the pit switch house, trailing cables, the ultra truck and the big shovels
+
+Spec: [multiblocks/open-pit-p5-big-machines.md](multiblocks/open-pit-p5-big-machines.md) (a draft decided on recommendation); the choices
+made building it are in [questions/p5-big-machines.md](questions/p5-big-machines.md). The power figures are in `pit.PitPower` (unit-tested
+in `PitPowerTest`), the rope shovel's parts in `pit.RopeShovelLayout`.
+
+- **The pit switch house** (`pit_switch_house`, 3 x 3 x 6, `block.PitSwitchHouseBlockEntity`): a Wildcatter circuit part. The world's
+  medium voltage lands on any cell of its north face (its incoming breaker trips at 2,500 A held 1 s); four outlets on its south face.
+  A closed outlet puts its trailing cable on the solver as a resistance a phase (0.1 ohm a km of the whole cable, proposed) to the
+  machine's end, and the machine as a constant-power star there at power factor 0.95 (its drives), sized from the volts it saw last:
+  the drop, amps and kW are the solver's. Each outlet trips at 1.25 x its machine's peak current held 1 s (never over 1,200 A). Ground
+  check: an outlet closes only while its machine answers on the cable (within 2 s); a closed outlet whose machine stops answering trips
+  on a ground fault. Trips hold until **Reset trips**. Its panel (right-click): each outlet open or closed, the reset, and a line of
+  every outlet's machine, amps, kW and cable; sneak-right-click for the full readout. A PLC device: per outlet CLOSE in, CLOSED,
+  TRIPPED, AMPS (4-20 mA over 1,200 A) out, then AUTO; HAND works from the panel, OFF holds every outlet open, AUTO follows CLOSE.
+- **Trailing cables** (`trailing_cable`, a 400 m reel; `entity.CableLink`): a reel clicked on a switch house takes its first free
+  outlet, then clicked on a machine with a reel (the drill, the hydraulic shovel, the rope shovel's crawlers) couples it; another reel
+  adds 400 m; sneak-click with a reel takes it off and gives the reels back. What is paid out is the path driven (reeled in coming back,
+  never under the straight line); past its length the move is refused, CABLE END. A jump of over 8 m tears it out (a ground fault).
+  Each tick the machine answers its outlet with what it draws and its peak, and has power while its outlet is closed and its end is at
+  90 % of the nominal or more; under that it reads LOW VOLTAGE and its drives stay stopped 10 s. Drawn as a black rod from the coupler
+  along the straight line to the machine's back, lying on the ground.
+- **Electric machines** (`PitVehicleEntity.electric`): on its cable a machine burns no diesel; the work its engine would have made is
+  what it draws. It reads NO CABLE, OUTLET OPEN, TRIPPED, GROUND FAULT, CABLE END or LOW VOLTAGE when it has no power. The drill's panel
+  has **Electric** (600 kW, as its diesel).
+- **The ultra truck** (`ultra_haul_truck`, `entity.UltraHaulTruckEntity`): the 100 t truck's class with the 360 t figures (15.08 x
+  9.76 x 7.71 m, 261 t empty, 363 t, 2,828 kW net, 67.6 km/h, 3,785 L, its body up in 20 s, 4 m tyres, 7.0 m loading height). A truck
+  surveys its route for its own box; its lane is right of the line in proportion to its width; it turns round in twice its turning
+  radius (40 m); its berms are 2 blocks. Up 10 % loaded it climbs at 11 km/h (`pit_ultra_haul`). The wheel loader will not load it:
+  "too high to load" (its 6 m reach under a 7.0 m body).
+- **Shovels** (`entity.PitShovelEntity`): a pass digs the face in front (soft ground or muck, top down; muck a quarter of a bank block at
+  a time, so a bucket fills to its rating; standing rock is "hard rock: blast it first"; a misfire stops it), swings up to 90 degrees to
+  a stopped truck whose body is within 6 m of its dump arc, either side, and dumps. A truck with under half a bucket of room is loaded:
+  it is told so and leaves its LOAD stake; with more, the last pass is a part bucket. AUTO (a survey book's route with a LOAD stake near
+  it, or from its panel) loads the trucks that come, one side then the other.
+- **The hydraulic shovel** (`hydraulic_shovel`, `entity.HydraulicShovelEntity`): 27 t bucket, 1,119 kW diesel or its electric variant's
+  860 kW on a cable (panel: Electric), 15 x 8.04 x 7.25 m; a face 8 wide, 12 high, 3 deep; 15 s digging and 15 s swinging and dumping;
+  13 passes load an ultra (`pit_hyd_shovel`).
+- **The rope shovel** (`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`, `shovel_dipper`;
+  `block.RopeShovelBlockEntity` at the crawlers' main cell, `entity.RopeShovelEntity`): built as six big parts, the boom, handle and dipper
+  laid on the ground ahead. Its panel (on the crawlers): RUN checks the parts (NOT BUILT names the missing one) and the cable (NO CABLE),
+  then lifts it into one machine, its cells going to air; STOP sets the parts down where it stands if their cells are free. Lifted: a
+  100 t dipper; a face 10 wide, 15 high, 4 deep; 12 s hoisting at 3.5 MW and 23 s swinging and dumping at 0.6 MW; dumps 18 m out; 4
+  passes load an ultra, the last a part dipper (`pit_rope_shovel`). It is drawn with its own model: the house swinging, the boom at 45
+  degrees, the dipper hoisted; its hoist and suspension ropes drawn as lines.
+- **Models:** the switch house and the rope shovel's parts in Wildcatter's materials (`tools/models/pit.py`); the ultra, the hydraulic
+  shovel and the lifted rope shovel by `tools/models/pit_vehicles.py` in Ludo's materials (its groups may now hang from other groups,
+  each on its own hinge); the item icons for the reel, the ultra and the hydraulic shovel drawn by `tools/models/p5_assets.py`
+  (`*_placeholder`). Electric machines sound Wildcatter's `motor_hum` instead of their diesel.
+
 ## Config
 
 Only one file. It is not created for you.
@@ -557,5 +607,8 @@ Block items exist for every block above, including the ones with no crafting rec
 | `blasthole_drill` | `BlastholeDrillEntity` | `PitVehicleRenderer` (`BlastholeDrillModel`) | Drills a pattern of 270 mm holes to depth (P3); driven, drills one hole on jump |
 | `emulsion_truck` | `EmulsionTruckEntity` | `PitVehicleRenderer` (`EmulsionTruckModel`) | 12 t of emulsion matrix; charges primed holes in its hose's reach on jump (P3) |
 | `track_dozer` | `TrackDozerEntity` | `PitVehicleRenderer` (`TrackDozerModel`) | Pushes loose ground with its blade (CARRY, CUT, RAISED), cuts ramps to grade, pushes up berms (P4) |
+| `ultra_haul_truck` | `UltraHaulTruckEntity` | `PitVehicleRenderer` (`UltraHaulTruckModel`) | The 360 t truck: the 100 t's class with its figures (P5b) |
+| `hydraulic_shovel` | `HydraulicShovelEntity` | `PitVehicleRenderer` (`HydraulicShovelModel`) | 27 t bucket; digs, swings and loads either side; diesel or on its cable (P5c) |
+| `rope_shovel` | `RopeShovelEntity` | `PitVehicleRenderer` (`RopeShovelModel`) | The lifted rope shovel: 100 t dipper on its trailing cable; no item, built from six parts (P5d) |
 
 Vehicles take no damage, except a sneaking empty-hand hit, which breaks them. They deal damage when the config allows it.

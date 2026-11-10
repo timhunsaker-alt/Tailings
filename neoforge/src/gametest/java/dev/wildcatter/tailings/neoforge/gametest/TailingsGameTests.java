@@ -219,6 +219,7 @@ public class TailingsGameTests {
 			helper.register(id("pit_rope_shovel_built"), wide("pit_rope_shovel_built", PitBigGameTests::ropeShovelBuilt));
 			helper.register(id("pit_rope_shovel"), wide("pit_rope_shovel", PitBigGameTests::ropeShovelLoads));
 			helper.register(id("pit_low_voltage"), wide("pit_low_voltage", PitBigGameTests::lowVoltage));
+			helper.register(id("pit_switch_house_fed"), wide("pit_switch_house_fed", PitBigGameTests::switchHouseFed));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));

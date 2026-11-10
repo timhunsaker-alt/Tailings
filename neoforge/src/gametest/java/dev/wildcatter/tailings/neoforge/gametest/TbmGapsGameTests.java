@@ -210,7 +210,7 @@ final class TbmGapsGameTests {
 	// ---- the reel gantry's transformer --------------------------------------------------------------------------------------------
 
 	/** A 500 kW diesel set at 480 V with its panel at {@code panel} (facing north, its skid to the west), fuelled and started. */
-	private static GensetControlPanelBlockEntity genset(GameTestHelper helper, BlockPos panel) {
+	static GensetControlPanelBlockEntity genset(GameTestHelper helper, BlockPos panel) {
 		for (int x = -7; x <= 18; x++) {
 			for (int z = -4; z <= 8; z++) {
 				helper.setBlock(panel.offset(x, -1, z), Blocks.STONE);
@@ -220,7 +220,7 @@ final class TbmGapsGameTests {
 		return (GensetControlPanelBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(panel));
 	}
 
-	private static void start(GameTestHelper helper, BlockPos panel) {
+	static void start(GameTestHelper helper, BlockPos panel) {
 		helper.runAfterDelay(30, () -> {
 			if (helper.getLevel().getBlockEntity(GensetSkid.base(helper.absolutePos(panel), Direction.NORTH, false)) instanceof GensetPartBlockEntity tank) {
 				tank.setFuel(2000);
@@ -229,7 +229,7 @@ final class TbmGapsGameTests {
 		});
 	}
 
-	private static void put(GameTestHelper helper, String id, BlockPos at) {
+	static void put(GameTestHelper helper, String id, BlockPos at) {
 		helper.setBlock(at, BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", id)));
 	}
 
