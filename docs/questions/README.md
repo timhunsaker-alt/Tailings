@@ -32,6 +32,12 @@ These are the only items that wait on you; everything else is built and only nee
    heat rate, which changes gas wells under fireboxes.
 8. **A pole transformer placed by command** (Wildcatter `protection-gaps.md` #21): turning it to face the pole changes which
    terminals are which in existing worlds.
+9. **Ventilation rules** (`l1-ventilation.md` #1, #2): the NO VENTILATION interlock and stale air are built but off by default
+   (a config file). Should the interlock default on for new worlds, and should it be a per-world rule instead of a file?
+10. **Paste fill's pace** (`l5-paste.md` #19): at the real ~34 m³/h a 360 m³ drive branch takes about 11 hours of play. Scale it?
+    And cement (#8) is a placeholder recipe until a cement kiln exists.
+11. **The dry mill's share** (`l6-dry-mill.md` #3, #14): only the scavenger spirals' 45 % goes through the dry mill (the filter still
+    pays the first spirals' 50 % as today). And should Wildcatter's chlorinator take Tailings' zircon concentrate?
 
 ## Every file, by wave
 
@@ -49,10 +55,10 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
 | Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
 | Tailings | `l2-l3-trains.md` | 20 | battery locomotives and their charger, bottom-dump cars over a track grizzly (merged; #7, #12, #16 need you) |
-| Tailings | `l1-ventilation.md` (branch `l1-ventilation`) | 19 | the drive's fan, duct, booster, the TBM's duct cassette, stale air (#1, #2 need you: the rules are off by default) |
-| Tailings | `l4-shaft.md` (branch `l4-shaft`) | 21 | the shaft and hoist: headframe, hoist house, skips in balance, the measuring flask, the headframe bin (#1, #5, #20 need you) |
-| Tailings | `l5-paste.md` (branch `l5-paste`) | 22 | paste backfill: the paste filter, mixer and pump, fill bulkheads and outlet, curing, cement (#8, #14, #19 need you) |
-| Tailings | `l6-dry-mill.md` (branch `l6-dry-mill`) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
+| Tailings | `l1-ventilation.md` (merged) | 19 | the drive's fan, duct, booster, the TBM's duct cassette, stale air (#1, #2 need you: the rules are off by default) |
+| Tailings | `l4-shaft.md` (merged) | 21 | the shaft and hoist: headframe, hoist house, skips in balance, the measuring flask, the headframe bin (#1, #5, #20 need you) |
+| Tailings | `l5-paste.md` (merged) | 22 | paste backfill: the paste filter, mixer and pump, fill bulkheads and outlet, curing, cement (#8, #14, #19 need you) |
+| Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
