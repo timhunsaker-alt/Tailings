@@ -424,4 +424,6 @@ Built while Tim was away on the draft specs `docs/multiblocks/battery-locomotive
   10-car train placed at once coupled none of its cars); a bottom-dump train near the end of its track was braking over the grizzly.
 - **Scenes:** NeoForge `battery_loco_run`, `battery_loco_climb` (7.86 kWh per 50 m measured), `battery_loco_flat`, `battery_charge` (a
   real diesel set through Wildcatter cable; 18.0 kW into the battery), `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`,
-  `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump`.
+  `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump` (`TAILINGS_ONLY=battery_bottom_dump`) passes and is filmed: four cars of
+  copper ore and cobble dropped on the move at up to 3 m/s, doors open over the grizzly and shut past it, 1,268 items in the pocket.
+- **The film found:** its first layout set the charger across the track and ended before the last car reached the grizzly.

@@ -619,7 +619,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
-			for (int z = -2; z <= 48; z++) {
+			for (int z = -2; z <= 56; z++) {
 				level.setBlock(new BlockPos(x, ry - 1, z0 + z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_ALL);
 				level.setBlock(new BlockPos(x, ry, z0 + z), rail, Block.UPDATE_ALL);
 			}
@@ -639,10 +639,13 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			// the charging bay at the far end: the charger on a wall beside the track
 			for (int yy = 0; yy < 3; yy++) {
 				for (int z = 41; z <= 44; z++) {
-					level.setBlock(new BlockPos(x - 2, ry + yy, z0 + z), Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+					level.setBlock(new BlockPos(x - 4, ry + yy, z0 + z), Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
 				}
 			}
-			part(level, TailingsBlocks.BATTERY_CHARGER, new BlockPos(x - 1, ry, z0 + 42));
+			part(level, TailingsBlocks.BATTERY_CHARGER, new BlockPos(x - 3, ry, z0 + 42));   // 2 m wide, clear of the track
+			System.out.println("[tailings-test] battery_bottom_dump station: rail " + level.getBlockState(new BlockPos(x, ry, z0 + 13)) + "; under " + level.getBlockState(new BlockPos(x, ry - 1, z0 + 13))
+					+ "; pocket " + level.getBlockState(new BlockPos(x, ry - 2, z0 + 13)) + "; cam " + level.getBlockState(new BlockPos(x + 1, ry, z0 + 13))
+					+ "; finds " + dev.wildcatter.tailings.block.DumpBlockEntity.grizzlyUnder(level, new BlockPos(x, ry, z0 + 13)));
 		});
 		server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + (z0 + 38) + " 90 15");
 		context.waitTicks(40);
@@ -664,9 +667,13 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.waitTicks(30);
 		server.runOnServer(srv -> train[0].setRunning(true));
 		boolean shot = false;
-		for (int t = 0; t < 70; t++) {
+		for (int t = 0; t < 150; t++) {
 			context.waitTicks(5);
 			double z = server.computeOnServer(srv -> train[0].getZ());
+			if (t > 20 && server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).allMatch(c -> c.load().total() == 0 && !c.doorsOpen()))) {
+				context.waitTicks(30);
+				break;
+			}
 			// follow the train until its locomotive is past the grizzly, then hold on the grizzly while the cars cross it
 			int camZ = (int) Math.max(z0 + 14, z + 4);
 			server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + camZ + " 90 15");
