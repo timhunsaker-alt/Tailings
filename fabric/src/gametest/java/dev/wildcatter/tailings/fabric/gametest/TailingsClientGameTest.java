@@ -794,7 +794,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	 */
 	private void shaftHoist(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
 		int x0 = 300, z0 = 1200, depth = 40;
-		int collar = server.computeOnServer(srv -> srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0 + 4, z0 + 4));
+		// the test world is flat near the bottom of the world: the collar goes high enough that the shaft's floor is above it
+		int collar = server.computeOnServer(srv -> Math.max(srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0 + 4, z0 + 4),
+				srv.overworld().getMinY() + depth + 3));
 		PlantBlockEntity[] parts = new PlantBlockEntity[4];
 		dev.wildcatter.tailings.entity.ShaftSkipEntity[] skips = new dev.wildcatter.tailings.entity.ShaftSkipEntity[2];
 		server.runOnServer(srv -> {
@@ -805,6 +807,14 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 					level.setBlock(new BlockPos(x, collar - 1, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
 					for (int yy = collar; yy < collar + 34; yy++) {
 						level.setBlock(new BlockPos(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			// solid rock under the yard, down to the shaft's floor (the flat world's ground may be thinner than the shaft is deep)
+			for (int yy = collar - depth - 1; yy < collar - 1; yy++) {
+				for (int x = x0 - 8; x <= x0 + 30; x++) {
+					for (int z = z0 - 8; z <= z0 + 34; z++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
 					}
 				}
 			}
