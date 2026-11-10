@@ -240,9 +240,6 @@ into the playthrough.
 
 ## Known gaps and stand-ins
 
-- **The blasting art is placeholder (P3):** `blasthole_drill_placeholder` and `emulsion_truck_placeholder` skins, the
-  `blasthole*_placeholder` and `blasting_machine*_placeholder` block textures, and the six item icons are drawn by script
-  (`tools/models/pit_blast_vehicles.py`, `tools/models/blast_assets.py`). The matrix fill point is drawn in Wildcatter's materials.
 - **The drill is one machine, not four parts (P3, decision 1):** no build check, no lift into a contraption, no parts to place; and so
   no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW) and no electric drive until the parts come (P5).
 - **Patterns run square to the grid (P3):** GO turns the drill to the nearest of the four ways.
@@ -254,8 +251,6 @@ into the playthrough.
 - **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
   damage, less armour and Blast Protection, but no scene checks a player.
 
-- **The open pit's art is placeholder (P1):** `haul_truck_placeholder` and `wheel_loader_placeholder` skins, their item icons, and
-  `muck_placeholder` are drawn by script.
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).
 - **Thickened tails are marked tails slurry (P4):** Wildcatter 0.5.1 has no product for them, so the underflow is tails slurry whose
@@ -264,8 +259,6 @@ into the playthrough.
   LOADING and CYCLE are not built.
 - **No new P4 sounds:** the press, thickener, gate and dozer reuse existing sounds; the hydraulic whine, the cake's thud and the
   track clatter are for the art wave.
-- **Placeholder art (P4):** `dry_tails_placeholder` (block) and `track_dozer_placeholder` (the dozer's icon) are drawn by script; the
-  dozer's entity skin is painted in Ludo's materials; the four parts use Wildcatter's materials.
 - **The dozer is drawn level and its treads do not run (P4):** its idlers and sprockets turn as it moves; the tread boxes are still.
 - **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
   to its right; it halts and says so if it cannot loop within 3 minutes.
@@ -275,7 +268,9 @@ into the playthrough.
   the reagents, the by-products, the survey book and the vehicle icons are Ludo art (`art/source/PROMPTS.md`). Still vanilla:
   the rock-size items (crushed, gravel, sand, fines), nuggets, minerals and concentrates share one vanilla icon per kind (cobblestone,
   gravel, sand, clay, iron nugget, raw iron, gold nugget) across every rock; they were never on this list and are a wave of their own
-  (`docs/questions/art-wave.md`, 5).
+  (`docs/questions/art-wave.md`, 5). P3's and P4's art followed in the same way (`docs/questions/art-p3.md`): the blasting items,
+  blocks and collars, `dry_tails` and the dozer's icon are Ludo art, and the drill's and emulsion truck's skins are painted in the
+  swatches (white paint added for the truck). The matrix fill point and P4's four parts use Wildcatter's materials.
 - **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,

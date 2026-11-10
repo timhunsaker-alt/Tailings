@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P3 and P4 art (2026-11-09, decided while Tim was away)
+
+- **Ludo art for the blasting and dry stack:** the drill, emulsion truck, cast booster, detonator, blast logger, blasting key and
+  track dozer icons; the blasting machine and its stand; the blasthole column and its six collars, each still ringed in its
+  state's colour (white drilled, yellow primed, orange charged, grey stemmed, green logged, red misfired); and dry tails. The drill
+  and emulsion truck skins are painted from Ludo material swatches (a white paint added for the truck). No `*_placeholder`
+  texture is left. Decisions in `docs/questions/art-p3.md`.
+
 ### Open pit P3 — drilling and blasting (2026-11-09)
 
 Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).

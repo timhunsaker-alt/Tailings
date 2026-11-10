@@ -49,3 +49,37 @@ noted:
 | mibc (a) | A single small blue plastic jerrycan of clear liquid flotation frother (MIBC), screw cap, generic |
 | xanthate (a) | A small heap of pale yellow sodium xanthate pellets, short cylindrical pellets (the item is potassium amyl xanthate, which looks the same) |
 | zinc_sulfate (a) | A small heap of colourless to white zinc sulfate heptahydrate crystals (dark grey background) |
+
+## Open pit P3 and P4 art (2026-11-09)
+The same: Ludo `createImage`, model klimt, art_style `Photorealistic 3D`, 2 variations each, the better kept (decisions in
+`docs/questions/art-p3.md`).
+
+Blocks, `texture`, the same opening:
+
+| File | Prompt |
+|---|---|
+| blasting_machine (b) | front panel of a rugged red steel blasting machine box, a key switch in the middle, an amber ARM button and a red FIRE button, small bolted corners, worn paint and dust (Ludo lettered the buttons anyway; at 16 px no letter survives) |
+| bench_rock (a) | the hard grey rock of an open pit mine bench, massive fractured grey stone with fine cracks and a little dust, plain (the blasthole's side, with the hole's dark line down it, and its end, with the hole, by `tools/process_art.py`) |
+| drill_cuttings (a) | fine grey-brown drill cuttings spread on an open pit bench, a layer of crushed rock chips and powder blown out of a blasthole (top-down; the six collars, each ringed with `stake_flag` dyed in its state's colour round the hole) |
+| dry_tails (b) | filtered dry stacked mine tailings, compacted pale grey-beige silty sand filter cake, slightly cracked and crumbly, faint dozer track marks (top-down) |
+
+The blasting machine's stand is `vehicle/steel_dark` at 16 px.
+
+Vehicle materials (`vehicle/`), `texture`, the same opening; the emulsion truck's stripe and reel are this paint dyed red
+(`paint_red`, by `tools/process_art.py`):
+
+| File | Prompt |
+|---|---|
+| paint_white (a) | worn white paint on the steel of a mining explosives truck's tank, scuffs, a film of reddish dust, small chips showing grey primer, plain, no seams |
+
+Items, `item-icon`, each "..., game item icon, plain white background, no text" (Ludo returned all of them on transparency):
+
+| File | Prompt |
+|---|---|
+| blasthole_drill (a) | A single yellow rotary blasthole drill rig for open pit mining seen from the side at three-quarter view, on crawler tracks, tall lattice drill mast standing upright at its back end, small cab at the front, generic, no brand names |
+| emulsion_truck (a) | A single white bulk emulsion explosives truck for mining seen from the side at three-quarter view, white tank body with a red stripe along it, red hose reel at the back, generic, no brand names |
+| cast_booster (a) | A single cast explosive booster for blasting: a short pale yellow-tan cylinder in a thin cardboard sleeve, a small well in its top for the detonator, generic, no brand names |
+| detonator (b) | A single electronic blasting detonator: a thin copper-coloured metal tube with a coil of bright yellow downline wire attached, generic, no brand names |
+| blast_logger (a) | A single rugged handheld blast logger: a yellow rubber-armoured handheld unit with a small dark green screen and a black keypad, front view, generic, no brand names |
+| blasting_key (a) | A single brass key for a blasting machine's key switch, a chunky brass key with a round bow and a red plastic tag on its ring, lying flat, generic, no brand names |
+| track_dozer (a) | A single large yellow crawler track dozer seen from the side at three-quarter view, wide steel blade at the front, black steel tracks, cab on top, generic, no brand names |
