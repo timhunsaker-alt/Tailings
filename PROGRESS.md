@@ -481,7 +481,13 @@ was decided on the best recommendation and logged in `docs/questions/p5-big-mach
   (`TAILINGS_ONLY=pit_big`) was filmed once (`fabric/build/scene-videos/pit_big.mov`): the parts, the lift, 4 passes into the
   ultra (362.5 t), the ultra driving off. That run failed only its sound check (the dig sounds at the face, out of the camera's hearing:
   it now checks the dump's `muck_tip`), and it found a freshly closed outlet read 0 V as LOW VOLTAGE and held 10 s (fixed: only a real
-  sag latches). Not re-filmed after the fixes.
-- **Known gaps (P5):** script-drawn item icons `trailing_cable_placeholder`, `ultra_haul_truck_placeholder`,
-  `hydraulic_shovel_placeholder` (`tools/models/p5_assets.py`); the rope shovel's PLC points are planned, not built; the drill is still one
+  sag latches). Re-filmed after the fixes (below).
+- **Closing the gaps (decisions 36-38):** `p3-blasting` merged again (its P3/P4 Ludo art and `main`). The three P5 icons are Ludo art
+  (3 jobs, 3 credits; `p5_assets.py` no longer draws textures, no `*_placeholder` texture is left). Both haul trucks' bodies had their
+  rear tyres' tops standing up through the floor, dark holes in an empty body from above: the floors now sit above the tyres on two
+  rails. On faces 3 m and more each way the hazard stripes are 1 m wide and the louvres a coarse bank, so the rope shovel's house no
+  longer shimmers at range. Suite after the merge and the fixes: **138 pass**, unit tests 132 pass. The client film `pit_big` was
+  re-filmed after them and passed (`fabric/build/scene-videos/pit_big.mov`): the lift, 4 passes into the ultra (362.5 t), its sound
+  check (`muck_tip` 4 times); the screenshots show the empty ultra's floor whole, the house's stripes and louvres steady at range.
+- **Known gaps (P5):** the rope shovel's PLC points are planned, not built; the drill is still one
   machine (its parts planned); the cable is drawn straight; the rest are in ROADMAP's Known gaps.

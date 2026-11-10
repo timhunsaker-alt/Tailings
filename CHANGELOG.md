@@ -22,6 +22,9 @@ Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-
 - **Rope Shovel**: build its six parts (`shovel_crawlers`, `shovel_house`, `shovel_gantry`, `shovel_boom`, `shovel_handle`,
   `shovel_dipper`), couple a trailing cable to the crawlers and press RUN on their panel: it lifts into one machine with a 100 t dipper,
   drawing 3.5 MW as it hoists, and loads an ultra in 4 passes. STOP sets it back down as its parts.
+- **Art:** the trailing cable, ultra truck and hydraulic shovel icons are Ludo art. The haul trucks' empty bodies no longer show their
+  tyres through the floor (the floor sits above the tyres, on rails), and the rope shovel's hazard stripes and louvres are coarse
+  enough not to shimmer at range.
 
 ### Open pit P3 and P4 art (2026-11-09, decided while Tim was away)
 
