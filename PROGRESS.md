@@ -614,6 +614,8 @@ Spec `docs/multiblocks/dragline.md` (approved by Tim; "As built" at its end). Bu
   spoil now lands 6 m beyond the strip's edge, leaned away from it. Facing north, sin 180 degrees (1.2e-16) put the strip's first row a
   hair behind its start and DONE left it standing (found by the film's strip check): the strip's frame is rounded to whole axes. The
   model generator's skin did not fit a 75 m boom: boxes of one size can share a patch (opt-in; other skins unchanged).
-- **Scenes:** NeoForge `dragline_built`, `dragline_cycle`, `dragline_strip`, `dragline_walk`, `dragline_hard`, `dragline_plc`. Unit
-  tests: `DraglineTest`, `MachineTest` (sizes). Client film `dragline` (`TAILINGS_ONLY=dragline`,
-  `fabric/build/scene-videos/dragline.mov`).
+- **Scenes:** NeoForge `dragline_built`, `dragline_cycle` (25 blocks dug and cast, none floating; 6,000 and 1,200 kW), `dragline_strip`
+  (1,500 m³ in 60 cycles, the 600-block seam untouched), `dragline_walk` (the near end, five 2 m steps, the far end: 540 m³, nothing
+  left), `dragline_hard`, `dragline_plc`: the full suite, **186 pass** (180 before, 6 new). Unit tests: **198 pass** (`DraglineTest`
+  new, `MachineTest` sizes). Client film `dragline` (`TAILINGS_ONLY=dragline`, `fabric/build/scene-videos/dragline.mov`, about
+  3 minutes): the parts, the lift, 25 cycles cast into the last strip's hole, five steps, DONE with the strip uncovered.
