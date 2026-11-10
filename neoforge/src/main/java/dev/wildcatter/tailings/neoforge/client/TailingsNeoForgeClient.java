@@ -37,6 +37,7 @@ public final class TailingsNeoForgeClient {
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.TrackDozerModel.LAYER, dev.wildcatter.tailings.client.TrackDozerModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.UltraHaulTruckModel.LAYER, dev.wildcatter.tailings.client.UltraHaulTruckModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.RopeShovelModel.LAYER, dev.wildcatter.tailings.client.RopeShovelModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.DraglineModel.LAYER, dev.wildcatter.tailings.client.DraglineModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.HydraulicShovelModel.LAYER, dev.wildcatter.tailings.client.HydraulicShovelModel::createBodyLayer);
 		});
 		modBus.addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
@@ -58,6 +59,7 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.TRACK_DOZER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.ULTRA_HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.ROPE_SHOVEL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.DRAGLINE, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.HYDRAULIC_SHOVEL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 		});

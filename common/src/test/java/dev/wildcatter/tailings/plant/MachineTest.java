@@ -76,7 +76,13 @@ class MachineTest {
 			Map.entry(Machine.DRAIN_RINSE_SCREEN, new int[] {2, 2, 5}),
 			Map.entry(Machine.MEDIUM_RECOVERY, new int[] {2, 3, 3}),
 			Map.entry(Machine.XRT_SORTER, new int[] {4, 5, 8}),
-			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}));
+			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}),
+			Map.entry(Machine.DRAGLINE_TUB, new int[] {15, 2, 15}),
+			Map.entry(Machine.DRAGLINE_HOUSE, new int[] {24, 12, 20}),
+			Map.entry(Machine.DRAGLINE_SHOE, new int[] {3, 3, 14}),
+			Map.entry(Machine.DRAGLINE_MAST, new int[] {6, 20, 4}),
+			Map.entry(Machine.DRAGLINE_BOOM, new int[] {4, 4, 15}),
+			Map.entry(Machine.DRAGLINE_BUCKET, new int[] {5, 4, 6}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

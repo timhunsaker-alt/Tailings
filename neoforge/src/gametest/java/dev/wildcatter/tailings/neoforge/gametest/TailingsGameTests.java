@@ -228,10 +228,16 @@ public class TailingsGameTests {
 			helper.register(id("pit_low_voltage"), wide("pit_low_voltage", PitBigGameTests::lowVoltage));
 			helper.register(id("pit_switch_house_fed"), wide("pit_switch_house_fed", PitBigGameTests::switchHouseFed));
 			helper.register(id("pit_shovel_edge"), wide("pit_shovel_edge", PitBigGameTests::shovelEdge));
+			helper.register(id("dragline_built"), wide("dragline_built", DraglineGameTests::built));
+			helper.register(id("dragline_cycle"), wide("dragline_cycle", DraglineGameTests::cycle));
+			helper.register(id("dragline_strip"), wide("dragline_strip", DraglineGameTests::stripScene));
+			helper.register(id("dragline_walk"), wide("dragline_walk", DraglineGameTests::walk));
+			helper.register(id("dragline_hard"), wide("dragline_hard", DraglineGameTests::hard));
+			helper.register(id("dragline_plc"), wide("dragline_plc", DraglineGameTests::plc));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),

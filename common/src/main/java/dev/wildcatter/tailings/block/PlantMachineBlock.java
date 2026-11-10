@@ -59,6 +59,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.SHOVEL_CRAWLERS) {
 			return new RopeShovelBlockEntity(pos, state);
 		}
+		if (machine == Machine.DRAGLINE_TUB) {
+			return new DraglineBlockEntity(pos, state);
+		}
 		if (machine == Machine.BATTERY_CHARGER) {
 			return new BatteryChargerBlockEntity(pos, state);
 		}
@@ -84,6 +87,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		}
 		if (machine == Machine.SHOVEL_CRAWLERS) {
 			return createTickerHelper(type, TailingsBlocks.ROPE_SHOVEL_ENTITY, RopeShovelBlockEntity::tick);
+		}
+		if (machine == Machine.DRAGLINE_TUB) {
+			return createTickerHelper(type, TailingsBlocks.DRAGLINE_ENTITY, DraglineBlockEntity::tick);
 		}
 		if (machine == Machine.BATTERY_CHARGER) {
 			return createTickerHelper(type, TailingsBlocks.BATTERY_CHARGER_ENTITY, BatteryChargerBlockEntity::tick);
@@ -172,6 +178,18 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				} else {
 					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, crawlers),
 							net.minecraft.network.chat.Component.literal("Rope Shovel")));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (level.getBlockEntity(main(pos, state)) instanceof DraglineBlockEntity tub) {
+			// the dragline standing as its parts: its panel, its job and RUN to lift it; sneak for the readout
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					player.sendSystemMessage(tub.inspect());
+				} else {
+					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, tub),
+							net.minecraft.network.chat.Component.literal("Dragline")));
 				}
 			}
 			return InteractionResult.SUCCESS;

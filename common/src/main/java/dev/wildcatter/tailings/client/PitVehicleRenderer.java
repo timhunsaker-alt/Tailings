@@ -28,6 +28,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	private static final Identifier ULTRA_TEXTURE = Tailings.id("textures/entity/ultra_haul_truck.png");
 	private static final Identifier HYD_TEXTURE = Tailings.id("textures/entity/hydraulic_shovel.png");
 	private static final Identifier ROPE_TEXTURE = Tailings.id("textures/entity/rope_shovel.png");
+	private static final Identifier DRAGLINE_TEXTURE = Tailings.id("textures/entity/dragline.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
@@ -37,6 +38,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	private final UltraHaulTruckModel ultra;
 	private final HydraulicShovelModel hydraulic;
 	private final RopeShovelModel rope;
+	private final DraglineModel dragline;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -48,6 +50,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		ultra = new UltraHaulTruckModel(context.bakeLayer(UltraHaulTruckModel.LAYER));
 		hydraulic = new HydraulicShovelModel(context.bakeLayer(HydraulicShovelModel.LAYER));
 		rope = new RopeShovelModel(context.bakeLayer(RopeShovelModel.LAYER));
+		dragline = new DraglineModel(context.bakeLayer(DraglineModel.LAYER));
 	}
 
 	@Override
@@ -58,6 +61,9 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	@Override
 	public boolean shouldRender(PitVehicleEntity entity, Frustum frustum, double cameraX, double cameraY, double cameraZ, float partialTick) {
 		// its trailing cable runs far from it, to the switch house: drawn while the machine is tracked at all
+		if (entity instanceof dev.wildcatter.tailings.entity.DraglineEntity) {
+			return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(80.0, 40.0, 80.0));   // its boom reaches 72 m out and 45 m up
+		}
 		return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
 	}
 
@@ -66,15 +72,22 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
-		state.kind = entity instanceof dev.wildcatter.tailings.entity.RopeShovelEntity ? 7 : entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
+		state.kind = entity instanceof dev.wildcatter.tailings.entity.DraglineEntity ? 8 : entity instanceof dev.wildcatter.tailings.entity.RopeShovelEntity ? 7 : entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
 				: entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity ? 4 : state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
 		state.swing = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.swing() : 0;
+		if (entity instanceof dev.wildcatter.tailings.entity.DraglineEntity d) {
+			state.swing = d.swing();
+			state.bucketOut = d.bucketOut();
+			state.bucketUp = d.bucketUp();
+			state.walk = d.walkPhase();
+			state.shadowRadius = 9F;
+		}
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
-		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : NO_CABLE;
+		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
 	}
 
 	/**
@@ -97,6 +110,33 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		for (double side : new double[] {-0.9, 0.9}) {
 			n = put(out, n, yaw, swing, side * 2.8, head[1], head[2]);
 			n = put(out, n, yaw, swing, side, point[1], point[2]);
+		}
+		return java.util.Arrays.copyOf(out, n);
+	}
+
+	/**
+	 * The dragline's ropes, as pairs of points (dragline.md, P6): two hoist ropes from the boom point's sheaves down to the bucket's
+	 * spreader bar, two drag ropes from the fairlead at the house's front out to the bucket's mouth, and two suspension ropes from the
+	 * mast head to the boom point.
+	 */
+	private static float[] draglineRopes(PitState state) {
+		double up = DraglineModel.BOOM_ANGLE;
+		double[] foot = {0, 4.4, -8.5};
+		double[] point = {0, foot[1] + 76.0 * Math.sin(up), foot[2] - 76.0 * Math.cos(up)};
+		double bx = 0, by = state.bucketUp, bz = -state.bucketOut;
+		float[] out = new float[36];
+		int n = 0;
+		for (double side : new double[] {-1.0, 1.0}) {
+			n = put(out, n, state.yaw, state.swing, side * 0.6, point[1], point[2]);
+			n = put(out, n, state.yaw, state.swing, bx + side * 2.3, by + 3.9, bz - 0.1);
+		}
+		for (double side : new double[] {-0.5, 0.5}) {
+			n = put(out, n, state.yaw, state.swing, side, 4.0, -9.0);
+			n = put(out, n, state.yaw, state.swing, bx + side * 3, by + 0.5, bz + 3.0);
+		}
+		for (double side : new double[] {-1.0, 1.0}) {
+			n = put(out, n, state.yaw, state.swing, side * 1.2, 34.0, -6.5);
+			n = put(out, n, state.yaw, state.swing, side * 0.9, point[1] + 0.5, point[2] + 1.0);
 		}
 		return java.util.Arrays.copyOf(out, n);
 	}
@@ -168,6 +208,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 5 -> ultra;
 			case 6 -> hydraulic;
 			case 7 -> rope;
+			case 8 -> dragline;
 			default -> loader;
 		};
 		Identifier texture = switch (state.kind) {
@@ -178,6 +219,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 5 -> ULTRA_TEXTURE;
 			case 6 -> HYD_TEXTURE;
 			case 7 -> ROPE_TEXTURE;
+			case 8 -> DRAGLINE_TEXTURE;
 			default -> LOADER_TEXTURE;
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
@@ -211,7 +253,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
-		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel, 7 the rope shovel. */
+		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel, 7 the rope shovel, 8 the dragline. */
 		public int kind;
 		public boolean loaded;
 		public float lift;
@@ -222,7 +264,11 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float swing;
 		/** Its trailing cable's points from it, x y z in turn; empty with none. */
 		public float[] cable = NO_CABLE;
-		/** The rope shovel's ropes, pairs of points from it; empty for any other machine. */
+		/** The dragline's bucket, metres out and up from its centre, and how far through a step its shoes are. */
+		public float bucketOut;
+		public float bucketUp;
+		public float walk;
+		/** The rope shovel's or dragline's ropes, pairs of points from it; empty for any other machine. */
 		public float[] ropes = NO_CABLE;
 	}
 }

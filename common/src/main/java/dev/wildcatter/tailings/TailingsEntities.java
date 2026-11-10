@@ -98,6 +98,13 @@ public final class TailingsEntities {
 			.clientTrackingRange(20)
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("rope_shovel")));
+	/** The walking dragline, lifted off its parts (dragline.md, P6): its box is its house over its tub; its boom reaches 65 m beyond. */
+	public static final EntityType<dev.wildcatter.tailings.entity.DraglineEntity> DRAGLINE = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.DraglineEntity>of(dev.wildcatter.tailings.entity.DraglineEntity::new, MobCategory.MISC)
+			.sized(24.0F, 15.0F)
+			.clientTrackingRange(24)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("dragline")));
 	public static final EntityType<dev.wildcatter.tailings.entity.TrackDozerEntity> TRACK_DOZER = EntityType.Builder
 			.<dev.wildcatter.tailings.entity.TrackDozerEntity>of(dev.wildcatter.tailings.entity.TrackDozerEntity::new, MobCategory.MISC)
 			.sized(4.9F, 4.6F)
@@ -152,6 +159,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("ultra_haul_truck"), ULTRA_HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("hydraulic_shovel"), HYDRAULIC_SHOVEL);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("rope_shovel"), ROPE_SHOVEL);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("dragline"), DRAGLINE);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("skip"), SKIP);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));

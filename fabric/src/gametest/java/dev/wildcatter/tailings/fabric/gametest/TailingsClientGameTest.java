@@ -134,6 +134,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_big")) {
 				pitBig(context, world, server);
 			}
+			if (only("dragline")) {
+				dragline(context, world, server);
+			}
 			if (only("vent")) {
 				vent(context, world, server);
 			}
@@ -2406,5 +2409,127 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(loaded.startsWith("362") || loaded.startsWith("363"), "the rope shovel should fill the ultra: " + loaded);
 		// the dipper's dig sounds at the face, out of the camera's hearing; the dump into the truck is heard
 		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_tip");
+	}
+
+	/**
+	 * The walking dragline (dragline.md, P6), the spec's film: built from its parts on a bench of grass and dirt over a bauxite seam,
+	 * beside the last strip's hole; its trailing cable from a pit switch house. RUN lifts it into one machine. It digs the near end of
+	 * its strip from the top down, swinging and casting each bucket into the old hole, where the spoil settles; with nothing left in its
+	 * reach it walks on 2 m at a step to the strip's far end, digs it and reads DONE, the seam uncovered. Its cycles run ten times fast.
+	 */
+	private void dragline(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(1100, y + 8, 1700).offset(0, -59, 0);   // b + (x, 60, z) is the bench's floor
+		Object[] v = new Object[2];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			Block bauxite = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.parse("wildcatter:bauxite_ore"));
+			for (int x = -20; x <= 100; x++) {
+				for (int z = -85; z <= 60; z++) {
+					boolean strip = x >= 40 && x <= 49 && z >= -52 && z <= 17;
+					boolean hole = x >= 56 && x <= 78 && z >= -70 && z <= 30;   // the last strip, its seam taken
+					boolean dug = strip && z >= -46 && z <= 5;                 // this strip's middle, already uncovered
+					for (int yy = 50; yy <= 59; yy++) {
+						BlockState st;
+						if (hole && yy >= 55) {
+							st = Blocks.AIR.defaultBlockState();
+						} else if (strip && yy >= 57) {
+							st = dug ? Blocks.AIR.defaultBlockState() : (yy == 59 ? Blocks.GRASS_BLOCK : Blocks.DIRT).defaultBlockState();
+						} else if (yy == 55 || yy == 56) {
+							st = bauxite.defaultBlockState();
+						} else {
+							st = (yy == 59 ? Blocks.GRASS_BLOCK : yy >= 57 ? Blocks.DIRT : Blocks.STONE).defaultBlockState();
+						}
+						level.setBlock(b.offset(x, yy, z), st, Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			BlockPos at = b.offset(20, 60, 10);
+			for (dev.wildcatter.tailings.pit.DraglineLayout.Part p : dev.wildcatter.tailings.pit.DraglineLayout.Part.values()) {
+				int[] o = p.offset();
+				part(level, TailingsBlocks.plantBlock(p.machine()), at.offset(o[0], o[1], o[2]));
+			}
+			part(level, TailingsBlocks.PIT_SWITCH_HOUSE, b.offset(2, 60, 40));
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) level.getBlockEntity(b.offset(2, 60, 40));
+			house.forceSupply(true);
+			ItemStack reel = new ItemStack(dev.wildcatter.tailings.TailingsItems.TRAILING_CABLE);
+			dev.wildcatter.tailings.item.TrailingCableItem.pickUp(reel, house);
+			long[] from = dev.wildcatter.tailings.item.TrailingCableItem.from(reel);
+			var tub = (dev.wildcatter.tailings.block.DraglineBlockEntity) level.getBlockEntity(at);
+			System.out.println("[tailings-test] dragline: cable " + tub.couple(level, BlockPos.of(from[0]), (int) from[1]));
+			tub.job().set(0, 10);   // a 10 m strip, 70 m long, to the seam 3 m down, casting right
+			tub.job().set(1, 70);
+			tub.job().set(2, 3);
+			v[0] = house;
+			v[1] = tub;
+		});
+		server.runCommand("tp @p " + (b.getX() + 78) + " " + (b.getY() + 98) + " " + (b.getZ() - 28) + " 90 32");
+		context.waitTicks(80);
+		context.takeScreenshot("tailings-dragline-parts");
+		Filming film = film(context, world, "dragline");
+		java.util.UUID name = server.computeOnServer(srv -> {
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) v[0];
+			System.out.println("[tailings-test] dragline: outlet " + house.close(0));
+			var tub = (dev.wildcatter.tailings.block.DraglineBlockEntity) v[1];
+			java.util.UUID id = tub.machine();
+			System.out.println("[tailings-test] dragline: " + tub.run(srv.overworld()));
+			if (srv.overworld().getEntity(id) instanceof dev.wildcatter.tailings.entity.DraglineEntity d) {
+				d.fastCycles(10);
+			}
+			return id;
+		});
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-dragline-lifted");
+		boolean walkShot = false;
+		String said = "";
+		for (int t = 0; t < 420; t++) {
+			context.waitTicks(10);
+			said = server.computeOnServer(srv -> srv.overworld().getEntity(name) instanceof dev.wildcatter.tailings.entity.DraglineEntity d
+					? (d.walking() ? "walking; " : "") + d.mode() + "; " + d.status() : "gone");
+			if (t % 20 == 0) {
+				System.out.println("[tailings-test] dragline: " + said);
+			}
+			if (t == 6) {
+				context.takeScreenshot("tailings-dragline-digging");
+			}
+			if (t == 14) {
+				server.runCommand("tp @p " + (b.getX() + 58) + " " + (b.getY() + 84) + " " + (b.getZ() + 48) + " 160 22");
+			}
+			if (t == 24) {
+				context.takeScreenshot("tailings-dragline-casting");
+			}
+			if (!walkShot && said.startsWith("walking")) {
+				walkShot = true;
+				server.runCommand("tp @p " + (b.getX() - 8) + " " + (b.getY() + 66) + " " + (b.getZ() + 18) + " -90 6");
+				context.waitTicks(40);
+				context.takeScreenshot("tailings-dragline-walking");
+			}
+			if (said.startsWith("DONE")) {
+				break;
+			}
+		}
+		server.runCommand("tp @p " + (b.getX() + 58) + " " + (b.getY() + 84) + " " + (b.getZ() + 48) + " 160 22");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-dragline-done");
+		film.stop();
+		int left = server.computeOnServer(srv -> {
+			int n = 0;
+			for (int x = 40; x <= 49; x++) {
+				for (int z = -52; z <= 17; z++) {
+					for (int yy = 57; yy <= 59; yy++) {
+						if (!srv.overworld().getBlockState(b.offset(x, yy, z)).isAir()) {
+							if (n++ < 4) {
+								System.out.println("[tailings-test] dragline: left at " + x + "," + yy + "," + z + " " + srv.overworld().getBlockState(b.offset(x, yy, z)));
+							}
+						}
+					}
+				}
+			}
+			return n;
+		});
+		System.out.println("[tailings-test] dragline: " + said + "; " + left + " blocks left over the seam in its strip");
+		require(left == 0, "the strip uncovered to the seam: " + left + " left");
+		require(said.startsWith("DONE"), "the dragline should uncover its strip and read DONE: " + said);
+		require(walkShot, "the dragline should have walked");
+		heard("dragline", "wildcatter:motor_hum", "tailings:muck_tip");
 	}
 }

@@ -57,7 +57,7 @@ final class PitBigGameTests {
 			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage", "pit_switch_house_fed", "pit_shovel_edge" -> new int[] {-1, 4, -1, 4};
 			case "pit_ultra_haul" -> new int[] {-3, 4, -1, 11};
 			case "pit_rope_shovel_built", "pit_rope_shovel" -> new int[] {-1, 5, -1, 6};
-			default -> new int[] {-1, 2, -1, 2};
+			default -> DraglineGameTests.reach(scene);
 		};
 	}
 

@@ -230,6 +230,22 @@ now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan).
 Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant). Planned from P5 (Known gaps below): the rope
 shovel's PLC points through its outlet; the drill as four parts.
 
+## Open pit — P6: the walking dragline (2026-11-10)
+
+Built while Tim was away on the approved spec [multiblocks/dragline.md](multiblocks/dragline.md); what it left open is decided in
+[questions/p6-dragline.md](questions/p6-dragline.md) (20). Built as P5's rope shovel: eleven big parts (`dragline_tub`, `dragline_house`,
+two `dragline_shoe`, `dragline_mast`, five `dragline_boom_section` of 15 m, `dragline_bucket`) checked by the tub (NOT BUILT names the
+part, NO CABLE), lifted by RUN into one `dragline` machine on its trailing cable, set down by STOP. Its panel sets its strip (width,
+length, the seam's depth, the cast side). Each 55 s cycle drags 25 bank blocks (up to 55 t) out of the strip in its 65 m reach, top down,
+and casts them beyond the strip's far edge onto the lowest ground (the last strip's hole), where they settle; it stops at the seam and
+any ore; standing rock reads BLOCKED, blast it first. With its reach dug out it walks 2 m a minute along the strip; at the end, DONE.
+6 MW while the bucket fills, 1.2 MW the rest, 2.5 MW walking. Its PLC points (RUN, RUNNING, DONE, CYCLES, POWER) are on its switch
+house outlet, for any machine there. A reel can now be clicked onto any pit machine (a P5 gap). NeoForge scenes `dragline_built`,
+`dragline_cycle`, `dragline_strip`, `dragline_walk`, `dragline_hard`, `dragline_plc`; unit tests `DraglineTest`; client film `dragline`.
+
+Next: P7 (the pit-sized plant). Left out from P6's spec (Later, below): cast blasting, hand control, highwall and spoil failures, rehandle,
+bucket-wheel excavators and spreaders.
+
 ## Plant gaps (2026-11-09, closed while Tim was away)
 
 Tim (2026-11-09): "close all known gaps". Closed on the ore plant and dump, each with a NeoForge scene; decisions in
@@ -347,6 +363,8 @@ tests `XrtSortingTest`; the client film `xrt`.
 - Bottom-dump cars over a grizzly: built as L3 (above).
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
 - Paste backfill of old stopes with tailings.
+- From P6's spec, Left out: cast blasting (the blast throwing overburden into the spoil); hand control of the dragline's swing, drag
+  and hoist; highwall and spoil-pile failures; rehandle (the dragline digging its own spoil again); bucket-wheel excavators and spreaders.
 - From P5's spec, Left out: electric-drive and trolley-assist ultra trucks; tyre heat and the ton-km-per-hour limit; cable damage,
   cable crossings and the cable reel truck; shovel tooth wear and the dipper's door trip as its own action.
 - Paste backfill of old stopes with tailings: built as L5 (above).
@@ -363,9 +381,16 @@ tests `XrtSortingTest`; the client film `xrt`.
   drawn in Wildcatter's materials; the ultra's, the hydraulic shovel's and the lifted rope shovel's skins are painted by
   `tools/models/pit_vehicles.py` in Ludo's materials. So the rope shovel standing as its parts and running as one machine look alike in
   shape but not in paint.
-- **The rope shovel has no PLC points (P5d, decision 32):** the spec's RUN, RUNNING, AUTO, PASSES (pulse) and POWER (4-20 mA). Plan:
-  each switch house outlet gets the machine's points as a second device on the house (the cable's pilot pair), read from what the
-  machine reports each tick, as the TBM's points are on its cable junction; PLC RUN in AUTO would lift and start it, its off set it down.
+- **The rope shovel does not answer on its outlet's PLC points (P5d, decision 32):** since P6 every switch house outlet has a machine's
+  points (MACHINE RUN, RUNNING, DONE, CYCLES, POWER) on its cable's control pair, and the dragline answers them (p6-dragline.md 18). The
+  rope shovel does not yet: it would report RUNNING and a pulse a pass from `PitShovelEntity.afterPass`, and take RUN as its AUTO.
+- **The dragline is driven by its job only (P6, spec):** a player may sit in its cab, but the keys do nothing: no hand control of
+  swing, drag and hoist. Its strip is set on its panel from where it was lifted, square to the grid.
+- **The dragline's parts fill whole boxes (P6, p6-dragline.md 3):** 8,262 cells, 5,760 of them its house; a hollow house would save
+  about 15,000 block states if start-up time is noticed.
+- **The dragline's spoil and highwall never fail (P6, spec Left out):** the pile stands at the settle rule's angle; nothing slides under
+  the machine; spoil that rolls into the cut is dug again (it is kept 6 m out and leaned away, so it rarely does).
+- **Two paints on the dragline (P6):** as the rope shovel's: its parts in Wildcatter's materials, the lifted machine in Ludo's.
 - **The cable is drawn straight (P5a, decision 9):** from the coupler to the machine along the ground, not along the path it counts; it
   is drawn while the machine is near enough to be tracked (about 256 blocks for the rope shovel).
 - **Cables are not damaged, bridged or carried (P5, spec Left out):** trucks and dozers drive over them; no cable crossings, no reel

@@ -63,6 +63,11 @@ public final class PitDrive {
 	 * (proposed). It turns on its crawlers on 8 m (proposed).
 	 */
 	public static final Spec ROPE_SHOVEL = new Spec(15.0, 14.4, 21.0, 1_400_000, 100_000, 3_500_000, 1.5 / 3.6, 1.5 / 3.6, 8.0);
+	/**
+	 * The walking dragline (dragline.md, P6), lifted: its house 24 m wide and 20 m long over its tub, 15 m to the house's roof (the
+	 * boom and mast stand above its box); about 1,750 t; a 55 t bucket; 6 MW at its peak; it walks 2 m a minute and never drives.
+	 */
+	public static final Spec DRAGLINE = new Spec(20.0, 24.0, 15.0, Dragline.MASS_KG, Dragline.BUCKET_KG, Dragline.PEAK_WATTS, Dragline.STEP_M / 60, Dragline.STEP_M / 60, 1000.0);
 	/** The emulsion truck: 8.5 x 2.5 x 3.8 m, about 300 kW, 12 t of matrix, about 14 t empty and 40 km/h (proposed). */
 	public static final Spec EMULSION_TRUCK = new Spec(8.5, 2.5, 3.8, 14_000, 12_000, 300_000, 40 / 3.6, 3.0, 8.0);
 

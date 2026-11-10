@@ -1,4 +1,4 @@
-# The walking dragline (APPROVED by Tim 2026-11-09)
+# The walking dragline (APPROVED by Tim 2026-11-09; built in P6, see "As built" at the end)
 
 **Strip mining.** A walking dragline sits on top of a flat-lying deposit's overburden and digs a long cut ("strip") down to the
 seam. It casts the overburden sideways into the previous, mined-out strip as a spoil pile. Loaders and trucks
@@ -104,3 +104,27 @@ and is to be checked against a manufacturer's spec sheet or the SME handbook bef
 - `dragline_strip`: a 30 x 10 m strip 5 m deep over a bauxite seam is uncovered to the seam's top, and the seam is untouched.
 - `dragline_walk`: it walks 2 m when its reach is dug out; it reads DONE at the strip's end.
 - `dragline_hard`: a stone overburden it cannot dig reads BLOCKED: blast it first.
+
+## As built (P6, 2026-11-10; decided while Tim was away, see [../questions/p6-dragline.md](../questions/p6-dragline.md))
+
+Everything above is built, with these readings and additions (each a numbered decision there):
+- **The boom** is five `dragline_boom_section` parts of 15 m, each two of the 7.5 m sections pinned (1); a cell is a whole metre. The
+  parts stand as the rope shovel's: the tub, a shoe each side of it under the house, the house on the tub, the mast on its roof, and the
+  boom sections and bucket laid on the ground ahead (2, `pit.DraglineLayout`). Every part fills its whole box (3).
+- **Lifted**, it is one machine drawn by its own model, its box the house over the tub; the boom and mast do not collide (5, 6). It digs
+  and casts within the spec's 65 m; the boom is drawn true, its point 72 m out and 44 m up (7).
+- **Its screen** sets the strip from where it was lifted: width 10-40 m (default 30), length 10-400 m, the seam's depth under its tub
+  (1-35 m, default 10) and the cast side (8). It stops at the seam's depth and at any ore block (9). A bucket is 25 bank blocks or 55 t
+  (10), dug from the topmost layer down (11). The spoil goes to the lowest ground beyond the strip's far edge plus 6 m, leaned away
+  from the cut, so the first strip's spoil lands on flat ground and the next's in this one's hole (12).
+- **Its draw:** 6 MW for the 15 s the bucket fills, 1.2 MW the other 40 s (2.51 MW average), 2.5 MW walking, 0.3 MW standing in its job
+  (13). It walks when its reach is dug out and the strip runs on beyond it (14); at CABLE END it waits for another reel (15), which can
+  now be clicked onto any lifted pit machine, a P5 gap closed (16). STOP ends its cycle first and sets it down if it can (17).
+- **Its PLC points** are on its switch house outlet, not its tub (the tub lifts and walks): MACHINE RUN, RUNNING, DONE, CYCLES and POWER
+  for each outlet, after the house's own points; AUTO is the house's selector (18).
+- **Its cab** can be sat in; the keys do nothing (19). Film: `dragline` (20).
+- **Scenes:** `dragline_built` (NOT BUILT names the right shoe, NO CABLE, RUN lifts it, STOP sets it down with its cable and job),
+  `dragline_cycle` (25 blocks of sand, cast and settled beyond the strip; 6,000 and 1,200 kW on its outlet), `dragline_strip` (30 x 10 m,
+  5 m deep: 1,500 m³ in 60 cycles, the 600-block bauxite seam untouched, DONE), `dragline_walk` (three 2 m steps to reach the strip's
+  far end, then DONE), `dragline_hard` (stone: BLOCKED; its top 2 m as muck: dug, then BLOCKED again), `dragline_plc`.
+- **Not built:** the spec's Left out list (ROADMAP, Later); hand control (ROADMAP, Known gaps).

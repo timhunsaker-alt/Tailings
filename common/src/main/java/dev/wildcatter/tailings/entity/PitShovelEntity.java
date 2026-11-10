@@ -395,6 +395,11 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 
 	/** Takes what fits of a muck block, a quarter at a time; what is left stays as a smaller block. */
 	private void takeQuarters(ServerLevel level, BlockPos pos, MuckBlockEntity muck, long room) {
+		takeQuarters(level, pos, muck, load, room);
+	}
+
+	/** Takes what fits of a muck block into {@code load} up to {@code room} kg in all, a quarter at a time (the dragline's bucket too). */
+	static void takeQuarters(ServerLevel level, BlockPos pos, MuckBlockEntity muck, dev.wildcatter.tailings.pit.PitLoad load, long room) {
 		Map<String, Integer> left = new LinkedHashMap<>(muck.quarters());
 		for (Map.Entry<String, Integer> e : left.entrySet()) {
 			long quarter = PitMass.kg(e.getKey()) / 4;

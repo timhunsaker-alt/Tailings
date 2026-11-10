@@ -49,7 +49,16 @@ public class PitPanelMenu extends AbstractContainerMenu {
 		HYD_SHOVEL("Hydraulic Shovel", new Setting[] {
 				new Setting("Electric", 0, 1, 1, 0)}, new String[] {"AUTO on / off"}),
 		/** The rope shovel (P5d): RUN lifts it off its parts and starts it, STOP sets it down; AUTO loads the trucks that come. */
-		ROPE_SHOVEL("Rope Shovel", new Setting[0], new String[] {"RUN", "STOP", "AUTO on / off"});
+		ROPE_SHOVEL("Rope Shovel", new Setting[0], new String[] {"RUN", "STOP", "AUTO on / off"}),
+		/**
+		 * The walking dragline (dragline.md, P6): its job, the strip's width and length, the seam's depth under its tub and the side it
+		 * casts to (0 left, 1 right of its walk); RUN lifts it off its parts or starts it again, STOP stops it and sets it down if it can.
+		 */
+		DRAGLINE("Dragline", new Setting[] {
+				new Setting("Strip width m", dev.wildcatter.tailings.pit.Dragline.WIDTH_MIN, dev.wildcatter.tailings.pit.Dragline.WIDTH_MAX, 5, dev.wildcatter.tailings.pit.Dragline.WIDTH),
+				new Setting("Strip length m", dev.wildcatter.tailings.pit.Dragline.LENGTH_MIN, dev.wildcatter.tailings.pit.Dragline.LENGTH_MAX, 10, dev.wildcatter.tailings.pit.Dragline.LENGTH),
+				new Setting("Seam depth m", dev.wildcatter.tailings.pit.Dragline.SEAM_MIN, dev.wildcatter.tailings.pit.Dragline.SEAM_MAX, 1, dev.wildcatter.tailings.pit.Dragline.SEAM),
+				new Setting("Cast right", 0, 1, 1, 1)}, new String[] {"RUN", "STOP"});
 
 		private final String title;
 		private final Setting[] settings;

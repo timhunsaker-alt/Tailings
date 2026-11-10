@@ -585,6 +585,12 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			onSurveyBook(server, player, held);
 			return InteractionResult.SUCCESS;
 		}
+		if (held.getItem() instanceof dev.wildcatter.tailings.item.TrailingCableItem && takesCable() && level() instanceof ServerLevel server) {
+			// a reel on its cable reel: couples it, adds 400 m, or (sneaking) takes its cable off (P5 decision 8)
+			player.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": "
+					+ dev.wildcatter.tailings.item.TrailingCableItem.onMachine(server, player, held, this)));
+			return InteractionResult.SUCCESS;
+		}
 		if (player.isShiftKeyDown() || isVehicle()) {
 			player.sendOverlayMessage(readout());
 			return InteractionResult.SUCCESS;
