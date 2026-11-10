@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SPS",
+    "SGS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "P": "minecraft:piston",
+    "G": "wildcatter:gas_line",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:paste_pump",
+    "count": 1
+  }
+}

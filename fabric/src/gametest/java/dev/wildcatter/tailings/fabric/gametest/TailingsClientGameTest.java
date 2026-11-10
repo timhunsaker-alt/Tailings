@@ -122,11 +122,32 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_dispatch")) {
 				pitDispatch(context, world, server);
 			}
+			if (only("battery_bottom_dump")) {
+				batteryBottomDump(context, world, server);
+			}
+			if (only("shaft_hoist")) {
+				shaftHoist(context, world, server);
+			}
 			if (only("pit_dry_stack")) {
 				pitDryStack(context, world, server);
 			}
 			if (only("pit_big")) {
 				pitBig(context, world, server);
+			}
+			if (only("vent")) {
+				vent(context, world, server);
+			}
+			if (only("paste")) {
+				paste(context, world, server);
+			}
+			if (only("dry_mill")) {
+				dryMill(context, world, server);
+			}
+			if (only("dms")) {
+				dms(context, world, server);
+			}
+			if (only("xrt")) {
+				xrt(context, world, server);
 			}
 		}
 		if (only("hand")) {
@@ -308,6 +329,444 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		} else {
 			heard(scene, "tailings:tbm_cutter", "tailings:ring_set", "tailings:muck_load", "tailings:belt_conveyor", "wildcatter:motor_hum", "wildcatter:structure_formed");
 		}
+	}
+
+	/**
+	 * The drive's ventilation, filmed (ventilation.md, L1): a fan blows through hand-laid duct to the TBM's back-up, and the reel
+	 * gantry's cassette pays duct out at the crown a metre a block as the machine bores; the air at the back-up is logged.
+	 */
+	private void vent(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int cx = 140, cz = 220;
+		BlockPos c = new BlockPos(cx, y, cz);
+		BlockPos beam = c.offset(3, 3, 3);
+		BlockPos[] fanAt = {null};
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int z = 1; z <= 24; z++) {
+				for (int x = -2; x < 10; x++) {
+					for (int yy = -2; yy < 10; yy++) {
+						level.setBlock(c.offset(x, yy, -z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			part(level, TailingsBlocks.CUTTERHEAD, c);
+			part(level, TailingsBlocks.SEGMENT_ERECTOR, c.offset(0, 0, 1));
+			part(level, TailingsBlocks.MAIN_BEAM, beam);
+			part(level, TailingsBlocks.TRACK_LAYER, c.offset(1, 2, 8));
+			level.setBlock(c.offset(-2, 0, 14), TailingsBlocks.CABLE_JUNCTION.defaultBlockState(), Block.UPDATE_ALL);
+			BlockState track = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+			for (int z = 11; z <= 40; z++) {
+				level.setBlock(c.offset(2, 1, z), track, Block.UPDATE_ALL);
+				level.setBlock(c.offset(5, 1, z), track, Block.UPDATE_ALL);
+			}
+			DrillBlockEntity cab = (DrillBlockEntity) level.getBlockEntity(beam);
+			cab.forceRunning();
+			cab.program().setTargetY(c.getY() + 1);
+			cab.program().setFlatLength(32);
+			cab.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
+			cab.setItem(DrillBlockEntity.SLOT_GRAVEL, new ItemStack(Items.GRAVEL, 64));
+			cab.setItem(DrillBlockEntity.SLOT_COBBLE, new ItemStack(Items.COBBLESTONE, 64));
+			cab.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+			cab.core().setTestTicks(40);
+			for (TbmGantry kind : TbmGantry.values()) {
+				GantryEntity gantry = GantryEntity.place(level, c.offset(2, 1, kind.row()), kind, Direction.NORTH);
+				System.out.println("[tailings-test] " + kind.displayName() + ": " + gantry.couple());
+			}
+			cab.core().loadCassette();
+			cab.press(10, null);
+			var drill = cab.core().drill();
+			BlockPos end = new BlockPos(drill.worldX(dev.wildcatter.tailings.block.TbmCore.DUCT_ACROSS, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW),
+					drill.worldY(dev.wildcatter.tailings.block.TbmCore.DUCT_UP, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW),
+					drill.worldZ(dev.wildcatter.tailings.block.TbmCore.DUCT_ACROSS, -dev.wildcatter.tailings.block.TbmCore.DUCT_ROW));
+			BlockState duct = TailingsBlocks.VENT_DUCT.defaultBlockState();
+			for (int z = 0; z <= 14; z++) {
+				level.setBlock(end.offset(0, 0, z), duct, Block.UPDATE_ALL);
+			}
+			for (int x = 1; x <= 4; x++) {
+				level.setBlock(end.offset(x, 0, 14), duct, Block.UPDATE_ALL);
+			}
+			fanAt[0] = end.offset(3, -1, 9);
+			plant(level, Machine.VENT_FAN, fanAt[0]).forceRunning();
+			// the fan's skid on a pad of stone
+			for (int x = 3; x <= 5; x++) {
+				for (int z = 9; z <= 13; z++) {
+					level.setBlock(end.offset(x, -2, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_ALL);
+				}
+			}
+		});
+		server.runCommand("tp @p " + (cx + 14) + " " + (y + 9) + " " + (cz + 46) + " 145 18");
+		context.waitTicks(40);
+		Filming film = film(context, world, "vent");
+		context.takeScreenshot("tailings-vent-fan");
+		for (int t = 0; t < 24; t++) {
+			context.waitTicks(20);
+			if (t == 6) {
+				server.runCommand("tp @p " + (cx + 22) + " " + (y + 9) + " " + (cz + 22) + " 110 20");
+			}
+			server.runOnServer(srv -> {
+				for (TbmEntity machine : srv.overworld().getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(60))) {
+					machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
+					System.out.println("[tailings-test] vent: " + machine.core().readout());
+				}
+				if (srv.overworld().getBlockEntity(fanAt[0]) instanceof PlantBlockEntity fan) {
+					System.out.println("[tailings-test] vent fan: " + fan.status());
+				}
+			});
+		}
+		context.takeScreenshot("tailings-vent-paid-out");
+		film.stop();
+		heard("vent", "wildcatter:fan");
+	}
+
+	/**
+	 * Paste backfill (L5): the disc filter, the mixer and the piston pump on a hill of stone, their fill line down into a closed 10 x 6 x 6
+	 * drive branch inside it, one of its walls glass to see it fill from the bottom up. The plant pumps for real (sped up); the outlet is
+	 * also handed paste, a cubic metre a tick, so the branch fills in about 20 s rather than eleven hours.
+	 */
+	private void paste(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x0 = 600, z0 = 600;
+		int g = server.computeOnServer(srv -> srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0, z0));
+		PlantBlockEntity[] parts = new PlantBlockEntity[3];
+		dev.wildcatter.tailings.block.FillOutletBlockEntity[] outlet = new dev.wildcatter.tailings.block.FillOutletBlockEntity[1];
+		SlurryAssay thickened = SlurryAssay.of(java.util.Map.of(dev.wildcatter.tailings.pit.DryStack.SOLIDS_KEY, dev.wildcatter.tailings.pit.DryStack.UNDERFLOW_SOLIDS));
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = x0 - 6; x <= x0 + 40; x++) {
+				for (int z = z0 - 6; z <= z0 + 30; z++) {
+					for (int yy = g; yy <= g + 24; yy++) {
+						boolean hill = x >= x0 && x <= x0 + 15 && z >= z0 && z <= z0 + 15 && yy <= g + 12;
+						level.setBlock(new BlockPos(x, yy, z), hill ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			// the drive branch inside the hill, its mouth closed by fill bulkheads, its east wall glass to look in
+			for (int x = x0 + 5; x <= x0 + 14; x++) {
+				for (int yy = g + 2; yy <= g + 7; yy++) {
+					for (int z = z0 + 5; z <= z0 + 10; z++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+					level.setBlock(new BlockPos(x, yy, z0 + 4), TailingsBlocks.FILL_BULKHEAD.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+			for (int yy = g + 2; yy <= g + 7; yy++) {
+				for (int z = z0 + 4; z <= z0 + 11; z++) {
+					level.setBlock(new BlockPos(x0 + 15, yy, z), Blocks.GLASS.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+			int top = g + 13;
+			parts[0] = plant(level, Machine.PASTE_FILTER, new BlockPos(x0 + 1, top, z0 + 1));
+			parts[1] = plant(level, Machine.PASTE_MIXER, new BlockPos(x0 + 6, top, z0 + 1));
+			parts[2] = plant(level, Machine.PASTE_PUMP, new BlockPos(x0 + 6, top, z0 + 8));
+			for (PlantBlockEntity p : parts) {
+				p.forceRunning();
+				p.fastCycle(40);
+			}
+			parts[1].offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.CEMENT, 64));
+			for (int i = 0; i < 39; i++) {
+				parts[1].offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.CEMENT, 1));
+			}
+			pipe(level, new BlockPos(x0 + 7, top, z0 + 6), new BlockPos(x0 + 7, top, z0 + 7));
+			// the fill line: out of the pump's south face and down a borehole into the branch's roof
+			pipe(level, new BlockPos(x0 + 7, top, z0 + 14), new BlockPos(x0 + 7, top - 1, z0 + 14), new BlockPos(x0 + 7, top - 2, z0 + 14));
+			for (int yy = g + 8; yy <= top - 3; yy++) {
+				pipe(level, new BlockPos(x0 + 7, yy, z0 + 14));
+			}
+			for (int z = z0 + 9; z <= z0 + 13; z++) {
+				pipe(level, new BlockPos(x0 + 7, g + 8, z));
+			}
+			BlockPos at = new BlockPos(x0 + 7, g + 7, z0 + 9);
+			level.setBlock(at, TailingsBlocks.FILL_OUTLET.defaultBlockState(), Block.UPDATE_ALL);
+			pipe(level, at.above());
+			outlet[0] = (dev.wildcatter.tailings.block.FillOutletBlockEntity) level.getBlockEntity(at);
+		});
+		server.runCommand("tp @p " + (x0 + 30) + " " + (g + 16) + " " + (z0 + 22) + " 130 25");
+		context.waitTicks(60);
+		Filming film = film(context, world, "paste");
+		context.takeScreenshot("tailings-paste-plant");
+		for (int t = 0; t < 200; t++) {
+			context.waitTicks(2);
+			if (t == 30) {
+				server.runCommand("tp @p " + (x0 + 24) + " " + (g + 5) + " " + (z0 + 8) + " 90 5");
+			}
+			int tick = t;
+			server.runOnServer(srv -> {
+				if (parts[0].back().held(Product.TAILS_SLURRY) < 200) {
+					parts[0].back().offer(Product.TAILS_SLURRY, 200, thickened);
+				}
+				if (parts[1].back().held(Product.TAILS_SLURRY) < 200) {
+					parts[1].back().offer(Product.TAILS_SLURRY, 200, thickened);
+				}
+				if (tick >= 30) {
+					outlet[0].receive(2 * dev.wildcatter.tailings.paste.PasteFill.PASTE_KG_PER_M3);
+				}
+				if (tick % 40 == 0) {
+					System.out.println("[tailings-test] paste: " + parts[0].status() + " / " + parts[1].status() + " / " + parts[2].status() + " / " + outlet[0].status());
+				}
+			});
+			if (t == 110) {
+				context.takeScreenshot("tailings-paste-filling");
+			}
+		}
+		for (int t = 0; t < 200 && !server.computeOnServer(srv -> outlet[0].scan() != null && outlet[0].scan().full()); t++) {
+			context.waitTicks(2);
+			server.runOnServer(srv -> outlet[0].receive(2 * dev.wildcatter.tailings.paste.PasteFill.PASTE_KG_PER_M3));
+		}
+		context.waitTicks(30);
+		context.takeScreenshot("tailings-paste-full");
+		film.stop();
+		long filled = server.computeOnServer(srv -> outlet[0].filled());
+		String status = server.computeOnServer(srv -> outlet[0].status());
+		System.out.println("[tailings-test] paste end: " + filled + " m3; " + status);
+		require(filled >= 300, "the branch should fill with paste, got " + filled + " m3: " + status);
+		heard("paste", "wildcatter:motor_hum");
+	}
+
+	/**
+	 * L6, the dry mill (dry-mill.md): zircon and ilmenite fines over the spiral bank and the scavenger spirals; both concentrates to the
+	 * thickener and filter; the filter's HMC into the gas-fired dryer touching it, and on through the roll magnet, the high-tension roll
+	 * and the induced roll. The filter pays the spirals' half, the separators the scavengers' share.
+	 */
+	private void dryMill(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-200, y + 1, -300);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		Mineral zircon = Mineral.ZIRCON, ilmenite = Mineral.ILMENITE;
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -2; x <= 22; x++) {
+				for (int z = -2; z <= 38; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 7; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			double total = 600;
+			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
+			source.out().offer(Product.FINES_SLURRY, total, SlurryAssay.of(java.util.Map.of(zircon.mineralItemId(), 8 * zircon.nuggetAmount().doubleValue() / total,
+					ilmenite.mineralItemId(), 8 * ilmenite.nuggetAmount().doubleValue() / total)));
+			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
+			PlantBlockEntity spirals = plant(level, Machine.SPIRAL_BANK, o.offset(0, 0, 3));
+			pipe(level, o.offset(0, 0, 9), o.offset(0, 0, 10));
+			PlantBlockEntity scavenger = plant(level, Machine.SCAVENGER_SPIRAL_BANK, o.offset(0, 0, 11));
+			pipe(level, o.offset(3, 0, 9), o.offset(4, 0, 9), o.offset(5, 0, 9), o.offset(6, 0, 9), o.offset(3, 0, 17), o.offset(4, 0, 17));
+			for (int z = 10; z <= 16; z++) {
+				pipe(level, o.offset(4, 0, z));
+			}
+			PlantBlockEntity thickener = plant(level, Machine.THICKENER, o.offset(6, 0, 10));
+			pipe(level, o.offset(6, 0, 18));
+			PlantBlockEntity filter = plant(level, Machine.FILTER, o.offset(6, 0, 19));
+			PlantBlockEntity dryer = plant(level, Machine.FLUID_BED_DRYER, o.offset(9, 0, 19));
+			part(level, BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), o.offset(13, 0, 20));
+			((dev.wildcatter.block.StorageTankBlockEntity) level.getBlockEntity(o.offset(13, 0, 20))).testFill(Product.PIPELINE_GAS, 5000);
+			pipe(level, o.offset(12, 0, 21));
+			PlantBlockEntity rer = plant(level, Machine.RER_SEPARATOR, o.offset(9, 0, 25));
+			PlantBlockEntity ht = plant(level, Machine.HT_ROLL_SEPARATOR, o.offset(9, 0, 28));
+			PlantBlockEntity irm = plant(level, Machine.IRM_SEPARATOR, o.offset(9, 0, 32));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {spirals, scavenger, thickener, filter, dryer, rer, ht, irm}) {
+				part.forceRunning();
+			}
+			for (PlantBlockEntity part : new PlantBlockEntity[] {dryer, rer, ht, irm}) {
+				part.fastCycle(20);
+			}
+			parts[0] = new PlantBlockEntity[] {spirals, scavenger, thickener, filter, dryer, rer, ht, irm};
+		});
+		server.runCommand("tp @p " + (o.getX() + 24) + " " + (o.getY() + 11) + " " + (o.getZ() + 4) + " 135 30");
+		context.waitTicks(40);
+		Filming film = film(context, world, "dry_mill");
+		context.takeScreenshot("tailings-dry-mill-built");
+		for (int t = 0; t < 36; t++) {
+			context.waitTicks(20);
+			if (t == 14) {
+				server.runCommand("tp @p " + (o.getX() + 20) + " " + (o.getY() + 7) + " " + (o.getZ() + 40) + " 150 22");
+			}
+			if (t % 6 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : parts[0]) {
+						System.out.println("[tailings-test] dry_mill: " + part.inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot("tailings-dry-mill-end");
+		film.stop();
+		int[] four = dev.wildcatter.tailings.block.stage.DryMillStages.OUTPUT_SLOTS;
+		java.util.function.BiFunction<PlantBlockEntity, Mineral, Integer> paid = (part, m) -> part.countIn(four, dev.wildcatter.tailings.block.Feeds.stack(m.nuggetId(), 1))
+				+ 9 * part.countIn(four, dev.wildcatter.tailings.block.Feeds.stack(m.phaseOneProductId(), 1));
+		int[] pay = server.computeOnServer(srv -> new int[] {paid.apply(parts[0][3], zircon), paid.apply(parts[0][3], ilmenite), paid.apply(parts[0][7], zircon), paid.apply(parts[0][5], ilmenite)});
+		System.out.println("[tailings-test] dry_mill paid (nuggets): filter " + pay[0] + " zircon, " + pay[1] + " ilmenite; induced roll " + pay[2] + " zircon; roll magnet " + pay[3] + " ilmenite");
+		require(pay[0] == 4 && pay[1] == 4, "the filter should pay the spirals' half: 4 nuggets of each");
+		require(pay[2] == 4 && pay[3] == 4, "the dry mill should pay the scavengers' share: 4 nuggets of each");
+		heard("dry_mill", "tailings:slurry_rush", "wildcatter:fan");
+	}
+
+	/**
+	 * L7, dense-medium separation (dense-medium-separation.md): the deslime screen on top of the DMS cyclone module, the floats'
+	 * drain-and-rinse screen north of it over a hopper and chest, the sinks' screen south of it onto a belt, the medium recovery east
+	 * with four bags of ferrosilicon. A block of copper ore gravel goes into the module and one of granite gravel over the deslime
+	 * screen: the granite floats out as vanilla gravel, the copper ore sinks onto the belt. Force-run at 8 times, as the other part films.
+	 */
+	private void dms(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-260, y + 1, -340);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -3; x <= 9; x++) {
+				for (int z = -3; z <= 20; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 10; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			PlantBlockEntity floats = plant(level, Machine.DRAIN_RINSE_SCREEN, o);
+			// the floats' gravel down a hopper into a chest; both stay above the flat world's bottom
+			level.setBlock(o.offset(0, -1, 0), Blocks.HOPPER.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlock(o.offset(0, -2, 0), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity module = plant(level, Machine.DMS_MODULE, o.offset(0, 0, 5));
+			PlantBlockEntity sinks = plant(level, Machine.DRAIN_RINSE_SCREEN, o.offset(0, 0, 9));
+			for (int z = 14; z <= 16; z++) {
+				level.setBlock(o.offset(0, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity sinksBelt = plant(level, Machine.CONVEYOR_DRIVE, o.offset(1, 0, 16));
+			level.setBlock(o.offset(0, -1, 16), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			PlantBlockEntity recovery = plant(level, Machine.MEDIUM_RECOVERY, o.offset(3, 0, 5));
+			PlantBlockEntity deslime = plant(level, Machine.DESLIME_SCREEN, o.offset(0, 6, 5));
+			for (int x = 2; x <= 4; x++) {
+				level.setBlock(o.offset(x, 6, 6), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity fines = plant(level, Machine.CONVEYOR_DRIVE, o.offset(5, 6, 6));
+			level.setBlock(o.offset(4, 5, 6), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (int i = 0; i < 4; i++) {
+				recovery.offer(new ItemStack(dev.wildcatter.tailings.TailingsItems.FERROSILICON));
+			}
+			parts[0] = new PlantBlockEntity[] {deslime, module, floats, sinks, recovery, sinksBelt, fines};
+			for (PlantBlockEntity part : parts[0]) {
+				part.forceRunning();
+				part.fastCycle(8);
+			}
+			module.addWater(1000);
+			module.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_copper"))));
+			deslime.offer(new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id("gravel_granite"))));
+		});
+		server.runCommand("tp @p " + (o.getX() + 13) + " " + (o.getY() + 9) + " " + (o.getZ() + 19) + " 140 28");
+		context.waitTicks(40);
+		Filming film = film(context, world, "dms");
+		context.takeScreenshot("tailings-dms-built");
+		for (int t = 0; t < 44; t++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> parts[0][1].addWater(1000));
+			if (t == 22) {
+				server.runCommand("tp @p " + (o.getX() - 9) + " " + (o.getY() + 7) + " " + (o.getZ() - 6) + " -40 25");
+			}
+			if (t % 8 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : parts[0]) {
+						System.out.println("[tailings-test] dms: " + part.inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot("tailings-dms-end");
+		film.stop();
+		double[] got = server.computeOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			int gravel = parts[0][2].getItem(1).getCount();
+			if (level.getBlockEntity(o.offset(0, -2, 0)) instanceof net.minecraft.world.Container chest) {
+				for (int i = 0; i < chest.getContainerSize(); i++) {
+					if (chest.getItem(i).is(Items.GRAVEL)) {
+						gravel += chest.getItem(i).getCount();
+					}
+				}
+			}
+			if (level.getBlockEntity(o.offset(0, -1, 0)) instanceof net.minecraft.world.Container hopper) {
+				for (int i = 0; i < hopper.getContainerSize(); i++) {
+					if (hopper.getItem(i).is(Items.GRAVEL)) {
+						gravel += hopper.getItem(i).getCount();
+					}
+				}
+			}
+			PlantBlockEntity belt = parts[0][5];
+			double copper = parts[0][3].hold().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL) + belt.hold().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL)
+					+ belt.made().kg(Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.GRAVEL);
+			return new double[] {gravel, copper, parts[0][4].dryKg()};
+		});
+		System.out.println("[tailings-test] dms: " + (int) got[0] + " gravel floated, " + (int) got[1] + " kg of copper ore sunk, " + got[2] + " kg of ferrosilicon left");
+		require(got[0] >= 1, "the granite should float out as vanilla gravel");
+		require(got[1] > 1000, "the copper ore should sink onto the belt");
+		require(got[2] < 100, "the medium recovery should have lost ferrosilicon");
+		heard("dms", "tailings:vibrating_screen", "tailings:slurry_rush");
+	}
+
+	/**
+	 * L8, the X-ray ore sorter (xrt-ore-sorter.md): crushed galena ore and andesite come in on a belt over its feed end; its compressor
+	 * beside it gives the ejectors air; the galena is blown onto the product belt off its south end, the andesite drops onto the waste
+	 * belt off its east face, each to a chest.
+	 */
+	private void xrt(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-300, y + 1, -300);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -9; x <= 14; x++) {
+				for (int z = -3; z <= 17; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 8; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			PlantBlockEntity sorter = plant(level, Machine.XRT_SORTER, o);
+			PlantBlockEntity compressor = plant(level, Machine.SORTER_COMPRESSOR, o.offset(-2, 0, 0));
+			// the feed belt over its north (feed) end, on trestles of the run's own height
+			for (int x = -6; x <= 2; x++) {
+				level.setBlock(o.offset(x, 5, 1), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity feed = plant(level, Machine.CONVEYOR_DRIVE, o.offset(3, 5, 0));
+			// the product belt off its south end, the waste belt off its east face, each over a chest
+			for (int z = 8; z <= 14; z++) {
+				level.setBlock(o.offset(1, 0, z), belt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity product = plant(level, Machine.CONVEYOR_DRIVE, o.offset(2, 0, 14));
+			level.setBlock(o.offset(1, -1, 14), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (int x = 4; x <= 10; x++) {
+				level.setBlock(o.offset(x, 0, 4), belt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity waste = plant(level, Machine.CONVEYOR_DRIVE, o.offset(11, 0, 4));
+			level.setBlock(o.offset(10, -1, 4), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			for (PlantBlockEntity part : new PlantBlockEntity[] {sorter, compressor, feed, product, waste}) {
+				part.forceRunning();
+			}
+			parts[0] = new PlantBlockEntity[] {sorter, compressor, feed, product, waste};
+		});
+		server.runCommand("tp @p " + (o.getX() + 13) + " " + (o.getY() + 9) + " " + (o.getZ() + 18) + " 140 30");
+		context.waitTicks(40);
+		Filming film = film(context, world, "xrt");
+		context.takeScreenshot("tailings-xrt-built");
+		for (int t = 0; t < 40; t++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> {
+				PlantBlockEntity feed = parts[0][2];
+				if (feed.hold().total() < 200) {
+					dev.wildcatter.tailings.plant.RockLoad load = new dev.wildcatter.tailings.plant.RockLoad();
+					load.add(Rock.GALENA, dev.wildcatter.tailings.rock.SizeClass.CRUSHED, 100);
+					load.add(Rock.ANDESITE, dev.wildcatter.tailings.rock.SizeClass.CRUSHED, 100);
+					feed.receive(load);
+				}
+			});
+			if (t == 20) {
+				context.takeScreenshot("tailings-xrt-sorting");
+				server.runCommand("tp @p " + (o.getX() + 16) + " " + (o.getY() + 6) + " " + (o.getZ() + 3) + " 88 22");
+			}
+			if (t % 8 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] xrt: " + parts[0][0].inspect().getString() + " | " + parts[0][1].status()));
+			}
+		}
+		context.takeScreenshot("tailings-xrt-end");
+		film.stop();
+		double[] sent = server.computeOnServer(srv -> new double[] {parts[0][0].xrt().productKg(), parts[0][0].xrt().wasteKg()});
+		System.out.println("[tailings-test] xrt end: " + sent[0] + " kg to product, " + sent[1] + " kg to waste");
+		require(sent[0] > 500 && sent[1] > 500 && Math.abs(sent[0] / (sent[0] + sent[1]) - 0.51) < 0.02, "half galena, half andesite: 51 % to product (97 % of one, 5 % of the other)");
+		heard("xrt", "tailings:ore_sorter", "wildcatter:motor_hum");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
@@ -608,6 +1067,192 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		sorter.setSide(Direction.EAST, new ItemStack(Blocks.COPPER_ORE));
 		sorter.setWasteSide(Direction.SOUTH);
 		return new PlantBlockEntity[] {feeder, sorter, oreBin, wasteBin};
+	}
+
+	/**
+	 * L2 and L3 (battery-locomotive.md, bottom-dump-cars.md): a battery locomotive leaves its charger on a branch with no rectifier,
+	 * pulling four bottom-dump cars of copper ore and cobble, and drops each car's load on the move through its doors over a track
+	 * grizzly into the pocket under the track; the cam rail opens the doors and the closing ramp shuts them.
+	 */
+	private void batteryBottomDump(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x = 200, z0 = 900, ry = y + 5;
+		MineVehicleEntity[] train = new MineVehicleEntity[5];
+		dev.wildcatter.tailings.block.DumpBlockEntity[] pocket = new dev.wildcatter.tailings.block.DumpBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+			for (int z = -2; z <= 56; z++) {
+				level.setBlock(new BlockPos(x, ry - 1, z0 + z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(new BlockPos(x, ry, z0 + z), rail, Block.UPDATE_ALL);
+			}
+			// the track grizzly under the rails from z 12 to 15, the cam rail beside it, the pocket under it turned along the track
+			for (int k = 0; k < 4; k++) {
+				level.setBlock(new BlockPos(x, ry - 1, z0 + 12 + k), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+			}
+			part(level, TailingsBlocks.TRACK_GRIZZLY, new BlockPos(x, ry - 1, z0 + 12));
+			part(level, TailingsBlocks.DUMP_CAM_RAIL, new BlockPos(x + 1, ry, z0 + 12));
+			BlockPos pocketAt = new BlockPos(x + 1, ry - 4, z0 + 12);
+			level.setBlock(pocketAt, TailingsBlocks.DUMP_POCKET.defaultBlockState().setValue(BigPartBlock.FACING, Direction.EAST), Block.UPDATE_ALL);
+			BigParts.grow(level, pocketAt, level.getBlockState(pocketAt));
+			pocket[0] = (dev.wildcatter.tailings.block.DumpBlockEntity) level.getBlockEntity(pocketAt);
+			for (int k = 0; k < 4; k++) {
+				level.setBlock(new BlockPos(x, ry, z0 + 12 + k), rail, Block.UPDATE_ALL);
+			}
+			// the charging bay at the far end: the charger on a wall beside the track
+			for (int yy = 0; yy < 3; yy++) {
+				for (int z = 41; z <= 44; z++) {
+					level.setBlock(new BlockPos(x - 4, ry + yy, z0 + z), Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+				}
+			}
+			part(level, TailingsBlocks.BATTERY_CHARGER, new BlockPos(x - 3, ry, z0 + 42));   // 2 m wide, clear of the track
+			System.out.println("[tailings-test] battery_bottom_dump station: rail " + level.getBlockState(new BlockPos(x, ry, z0 + 13)) + "; under " + level.getBlockState(new BlockPos(x, ry - 1, z0 + 13))
+					+ "; pocket " + level.getBlockState(new BlockPos(x, ry - 2, z0 + 13)) + "; cam " + level.getBlockState(new BlockPos(x + 1, ry, z0 + 13))
+					+ "; finds " + dev.wildcatter.tailings.block.DumpBlockEntity.grizzlyUnder(level, new BlockPos(x, ry, z0 + 13)));
+		});
+		server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + (z0 + 38) + " 90 15");
+		context.waitTicks(40);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			train[0] = MineVehicleEntity.placeLocomotive(level, new BlockPos(x, ry, z0 + 38), Heading.NORTH, dev.wildcatter.tailings.TailingsEntities.BATTERY_LOCOMOTIVE);
+			train[0].setBatteryWh(dev.wildcatter.tailings.haul.Battery.USABLE_WH * 0.9);
+			String[] loads = {"minecraft:copper_ore", "minecraft:cobblestone", "minecraft:copper_ore", "minecraft:cobblestone"};
+			for (int i = 0; i < 4; i++) {
+				double slot = z0 + 38.5 + dev.wildcatter.tailings.haul.Haul.carOffset(i);
+				train[i + 1] = MineVehicleEntity.placeCar(level, new BlockPos(x, ry, (int) Math.floor(slot)), Heading.NORTH, dev.wildcatter.tailings.TailingsEntities.BOTTOM_DUMP_CAR);
+				train[i + 1].load().add(loads[i], 320);
+				train[i + 1].refreshLoad();
+			}
+			train[0].setRunning(false);
+		});
+		Filming film = film(context, world, "battery_bottom_dump");
+		context.takeScreenshot("tailings-battery-bay");
+		context.waitTicks(30);
+		server.runOnServer(srv -> train[0].setRunning(true));
+		boolean shot = false;
+		for (int t = 0; t < 150; t++) {
+			context.waitTicks(5);
+			double z = server.computeOnServer(srv -> train[0].getZ());
+			if (t > 20 && server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).allMatch(c -> c.load().total() == 0 && !c.doorsOpen()))) {
+				context.waitTicks(30);
+				break;
+			}
+			// follow the train until its locomotive is past the grizzly, then hold on the grizzly while the cars cross it
+			int camZ = (int) Math.max(z0 + 14, z + 4);
+			server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + camZ + " 90 15");
+			boolean open = server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).anyMatch(MineVehicleEntity::doorsOpen));
+			if (open && !shot) {
+				context.takeScreenshot("tailings-bottom-dump-doors");
+				shot = true;
+			}
+			if (t % 10 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] battery_bottom_dump: " + train[0].status() + "; cars "
+						+ java.util.Arrays.stream(train, 1, 5).map(c -> c.load().total() + (c.doorsOpen() ? " open" : "")).toList() + "; pocket " + pocket[0].pocket()));
+			}
+		}
+		context.takeScreenshot("tailings-bottom-dump-end");
+		film.stop();
+		int left = server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).mapToInt(c -> c.load().total()).sum());
+		require(left == 0, "every bottom-dump car should drop its load over the grizzly, " + left + " left");
+		heard("battery_bottom_dump", "tailings:mine_locomotive", "tailings:muck_tip");
+	}
+
+	/**
+	 * L4 (shaft-and-hoist.md): a headframe over a 40 m shaft, cut away on its east side so the shaft shows, the hoist house behind it,
+	 * the measuring flask at the bottom and the headframe bin at the top. The two skips wind in balance: the loaded one comes up, dumps
+	 * into the bin, and goes back down as the other comes up loaded.
+	 */
+	private void shaftHoist(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x0 = 300, z0 = 1200, depth = 40;
+		// the test world is flat near the bottom of the world: the collar goes high enough that the shaft's floor is above it
+		int collar = server.computeOnServer(srv -> Math.max(srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0 + 4, z0 + 4),
+				srv.overworld().getMinY() + depth + 3));
+		PlantBlockEntity[] parts = new PlantBlockEntity[4];
+		dev.wildcatter.tailings.entity.ShaftSkipEntity[] skips = new dev.wildcatter.tailings.entity.ShaftSkipEntity[2];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			// a level yard over it all, and the shaft: its 5 x 5 down to the flask, and the ground east of it cut away to show it
+			for (int x = x0 - 8; x <= x0 + 30; x++) {
+				for (int z = z0 - 8; z <= z0 + 34; z++) {
+					level.setBlock(new BlockPos(x, collar - 1, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int yy = collar; yy < collar + 34; yy++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			// solid rock under the yard, down to the shaft's floor (the flat world's ground may be thinner than the shaft is deep)
+			for (int yy = collar - depth - 1; yy < collar - 1; yy++) {
+				for (int x = x0 - 8; x <= x0 + 30; x++) {
+					for (int z = z0 - 8; z <= z0 + 34; z++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			for (int yy = collar - depth - 1; yy < collar; yy++) {
+				for (int x = x0 + 2; x <= x0 + 30; x++) {
+					for (int z = z0 - 8; z <= z0 + 14; z++) {
+						boolean shaft = x <= x0 + 6 && z >= z0 + 2 && z <= z0 + 6;
+						boolean cut = x >= x0 + 7 && yy < collar - 2;
+						BlockState to = yy == collar - depth - 1 && (cut || shaft) ? Blocks.STONE.defaultBlockState()
+								: shaft || cut ? Blocks.AIR.defaultBlockState() : null;
+						if (to != null) {
+							level.setBlock(new BlockPos(x, yy, z), to, Block.UPDATE_CLIENTS);
+						}
+					}
+				}
+			}
+			parts[0] = plant(level, Machine.HEADFRAME, new BlockPos(x0, collar, z0));
+			parts[1] = plant(level, Machine.HEADFRAME_BIN, new BlockPos(x0 + 2, collar, z0 - 4));
+			parts[2] = plant(level, Machine.HOIST_HOUSE, new BlockPos(x0, collar, z0 + 20));
+			parts[3] = plant(level, Machine.MEASURING_FLASK, new BlockPos(x0 + 7, collar - depth, z0 + 4));
+			parts[2].forceRunning();
+			var frame = dev.wildcatter.tailings.block.ShaftLayout.Frame.of(parts[0]);
+			skips[0] = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			skips[1] = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			parts[3].made().add(Rock.GRANITE, null, 2700);
+		});
+		server.runCommand("tp @p " + (x0 + 30) + " " + (collar + 6) + " " + (z0 + 4) + " 90 10");
+		context.waitTicks(60);
+		Filming film = film(context, world, "shaft_hoist");
+		context.takeScreenshot("tailings-shaft-collar");
+		boolean shotMid = false;
+		int lastDumps = 0;
+		for (int t = 0; t < 260; t++) {
+			context.waitTicks(5);
+			server.runOnServer(srv -> {
+				if (parts[3].made().isEmpty()) {
+					parts[3].made().add(Rock.GRANITE, null, 2700);
+				}
+			});
+			// follow the skip coming up loaded, from the cutaway's side
+			double[] at = server.computeOnServer(srv -> {
+				var w = parts[2].winder();
+				int up = w.winding() ? w.bottom() : w.top();
+				return new double[] {skips[up].getY(), w.speed(), w.dumps()};
+			});
+			int camY = (int) Math.round(Math.min(collar + 22, Math.max(collar - depth + 4, at[0] + 2)));
+			server.runCommand("tp @p " + (x0 + 24) + " " + camY + " " + (z0 + 4) + " 90 8");
+			if (!shotMid && at[1] > 4) {
+				context.takeScreenshot("tailings-shaft-winding");
+				shotMid = true;
+			}
+			if (t % 20 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] shaft_hoist: " + parts[2].status() + "; bin " + parts[1].hold().total() + " kg; flask " + parts[3].hold().total()));
+			}
+			if ((int) at[2] > lastDumps) {
+				lastDumps = (int) at[2];
+				context.takeScreenshot("tailings-shaft-dump-" + lastDumps);
+			}
+			if (lastDumps >= 2) {
+				context.waitTicks(40);
+				break;
+			}
+		}
+		server.runCommand("tp @p " + (x0 + 26) + " " + (collar + 18) + " " + (z0 + 30) + " 135 20");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-shaft-end");
+		film.stop();
+		int dumps = server.computeOnServer(srv -> parts[2].winder().dumps());
+		require(dumps >= 2, "the skips should dump twice into the headframe bin, got " + dumps);
 	}
 
 	/** A train tips a car of copper ore and a car of cobble on the move, and the sorter splits them to their bins. */

@@ -28,7 +28,8 @@ The specs:
 - **open-pit.md, Haul roads: LOADOUT stops:** at a load-out the stake marks the **gate**, and the truck drives through forward — P4-3.
 - **open-pit.md, Proposed waves, P7:** P7 becomes three waves, P7a-c, and includes flotation and the tails at the pit's rate — P7-1.
 - **full-recovery.md:** the leach's "written game choice" for heavy minerals stays, but the dry mill gives them a real route — L6-1.
-- **crushing-circuit.md, the gravel face:** built with the DMS (L7-3).
+- **crushing-circuit.md, the gravel face:** built with the DMS (L7-3). Found already built in the plant-gaps wave and used as it is
+  (`l7-dms.md` #2): no change needed.
 - **Rock / Feeds (code, not a spec):** raw ore items stop being plant feed — X-1.
 
 ## P3: drill, emulsion, blast

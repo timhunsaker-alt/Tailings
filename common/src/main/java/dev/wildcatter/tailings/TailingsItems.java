@@ -27,6 +27,9 @@ public final class TailingsItems {
 	public static final List<Item> REAGENTS = new ArrayList<>();
 	public static Item LOCOMOTIVE;
 	public static Item CAR;
+	public static Item BATTERY_LOCOMOTIVE;
+	public static Item BOTTOM_DUMP_CAR;
+	public static Item LOCO_BATTERY;
 	public static Item HAUL_TRUCK;
 	public static Item WHEEL_LOADER;
 	public static Item TRACK_DOZER;
@@ -41,6 +44,17 @@ public final class TailingsItems {
 	public static Item TRAILING_CABLE;
 	public static Item ULTRA_HAUL_TRUCK;
 	public static Item HYDRAULIC_SHOVEL;
+	/** 100 m of lay-flat duct for the TBM's reel gantry, and the gas detector (ventilation.md, L1). */
+	public static Item DUCT_CASSETTE;
+	public static Item GAS_DETECTOR;
+	/** A shaft skip (shaft-and-hoist.md, L4): clicked on a headframe, it hangs on the next free rope. */
+	public static Item SKIP;
+	/** A 50 kg bag of cement (paste-backfill.md, L5): the paste mixer's binder, a placeholder until a cement kiln exists. */
+	public static Item CEMENT;
+	/** A 25 kg bag of milled 15 % Si ferrosilicon, the dense medium's make-up (dense-medium-separation.md, L7; a placeholder recipe). */
+	public static Item FERROSILICON;
+	/** A 100 kg bag of moist heavy mineral concentrate, its assay kept (dry-mill.md, L6). */
+	public static Item HEAVY_MINERAL_CONCENTRATE;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -60,6 +74,10 @@ public final class TailingsItems {
 		}
 		LOCOMOTIVE = item("mine_locomotive");
 		CAR = item("mine_car");
+		BATTERY_LOCOMOTIVE = item("battery_locomotive");
+		BOTTOM_DUMP_CAR = item("bottom_dump_car");
+		ResourceKey<Item> battery = ResourceKey.create(Registries.ITEM, Tailings.id("loco_battery"));
+		LOCO_BATTERY = Registry.register(BuiltInRegistries.ITEM, battery, new dev.wildcatter.tailings.item.LocoBatteryItem(new Item.Properties().setId(battery).stacksTo(1)));
 		HAUL_TRUCK = vehicle("haul_truck", () -> TailingsEntities.HAUL_TRUCK);
 		WHEEL_LOADER = vehicle("wheel_loader", () -> TailingsEntities.WHEEL_LOADER);
 		BLASTHOLE_DRILL = vehicle("blasthole_drill", () -> TailingsEntities.BLASTHOLE_DRILL);
@@ -80,6 +98,16 @@ public final class TailingsItems {
 		for (TbmGantry gantry : TbmGantry.values()) {
 			GANTRIES.put(gantry, item(gantry.id()));
 		}
+		ResourceKey<Item> cassette = ResourceKey.create(Registries.ITEM, Tailings.id("vent_duct_cassette"));
+		DUCT_CASSETTE = Registry.register(BuiltInRegistries.ITEM, cassette, new Item(new Item.Properties().setId(cassette).stacksTo(16)));
+		ResourceKey<Item> detector = ResourceKey.create(Registries.ITEM, Tailings.id("gas_detector"));
+		GAS_DETECTOR = Registry.register(BuiltInRegistries.ITEM, detector, new dev.wildcatter.tailings.item.GasDetectorItem(new Item.Properties().setId(detector).stacksTo(1)));
+		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
+		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
+		CEMENT = item("cement");
+		FERROSILICON = item("ferrosilicon");
+		ResourceKey<Item> hmc = ResourceKey.create(Registries.ITEM, Tailings.id("heavy_mineral_concentrate"));
+		HEAVY_MINERAL_CONCENTRATE = Registry.register(BuiltInRegistries.ITEM, hmc, new dev.wildcatter.tailings.item.HeavyMineralConcentrateItem(new Item.Properties().setId(hmc)));
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

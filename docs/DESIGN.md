@@ -144,6 +144,29 @@ Chunk tickets (`block.ChunkRunner`): while running, the drill refreshes a `taili
 
 The parts' recipes are placeholders: eight iron ingots around a copper ingot; the junction is seven. The pump recipe is eight iron ingots around a water bucket.
 
+## Ventilation of the drive (L1)
+
+Spec: [multiblocks/ventilation.md](multiblocks/ventilation.md) (draft, decided on recommendation); decisions in
+[questions/l1-ventilation.md](questions/l1-ventilation.md). The figures are in `mine.Airflow` (unit-tested in `AirflowTest`).
+- **Off by default:** nothing stops or harms anything unless `config/tailings-ventilation.properties` says so (`mine.VentRules`):
+  `interlock=true` stops a TBM after 60 s with no duct air at its back-up, NO VENTILATION (it holds, and drives on when the air is back);
+  `stale_air=true` gives a player in a drive's stale air Mining Fatigue I after 30 s and Weakness I after 2 minutes, cleared after 5 s of
+  fresh air. Off, both are readings only.
+- **The air:** the bore needs 0.3 m/s over its 36 m², 10.8 m³/s. The `vent_fan` (3 x 3 x 5, 75 kW, a plant part on the industrial
+  tier, `block.stage.Vent`) runs whenever its motor may and once a second reads its duct out of its south face (`VentNetwork.read`):
+  `vent_duct` blocks, joined like pipe, and any `booster_fan` (2 x 2 x 3, 30 kW) the duct enters at its north face. The fans' curves
+  (3 kPa and 1.5 kPa shut off, 25 m³/s free, scaled by the fan laws for the motor's output) against the duct's Darcy friction (1.4 m,
+  f 0.02) and 1 % leakage a 100 m give the air at the line's farthest end. The line (`block.VentState`) is saved with the fan; a cell in
+  a chunk not loaded is taken as last read, and a fan with duct keeps its chunk with the `tailings:runner` ticket.
+- **Fresh** (`VentNetwork.airAt`): within 30 m of a line's end or 5 m of its duct, with 10.8 m³/s. A **drive** is out of sight of the
+  sky over the TBM's floor, walkway, slope, rail or switch. Stale air near tuff or sandstone reads RADON (a reading only).
+- **The TBM** reads the air at its back-up's tail once a second (`TbmCore.setAir`): its screen (`air 0.33/0.30 m/s, duct 64 m`), its
+  readout and its junction's AIR AT BACK-UP (4-20 mA over 0-15 m³/s, the junction's eleventh point). Its reel gantry takes a
+  `vent_duct_cassette` (100 m, by a click, when under 10 m is left); each block advanced it pays a metre of duct out at the crown of
+  the bore's left side just behind the conveyor gantry (`TbmCore.payDuct`), with a second metre where the decline drops.
+- **The fan's PLC points:** the motor's, and FLOW (4-20 mA over 0-15 m³/s) as its seventh.
+- **The gas detector** (`gas_detector`): held in a drive it reads the air each second on the action bar; a click reads it once.
+
 ## Haulage
 
 `haul.Haul` is the numbers. A real Granby car is about 3 t (`REAL_CAR_KG`). That constant is documentation. The game car holds `CAR_STACKS` 9 times `STACK` 64 = 576 items of any mix. `MAX_CARS` is 10. The dump pocket holds one such train (`POCKET_ITEMS`). Each product bin and the waste bin hold 8192. The rectifier is 300 kW (`RECTIFIER_WATTS`), 480 V AC in. The DC side stays inside the block. There is no DC tier in the solver.
@@ -201,6 +224,29 @@ IRI
 ```
 
 `C` chest, `R` mine rail, `I` iron ingot. One car.
+
+### Battery locomotives and bottom-dump cars (L2, L3)
+
+Specs: [multiblocks/battery-locomotive.md](multiblocks/battery-locomotive.md), [multiblocks/bottom-dump-cars.md](multiblocks/bottom-dump-cars.md);
+decisions in [questions/l2-l3-trains.md](questions/l2-l3-trains.md). The figures are in `haul.Battery` (unit-tested).
+- **The battery locomotive** (`battery_locomotive`, the same `MineVehicleEntity` class): 2 x 22 kW on a 132 V, 440 Ah lead-acid battery,
+  46,464 Wh usable (80 %). It runs on any rail, fed or not, and draws nothing from a fed one. Speed is `Traction.limit` at 44 kW. The
+  battery gives the motors' output over 85 % (nothing down the decline). Under 20 % of usable it reads LOW BATTERY; at 0 it stops,
+  braked, FLAT. Placed, it has no battery (NO BATTERY). Right-click with a `loco_battery` swaps batteries; sneak-click with an empty
+  hand on a held, standing one takes its battery out; otherwise sneak-click reverses as the trolley locomotive. Broken, it drops its
+  battery too.
+- **The traction battery** (`loco_battery`, `item.LocoBatteryItem`): usable Wh as custom data (`charge_wh`); one with none holds 10 %.
+- **The charger** (`battery_charger`, 2 x 2 x 1, `block.BatteryChargerBlockEntity`): its plug is wired where any of its cells touches a
+  NEMA L22-30 or IEC 60309 red 32 A receptacle (WRONG RECEPTACLE, NOT PLUGGED IN otherwise). On the circuit it is Wildcatter's
+  `DriveLoad` on the industrial tier at PF 0.95, 20 kW while it has a battery to charge; 90 % of what it draws goes in. It charges the
+  battery it holds (right-click with one; sneak-click takes it out), or else a battery locomotive standing within 3 m. PLC inputs
+  CHARGING, FULL, CHARGE (4-20 mA, empty to full).
+- **The bottom-dump car** (`bottom_dump_car`): over a rail on a `track_grizzly` (1 x 1 x 4) with a `dump_pocket` under the grizzly and a
+  `dump_cam_rail` (1 x 1 x 4) beside the rail or the grizzly (`DumpBlockEntity.grizzlyUnder`), it drops its whole load on the move,
+  and its doors (synced, drawn swung down) are open while it is there empty. A pocket that cannot take the load holds the train with
+  the car over the grizzly. Granby cars dump only at a ramp and bottom-dump cars only over a grizzly; the signal before a dump counts
+  only that kind's cars (`SignalBlockEntity.dumpPocket(bottomDump)`). The pocket's oversize rule applies to both.
+- **Recipes (placeholders):** listed in questions/l2-l3-trains.md, 13.
 
 ### Dump and signals
 
@@ -480,18 +526,155 @@ in `PitPowerTest`), the rope shovel's parts in `pit.RopeShovelLayout`.
   each on its own hinge; a truck's body floor sits above its rear tyres, on two rails; on a face 3 m and more each way the
   hazard stripes are 1 m wide and the louvres a coarse bank across its top third, so they do not shimmer at range); the item icons
   for the reel, the ultra and the hydraulic shovel are Ludo art (`art/source/PROMPTS.md`, `tools/process_art.py`). Electric machines sound Wildcatter's `motor_hum` instead of their diesel.
+## The shaft and hoist (L4)
+
+Spec: [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md) (draft, decided on recommendation); the choices made building it
+are in [questions/l4-shaft.md](questions/l4-shaft.md). The figures are in `shaft.Hoisting` and the skips' state in `shaft.Winder`
+(unit-tested); where the pieces stand is `block.ShaftLayout`; the stages are `block.stage.Shaft`.
+
+- **The parts:** `headframe` (9 x 30 x 9, unpowered; the shaft its middle 5 x 5, x and z 2 to 6 in its own frame, empty of collision,
+  with gate rails round the collar), `hoist_house` (10 x 8 x 12, a 450 kW Wildcatter `Motor` at the medium-voltage tier, its box on the
+  west face of its main cell), `headframe_bin` (4 x 5 x 4, 100 t), `measuring_flask` (2 x 3 x 2, 3 t).
+- **Built:** the hoist house reads NOT BUILT until it finds, looking out of each side along its centre line within 60 m, a headframe
+  that it stands behind (the headframe's own south, the ropes' side); a headframe bin touching the headframe; a measuring flask with a
+  cell in the ring round the shaft, down to 200 m; both compartments (x 2-3 and 5-6, z 3-4) clear of anything with collision from the
+  flask's bottom to the collar; and a skip on each rope.
+- **Skips** (`entity.ShaftSkipEntity`, the `skip` item clicked on the headframe; a sneaking empty-hand hit takes one off): the hoist sets
+  each in its compartment every tick at the loading stop (the flask's bottom) plus its height, skip 1 at the travel less skip 0's. The
+  travel is the depth to the flask's bottom plus 18 m to the dump. Their loads ride in the winder, saved on the hoist house; a skip
+  taken off loses its load. `client.SkipRenderer` draws its block model, its load, and its rope to the sheave top and back to the drum.
+- **Winding:** 0.75 m/s² up to 10 m/s times the motor's output, braked on the stopping curve, the last metres at 0.5 m/s. Then 10 s at
+  rest; then the top skip dumps into the bin (if it has room: else BIN FULL) and the bottom skip takes the flask's 3 t (if it has them:
+  else WAITING FOR ORE), and it winds when the bottom skip is loaded and the top one empty. The motor is wanted while it winds and runs on
+  60 s as every plant motor; without it the brakes hold the skips where they are (STOPPED). A 150 m shaft lifts about 270 t/h.
+- **The flask:** the apron feeder whose tail end touches it (and no ore sorter) drops a rock item's 2.7 t into its surge when the surge is
+  empty, once a second; it fills from the surge at 300 kg/s to exactly 3 t. It takes nothing by hand or hopper.
+- **The bin:** kg by rock and size, out of its bottom onto a belt under it at the belt's rate.
+- **PLC:** the hoist house has the plant motor's points; its FILL is the bin's level, and SKIP DUMPED is on for a second after each dump.
+- **Models:** `tools/models/shaft.py`, in Wildcatter's materials; the hoist house hums with Wildcatter's motor hum.
+
+## Paste backfill (L5)
+
+Spec: [multiblocks/paste-backfill.md](multiblocks/paste-backfill.md) (draft, decided on recommendation); the choices made building it are
+in [questions/l5-paste.md](questions/l5-paste.md). The figures are in `paste.PasteFill`, the void scan in `paste.FillVoid` (unit-tested);
+the stages are `block.stage.Paste`.
+
+- **The paste filter** (`paste_filter`, 5 x 5 x 8, 75 kW): a vacuum disc filter. Thickened tails (60 %, a tailings thickener's
+  underflow) in at the north face of its front cells, at up to 50 t/h of solids; plain tails or paste read NOT THICKENED. It holds up to
+  5 t of 80 % cake for the paste mixer touching it (FULL when none takes it); its filtrate, about 0.42 L a kg of solids, goes back on a
+  water pipe at its east face, as the thickener's overflow does.
+- **The paste mixer** (`paste_mixer`, 3 x 3 x 5, 75 kW): takes the touching filter's cake, trims it with thickened tails from the pipe
+  at its north face (0.21 kg a kg of cake solids) and binds it with cement at 5 % of the tails' solids from its hopper (`cement`, a 50
+  kg bag, by a click or a hopper above it; it holds 40 bags), to paste at 78 % solids. The paste goes on the pipe at its south face as
+  tails slurry marked with its solids and binder (`tailings:solids` 0.78, `tailings:binder` 0.05). NOT BUILT without a filter touching
+  it, NO FEED without cake or trim, NO CEMENT.
+- **The paste pump** (`paste_pump`, 3 x 3 x 6, 110 kW): a piston pump, 35 m³/h at up to 8 MPa. It draws paste at its north face
+  (anything else reads NOT PASTE) and, once a second, follows the steel pipe from its south face (up to 1,500 m) to the first
+  `fill_outlet` on it, then pushes paste straight into the outlet while the outlet's void is closed and not full. The line's pressure
+  is 8 kPa a metre of pipe less 19.6 kPa a metre the outlet is below the pump; past 8 MPa it reads LINE PRESSURE. NO OUTLET without
+  one. PLC: the motor's six points, FLOW (4-20 mA over 0-40 m³/h) and PRESSURE (4-20 mA over 0-10 MPa).
+- **The fill outlet** (`fill_outlet`): reads its void every 5 s and when clicked: every cell it reaches through air, water and paste,
+  any other block a wall. NOT ENCLOSED if a cell is open to the sky (at or above its column's surface height), the void runs into
+  unloaded ground, or it is over 20,000 cells. It holds 4 t of paste; each 2.0 t becomes a block of wet `paste_fill` in the void's
+  lowest open cell no higher than the outlet (on one level the nearest first), displacing water; FULL when none is left. Its readout:
+  the void's m³, open, wet and set, and the m³ it has placed.
+- **Paste fill** (`paste_fill`, no item): wet when placed (`cure` 0-7): no collision, it slows what wades in it (half speed across, 40 %
+  down), does not suffocate. A scheduled step every 3,000 ticks; the eighth (one game day) sets it (`cure` 8): a solid block, mined by
+  pickaxe or shovel. It drops nothing either way.
+- **The fill bulkhead** (`fill_bulkhead`): a metre of shotcrete barricade, a wall to the void like any block. Removed by any means with
+  wet paste touching the gap, the wet paste joined to it at or above the gap's floor (all of it, for a gap under it) runs out at once,
+  highest first, and settles outside by the settle rule (on paste, not into it); set paste stays.
+- **Models:** `tools/models/paste.py`, in Wildcatter's materials; the bulkhead, the paste and the cement icon are Ludo art. The filter
+  and pump hum with Wildcatter's motor hum, the mixer with the agitator.
+## The dry mill (L6)
+
+Spec: [multiblocks/dry-mill.md](multiblocks/dry-mill.md) (draft, decided on recommendation); the choices made building it are in
+[questions/l6-dry-mill.md](questions/l6-dry-mill.md). The rules are `plant.DryMill` (unit-tested), the stages `block.stage.DryMillStages`.
+
+- **The parts:** `scavenger_spiral_bank` (4 x 5 x 6, a 37 kW pump; faces as the spiral bank's: the spirals' fines in at the north face
+  of its front cells, HMC concentrate out at the east back cell, the rest at the west), `fluid_bed_dryer` (3 x 4 x 6, a 30 kW blower,
+  gas at its east side), `rer_separator` (2 x 3 x 3, 5.5 kW), `ht_roll_separator` (2 x 3 x 4, 7.5 kW), `irm_separator` (2 x 3 x 3,
+  11 kW). Every motor on the world's industrial tier, its box on the west face of the main cell, with the plant motor's PLC points.
+- **The ladder:** the spiral bank's 50 % is paid at the filter as before. The scavenger spirals take 45/50 of what is left of
+  ilmenite, rutile, zircon, monazite and cassiterite to concentrate slurry, under the assay names `tailings:hmc_<mineral>`; what they
+  leave goes on as `tailings:scavenged_<mineral>`, which nothing takes again (the leach's exception stays for a plant without them).
+  The filter keeps the HMC apart (`PlantBlockEntity.hmc()`): into a dryer touching it while its 1 t bin has room, else as
+  `heavy_mineral_concentrate` bags of 100 kg, whole kg of each mineral as item data.
+- **Drying:** 2 t/h at 0.3 GJ a tonne of any natural gas on its east pipe, at Wildcatter's heating value (7.9 m³ a tonne); NO GAS
+  under half. It passes the dry HMC to a roll magnet touching it; bags go in by hopper on top or by hand.
+- **Separating:** each separator treats 2 t/h from its 1 t hopper: the rare-earth roll takes ilmenite, the high-tension roll rutile and
+  cassiterite, the induced roll monazite and (what it leaves) zircon. Its own minerals are paid at `FullRecoveryRates.topRungPay`
+  (1.11 a kg won, so 45 % pays as 50 %) by the nuggets rule into four output stacks; the rest goes to the next separator touching it,
+  or it stops, "nowhere to go". Moist HMC offered to a separator: WET. Full outputs: FULL.
+- **Models:** `tools/models/drymill.py`, in Wildcatter's materials; the dryer sounds Wildcatter's fan, the separators its motor hum,
+  the scavenger spirals the slurry rush.
+
+## Dense-medium separation (L7)
+
+Spec: [multiblocks/dense-medium-separation.md](multiblocks/dense-medium-separation.md) (draft, decided on recommendation); the choices
+made building it are in [questions/l7-dms.md](questions/l7-dms.md). The rules are `plant.DenseMedium` (unit-tested), the stages
+`block.stage.DenseMediumStages`, the module's setting and counts `plant.DmsState`.
+
+- **Where it sits:** on the belt off the double-deck screen's gravel face (built in the plant-gaps wave, unchanged). Sand bypasses it;
+  the crushed class goes to the cone as before. Without a DMS nothing changes.
+- **The parts:** `deslime_screen` (2 x 2 x 4, 11 kW; gravel in by a belt over its north end, 3 % washed off as sand to a belt on its
+  east face, the rest into the module it touches), `dms_cyclone_module` (3 x 6 x 4, a 55 kW medium pump; water off a water pipe, 0.15 L
+  a kg, 25 L held), two `drain_rinse_screen`s (2 x 2 x 5, 7.5 kW; the one on the module's north side takes the floats, the one on its
+  south side the sinks), `medium_recovery` (2 x 3 x 3, 5.5 kW; ferrosilicon by hopper on top or by hand, 1 t held). Every motor on the
+  world's industrial tier, its box on the west face of the main cell, with the plant motor's PLC points. 60 t/h each.
+- **The split:** each rock's piece density is the mixing rule over the minerals its block holds (2.7 t) at textbook densities, the
+  rest its host rock (`DenseMedium.pieceSg`). A rock lighter than the medium floats: 98 % to the floats screen, 2 % to the sinks; a
+  heavier rock the other way round. At the default 2.75 the country rocks float except diorite (2.85) and deepslate (2.80); the metal
+  ores sink; the light industrial ores float at any setting.
+- **The products:** the floats screen pays a vanilla gravel block for each 1.9 t into its product slot (a hopper under it); the
+  floats' minerals are gone (L7-1). The sinks screen puts the sinks out of its south end onto a belt, as gravel with their rock, to the
+  cone; they come round the screen and back to the DMS like any gravel.
+- **The medium:** a sneaking click on the module steps its density 0.05, 2.60 to 3.30 and round. 0.3 kg of ferrosilicon is lost a
+  tonne of feed, from the medium recovery's hopper; empty, the module reads NO MEDIUM. It waits for the medium recovery's motor.
+- **Reads:** NO FEED, NO WATER, NO MEDIUM, NOT BUILT (a missing screen or recovery), FULL, nowhere to go; the module's status names the
+  rock, its density and whether it floats. **PLC:** the module adds DENSITY (4-20 mA over SG 2.6-3.3) and FLOATS (a second's pulse
+  each tonne floated).
+- **Models:** `tools/models/dms.py`, in Wildcatter's materials; the screens sound the vibrating screen, the module the slurry rush,
+  the medium recovery Wildcatter's motor hum.
+## The X-ray ore sorter (L8)
+
+Spec: [multiblocks/xrt-ore-sorter.md](multiblocks/xrt-ore-sorter.md) (draft, decided on recommendation); the choices made building it
+are in [questions/l8-xrt.md](questions/l8-xrt.md). The rules are `plant.XrtSorting` (unit-tested), the stages `block.stage.Xrt`. The
+dump station's `ore_sorter` is a different machine and is unchanged.
+
+- **The parts:** `xrt_sorter` (4 x 5 x 8, 20 kW, *unverified*) and `sorter_compressor` (2 x 2 x 3, 160 kW, touching it). Both motors on
+  the world's industrial tier, their boxes on the west face of the main cell.
+- **Faces:** crushed rock or gravel in by a belt over its north (feed) end's top, a hopper on top or a hand; product out of its south
+  face, waste out of its east face, onto a belt or a part's feed face. Sand, fines and unbroken rock are refused.
+- **Reading a piece:** its effective atomic number, Zeff = (Σ fᵢ Zᵢ^2.94)^(1/2.94) over the electrons, each mineral's from its real
+  formula (`XrtSorting.formula`), the rock's minerals at their game grade, the rest of its 2.7 t quartz (11.6). Country rock reads
+  11.6-12.0; galena ore 45; light ores (graphite, magnesite, borax, bauxite) under quartz.
+- **Splitting:** five steps, Zeff 11.5 (LOW), 12.0 (the default), 13.0, 15.0, 20.0 (HIGH). Over the step, 97 % of the rock's kg to
+  product and 3 % to waste; under it, 5 % to product and 95 % to waste. Each keeps its size.
+- **Rate:** 250 t/h on crushed rock, half on gravel, times its motor's output, and only as fast as both belts take.
+- **Air:** it needs its compressor touching and running, else NO AIR, and it keeps its rock. The compressor runs while the sorter has
+  rock or is sorting.
+- **Setting it:** a sneaking click with an empty hand steps the threshold, LOW to HIGH and round. Saved with the part (`xrt`), with the
+  tonnes sent each way.
+- **PLC:** the plant motor's six points, then 6 THRESHOLD (analog out, 4-20 mA, 4 mA a step; in AUTO while fresh, over the screen's
+  step), 7 PRODUCT and 8 WASTE (pulse inputs, a pulse a tonne).
+- **Reads:** NO FEED, NO AIR, FULL, "its output has nowhere to go"; its inspection gives the step, who set it and the tonnes each way.
+- **Models:** `tools/models/xrt.py`, in Wildcatter's materials; the sorter plays the `ore_sorter` loop, the compressor Wildcatter's
+  motor hum.
 
 ## Config
 
-Only one file. It is not created for you.
+Two files. Neither is created for you.
 
-`config/tailings-train.properties`
+`config/tailings-train.properties`, and since L1 `config/tailings-ventilation.properties`:
 
 | Key | Default if missing | Meaning |
 |---|---|---|
 | `damage` | `true` | Whether the locomotive hurts living entities in the consist box |
 | `amount` | `8` | Damage per hit. A bad number falls back to 8 |
 | `truck_damage` | `8` | Damage per hit from a moving haul truck or wheel loader (over 1 m/s). `damage=false` turns it off too |
+| `interlock` (ventilation) | `false` | A TBM with no duct air at its back-up for 60 s stops, NO VENTILATION |
+| `stale_air` (ventilation) | `false` | Players in a drive's stale air get Mining Fatigue, then Weakness |
 
 There is no other Tailings config, and no Tailings gamerule.
 
@@ -526,6 +709,9 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `traction_rectifier` | Iron, redstone, copper block | 300 kW, feeds joined rail |
 | `mine_locomotive` | Item, not a block. See haulage | Spawns the train entity |
 | `mine_car` | Item, not a block. See haulage | Marks a rail as a car |
+| `track_grizzly` | Iron bars, iron, a rail, smooth stone (placeholder) | 1 x 1 x 4 rail bridge over a pocket: bottom-dump cars dump over it (L3) |
+| `dump_cam_rail` | Iron over smooth stone (placeholder) | 1 x 1 x 4, beside a track grizzly: opens the cars' doors (L3) |
+| `battery_charger` | Steel, copper, redstone, Wildcatter cable (placeholder) | 2 x 2 x 1, 20 kW on a three-phase 30 A receptacle (L2) |
 | `dump_station` | 8 iron around a hopper | Pocket, sorter, bins |
 | `block_signal` | Redstone torch over an iron ingot | 16-rail section |
 | `mine_switch` | None | Clockwise turnout when thrown |
@@ -537,6 +723,19 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `truck_dump_wall` | Smooth stone around an iron ingot (placeholder) | 12 x 5 x 2: 3 m retaining wall and a 1.5 m bumper a reversing truck stops against |
 | `pit_hopper` | Iron, a hopper and smooth stone (placeholder) | 10 x 6 x 6, 400 t of bank blocks. A truck whose tail is over it tips in; the apron feeder touching it draws it out. It refuses soil |
 | `muck` | None. A blast or a tipped load makes it | Broken rock: holds quarters of the bank blocks it was, falls and settles, dug by a bucket |
+| `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
+| `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |
+| `headframe` | Iron blocks and iron bars (placeholder) | 9 x 30 x 9 over a 5 x 5 shaft; its sheaves and dump (L4) |
+| `headframe_bin` | Iron around a hopper (placeholder) | 4 x 5 x 4, 100 t; the skips dump into it, it feeds a belt under it (L4) |
+| `hoist_house` | Iron blocks round a copper block (placeholder) | 10 x 8 x 12, the double-drum hoist, 450 kW at the medium-voltage tier (L4) |
+| `measuring_flask` | Iron and a hopper (placeholder) | 2 x 3 x 2, measures each skip's 3 t at the shaft bottom (L4) |
+| `skip` | None: its looks only | The skip entity's model; never placed (L4) |
+| `paste_filter` | Steel, white wool, a bucket, industrial cable (placeholder) | 5 x 5 x 8 vacuum disc filter, 75 kW: thickened tails to an 80 % cake (L5) |
+| `paste_mixer` | Steel, a hopper, copper, industrial cable (placeholder) | 3 x 3 x 5 twin-shaft mixer, 75 kW: cake, a trim and 5 % cement to 78 % paste (L5) |
+| `paste_pump` | Steel, a piston, steel pipe, industrial cable (placeholder) | 3 x 3 x 6 piston pump, 110 kW, 35 m³/h at 8 MPa (L5) |
+| `fill_outlet` | Steel pipe, iron, iron bars (placeholder) | The open end of the fill line inside the void (L5) |
+| `fill_bulkhead` | 4 cement, 5 gravel → 2 | A metre of shotcrete barricade closing a void (L5) |
+| `paste_fill` | None, and no item. The fill outlet places it | Paste fill, wet then set after a game day (L5) |
 | `dry_tails` | None. The tailings filter makes it | The filter's cake, 1.8 t a block: falls like sand, tipped on dumps, dug and pushed as soft ground (P4) |
 
 Stamp mill:
@@ -591,8 +790,16 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Blasting items (P3):** `cast_booster` (shapeless: 1 TNT makes 4), `detonator` (shapeless: TNT, copper ingot, redstone make 8),
   `blast_logger` (shapeless: copper ingot, redstone, 2 iron ingots), `blasting_key` (shapeless: iron nugget, redstone), and the
   `blasthole_drill` and `emulsion_truck` machine items (placeholder recipes).
+- **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
+- **Ventilation items (L1):** `vent_duct_cassette` (100 m of duct for the reel gantry: 8 duct round an iron block), `gas_detector`.
+- **Paste fill items (L5):** `cement` (a 50 kg bag: one quicklime and one clay ball, shapeless, a placeholder until a cement kiln).
+- **Dry mill items (L6):** `heavy_mineral_concentrate`, a 100 kg bag of moist HMC with its assay as item data (no recipe; the filter
+  makes it).
+- **DMS items (L7):** `ferrosilicon`, a 25 kg bag of milled 15 % Si ferrosilicon: 4 from an iron ingot, a sand and a metallurgical
+  coke, shapeless, a placeholder until Wildcatter's ferroalloy plant.
+- **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
-Block items exist for every block above, including the ones with no crafting recipe.
+Block items exist for every block above, including the ones with no crafting recipe, except `skip` and `paste_fill`.
 
 ## Entities
 
@@ -601,6 +808,9 @@ Block items exist for every block above, including the ones with no crafting rec
 | `tunnel_drill` | `TunnelDrillEntity` | `NoopRenderer` on both loaders | Not spawned since R1; an old one discards itself. Kept registered for the contraption wave |
 | `mine_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` | Drives its train: path, speed, direction, cars |
 | `mine_car` | `MineVehicleEntity` | `MineVehicleRenderer` | A car; its load, and whether it is loaded (synced) |
+| `battery_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` (`BatteryLocomotiveModel`) | Drives its train on its own battery (L2) |
+| `bottom_dump_car` | `MineVehicleEntity` | `MineVehicleRenderer` (`BottomDumpCarModel`) | A car that dumps through its floor over a track grizzly; its doors synced (L3) |
+| `skip` | `ShaftSkipEntity` | `SkipRenderer` | A 3 t skip on its rope in a headframe's compartment; the hoist house sets its height (L4) |
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 | `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
 | `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |

@@ -34,6 +34,18 @@ public final class TailingsEntities {
 			.clientTrackingRange(10)
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("mine_car")));
+	/** The battery locomotive (battery-locomotive.md, L2): the trolley locomotive's entity class, with a battery in place of a shoe. */
+	public static final EntityType<MineVehicleEntity> BATTERY_LOCOMOTIVE = EntityType.Builder.<MineVehicleEntity>of(MineVehicleEntity::new, MobCategory.MISC)
+			.sized(0.9F, 1.4F)
+			.clientTrackingRange(10)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("battery_locomotive")));
+	/** The bottom-dump car (bottom-dump-cars.md, L3): the Granby car's size, dumping through its floor over a track grizzly. */
+	public static final EntityType<MineVehicleEntity> BOTTOM_DUMP_CAR = EntityType.Builder.<MineVehicleEntity>of(MineVehicleEntity::new, MobCategory.MISC)
+			.sized(0.9F, 1.2F)
+			.clientTrackingRange(10)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("bottom_dump_car")));
 
 	/** The tunnel boring machine as a contraption: its bounding box is its own (TbmEntity), so these sizes do not matter. */
 	public static final EntityType<TbmEntity> TBM = EntityType.Builder.<TbmEntity>of(TbmEntity::new, MobCategory.MISC)
@@ -93,6 +105,14 @@ public final class TailingsEntities {
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("track_dozer")));
 
+	/** A shaft skip on its rope (shaft-and-hoist.md, L4): its box is its own (ShaftSkipEntity). */
+	public static final EntityType<dev.wildcatter.tailings.entity.ShaftSkipEntity> SKIP = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.ShaftSkipEntity>of(dev.wildcatter.tailings.entity.ShaftSkipEntity::new, MobCategory.MISC)
+			.sized(2F, 4F)
+			.clientTrackingRange(16)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("skip")));
+
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
 	public static final EntityType<GantryEntity> CONVEYOR_GANTRY = gantryType(TbmGantry.CONVEYOR);
@@ -121,6 +141,8 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_train"), TRAIN);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_locomotive"), LOCOMOTIVE);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("mine_car"), CAR);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("battery_locomotive"), BATTERY_LOCOMOTIVE);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("bottom_dump_car"), BOTTOM_DUMP_CAR);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("tunnel_boring_machine"), TBM);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("haul_truck"), HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("wheel_loader"), WHEEL_LOADER);
@@ -130,6 +152,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("ultra_haul_truck"), ULTRA_HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("hydraulic_shovel"), HYDRAULIC_SHOVEL);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("rope_shovel"), ROPE_SHOVEL);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("skip"), SKIP);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

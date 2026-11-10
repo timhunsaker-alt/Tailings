@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 
 /** The cab screen: six stock slots (rail, gravel, cobble, lining, water, cable), the muck buffer, and the program buttons. */
 public class DrillMenu extends AbstractContainerMenu {
-	private static final int NUMBERS = 12;
+	private static final int NUMBERS = 13;
 	private static final int STATUS_CHARS = 96;
 	private final Container container;
 	private final ContainerData data;
@@ -57,7 +57,18 @@ public class DrillMenu extends AbstractContainerMenu {
 		return "Y " + data.get(0) + "  " + heading.name().toLowerCase(java.util.Locale.ROOT) + "  flat " + data.get(2) + "  " + (on(4) ? "running" : "stopped")
 				+ "\n" + statusLine()
 				+ "\n" + data.get(5) + " blocks" + (data.get(5) > 0 ? ", floor Y " + data.get(6) : "") + ", cable " + data.get(7)
-				+ "\npumped " + data.get(9) + " m3, quench " + data.get(10);
+				+ "\npumped " + data.get(9) + " m3, quench " + data.get(10)
+				+ "\n" + airLine();
+	}
+
+	/** The air at the back-up, in tenths of m3/s (-1 before the first reading), and the cassette's duct (ventilation.md). */
+	private String airLine() {
+		int tenths = (short) data.get(3);
+		double flow = tenths / 10.0;
+		double velocity = flow / dev.wildcatter.tailings.mine.Airflow.BORE_AREA;
+		String reading = tenths < 0 ? "air: no reading" : String.format(java.util.Locale.ROOT, "air %.2f/%.2f m/s%s", velocity, dev.wildcatter.tailings.mine.Airflow.NEED_VELOCITY,
+				flow + 1e-9 < dev.wildcatter.tailings.mine.Airflow.NEED ? " POOR" : "");
+		return reading + ", duct " + data.get(12) + " m";
 	}
 
 	/** The status as the server words it, sent a character to a data slot, since that is what a menu syncs. */
@@ -236,7 +247,7 @@ public class DrillMenu extends AbstractContainerMenu {
 				case 0 -> drill.program().targetY();
 				case 1 -> drill.program().heading().ordinal();
 				case 2 -> drill.program().flatLength();
-				case 3 -> 0;
+				case 3 -> drill.air() < 0 ? -1 : (int) Math.min(Short.MAX_VALUE, Math.round(drill.air() * 10));
 				case 4 -> flags();
 				case 5 -> drill.drill().advanceCount();
 				case 6 -> drill.drill().floorY();
@@ -245,6 +256,7 @@ public class DrillMenu extends AbstractContainerMenu {
 				case 9 -> drill.drill().pumped();
 				case 10 -> drill.tank();
 				case 11 -> drill.lack();
+				case 12 -> drill.ductLeft();
 				default -> {
 					String line = drill.statusLine();
 					int at = index - NUMBERS;

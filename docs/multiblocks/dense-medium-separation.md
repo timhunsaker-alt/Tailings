@@ -1,6 +1,6 @@
 # Dense-medium separation (a DMS cyclone plant ahead of the mill)
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Proposed wave **L7**. The choices are listed
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **L7**, built (see "As built"). The choices are listed
 in [../questions/specs-tailings.md](../questions/specs-tailings.md) (Later section).
 
 ROADMAP "Later": dense-medium separation. Crushed rock is mixed with a **heavy medium** (a slurry of fine ferrosilicon in water) at a
@@ -83,6 +83,26 @@ All motors at the world's standard industrial low voltage. Water off a water pip
 
 ## The wave plan
 - **L7**, with the screen's gravel face. After the dry mill, as it is the larger change to the plant's flow.
+
+## As built (L7, 2026-11-10, branch `l7-dms`)
+Decisions in [../questions/l7-dms.md](../questions/l7-dms.md) (16 entries; #4, #5 and #8 need Tim).
+- **Existing worlds are untouched (#1):** four new parts and a new item; the screen's gravel face was already built in the plant-gaps
+  wave and is used as it is (#2). No setting was needed.
+- **Code:** `plant.DenseMedium` (mineral and host densities, the piece's density by the mixing rule, the split, the losses, the
+  gravel; unit-tested in `DenseMediumTest`), `plant.DmsState` (the setting and the counts), `block.stage.DenseMediumStages` (the
+  deslime screen, the module, the drain-and-rinse screens, the medium recovery), `Machine.DESLIME_SCREEN`, `DMS_MODULE`,
+  `DRAIN_RINSE_SCREEN`, `MEDIUM_RECOVERY` on the plant's motors and PLC points, `TailingsItems.FERROSILICON`; `tools/models/dms.py`.
+- **As the spec, except:** a piece's density by the real mixing rule, not mass-weighted (#3); the light industrial ores float at any
+  setting (#4); the sinks come round through the cone and the DMS again, about 3 % of an ore block's mineral lost (#5); the floats
+  screen is the one on the module's north side, the sinks screen the one on its south (#7); a 25 kg ferrosilicon bag, 4 from an iron
+  ingot, a sand and a metallurgical coke (#8); no starting charge of medium (#9); the density set by a sneaking click, not a screen
+  (#10); floats by hopper or hand, not by belt (#11).
+- **Measured (DenseMediumTest, the scenes):** granite 2.65, copper ore 3.15, galena ore 3.14, sphalerite ore 3.72, tin ore 2.88; 2 t
+  of granite and 1 t of copper ore at 2.75: 1.98 t floats (one gravel block and 80 kg waiting), 980 kg of the copper and 40 kg of the
+  granite sink; 0.9 kg of ferrosilicon lost for 3 t.
+- **Tests:** NeoForge `dms_split`, `dms_density` (2.6 and 3.3), `dms_medium`, `dms_gravel_face` (crushed copper ore through the screen's
+  gravel face, the deslime screen and the module), `dms_parts`; unit tests `DenseMediumTest`, `MachineTest`; the client film `dms`.
+- **Not built:** the spec's "Left out"; diamonds (X-2, #16).
 
 ## Sources
 - *Recent developments in preconcentration using dense media separation* (a DMS plant maker): DMS at 0.5-250 mm; 20-60 % mass rejection at

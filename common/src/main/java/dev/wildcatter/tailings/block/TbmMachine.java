@@ -53,6 +53,17 @@ public final class TbmMachine {
 		return CELLS.computeIfAbsent(facing, TbmMachine::build);
 	}
 
+	private static final Map<Direction, List<Cell>> SKIP_CELLS = new EnumMap<>(Direction.class);
+
+	/** Every cell of a shaft skip facing {@code facing}, from its own main cell (shaft-and-hoist.md, L4). */
+	public static synchronized List<Cell> skipCells(Direction facing) {
+		return SKIP_CELLS.computeIfAbsent(facing, f -> {
+			List<Cell> out = new ArrayList<>();
+			add(out, (BigPartBlock) TailingsBlocks.SKIP, BlockPos.ZERO, f);
+			return out;
+		});
+	}
+
 	/** Every cell of a gantry facing {@code facing}, from its own main cell. */
 	public static synchronized List<Cell> gantryCells(TbmGantry gantry, Direction facing) {
 		return GANTRY_CELLS.computeIfAbsent(gantry, g -> new EnumMap<>(Direction.class))

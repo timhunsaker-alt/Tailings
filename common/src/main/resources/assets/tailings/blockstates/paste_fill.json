@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "cure=0": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=1": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=2": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=3": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=4": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=5": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=6": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=7": {
+      "model": "tailings:block/paste_fill_wet"
+    },
+    "cure=8": {
+      "model": "tailings:block/paste_fill_set"
+    }
+  }
+}

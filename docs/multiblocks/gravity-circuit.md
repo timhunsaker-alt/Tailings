@@ -51,7 +51,7 @@ both.**
 ## Left out (ROADMAP)
 - Jigs, shaking tables at plant scale and cleaning stages on the spirals.
 - Wash water; a spiral's cut varying with feed density.
-- Magnetic and electrostatic separation of the concentrate: ROADMAP Later.
+- Magnetic and electrostatic separation of the concentrate: built as L6, the dry mill (dry-mill.md).
 
 ## Game test
 `spiral_bank` (NeoForge): cassiterite and galena slurry in, half the cassiterite to concentrate, all the galena on to the rest.

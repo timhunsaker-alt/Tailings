@@ -114,16 +114,20 @@ public class MineRailBlock extends BaseEntityBlock {
 				return InteractionResult.SUCCESS;
 			}
 		}
-		boolean loco = stack.getItem() == TailingsItems.LOCOMOTIVE;
-		if (!loco && stack.getItem() != TailingsItems.CAR) {
+		net.minecraft.world.entity.EntityType<dev.wildcatter.tailings.entity.MineVehicleEntity> type = stack.getItem() == TailingsItems.LOCOMOTIVE ? dev.wildcatter.tailings.TailingsEntities.LOCOMOTIVE
+				: stack.getItem() == TailingsItems.BATTERY_LOCOMOTIVE ? dev.wildcatter.tailings.TailingsEntities.BATTERY_LOCOMOTIVE
+				: stack.getItem() == TailingsItems.CAR ? dev.wildcatter.tailings.TailingsEntities.CAR
+				: stack.getItem() == TailingsItems.BOTTOM_DUMP_CAR ? dev.wildcatter.tailings.TailingsEntities.BOTTOM_DUMP_CAR : null;
+		if (type == null) {
 			return InteractionResult.PASS;
 		}
 		if (!(level instanceof net.minecraft.server.level.ServerLevel server)) {
 			return InteractionResult.SUCCESS;
 		}
 		dev.wildcatter.tailings.mine.Heading heading = RailView.heading(player.getDirection());
-		Object placed = loco ? dev.wildcatter.tailings.entity.MineVehicleEntity.placeLocomotive(server, pos, heading)
-				: dev.wildcatter.tailings.entity.MineVehicleEntity.placeCar(server, pos, heading);
+		boolean loco = type == dev.wildcatter.tailings.TailingsEntities.LOCOMOTIVE || type == dev.wildcatter.tailings.TailingsEntities.BATTERY_LOCOMOTIVE;
+		Object placed = loco ? dev.wildcatter.tailings.entity.MineVehicleEntity.placeLocomotive(server, pos, heading, type)
+				: dev.wildcatter.tailings.entity.MineVehicleEntity.placeCar(server, pos, heading, type);
 		if (placed == null) {
 			return InteractionResult.PASS;
 		}

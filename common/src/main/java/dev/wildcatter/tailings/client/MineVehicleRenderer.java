@@ -20,11 +20,14 @@ import net.minecraft.util.LightCoordsUtil;
 
 /**
  * Draws one mine locomotive or car where its entity is, on the rail surface, turned and pitched as the track runs. The locomotive's
- * headlight cube is submitted again with the eyes render type so it is full bright.
+ * headlight cube is submitted again with the eyes render type so it is full bright. The battery locomotive (L2) and the bottom-dump
+ * car (L3) have models of their own; a bottom-dump car's doors hang open while the cam rail holds them.
  */
 public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineVehicleRenderer.VehicleState> {
 	private static final Identifier LOCOMOTIVE_TEXTURE = Tailings.id("textures/entity/mine_locomotive.png");
 	private static final Identifier CAR_TEXTURE = Tailings.id("textures/entity/mine_car.png");
+	private static final Identifier BATTERY_TEXTURE = Tailings.id("textures/entity/battery_locomotive.png");
+	private static final Identifier BOTTOM_DUMP_TEXTURE = Tailings.id("textures/entity/bottom_dump_car.png");
 	/** The model root is 24 pixels above the wheel bottoms. */
 	private static final float MODEL_ROOT = 1.5F;
 
@@ -32,6 +35,12 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 	private final MineLocomotiveModel headlight;
 	private final MineCarModel car;
 	private final MineCarModel emptyCar;
+	private final BatteryLocomotiveModel batteryLocomotive;
+	private final BatteryLocomotiveModel batteryHeadlight;
+	/** Loaded with its doors shut, empty with them shut, and empty with them open: each its own model, as the parts are drawn later. */
+	private final BottomDumpCarModel bottomLoaded;
+	private final BottomDumpCarModel bottomEmpty;
+	private final BottomDumpCarModel bottomOpen;
 
 	public MineVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -47,6 +56,20 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		car = new MineCarModel(models.bakeLayer(MineCarModel.LAYER));
 		emptyCar = new MineCarModel(models.bakeLayer(MineCarModel.LAYER));
 		emptyCar.root().getChild(MineCarModel.LOAD).visible = false;
+		batteryLocomotive = new BatteryLocomotiveModel(models.bakeLayer(BatteryLocomotiveModel.LAYER));
+		batteryHeadlight = new BatteryLocomotiveModel(models.bakeLayer(BatteryLocomotiveModel.LAYER));
+		ModelPart batteryLamp = batteryHeadlight.root().getChild(BatteryLocomotiveModel.HEADLIGHT);
+		for (ModelPart part : batteryHeadlight.allParts()) {
+			if (part != batteryHeadlight.root() && part != batteryLamp) {
+				part.visible = false;
+			}
+		}
+		bottomLoaded = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
+		bottomEmpty = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
+		bottomEmpty.root().getChild(BottomDumpCarModel.LOAD).visible = false;
+		bottomOpen = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
+		bottomOpen.root().getChild(BottomDumpCarModel.LOAD).visible = false;
+		bottomOpen.doors(true);
 	}
 
 	@Override
@@ -64,6 +87,9 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 0.5F;
 		state.locomotive = entity.locomotive();
+		state.battery = entity.battery();
+		state.bottomDump = entity.bottomDump();
+		state.doorsOpen = entity.doorsOpen();
 		state.loaded = entity.loaded();
 		state.yaw = entity.getYRot(partialTick);
 		state.pitch = -entity.getXRot(partialTick);
@@ -76,7 +102,12 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		pose.rotateDegrees(Axis.XP, state.pitch);
 		pose.scale(-1.0F, -1.0F, 1.0F);
 		pose.translate(0.0F, -MODEL_ROOT, 0.0F);
-		if (state.locomotive) {
+		if (state.battery) {
+			submitModel(collector, batteryLocomotive, state, pose, BATTERY_TEXTURE, state.lightCoords);
+			collector.order(1).submitModel(batteryHeadlight, state, pose, RenderTypes.eyes(BATTERY_TEXTURE), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, state.outlineColor);
+		} else if (state.bottomDump) {
+			submitModel(collector, state.loaded ? bottomLoaded : state.doorsOpen ? bottomOpen : bottomEmpty, state, pose, BOTTOM_DUMP_TEXTURE, state.lightCoords);
+		} else if (state.locomotive) {
 			submitModel(collector, locomotive, state, pose, LOCOMOTIVE_TEXTURE, state.lightCoords);
 			collector.order(1).submitModel(headlight, state, pose, RenderTypes.eyes(LOCOMOTIVE_TEXTURE), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		} else {
@@ -93,6 +124,9 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 	public static class VehicleState extends EntityRenderState {
 		public boolean locomotive = true;
 		public boolean loaded;
+		public boolean battery;
+		public boolean bottomDump;
+		public boolean doorsOpen;
 		public float yaw;
 		public float pitch;
 	}

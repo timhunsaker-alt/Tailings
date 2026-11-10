@@ -28,6 +28,8 @@ public final class TailingsNeoForgeClient {
 		modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> {
 			event.registerLayerDefinition(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 			event.registerLayerDefinition(MineCarModel.LAYER, MineCarModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.BatteryLocomotiveModel.LAYER, dev.wildcatter.tailings.client.BatteryLocomotiveModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.BottomDumpCarModel.LAYER, dev.wildcatter.tailings.client.BottomDumpCarModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.BlastholeDrillModel.LAYER, dev.wildcatter.tailings.client.BlastholeDrillModel::createBodyLayer);
@@ -42,10 +44,13 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.TRAIN, NoopRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CAR, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.BATTERY_LOCOMOTIVE, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.BOTTOM_DUMP_CAR, MineVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.TBM, dev.wildcatter.tailings.client.TbmRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.PUMP_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.REEL_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CONVEYOR_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.SKIP, dev.wildcatter.tailings.client.SkipRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.BLASTHOLE_DRILL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);

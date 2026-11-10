@@ -57,13 +57,20 @@ public final class Tailings {
 		for (var gantry : TailingsItems.GANTRIES.values()) {
 			output.accept(new ItemStack(gantry));
 		}
+		output.accept(new ItemStack(TailingsItems.SKIP));
 		output.accept(new ItemStack(TailingsBlocks.LINING));
+		output.accept(new ItemStack(TailingsBlocks.VENT_DUCT));
+		output.accept(new ItemStack(TailingsItems.DUCT_CASSETTE));
+		output.accept(new ItemStack(TailingsItems.GAS_DETECTOR));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));
 		output.accept(new ItemStack(TailingsBlocks.TRACTION_RECTIFIER));
 		output.accept(new ItemStack(TailingsBlocks.BELT_CONVEYOR));
 		output.accept(new ItemStack(TailingsBlocks.BLOCK_SIGNAL));
 		output.accept(new ItemStack(TailingsItems.LOCOMOTIVE));
 		output.accept(new ItemStack(TailingsItems.CAR));
+		output.accept(new ItemStack(TailingsItems.BATTERY_LOCOMOTIVE));
+		output.accept(new ItemStack(TailingsItems.LOCO_BATTERY));
+		output.accept(new ItemStack(TailingsItems.BOTTOM_DUMP_CAR));
 		output.accept(new ItemStack(TailingsItems.HAUL_TRUCK));
 		output.accept(new ItemStack(TailingsItems.WHEEL_LOADER));
 		output.accept(new ItemStack(TailingsItems.BLASTHOLE_DRILL));
@@ -78,6 +85,10 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsItems.ULTRA_HAUL_TRUCK));
 		output.accept(new ItemStack(TailingsItems.HYDRAULIC_SHOVEL));
 		output.accept(new ItemStack(TailingsBlocks.DRY_TAILS));
+		output.accept(new ItemStack(TailingsBlocks.FILL_BULKHEAD));
+		output.accept(new ItemStack(TailingsBlocks.FILL_OUTLET));
+		output.accept(new ItemStack(TailingsItems.CEMENT));
+		output.accept(new ItemStack(TailingsItems.FERROSILICON));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
 		output.accept(new ItemStack(TailingsBlocks.MUCK));
@@ -98,5 +109,6 @@ public final class Tailings {
 		for (ItemStack stack : TailingsItems.CONCENTRATES.stream().map(ItemStack::new).toList()) {
 			output.accept(stack);
 		}
+		output.accept(new ItemStack(TailingsItems.HEAVY_MINERAL_CONCENTRATE));
 	}
 }

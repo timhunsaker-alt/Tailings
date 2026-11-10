@@ -1,6 +1,6 @@
 # Ventilation of the drive (main fan, vent duct, the TBM's duct cassette)
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Proposed wave **L1**. The choices are listed
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **L1**, built (see "As built"). The choices are listed
 in [../questions/specs-tailings.md](../questions/specs-tailings.md) (Later section).
 
 ROADMAP "Later": ventilation of the drive (old 3c, never built). A drive a TBM bores has fresh air only as far as something pushes it.
@@ -70,3 +70,24 @@ and is to be checked before approval.
   Colorado 0.047 with 0.15 m/s minimum in working places. Queensland guidance: 0.3 m/s minimum in roadways.
 - UK practice: primary air within 5 m of a heading face (lecture notes on secondary ventilation, duct outlet within 3√S).
 - Fan, duct and cassette sizes: *(proposed)* from tunnelling practice, to be checked against a fan maker's sheet.
+
+## As built (L1, 2026-11-09, branch `l1-ventilation`)
+Decisions in [../questions/l1-ventilation.md](../questions/l1-ventilation.md) (19 entries; #1 and #2 need Tim).
+- **Existing worlds are untouched:** the TBM's interlock and stale air's effects are in `config/tailings-ventilation.properties`
+  (`interlock=true`, `stale_air=true`), both **off** unless set (#1, #2). Off, every reading still shows: the cab, the junction's AIR
+  AT BACK-UP, the gas detector.
+- **Code:** `mine.Airflow` (the duct, fans and boosters as numbers, unit-tested in `AirflowTest`); `mine.VentRules` (the config);
+  `block.VentDuctBlock` (`vent_duct`); `Machine.VENT_FAN` and `BOOSTER_FAN` on the plant's motors (`block.stage.Vent`); `block.VentState`
+  (a fan's line, saved with it) and `block.VentNetwork` (the air at a place, drives, radon, players); `TbmCore`'s cassette, air reading
+  and interlock; `item.GasDetectorItem`; `tools/models/vent.py`.
+- **As the spec, except:** the fan follows a curve, 3 kPa shut off to 25 m³/s free, 15 m³/s at 1.9 kPa (#3); a booster is in series,
+  the same air through it (#4); a duct line is one line, the farther end at a branch (#5); the duct is drawn a metre round (#6); the
+  cassette pays out at the crown just behind the conveyor gantry (#7) and is loaded by a click on the reel gantry, not a cab slot
+  (#8); the interlock holds and resumes by itself (#9); fresh is within 30 m of a line's end in a straight line, or 5 m of its duct
+  (#10); radon is a reading only (#11); the effects clear after 5 s of fresh air (#12).
+- **Measured (AirflowTest, the scenes):** 200 m of duct: 23.3 m³/s from the fan, 22.9 at the end; 3 km on one fan: 15.2 m³/s from
+  the fan, 11.3 at the end; 3.5 km: 10.3, short; with a booster, 11.7. Friction at 14 m³/s: about 71 Pa a 100 m.
+- **Tests:** NeoForge `vent_fresh` (200 m of duct, the interlock on: drives, stops NO VENTILATION with the fan off, drives again),
+  `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off` (no fan, rules off: reads POOR AIR and drives on),
+  `vent_parts`; the client film `vent` (`TAILINGS_ONLY=vent ./gradlew :fabric:runClientGameTest`).
+

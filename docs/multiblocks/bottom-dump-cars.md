@@ -55,3 +55,13 @@ and is to be checked before approval.
 
 ## Sources
 - SME *Mining Engineering Handbook*, 3rd ed. (2011), rail haulage: bottom-dump cars and cam-opened doors *(unverified detail)*.
+
+## As built (L3, 2026-11-09, branch `l2-l3-trains`)
+Decisions in [../questions/l2-l3-trains.md](../questions/l2-l3-trains.md) (#14-#20).
+- **Code:** the `bottom_dump_car` entity type on `MineVehicleEntity` (its doors synced as `doorsOpen`); `track_grizzly` and
+  `dump_cam_rail` (`Machine` parts, models in `tools/models/trains.py`); `DumpBlockEntity.grizzlyUnder` (rail on a grizzly, pocket
+  under it, cam rail beside the rail or the grizzly); `SignalBlockEntity.dumpPocket(bottomDump)`; `client.BottomDumpCarModel`.
+- **As the spec, except:** the pocket keeps the side dump's oversize rule (1 %, 32 choke it) though the spec says none (#16); the doors
+  snap open and shut rather than swing; the pocket is turned east or west to run 4 m along the grizzly.
+- **Tests:** NeoForge `bottom_dump_on_move` (three cars over the grizzly at 2.7 m/s, all dumped, doors open and shut),
+  `bottom_dump_full`, `bottom_dump_mixed`, `train_models_l2_l3`; the client film `battery_bottom_dump`.

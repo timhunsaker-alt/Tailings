@@ -28,5 +28,7 @@ public final class TailingsFabric implements ModInitializer {
 				.icon(Tailings::tabIcon)
 				.displayItems((parameters, output) -> Tailings.creativeTab(output::accept))
 				.build());
+		// the drive's air: players in stale air, once a second (ventilation.md)
+		net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.END_LEVEL_TICK.register(dev.wildcatter.tailings.block.VentNetwork::tickPlayers);
 	}
 }

@@ -82,7 +82,7 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 	public java.util.List<Point> points() {
 		return java.util.List.of(new Point("GO", true), new Point("RUNNING", false), new Point("AUTO", false), new Point("ADVANCE PULSES", false, Signal.PULSE), new Point("CABLE LEFT 4-20 mA, 400 m", false, Signal.MA), new Point("QUENCH TANK 4-20 mA", false, Signal.MA),
 				new Point("TARGET Y 4-20 mA, -64 to 320", true, Signal.MA), new Point("FLAT LENGTH 4-20 mA, 400 m", true, Signal.MA), new Point("TARGET Y SET 4-20 mA", false, Signal.MA),
-				new Point("FLAT LENGTH SET 4-20 mA", false, Signal.MA));
+				new Point("FLAT LENGTH SET 4-20 mA", false, Signal.MA), new Point("AIR AT BACK-UP 4-20 mA, 15 m3/s", false, Signal.MA));
 	}
 
 	@Override
@@ -114,6 +114,7 @@ public class CableJunctionBlockEntity extends BlockEntity implements CircuitPart
 			case 4 -> 4 + 16 * Math.min(1.03, core.cableLeft() / 400.0);
 			case 8 -> dev.wildcatter.tailings.plant.PlcScale.ma(core.program().targetY(), dev.wildcatter.tailings.plant.PlcScale.TARGET_Y_LOW, dev.wildcatter.tailings.plant.PlcScale.TARGET_Y_HIGH);
 			case 9 -> dev.wildcatter.tailings.plant.PlcScale.ma(core.program().flatLength(), 0, dev.wildcatter.tailings.plant.PlcScale.FLAT_HIGH);
+			case 10 -> dev.wildcatter.tailings.plant.PlcScale.ma(Math.max(0, core.air()), 0, PlantBlockEntity.VENT_FLOW_HIGH);
 			default -> 4 + 16 * Math.min(1.03, core.tank() / (double) TbmCore.TANK_MAX);
 		};
 	}

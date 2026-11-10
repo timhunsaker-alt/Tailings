@@ -8,6 +8,7 @@ import dev.wildcatter.tailings.block.Feeds;
 import dev.wildcatter.tailings.block.RailBlockEntity;
 import dev.wildcatter.tailings.block.RailView;
 import dev.wildcatter.tailings.block.SignalBlockEntity;
+import dev.wildcatter.tailings.haul.Battery;
 import dev.wildcatter.tailings.haul.CarLoad;
 import dev.wildcatter.tailings.haul.Haul;
 import dev.wildcatter.tailings.haul.Track;
@@ -52,10 +53,16 @@ import org.jspecify.annotations.Nullable;
  * A mine locomotive or a mine car (docs/multiblocks/haulage.md): every vehicle is an entity, and the train glides along the rails.
  * The locomotive drives: it holds the train's path ({@link TrainPath}), its speed and direction, and its cars by UUID, and each
  * tick it runs the train along the track and sets every car at its place behind it. Nothing of the train is stored on the rails.
+ * <p>
+ * Four types share it: the trolley locomotive and the Granby car (haulage.md), the battery locomotive (battery-locomotive.md, L2),
+ * which runs on its own traction battery on any rail, fed or not, and the bottom-dump car (bottom-dump-cars.md, L3), which drops its
+ * load through its floor over a track grizzly instead of tipping at a ramp.
  */
 public class MineVehicleEntity extends Entity implements SoundingEntity {
 	private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.FLOAT);
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
+	/** A bottom-dump car's doors, opened by the cam rail over a track grizzly. */
+	private static final EntityDataAccessor<Boolean> DATA_DOORS = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final double TICK = 1.0 / 20;
 	/** How close behind a gantry a train turns back, in metres. */
 	private static final double GANTRY_TURN = 0.5;
@@ -83,6 +90,11 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	private @Nullable BlockPos lamp;
 	/** How far the track ran ahead last tick, to tell track broken ahead from the track's end. */
 	private double reachedAhead = -1;
+	/** A battery locomotive's traction battery: usable watt-hours, or -1 with none in it. */
+	private double batteryWh = -1;
+	/** The game time a charger last charged it, and at how many watts into the battery. */
+	private long chargedAt = -100;
+	private double chargeWatts;
 
 	// a car's
 	private final CarLoad load = new CarLoad();
@@ -94,7 +106,81 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	}
 
 	public boolean locomotive() {
-		return getType() == TailingsEntities.LOCOMOTIVE;
+		return getType() == TailingsEntities.LOCOMOTIVE || getType() == TailingsEntities.BATTERY_LOCOMOTIVE;
+	}
+
+	/** A battery locomotive (L2): it carries its own traction battery and has no collector shoe. */
+	public boolean battery() {
+		return getType() == TailingsEntities.BATTERY_LOCOMOTIVE;
+	}
+
+	/** A bottom-dump car (L3): it dumps over a track grizzly, not at a side-dump ramp. */
+	public boolean bottomDump() {
+		return getType() == TailingsEntities.BOTTOM_DUMP_CAR;
+	}
+
+	public boolean doorsOpen() {
+		return entityData.get(DATA_DOORS);
+	}
+
+	private void setDoors(boolean open) {
+		if (entityData.get(DATA_DOORS) != open) {
+			entityData.set(DATA_DOORS, open);
+		}
+	}
+
+	// ---- the battery (L2) ------------------------------------------------------------------------------------------------------
+
+	public boolean hasBattery() {
+		return battery() && batteryWh >= 0;
+	}
+
+	/** Usable watt-hours in its battery, or -1 with none. */
+	public double batteryWh() {
+		return batteryWh;
+	}
+
+	/** Puts a battery holding {@code wh} in it (the game test's and the swap's). */
+	public void setBatteryWh(double wh) {
+		batteryWh = wh < 0 ? -1 : Math.min(Battery.USABLE_WH, wh);
+	}
+
+	/** Standing still, so a charger may charge it where it is. */
+	public boolean standing() {
+		return speed < 0.01;
+	}
+
+	/** A charger puts {@code watts} into its battery for {@code seconds}; returns the watt-hours it took (none when full or with none). */
+	public double charge(double watts, double seconds) {
+		if (!hasBattery() || batteryWh >= Battery.USABLE_WH - 1e-6 || !(level() instanceof ServerLevel server)) {
+			return 0;
+		}
+		double took = Math.min(Battery.USABLE_WH - batteryWh, watts * seconds / 3600);
+		batteryWh += took;
+		chargedAt = server.getGameTime();
+		chargeWatts = watts;
+		return took;
+	}
+
+	/** Its battery as an item, taken out of it; empty with none. */
+	public ItemStack takeBattery() {
+		if (!hasBattery()) {
+			return ItemStack.EMPTY;
+		}
+		ItemStack out = dev.wildcatter.tailings.item.LocoBatteryItem.of(TailingsItems.LOCO_BATTERY, batteryWh);
+		batteryWh = -1;
+		return out;
+	}
+
+	private String batteryReading() {
+		if (!hasBattery()) {
+			return "no battery";
+		}
+		String reading = "battery " + dev.wildcatter.tailings.item.LocoBatteryItem.describe(batteryWh);
+		if (level() instanceof ServerLevel server && server.getGameTime() - chargedAt <= 20) {
+			reading += String.format(java.util.Locale.ROOT, ", CHARGING at %.1f kW", chargeWatts / 1000);
+		}
+		return reading;
 	}
 
 	public CarLoad load() {
@@ -141,6 +227,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_LOADED, false);
+		builder.define(DATA_DOORS, false);
 		builder.define(DATA_SPEED, 0F);
 	}
 
@@ -148,6 +235,11 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 
 	/** Puts a locomotive on the rail at {@code pos}, facing {@code heading} along it (or the rail's own way). */
 	public static @Nullable MineVehicleEntity placeLocomotive(ServerLevel level, BlockPos pos, Heading heading) {
+		return placeLocomotive(level, pos, heading, TailingsEntities.LOCOMOTIVE);
+	}
+
+	/** As {@link #placeLocomotive(ServerLevel, BlockPos, Heading)}, of either kind: a battery locomotive comes with no battery in it. */
+	public static @Nullable MineVehicleEntity placeLocomotive(ServerLevel level, BlockPos pos, Heading heading, EntityType<MineVehicleEntity> type) {
 		Track.Cell cell = new RailView(level).at(pos);
 		if (cell == null || claimed(level, pos, null)) {
 			return null;
@@ -156,7 +248,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		if (step == null) {
 			step = Track.start(cell, cell.facing());
 		}
-		MineVehicleEntity loco = new MineVehicleEntity(TailingsEntities.LOCOMOTIVE, level);
+		MineVehicleEntity loco = new MineVehicleEntity(type, level);
 		loco.path = new TrainPath(step);
 		loco.front = step.length() / 2;
 		loco.place();
@@ -166,6 +258,11 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 
 	/** Puts a car on the rail at {@code pos}; it couples to a train whose tail is within reach behind it. */
 	public static @Nullable MineVehicleEntity placeCar(ServerLevel level, BlockPos pos, Heading heading) {
+		return placeCar(level, pos, heading, TailingsEntities.CAR);
+	}
+
+	/** As {@link #placeCar(ServerLevel, BlockPos, Heading)}, of either kind: a Granby car or a bottom-dump car. */
+	public static @Nullable MineVehicleEntity placeCar(ServerLevel level, BlockPos pos, Heading heading, EntityType<MineVehicleEntity> type) {
 		Track.Cell cell = new RailView(level).at(pos);
 		if (cell == null || claimed(level, pos, null)) {
 			return null;
@@ -174,7 +271,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		if (step == null) {
 			step = Track.start(cell, cell.facing());
 		}
-		MineVehicleEntity car = new MineVehicleEntity(TailingsEntities.CAR, level);
+		MineVehicleEntity car = new MineVehicleEntity(type, level);
 		double[] at = Track.point(step, 0.5);
 		float[] attitude = new TrainPath(step).attitude(step.length() / 2);
 		car.setAt(at[0], at[1], at[2], attitude[0], attitude[1]);
@@ -256,6 +353,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		running = input.getBooleanOr("running", true);
 		derailed = input.getBooleanOr("derailed", false);
 		status = input.getStringOr("status", "standing");
+		batteryWh = input.getDoubleOr("battery", -1);
 		cars.clear();
 		for (String id : input.getStringOr("cars", "").split(",")) {
 			if (!id.isEmpty()) {
@@ -278,6 +376,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		output.putBoolean("running", running);
 		output.putBoolean("derailed", derailed);
 		output.putString("status", status);
+		output.putDouble("battery", batteryWh);
 		StringBuilder ids = new StringBuilder();
 		for (UUID id : cars) {
 			ids.append(ids.length() == 0 ? "" : ",").append(id);
@@ -426,11 +525,19 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		}
 
 		Track.Step under = path.stepAt(front);
-		RailBlockEntity rail = server.getBlockEntity(RailView.pos(under.cell())) instanceof RailBlockEntity r ? r : null;
-		boolean fed = rail != null && rail.conductorLive();
-		// the motors take what the track's volts give them: full power at 250 V, less as the volts fall along the line
-		double share = rail == null ? 0 : Math.min(1, Math.pow(rail.volts() / Haul.TRACTION_VOLTS, 2));
-		double available = fed ? Haul.TRACTION_WATTS * share : 0;
+		// a battery locomotive has no shoe: it takes nothing from a fed rail and runs on any rail while its battery has charge (L2)
+		RailBlockEntity rail = !battery() && server.getBlockEntity(RailView.pos(under.cell())) instanceof RailBlockEntity r ? r : null;
+		boolean fed;
+		double available;
+		if (battery()) {
+			fed = hasBattery() && !Battery.flat(batteryWh);
+			available = fed ? Battery.TRACTION_WATTS : 0;
+		} else {
+			fed = rail != null && rail.conductorLive();
+			// the motors take what the track's volts give them: full power at 250 V, less as the volts fall along the line
+			double share = rail == null ? 0 : Math.min(1, Math.pow(rail.volts() / Haul.TRACTION_VOLTS, 2));
+			available = fed ? Haul.TRACTION_WATTS * share : 0;
+		}
 		double sine = Track.sine(under) * direction;
 		int items = 0;
 		for (MineVehicleEntity v : train) {
@@ -442,6 +549,10 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		if (!running) {
 			target = 0;
 			why = "held";
+		} else if (!fed && battery()) {
+			target = 0;
+			why = !hasBattery() ? "NO BATTERY: right-click it with a traction battery"
+					: "FLAT: its battery is at its floor; braked where it stands until it is charged or swapped";
 		} else if (!fed) {
 			target = 0;
 			why = rail != null && rail.tooBig() ? "NO POWER: " + dev.wildcatter.tailings.block.RectifierBlockEntity.tooBigWarning() : "NO POWER: the track under it is not fed";
@@ -450,7 +561,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			why = "NO RACK on the grade";
 		} else {
 			target = Traction.limit(mass, sine, available);
-			why = String.format("running %.1f m/s", speed);
+			why = String.format("running %.1f m/s", speed) + (battery() && Battery.low(batteryWh) ? ", LOW BATTERY" : "");
 		}
 		double stop = ahead;
 		String held = hold(server, view, train);
@@ -492,10 +603,13 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			speed = move / TICK;   // held short by what is ahead
 		}
 		front += move * direction;
+		// what the motors give: holding the grade and rolling, and speeding up
+		double force = mass * Haul.GRAVITY * Math.max(0, sine + Haul.ROLLING) + (speeding ? mass * Haul.ACCELERATION : 0);
 		if (rail != null) {
-			// what it draws through its shoe: holding the grade and rolling, and speeding up
-			double force = mass * Haul.GRAVITY * Math.max(0, sine + Haul.ROLLING) + (speeding ? mass * Haul.ACCELERATION : 0);
-			rail.draw(Math.min(available, force * speed));
+			rail.draw(Math.min(available, force * speed));   // through its shoe
+		} else if (hasBattery() && batteryWh > 0) {
+			// from its battery, over the drive's 85 %; nothing down the decline, where the rack brake holds it
+			batteryWh = Math.max(0, batteryWh - Battery.drawWh(Math.min(available, force * speed), TICK));
 		}
 		if (Math.abs(entityData.get(DATA_SPEED) - speed) > 0.05) {
 			entityData.set(DATA_SPEED, (float) speed);
@@ -509,7 +623,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		} else {
 			path.trimAfter(frontEnd() + 2);
 		}
-		status = why;
+		status = battery() ? why + "; " + batteryReading() : why;
 	}
 
 	/**
@@ -536,7 +650,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		for (int i = 1; i < train.size(); i++) {
 			MineVehicleEntity car = train.get(i);
 			BlockPos rail = RailView.pos(path.stepAt(carPlace(i - 1)).cell());
-			DumpBlockEntity pocket = DumpBlockEntity.under(server, rail);
+			DumpBlockEntity pocket = DumpBlockEntity.under(server, rail, car.bottomDump());
 			if (pocket != null && car.load.total() > 0 && !pocket.takes(car.load.total())) {
 				return pocket.choked() ? "waiting at the dump: the grizzly is choked with oversize" : "waiting at the dump: the pocket is full";
 			}
@@ -556,9 +670,14 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	 * cannot take this train's load (dump-station.md: "the train waits at the signal before the ramp").
 	 */
 	private double signalAhead(ServerLevel server, List<MineVehicleEntity> train) {
-		int loaded = 0;
+		// each kind of car dumps at its own station: a side dump's ramp, or a track grizzly (L3)
+		int loaded = 0, bottomLoaded = 0;
 		for (int i = 1; i < train.size(); i++) {
-			loaded += train.get(i).load.total();
+			if (train.get(i).bottomDump()) {
+				bottomLoaded += train.get(i).load.total();
+			} else {
+				loaded += train.get(i).load.total();
+			}
 		}
 		double end = direction > 0 ? frontEnd() : tailEnd();
 		List<Track.Step> steps = path.steps();
@@ -575,8 +694,12 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 					signalWhy = "waiting at a signal";
 					return direction > 0 ? start - end : end - stop;
 				}
-				DumpBlockEntity pocket = loaded > 0 ? signal.dumpPocket() : null;
-				if (pocket != null && !pocket.takes(loaded)) {
+				DumpBlockEntity pocket = loaded > 0 ? signal.dumpPocket(false) : null;
+				if (pocket == null || pocket.takes(loaded)) {
+					DumpBlockEntity grizzly = bottomLoaded > 0 ? signal.dumpPocket(true) : null;
+					pocket = grizzly != null && !grizzly.takes(bottomLoaded) ? grizzly : null;
+				}
+				if (pocket != null) {
 					signalWhy = pocket.choked() ? "waiting at the signal before the dump: the grizzly is choked with oversize"
 							: "waiting at the signal before the dump: the pocket is full";
 					// a little short of the section, so the train standing there is not in it
@@ -734,15 +857,22 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		refreshLoad();
 	}
 
-	/** A car over a dump pocket beside a ramp tips on the move (the drill loads the car standing at its loading point itself). */
+	/**
+	 * A car over a dump pocket beside a ramp tips on the move; a bottom-dump car over a track grizzly beside a cam rail drops its load
+	 * through its doors, which stay open while it is over the grizzly and shut as it leaves (the drill loads the car standing at its
+	 * loading point itself). A car whose load the pocket cannot take does not tip or open.
+	 */
 	private void tipAndLoad(ServerLevel server, MineVehicleEntity car) {
 		int index = cars.indexOf(car.getUUID());
 		BlockPos rail = RailView.pos(path.stepAt(carPlace(index)).cell());
-		DumpBlockEntity pocket = DumpBlockEntity.under(server, rail);
+		DumpBlockEntity pocket = DumpBlockEntity.under(server, rail, car.bottomDump());
 		if (pocket != null && car.load.total() > 0 && pocket.offer(car.load.contents())) {
 			car.load.clear();
 			car.refreshLoad();
 			server.playSound(null, car.getX(), car.getY(), car.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
+		}
+		if (car.bottomDump()) {
+			car.setDoors(pocket != null && car.load.total() == 0);
 		}
 	}
 
@@ -788,14 +918,36 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			return InteractionResult.SUCCESS;
 		}
 		if (locomotive()) {
-			if (player.isShiftKeyDown()) {
+			ItemStack held = player.getItemInHand(hand);
+			if (battery() && held.getItem() == TailingsItems.LOCO_BATTERY) {
+				// a battery swap: the box in hand goes in, and the one it carried comes out to the player
+				ItemStack old = takeBattery();
+				setBatteryWh(dev.wildcatter.tailings.item.LocoBatteryItem.charge(held));
+				held.shrink(1);
+				if (!old.isEmpty()) {
+					if (held.isEmpty()) {
+						player.setItemInHand(hand, old);
+					} else {
+						player.getInventory().placeItemBackInInventory(old, net.minecraft.util.Prediction.SERVER_ONLY);
+					}
+				}
+				player.sendOverlayMessage(Component.literal("Battery Locomotive: " + batteryReading()));
+				return InteractionResult.SUCCESS;
+			}
+			String name = battery() ? "Battery Locomotive: " : "Locomotive: ";
+			String reading = battery() ? "; " + batteryReading() : "";
+			if (player.isShiftKeyDown() && battery() && held.isEmpty() && !running && standing() && hasBattery()) {
+				// held and standing, a sneaking click lifts its battery out (the swap of the charging bay)
+				player.sendOverlayMessage(Component.literal(name + "battery taken out, " + dev.wildcatter.tailings.item.LocoBatteryItem.describe(batteryWh)));
+				player.setItemInHand(hand, takeBattery());
+			} else if (player.isShiftKeyDown()) {
 				direction = -direction;
 				reachedAhead = -1;
 				endWait = 0;
-				player.sendOverlayMessage(Component.literal("Locomotive: reversed, " + (direction > 0 ? "locomotive first" : "backing up")));
+				player.sendOverlayMessage(Component.literal(name + "reversed, " + (direction > 0 ? "locomotive first" : "backing up") + reading + "; " + cars.size() + " cars"));
 			} else {
 				running = !running;
-				player.sendOverlayMessage(Component.literal("Locomotive: " + (running ? "running" : "held") + "; " + status));
+				player.sendOverlayMessage(Component.literal(name + (running ? "running" : "held") + "; " + status));
 			}
 			return InteractionResult.SUCCESS;
 		}
@@ -804,7 +956,8 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			player.sendOverlayMessage(Component.literal(joined ? "Car: coupled" : locomotiveId != null ? "Car: already coupled" : "Car: no train within reach"));
 			return InteractionResult.SUCCESS;
 		}
-		player.sendOverlayMessage(Component.literal("Car: " + load.total() + " of " + Haul.CAR_ITEMS + " items"));
+		player.sendOverlayMessage(Component.literal((bottomDump() ? "Bottom-Dump Car: " : "Car: ") + load.total() + " of " + Haul.CAR_ITEMS + " items"
+				+ (bottomDump() ? (doorsOpen() ? "; DOORS OPEN" : "; DOORS SHUT") : "")));
 		return InteractionResult.SUCCESS;
 	}
 
@@ -818,7 +971,11 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
 		if (source.getEntity() instanceof Player player && player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
 			dropLoad(level);
-			spawnAtLocation(level, new ItemStack(locomotive() ? TailingsItems.LOCOMOTIVE : TailingsItems.CAR));
+			if (hasBattery()) {
+				spawnAtLocation(level, takeBattery());
+			}
+			spawnAtLocation(level, new ItemStack(battery() ? TailingsItems.BATTERY_LOCOMOTIVE : locomotive() ? TailingsItems.LOCOMOTIVE
+					: bottomDump() ? TailingsItems.BOTTOM_DUMP_CAR : TailingsItems.CAR));
 			discard();
 			return true;
 		}

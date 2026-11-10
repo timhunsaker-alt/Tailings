@@ -23,8 +23,27 @@ These are the only items that wait on you; everything else is built and only nee
 4. **Real residence times** (Wildcatter `plant-crane-gaps.md` #11): coking 18 h, digestion 1 h, precipitation 36 h as real holds.
    They change the game's pace, so they're not built. The plan is written.
 5. **Guy wires** (Wildcatter `protection-gaps.md` #20): should an overloaded, unguyed pole warn, lean, or break? The plan is written.
-6. **A pole transformer placed by command** (Wildcatter `protection-gaps.md` #21): turning it to face the pole changes which
+6. **Wildcatter Phase 15, the oilfield** (branch `phase15`, `phase15-oilfield.md`, 25 entries): salt domes, drilling mud, the BOP and
+   blowouts, built and tested (55 server scenes), but **not merged**. It changes existing worlds: domes move to a 192-block grid,
+   so fields under existing wells can change, and plain-water mud is LOW GEL (land rigs drill at half rate until bentonite is
+   mixed in). Say yes and it merges.
+7. **A firebox on piped gas** (Wildcatter `phase14-gas-power.md`, last entry): a firebox counts gas in an early game unit (a m3
+   burns in 0.4 s), so on real biogas or pipeline gas flows it never stays lit. The recommended fix gives the firebox one real
+   heat rate, which changes gas wells under fireboxes.
+8. **A pole transformer placed by command** (Wildcatter `protection-gaps.md` #21): turning it to face the pole changes which
    terminals are which in existing worlds.
+9. **Ventilation rules** (`l1-ventilation.md` #1, #2): the NO VENTILATION interlock and stale air are built but off by default
+   (a config file). Should the interlock default on for new worlds, and should it be a per-world rule instead of a file?
+10. **Paste fill's pace** (`l5-paste.md` #19): at the real ~34 m³/h a 360 m³ drive branch takes about 11 hours of play. Scale it?
+    And cement (#8) is a placeholder recipe until a cement kiln exists.
+11. **The dry mill's share** (`l6-dry-mill.md` #3, #14): only the scavenger spirals' 45 % goes through the dry mill (the filter still
+    pays the first spirals' 50 % as today). And should Wildcatter's chlorinator take Tailings' zircon concentrate?
+
+12. **Dense-medium separation** (`l7-dms.md` #4, #5, #8): the light ores (salt, potash, borax) float at any setting and are lost; DMS
+    sinks go round again and lose about 3 % of an ore block; ferrosilicon is a placeholder recipe until the ferroalloy plant.
+13. **The XRT sorter** (`l8-xrt.md` #3, #5, #6): the default threshold (Zeff 12.0) sits just above deepslate (11.96) and below
+    silver ore (12.08); light ores (graphite, bauxite, borax) read below quartz and go to waste unless a reverse mode is added; it has
+    its own 160 kW compressor because Wildcatter's is a small instrument-air unit.
 
 ## Every file, by wave
 
@@ -40,12 +59,25 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `plant-gaps.md` | 12 | belts, feed faces, the grizzly, the playthrough's plant |
 | Tailings | `plc-13i.md` | 7 | the last PLC signals (sorter, TBM course, slurry) |
 | Tailings | `art-wave.md` | 5 | the Ludo art and the vehicle skins |
+| Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
+| Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
+| Tailings | `l2-l3-trains.md` | 20 | battery locomotives and their charger, bottom-dump cars over a track grizzly (merged; #7, #12, #16 need you) |
+| Tailings | `l1-ventilation.md` (merged) | 19 | the drive's fan, duct, booster, the TBM's duct cassette, stale air (#1, #2 need you: the rules are off by default) |
+| Tailings | `l4-shaft.md` (merged) | 21 | the shaft and hoist: headframe, hoist house, skips in balance, the measuring flask, the headframe bin (#1, #5, #20 need you) |
+| Tailings | `l5-paste.md` (merged) | 22 | paste backfill: the paste filter, mixer and pump, fill bulkheads and outlet, curing, cement (#8, #14, #19 need you) |
+| Tailings | `l6-dry-mill.md` (merged) | 16 | the dry mill: scavenger spirals, the fluid-bed dryer, the three separators, the HMC bag (#3, #9, #14 need you; #14 is the zircon compat, not built) |
+| Tailings | `l7-dms.md` (merged) | 16 | dense-medium separation: deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery, ferrosilicon (#4, #5, #8 need you) |
+| Tailings | `l8-xrt.md` (merged) | 16 | the X-ray ore sorter: reading a piece's atomic number, the threshold steps, its own compressor, light ores (#3, #5, #6 need you) |
+| Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
 | Wildcatter | `protection-gaps.md` | 28 | relays, switchgear, poles, service drops |
 | Wildcatter | `plant-crane-gaps.md` | 16 | plants and cranes |
 | Wildcatter | `art-wave.md` | 7 | the Ludo art |
+| Wildcatter | `plc-gaps.md` | 12 | PLC gaps: cable cores, the 24 V supply, rack owners, ladder jumps, FBD wire routing, every signal run in the world |
+| Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
+| Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.

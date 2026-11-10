@@ -32,7 +32,8 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 		super(menu, inventory, title, 176, 234);
 		// the readout and the slots fill the panel; the hotbar and inventory explain themselves
 		inventoryLabelY = -10000;
-		titleLabelY = 5;
+		// the readout's lines (with the air at the back-up, L1) fill the space the title had
+		titleLabelY = -10000;
 	}
 
 	@Override
@@ -86,7 +87,7 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 				graphics.fill(leftPos + slot.x, topPos + slot.y, leftPos + slot.x + 16, topPos + slot.y + 16, 0xA08B8B8B);
 			}
 		}
-		int line = topPos + 15;
+		int line = topPos + 6;
 		for (String row : menu.readout().split("\n")) {
 			for (FormattedCharSequence wrapped : font.split(Component.literal(row), TEXT_WIDTH)) {
 				graphics.text(font, wrapped, leftPos + 8, line, 0xFF404040, false);

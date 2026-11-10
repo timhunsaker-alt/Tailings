@@ -330,10 +330,31 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		}
 	}
 
+	/** A duct cassette goes on the reel gantry for the machine it is coupled to (ventilation.md): 100 m of duct to pay out. */
+	private String loadCassette(ServerLevel server, Player player, InteractionHand hand) {
+		if (!coupled) {
+			return "Reel Gantry: couple it to its machine first";
+		}
+		for (TbmCab cab : cabsNear(server)) {
+			if (getUUID().equals(cab.core().gantry(TbmGantry.REEL))) {
+				if (!cab.core().loadCassette()) {
+					return "Reel Gantry: the cassette aboard still has " + cab.core().ductLeft() + " m of duct";
+				}
+				player.getItemInHand(hand).consume(1, player);
+				return "Reel Gantry: a new duct cassette, " + cab.core().ductLeft() + " m to pay out";
+			}
+		}
+		return "Reel Gantry: no machine within reach";
+	}
+
 	/** A sneaking click with an empty hand couples it. */
 	@Override
 	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
 		if (level().isClientSide()) {
+			return InteractionResult.SUCCESS;
+		}
+		if (kind() == TbmGantry.REEL && player.getItemInHand(hand).is(dev.wildcatter.tailings.TailingsItems.DUCT_CASSETTE) && level() instanceof ServerLevel server) {
+			player.sendOverlayMessage(Component.literal(loadCassette(server, player, hand)));
 			return InteractionResult.SUCCESS;
 		}
 		String said = player.isShiftKeyDown() && player.getItemInHand(hand).isEmpty() ? couple() : coupled ? "coupled" : "not coupled";

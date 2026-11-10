@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "STS",
+    "SMS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:bucket",
+    "M": "minecraft:redstone_block",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:medium_recovery",
+    "count": 1
+  }
+}

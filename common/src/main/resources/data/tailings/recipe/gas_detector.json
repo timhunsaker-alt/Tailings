@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "YRY",
+    "YGY",
+    "YCY"
+  ],
+  "key": {
+    "Y": "minecraft:yellow_dye",
+    "R": "minecraft:redstone",
+    "G": "minecraft:glass_pane",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "tailings:gas_detector",
+    "count": 1
+  }
+}

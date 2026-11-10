@@ -93,6 +93,25 @@ public interface Stage {
 			case TAILINGS_FILTER -> DryStackStages.FILTER;
 			case LOADOUT_BIN -> DryStackStages.BIN;
 			case LOADOUT_FRAME -> DryStackStages.FRAME;
+			case VENT_FAN -> Vent.FAN;
+			case BOOSTER_FAN -> Vent.BOOSTER;
+			case HOIST_HOUSE -> Shaft.HOIST;
+			case MEASURING_FLASK -> Shaft.FLASK;
+			case HEADFRAME_BIN -> Shaft.BIN;
+			case PASTE_FILTER -> Paste.FILTER;
+			case PASTE_MIXER -> Paste.MIXER;
+			case PASTE_PUMP -> Paste.PUMP;
+			case SCAVENGER_SPIRAL_BANK -> DryMillStages.SCAVENGER_SPIRALS;
+			case FLUID_BED_DRYER -> DryMillStages.DRYER;
+			case RER_SEPARATOR -> DryMillStages.RER;
+			case HT_ROLL_SEPARATOR -> DryMillStages.HT;
+			case IRM_SEPARATOR -> DryMillStages.IRM;
+			case DESLIME_SCREEN -> DenseMediumStages.DESLIME;
+			case DMS_MODULE -> DenseMediumStages.MODULE;
+			case DRAIN_RINSE_SCREEN -> DenseMediumStages.DRAIN_RINSE;
+			case MEDIUM_RECOVERY -> DenseMediumStages.RECOVERY;
+			case XRT_SORTER -> Xrt.SORTER;
+			case SORTER_COMPRESSOR -> Xrt.COMPRESSOR;
 			default -> Idle.INSTANCE;
 		};
 	}

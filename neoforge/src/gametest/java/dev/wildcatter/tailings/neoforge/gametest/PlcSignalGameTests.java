@@ -102,7 +102,7 @@ final class PlcSignalGameTests {
 		int floor = helper.absolutePos(c).getY() + 1;
 		BlockPos junctionAt = helper.absolutePos(c.offset(-2, 0, 14));
 		CableJunctionBlockEntity junction = (CableJunctionBlockEntity) helper.getLevel().getBlockEntity(junctionAt);
-		helper.assertTrue(junction.points().size() == 10 && junction.points().get(6).name().startsWith("TARGET Y") && junction.points().get(7).name().startsWith("FLAT LENGTH"),
+		helper.assertTrue(junction.points().size() == 11 && junction.points().get(10).name().startsWith("AIR AT BACK-UP") && junction.points().get(6).name().startsWith("TARGET Y") && junction.points().get(7).name().startsWith("FLAT LENGTH"),
 				Component.literal("the junction takes a target Y and a flat length: " + junction.points()));
 		auto(junction, junctionAt);
 		double targetMa = 4 + 16 * PlcScale.targetFraction(floor);

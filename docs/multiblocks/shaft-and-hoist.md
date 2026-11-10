@@ -93,3 +93,40 @@ and is to be checked before approval.
 - A Moroccan shaft (3.2 m): a 14.5 t skip at 10.5 m/s, 250 t/h from 670 m, a four-rope Koepe winder on a 900 kW DC motor.
 - A Spanish potash shaft: 30 t skips at 16.5 m/s, 570 t/h from 680 m, a 3,100 kW motor.
 - Raise boring sizes and rates *(unverified)*.
+
+## As built (L4, 2026-11-09, branch `l4-shaft`)
+Decisions in [../questions/l4-shaft.md](../questions/l4-shaft.md) (21 entries; #1, #5 and #20 most need Tim's eye).
+- **Code:** `Machine.HEADFRAME`, `HEADFRAME_BIN`, `HOIST_HOUSE`, `MEASURING_FLASK` (models in `tools/models/shaft.py`); the stages in
+  `block.stage.Shaft` (`HOIST`, `FLASK`, `BIN`); `block.ShaftLayout` (where the pieces stand, NOT BUILT); `shaft.Hoisting` (the figures)
+  and `shaft.Winder` (the skips in balance, their loads; saved on the hoist house), both plain Java and unit-tested (`HoistingTest`);
+  `entity.ShaftSkipEntity` and `client.SkipRenderer` (the skip's own 2 x 4 x 2 model, its load, its rope to the sheave and the drum);
+  the apron feeder's flask branch (`Dump.feedFlask`).
+- **The layout,** in the headframe's own frame (facing north from its main cell): the shaft is x and z 2 to 6; skip compartments x 2-3
+  and 5-6, z 3-4; the hoist house stands behind it (its own south) within 60 m in line with the shaft; the flask has a cell in the ring
+  round the shaft, down to 200 m; the bin touches the headframe. The skip loads with its bottom at the flask's bottom and dumps 18 m
+  above the collar, so the wind is the depth plus 18 m.
+- **Skips:** a `skip` item clicked on the headframe hangs one in the next free compartment; a sneaking empty-hand hit takes it off.
+- **As the spec, except:** one 10 s rest at the ends (both ends work at once), so a 150 m shaft lifts about 270-280 t/h, not 225
+  (#5, #6); the headframe bin feeds belts only; the flask takes only what the feeder brings, a rock item at a time into its surge (#10);
+  the motor draws its full rating while running (#8). Only SKIP mode.
+- **Tests:** NeoForge `shaft_hoist` (150 m, 168 m of wind: three dumps, a measured cycle of 39.75 s against 40.1 s, 272 t/h, full rope
+  speed, the skips in balance), `shaft_not_built` (a missing skip, a missing flask, a blocked compartment), `shaft_flask_feed` (a
+  bottom-dump car into the pocket, the feeder to the flask, 3 t measured), `shaft_bin_full` (BIN FULL, then a dump and the SKIP DUMPED
+  pulse), `shaft_power` (the brakes hold with no power and it winds on); the client film `shaft_hoist`.
+
+## Still to build (planned)
+- **L4b, the raise borer** (`raise_borer`, 4 x 6 x 6, 400 kW at the medium-voltage tier, proposed): a `RaiseBorer` stage on the plant
+  block entity. Placed on a level pad, it looks straight down up to 200 m for a drive (an air cell under at least 3 cells of solid rock
+  over a TBM floor block); NO DRIVE BELOW otherwise. PILOT: one cell a 10 s down the shaft's centre column (saved progress), a 300 mm
+  hole drawn as a thin column. REAM: once the pilot breaks through, the 5 x 5 rises from the drive's roof to the collar a layer a 60 s;
+  each layer's blocks become items of their rock (the TBM's mined-rock rule) dropped onto the drive floor under the shaft, where a
+  loader or a train takes them; lining as the TBM's (28 segments or cobble) on the shaft walls. Reads PILOT n m, REAMING n m, DONE; a
+  scene `shaft_raise_bore` at a test depth of 20 m with `testTicks`. Its 400 kW is a Wildcatter `Motor` at the medium tier.
+- **L4c, the cage** (`cage`, 2 x 3 x 2): a second skip kind on compartment 1's rope, hung by clicking the headframe with a cage item;
+  the hoist house's sneak-click sets SKIP or CAGE (only with the cage hung). In CAGE the skip on drum 0 runs empty as the counterweight;
+  a player in the cage's box rides it (the cage's entity carries passengers as a vehicle does; collision of its floor); call buttons:
+  a `shaft_call` block at each landing (the collar and the flask's level) and the cage's own, which set the winder's target end. The
+  same speed profile at 4 m/s for people (proposed, a real man-riding limit). Scene `shaft_cage`: a mock player rides from the bottom
+  to the top.
+- **The shaft as the return airway** (with L1 ventilation): a fan on the headframe counts the shaft as the drive's exhaust.
+- **Levels:** several flasks, one per level, the winder's bottom stop chosen by which flask is full; a PLC LEVEL point.

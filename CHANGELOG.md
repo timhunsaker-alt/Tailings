@@ -55,6 +55,99 @@ Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
   left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
   detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
   shot fires with a machine or vehicle in the rock it breaks.
+### L7: dense-medium separation (2026-11-10, decided while Tim was away)
+
+- **Deslime screen, DMS cyclone module, drain-and-rinse screens, medium recovery:** on the belt off the double-deck screen's gravel
+  face, gravel is washed of its fines and split in a ferrosilicon medium (SG 2.6-3.3, default 2.75, a sneaking click steps it). Rock
+  lighter than the medium floats and leaves as vanilla gravel, a block for 1.9 t, taking its trace minerals with it; heavier rock sinks
+  and goes on to the cone. 2 % goes the wrong way each way. Country rock floats (diorite and deepslate sink at 2.75); the metal ores
+  sink; rock salt, potash, borax, sulfur, graphite, bauxite and bentonite float at any setting.
+- **Ferrosilicon:** a 25 kg bag, made up by hopper on the medium recovery; 0.3 kg is lost a tonne; with none the module reads NO
+  MEDIUM. A placeholder recipe: an iron ingot, a sand and a metallurgical coke make 4.
+- **PLC:** the module reads DENSITY (4-20 mA) and pulses FLOATS each tonne.
+- **Nothing changes in existing plants:** without a DMS module the screen's gravel face, the cone and the mill run as before.
+- **Tests:** `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; `DenseMediumTest`. Decisions in
+  `docs/questions/l7-dms.md`.
+### L8: the X-ray ore sorter (2026-11-10, decided while Tim was away)
+
+- **X-ray ore sorter:** a 1.2 m XRT sorter (4 x 5 x 8, 20 kW) on the dry end. Crushed rock or gravel comes in over its north end; each
+  piece's effective atomic number, worked from the real formulas of the minerals its rock holds, is read against a threshold of five
+  steps (a sneaking click, or the PLC's THRESHOLD loop); over it the ejectors blow it onto the product belt off its south face, under it
+  it drops onto the waste belt off its east face. 3 % of ore is misplaced to waste and 5 % of waste to product. 250 t/h on crushed rock.
+- **Sorter air compressor:** its own 160 kW screw compressor, touching it. Without it the sorter reads NO AIR and stops.
+- **PLC:** THRESHOLD (4-20 mA), PRODUCT and WASTE (a pulse a tonne).
+- **Nothing changes in existing worlds:** two new parts; the dump station's ore sorter is unchanged.
+- **Tests:** `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; `XrtSortingTest`. Decisions in
+  `docs/questions/l8-xrt.md`.
+
+### L5: paste backfill (2026-11-10, decided while Tim was away)
+
+- **Paste filter, mixer and pump:** a 75 kW vacuum disc filter takes a tailings thickener's underflow to an 80 % cake; the 75 kW
+  paste mixer touching it trims the cake with thickened tails and binds it with 5 % cement to paste at 78 % solids; the 110 kW piston
+  pump pushes it at up to 35 m³/h down a steel fill line to a fill outlet. About 34 m³ an hour from all of the plant's tails.
+- **Fill outlet, bulkheads, paste:** put the outlet in any closed underground void (up to 20,000 m³; close its openings with fill
+  bulkheads); the paste lands in its lowest cells as wet paste fill, soft to wade in, and sets to a mineable weak rock in a game day.
+  Break a bulkhead while the paste behind it is wet and the paste runs out.
+- **Cement:** a 50 kg bag from quicklime and a clay ball (a placeholder until a cement kiln); a bag a tonne of tails.
+- **Reads:** NO FEED, NOT THICKENED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE (past 8 MPa: about 1 km of line on the flat, less
+  where the line falls). PLC: the pump's FLOW and PRESSURE.
+- **Nothing changes in existing worlds.**
+- **Tests:** `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+  `paste_line_pressure`; `PasteFillTest`, `FillVoidTest`; the client film `paste`. Decisions in `docs/questions/l5-paste.md`.
+### L6: the dry mill (2026-11-10, decided while Tim was away)
+
+- **Scavenger spiral bank:** on the spiral bank's tails, it takes another 45 % of the ilmenite, rutile, zircon, monazite and
+  cassiterite as heavy mineral concentrate (HMC). The filter keeps that share apart: into a fluid-bed dryer touching it, or out as
+  100 kg bags of Heavy Mineral Concentrate that keep their assay.
+- **Fluid-bed dryer:** dries HMC on natural gas from a pipe at its east side (about 7.9 m³ a tonne), 2 t/h, and passes it to the
+  separators touching it in a line: the rare-earth roll magnet takes the ilmenite, the high-tension roll the rutile and cassiterite,
+  the induced-roll magnet the monazite and the zircon. Each pays its minerals at the top rung: with the spirals' half, 4x by the real
+  route. Reads NO GAS, WET (moist HMC into a separator), FULL.
+- **Nothing changes in existing plants:** without scavenger spirals the filter, leach and cells pay as before; the leach still takes
+  the heavy minerals for a plant without the dry mill.
+- **Tests:** `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`;
+  `DryMillTest`. Decisions in `docs/questions/l6-dry-mill.md`.
+
+### L1: ventilation of the drive (2026-11-09, decided while Tim was away)
+
+- **Ventilation fan and duct:** a 75 kW `vent_fan` at the portal blows through `vent_duct` (laid like pipe) to the drive; a 30 kW
+  `booster_fan` in the line carries it past about 3 km. Click a duct for its air; the fan's readout gives its flow, pressure and the
+  air at the duct's end. The drive needs 10.8 m³/s (0.3 m/s across the bore).
+- **The TBM's duct cassette:** click the reel gantry with a Duct Cassette and the machine pays out 100 m of duct, a metre a block,
+  at the crown just behind its back-up. Its screen, its readout and a new junction signal (AIR AT BACK-UP) read the air there.
+- **Gas detector:** hold it in a drive to read the air, STALE AIR, and RADON in tuff and sandstone.
+- **Nothing changes in existing worlds:** a TBM with no ventilation reads POOR AIR and keeps driving. The interlock (NO VENTILATION)
+  and stale air's Mining Fatigue and Weakness are off unless `config/tailings-ventilation.properties` turns them on (`interlock=true`,
+  `stale_air=true`).
+- **Tests:** `vent_fresh`, `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off`, `vent_parts`; `AirflowTest`.
+  Decisions in `docs/questions/l1-ventilation.md`.
+### L4: the shaft and hoist (2026-11-09, decided while Tim was away)
+
+- **Headframe, hoist house, skips:** a 30 m steel headframe over a 5 x 5 shaft and a hoist house behind it (a 450 kW double-drum hoist
+  on the world's medium-voltage tier) wind two 3 t skips in balance at up to 10 m/s: the loaded one up to the dump in the headframe,
+  the empty one down. Hang a skip by clicking the headframe with it. About 270 t/h from 150 m.
+- **Measuring flask and headframe bin:** at the shaft bottom an apron feeder from a dump pocket (the L3 bottom-dump station) feeds the
+  measuring flask, which measures each skip's 3 t; at the top the skips dump into a 100 t bin that feeds a belt to the plant.
+- **Reads:** STOPPED (the brakes hold the skips without power), WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT naming what is missing.
+  PLC: the motor's points, FILL as the bin's level, SKIP DUMPED.
+- **Tests:** `shaft_hoist`, `shaft_not_built`, `shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; `HoistingTest`; the client film
+  `shaft_hoist`. Decisions in `docs/questions/l4-shaft.md`. The raise borer and the cage are planned, not built.
+
+### L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, decided while Tim was away)
+
+- **Battery locomotive:** an 8 t locomotive on its own 58 kWh traction battery runs on any mine rail, with or without a rectifier:
+  0.20 m/s loaded up the decline, 3 m/s on the flat, about 8 kWh for 50 m of climb. LOW BATTERY under 20 %; FLAT at the floor, braked.
+  A new one has no battery: right-click it with a Traction Battery; right-click with another to swap; sneak-click a held, standing
+  locomotive to take its battery out.
+- **Battery charger:** plugs into a three-phase 30 A receptacle (NEMA L22-30 or IEC 60309 red 32 A) and draws 20 kW from that
+  circuit, charging the battery it holds or a battery locomotive standing beside it (a flat battery in about 2.6 hours). PLC points
+  CHARGING, FULL and CHARGE (4-20 mA).
+- **Bottom-dump cars:** the Granby car's size; they drop their load on the move over a new **track grizzly** (under the rails, over a
+  dump pocket) beside a new **dump cam rail**. Granby cars pass a grizzly and bottom-dump cars pass a ramp without dumping, so one
+  train can carry both.
+- **Tests:** `battery_loco_run`, `battery_loco_climb`, `battery_loco_flat`, `battery_charge`, `bottom_dump_on_move`, `bottom_dump_full`,
+  `bottom_dump_mixed`, `train_models_l2_l3`; `BatteryTest`. Decisions in `docs/questions/l2-l3-trains.md`.
+
 ### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
 
 - **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SCS",
+    "SRS",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:battery_charger",
+    "count": 1
+  }
+}

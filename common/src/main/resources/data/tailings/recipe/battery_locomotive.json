@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "ISI",
+    "IRI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "S": "wildcatter:steel_ingot",
+    "R": "tailings:mine_rail"
+  },
+  "result": {
+    "id": "tailings:battery_locomotive",
+    "count": 1
+  }
+}

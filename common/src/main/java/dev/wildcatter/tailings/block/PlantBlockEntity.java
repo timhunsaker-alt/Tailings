@@ -86,6 +86,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			for (String side : SIDE_POINTS) {
 				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
 			}
+		} else if (machine() == Machine.XRT_SORTER) {
+			// the X-ray sorter's threshold from the PLC, and a pulse a tonne each way (xrt-ore-sorter.md, L8)
+			out.add(new Point("THRESHOLD 4-20 mA, 5 STEPS", true, Signal.MA));
+			out.add(new Point("PRODUCT, A PULSE A TONNE", false, Signal.PULSE));
+			out.add(new Point("WASTE, A PULSE A TONNE", false, Signal.PULSE));
+		} else if (machine() == Machine.VENT_FAN) {
+			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/s", VENT_FLOW_HIGH), false, Signal.MA));
+		} else if (machine() == Machine.HOIST_HOUSE) {
+			// the hoist's FILL is the headframe bin's level; a pulse each skip dumped (shaft-and-hoist.md, L4)
+			out.add(new Point("SKIP DUMPED", false));
+		} else if (machine() == Machine.PASTE_PUMP) {
+			// the paste pump's flow and line pressure (paste-backfill.md, L5)
+			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/h", PASTE_FLOW_HIGH), false, Signal.MA));
+			out.add(new Point(String.format("PRESSURE 4-20 mA, %.0f MPa", PASTE_PRESSURE_HIGH / 1e6), false, Signal.MA));
+		} else if (dms != null) {
+			// the medium's density and a pulse a tonne floated (dense-medium-separation.md, L7)
+			out.add(new Point(String.format(java.util.Locale.ROOT, "DENSITY 4-20 mA, SG %.1f-%.1f", dev.wildcatter.tailings.plant.DenseMedium.SG_LOW, dev.wildcatter.tailings.plant.DenseMedium.SG_HIGH), false, Signal.MA));
+			out.add(new Point("FLOATS", false));
 		} else if (dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
 			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f L/s", dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH), false, Signal.MA));
@@ -100,6 +118,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case 1 -> motor != null && motor.output() > 0;
 			case 2 -> motor != null && motor.stalled();
 			case 3 -> remote.auto();
+			case 6 -> machine() == Machine.HOIST_HOUSE && dev.wildcatter.tailings.block.stage.Shaft.dumpedRecently(this);
+			case 7 -> dms != null && level != null && dms.pulsing(level.getGameTime());
 			default -> false;
 		};
 	}
@@ -116,6 +136,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public void commandMa(int point, double milliamps, long gameTime) {
+		if (machine() == Machine.XRT_SORTER && point == 6) {
+			remote.commandMa(1, milliamps, gameTime);
+			return;
+		}
 		if (machine() == Machine.ORE_SORTER && point >= CODES && point < CODES + dev.wildcatter.tailings.haul.Sorter.SIDES) {
 			remote.commandMa(point - CODES + 5, milliamps, gameTime);
 			if (level != null) {
@@ -150,6 +174,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (motor == null) {
 			return 0;
 		}
+		if (machine() == Machine.PASTE_PUMP && (point == 6 || point == 7)) {
+			dev.wildcatter.tailings.block.stage.Paste.Line line = dev.wildcatter.tailings.block.stage.Paste.line(this);
+			return point == 6 ? dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.Paste.flowM3PerHour(this), 0, PASTE_FLOW_HIGH)
+					: dev.wildcatter.tailings.plant.PlcScale.ma(line == null ? 0 : line.pressure, 0, PASTE_PRESSURE_HIGH);
+		}
+		if (point == 6 && dms != null) {
+			return dev.wildcatter.tailings.plant.PlcScale.ma(dms.medium(), dev.wildcatter.tailings.plant.DenseMedium.SG_LOW, dev.wildcatter.tailings.plant.DenseMedium.SG_HIGH);
+		}
+		if (point == 6 && vent != null) {
+			return dev.wildcatter.tailings.plant.PlcScale.ma(vent.air().fanFlow(), 0, VENT_FLOW_HIGH);
+		}
 		if (point >= 6 && dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
 			return switch (point) {
 				case 6 -> 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.SlurryGauge.level(this));
@@ -158,7 +193,44 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 						dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH);
 			};
 		}
+		if (point == 5 && machine() == Machine.HOIST_HOUSE) {
+			return 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.Shaft.binLevel(this));
+		}
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
+	}
+
+	/** The X-ray sorter's PRODUCT and WASTE counts: a pulse a tonne. */
+	@Override
+	public long readPulses(int point) {
+		if (xrt == null) {
+			return 0;
+		}
+		return point == 7 ? xrt.productPulses() : point == 8 ? xrt.wastePulses() : 0;
+	}
+
+	/** An X-ray sorter's own state (xrt-ore-sorter.md, L8); null for every other part. */
+	private final dev.wildcatter.tailings.plant.XrtSorting.State xrt;
+
+	public dev.wildcatter.tailings.plant.XrtSorting.State xrt() {
+		return xrt;
+	}
+
+	/** True while a PLC in AUTO sets the X-ray sorter's threshold. */
+	public boolean xrtByPlc() {
+		return level != null && remote.fraction(1, level.getGameTime(), -1) >= 0;
+	}
+
+	/** The X-ray sorter's threshold step now: the PLC's while its loop is fresh in AUTO, else its screen's. */
+	public int xrtStep() {
+		double fraction = level == null ? -1 : remote.fraction(1, level.getGameTime(), -1);
+		return fraction < 0 ? xrt.step() : dev.wildcatter.tailings.plant.XrtSorting.stepOf(fraction);
+	}
+
+	/** A sneaking click on the X-ray sorter steps its screen's threshold, LOW to HIGH and round again. */
+	public void stepThreshold() {
+		xrt.nextStep();
+		say("set to " + dev.wildcatter.tailings.plant.XrtSorting.describe(xrt.step()) + (xrtByPlc() ? "; the PLC sets it while in AUTO" : ""));
+		setChanged();
 	}
 
 	/** Litres a second of slurry leaving by pipe over the last second, and what has left in this one. */
@@ -169,6 +241,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	public double flow() {
 		return flowLitres;
 	}
+
+	/** Litres a stage sent on by itself (the paste pump's push to its outlet), counted in its flow. */
+	public void countFlow(double litres) {
+		flowCounting += litres;
+	}
+
+	/** The paste pump's FLOW spans 0-40 m3/h and its PRESSURE 0-10 MPa (paste-backfill.md, L5). */
+	public static final double PASTE_FLOW_HIGH = 40, PASTE_PRESSURE_HIGH = 10_000_000;
 
 	@Override
 	public String cycleHoa(BlockPos cell) {
@@ -185,8 +265,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case WEIGHT -> hold.total();
 			case LEVEL -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.level(this) * 100
 					: hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG * 100;
-			case FLOW -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? flowLitres : Double.NaN;
-			case DENSITY -> dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.density(this) : Double.NaN;
+			case FLOW -> vent != null ? vent.air().fanFlow() : dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) || machine() == Machine.PASTE_PUMP ? flowLitres : Double.NaN;
+			case DENSITY -> dms != null ? dms.medium() : dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine()) ? dev.wildcatter.tailings.block.stage.SlurryGauge.density(this) : Double.NaN;
 			default -> Double.NaN;
 		};
 	}
@@ -200,6 +280,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(7, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
 	private final FilterCake cake = new FilterCake();
+	/**
+	 * Heavy mineral concentrate (dry-mill.md, L6): a filter's scavenger share not yet bagged or sent to its dryer, a dryer's moist feed,
+	 * a separator's dry feed. Empty in every part of a plant without the dry mill.
+	 */
+	private final dev.wildcatter.tailings.plant.HeavyMinerals hmc = new dev.wildcatter.tailings.plant.HeavyMinerals();
+	/** A dryer's gas burnt so far, m³. */
+	private double gasM3;
 	private static final int LAST_REAGENT_SLOT = 6;
 	private final ReagentStock reagents = new ReagentStock();
 	private boolean selective;
@@ -221,7 +308,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/**
 	 * The dry stack (open-pit-p4-dry-stack.md): a load-out bin's dry tails, or the cake in a tailings filter's chambers, kg; the
 	 * filter's cake dropped and not yet placed; its time into its cycle in ticks; water waiting to go back on a water pipe, and the
-	 * litres returned so far.
+	 * litres returned so far. Paste fill (paste-backfill.md, L5): {@code dryKg} is a paste filter's cake and a paste mixer's cement.
 	 */
 	private double dryKg;
 	private double cakeOut;
@@ -232,11 +319,24 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A game test's shorter press cycle (not saved). */
 	private int fast = 1;
 	private Motor motor;
+	/** A ventilation fan's duct line (ventilation.md); null for every other part. */
+	private final @Nullable VentState vent;
+	/** A DMS cyclone module's medium and counts (dense-medium-separation.md, L7); null for every other part. */
+	private final dev.wildcatter.tailings.plant.@Nullable DmsState dms;
+	/** A ventilation fan's FLOW signal spans 0-15 m³/s, its rating (ventilation.md). */
+	public static final double VENT_FLOW_HIGH = 15;
 	private boolean demand;
 	private boolean forced;
 	private boolean loading;
 	private String status = "idle";
-	/** A conveyor drive's last scan of its run (not saved). */
+	/** A hoist house's drums, skips and their loads (shaft-and-hoist.md, L4). */
+	private final dev.wildcatter.tailings.shaft.Winder winder = new dev.wildcatter.tailings.shaft.Winder();
+
+	public dev.wildcatter.tailings.shaft.Winder winder() {
+		return winder;
+	}
+
+	/** A conveyor drive's last scan of its run; a hoist house's last look at its shaft (not saved). */
 	public @Nullable Object run;
 
 	private static final List<Product> SLURRIES = List.of(Product.LEACH_SLURRY, Product.PREGNANT_LIQUOR, Product.MILL_DISCHARGE, Product.FINES_SLURRY, Product.CONDITIONED_SLURRY,
@@ -249,6 +349,19 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
 			motor = new Motor(true, voltage, machine.watts());
 		}
+		vent = machine == Machine.VENT_FAN ? new VentState() : null;
+		dms = machine == Machine.DMS_MODULE ? new dev.wildcatter.tailings.plant.DmsState() : null;
+		xrt = machine == Machine.XRT_SORTER ? new dev.wildcatter.tailings.plant.XrtSorting.State() : null;
+	}
+
+	/** A DMS cyclone module's medium and counts, or null. */
+	public dev.wildcatter.tailings.plant.@Nullable DmsState dms() {
+		return dms;
+	}
+
+	/** A ventilation fan's duct line, or null. */
+	public @Nullable VentState vent() {
+		return vent;
 	}
 
 	public Machine machine() {
@@ -314,6 +427,28 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
 	private void intake() {
 		ItemStack in = slots.get(0);
+		if (machine() == Machine.PASTE_MIXER) {
+			if (cement(in) && dryKg + dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG <= dev.wildcatter.tailings.paste.PasteFill.CEMENT_HOLD_KG) {
+				in.shrink(1);
+				dryKg += dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG;
+				setChanged();
+			}
+			return;
+		}
+		if (machine() == Machine.FLUID_BED_DRYER) {
+			if (hmcBag(in)) {
+				binHmc(in);
+			}
+			return;
+		}
+		if (machine() == Machine.MEDIUM_RECOVERY) {
+			if (ferrosilicon(in) && dryKg + dev.wildcatter.tailings.plant.DenseMedium.FESI_BAG_KG <= dev.wildcatter.tailings.plant.DenseMedium.FESI_HOLD_KG + 1e-6) {
+				in.shrink(1);
+				dryKg += dev.wildcatter.tailings.plant.DenseMedium.FESI_BAG_KG;
+				setChanged();
+			}
+			return;
+		}
 		if (machine() == Machine.LOADOUT_BIN) {
 			if (dryTails(in) && dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG <= dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
 				in.shrink(1);
@@ -665,11 +800,67 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	// ---- hands and hoppers -------------------------------------------------------------------------------------------------------
 
+	private static boolean cement(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == dev.wildcatter.tailings.TailingsItems.CEMENT;
+	}
+
+	private static boolean ferrosilicon(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == dev.wildcatter.tailings.TailingsItems.FERROSILICON;
+	}
+
+	/** Steps a DMS cyclone module's medium one setting up, wrapping (a sneaking click); returns its status. */
+	public String stepMedium() {
+		if (dms != null) {
+			say(String.format(java.util.Locale.ROOT, "the medium set to SG %.2f", dms.step()));
+		}
+		return status;
+	}
+
 	private static boolean dryTails(ItemStack stack) {
 		return !stack.isEmpty() && stack.getItem() == TailingsBlocks.DRY_TAILS.asItem();
 	}
 
 	public boolean offer(ItemStack stack) {
+		if (machine() == Machine.PASTE_MIXER) {
+			// the mixer's hopper takes cement only, a 50 kg bag a click (paste-backfill.md, L5)
+			if (!cement(stack)) {
+				return false;
+			}
+			if (dryKg + dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG > dev.wildcatter.tailings.paste.PasteFill.CEMENT_HOLD_KG) {
+				say("the cement hopper is full");
+				return false;
+			}
+			stack.shrink(1);
+			dryKg += dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG;
+			setChanged();
+			return true;
+		}
+		if (machine() == Machine.MEDIUM_RECOVERY) {
+			// its make-up hopper takes ferrosilicon only, a 25 kg bag a click (dense-medium-separation.md, L7)
+			if (!ferrosilicon(stack)) {
+				return false;
+			}
+			if (dryKg + dev.wildcatter.tailings.plant.DenseMedium.FESI_BAG_KG > dev.wildcatter.tailings.plant.DenseMedium.FESI_HOLD_KG + 1e-6) {
+				say("the ferrosilicon hopper is full");
+				return false;
+			}
+			stack.shrink(1);
+			dryKg += dev.wildcatter.tailings.plant.DenseMedium.FESI_BAG_KG;
+			setChanged();
+			return true;
+		}
+		if (hmcBag(stack) && machine() == Machine.FLUID_BED_DRYER) {
+			if (!binHmc(stack)) {
+				say(dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.contents(stack).isEmpty() ? "a bag with no assay: nothing to dry" : "FULL: its bin holds " + (int) hmc.total() + " kg");
+				return false;
+			}
+			return true;
+		}
+		if (hmcBag(stack) && dev.wildcatter.tailings.plant.DryMill.separates(machine())) {
+			// dry-mill.md: only dried HMC separates; moist grains stick to the rolls
+			say("WET: dry the concentrate in a fluid-bed dryer first");
+			return false;
+		}
 		if (machine() == Machine.LOADOUT_BIN) {
 			// the load-out takes dry tails only (open-pit-p4-dry-stack.md)
 			if (!dryTails(stack)) {
@@ -757,12 +948,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	/** The parts that pay out by the nuggets rule, with two output stacks. */
 	private boolean pays() {
-		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT;
+		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT || dev.wildcatter.tailings.plant.DryMill.separates(machine());
+	}
+
+	/** The stacks it pays into: two, or a separator's four. */
+	private int[] outputs() {
+		return dev.wildcatter.tailings.plant.DryMill.separates(machine()) ? dev.wildcatter.tailings.block.stage.DryMillStages.OUTPUT_SLOTS : pays() ? new int[] {1, 2} : new int[] {1};
 	}
 
 	public boolean give(Player player) {
 		boolean gave = false;
-		for (int slot : pays() ? new int[] {1, 2} : new int[] {1}) {
+		for (int slot : outputs()) {
 			ItemStack stack = slots.get(slot);
 			if (!stack.isEmpty()) {
 				player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
@@ -842,6 +1038,31 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	public FilterCake cake() {
 		return cake;
+	}
+
+	public dev.wildcatter.tailings.plant.HeavyMinerals hmc() {
+		return hmc;
+	}
+
+	/** A dryer's burner took {@code m3} of gas. */
+	public void gasBurnt(double m3) {
+		gasM3 += m3;
+	}
+
+	private static boolean hmcBag(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == dev.wildcatter.tailings.TailingsItems.HEAVY_MINERAL_CONCENTRATE;
+	}
+
+	/** A dryer takes a bag of HMC into its bin while one fits; false if it does not. */
+	private boolean binHmc(ItemStack stack) {
+		dev.wildcatter.tailings.plant.HeavyMinerals bag = dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.contents(stack);
+		if (bag.isEmpty() || hmc.total() + bag.total() > dev.wildcatter.tailings.plant.DryMill.HOLD_KG) {
+			return false;
+		}
+		hmc.add(bag);
+		stack.shrink(1);
+		setChanged();
+		return true;
 	}
 
 	/** Puts {@code stack} into the first of {@code into} that takes it whole; false if none does. */
@@ -1051,8 +1272,38 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (waterReturned > 0) {
 			held.append(String.format("; %.0f L of water returned", waterReturned));
 		}
+		if (!hmc.isEmpty()) {
+			held.append(String.format("; %.0f kg of %s HMC (%s)", hmc.total(), dev.wildcatter.tailings.plant.DryMill.separates(machine()) ? "dry" : "moist", hmc.describe()));
+		}
+		if (gasM3 > 0) {
+			held.append(String.format("; %.2f m3 of gas burnt", gasM3));
+		}
 		if (machine() == Machine.CONDITIONER) {
 			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
+		}
+		if (dms != null) {
+			held.append(String.format(java.util.Locale.ROOT, "; medium at SG %.2f; %.1f t treated, %.1f t floated, %.2f kg of ferrosilicon lost", dms.medium(), dms.fedKg() / 1000,
+					dms.floatsKg() / 1000, dms.fesiKg()));
+		}
+		if (machine() == Machine.MEDIUM_RECOVERY) {
+			held.append(String.format(java.util.Locale.ROOT, "; %.1f kg of ferrosilicon in its hopper", dryKg));
+		}
+		if (machine() == Machine.PASTE_FILTER) {
+			held.append(String.format("; %.1f t of cake", dryKg / 1000));
+		}
+		if (machine() == Machine.PASTE_MIXER) {
+			held.append(String.format("; %.0f bags of cement (%.0f kg)", Math.floor(dryKg / dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG), dryKg));
+		}
+		if (machine() == Machine.PASTE_PUMP && dev.wildcatter.tailings.block.stage.Paste.line(this) instanceof dev.wildcatter.tailings.block.stage.Paste.Line line) {
+			held.append(String.format("; %d m of fill line%s", line.pipes, line.outlet == null ? ", no outlet" : ""));
+		}
+		if (machine() == Machine.HOIST_HOUSE) {
+			held.append(String.format("; %d skips dumped (%.0f t); skips at %.0f and %.0f m of %.0f m", winder.dumps(), winder.dumps() * dev.wildcatter.tailings.shaft.Hoisting.SKIP_KG / 1000,
+					winder.height(0), winder.height(1), winder.travel()));
+		}
+		if (xrt != null) {
+			held.append("; ").append(dev.wildcatter.tailings.plant.XrtSorting.describe(xrtStep())).append(xrtByPlc() ? " (PLC)" : "")
+					.append(String.format("; %.1f t to product, %.1f t to waste", xrt.productKg() / 1000, xrt.wasteKg() / 1000));
 		}
 		if (machine() == Machine.ORE_BIN) {
 			held.append("; ").append(binCount()).append(" of ").append(PlantRates.BIN_ITEMS).append(" items");
@@ -1089,6 +1340,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putBoolean("grown", grown);
 		ContainerHelper.saveAllItems(output, slots);
 		output.putString("cake", cake.save());
+		output.putString("hmc", hmc.save());
+		output.putDouble("gas_m3", gasM3);
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
 		output.putString("hold", hold.save());
@@ -1107,11 +1360,23 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putDouble("water_returned", waterReturned);
 		output.putInt("cycles", cycles);
 		output.putString("sort", sorter.save());
+		if (machine() == Machine.HOIST_HOUSE) {
+			output.putString("winder", winder.save());
+		}
 		remote.save(output);
 		output.putBoolean("selective", selective);
 		StringBuilder bin = new StringBuilder();
 		binned.forEach((id, n) -> bin.append(bin.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		output.putString("binned", bin.toString());
+		if (vent != null) {
+			vent.save(output);
+		}
+		if (dms != null) {
+			output.putString("dms", dms.save());
+		}
+		if (xrt != null) {
+			output.putString("xrt", xrt.save());
+		}
 	}
 
 	@Override
@@ -1125,6 +1390,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		loading = false;
 		remote.load(input);
 		cake.load(input.getStringOr("cake", ""));
+		hmc.load(input.getStringOr("hmc", ""));
+		gasM3 = input.getDoubleOr("gas_m3", 0);
 		reagents.load(input.getStringOr("reagents", ""));
 		// a tank saved by an older build may hold spent reagent items
 		trimReagents();
@@ -1151,7 +1418,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		waterReturned = input.getDoubleOr("water_returned", 0);
 		cycles = input.getIntOr("cycles", 0);
 		sorter.load(input.getStringOr("sort", ""));
+		winder.load(input.getStringOr("winder", ""));
 		selective = input.getBooleanOr("selective", false);
+		if (vent != null) {
+			vent.load(input);
+		}
+		if (dms != null) {
+			dms.load(input.getStringOr("dms", ""));
+		}
+		if (xrt != null) {
+			xrt.load(input.getStringOr("xrt", ""));
+		}
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {
 			int eq = part.lastIndexOf('=');
@@ -1217,6 +1494,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
 		super.preRemoveSideEffects(pos, state);
+		if (level != null && vent != null) {
+			VentNetwork.forget(level, pos);
+		}
 		if (level != null) {
 			Containers.dropContents(level, pos, this);
 			binned.forEach((id, n) -> {
@@ -1225,6 +1505,22 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				}
 			});
 			binned.clear();
+			if (machine() == Machine.PASTE_MIXER) {
+				// the mixer's hopper: its cement back as bags, not dry tails
+				int bags = (int) Math.floor(dryKg / dev.wildcatter.tailings.paste.PasteFill.CEMENT_BAG_KG);
+				for (int left = bags; left > 0; left -= 64) {
+					Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(dev.wildcatter.tailings.TailingsItems.CEMENT, Math.min(64, left)));
+				}
+				dryKg = 0;
+			}
+			if (machine() == Machine.MEDIUM_RECOVERY) {
+				// the make-up hopper: its ferrosilicon back as whole bags
+				int bags = (int) Math.floor(dryKg / dev.wildcatter.tailings.plant.DenseMedium.FESI_BAG_KG + 1e-6);
+				for (int left = bags; left > 0; left -= 64) {
+					Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(dev.wildcatter.tailings.TailingsItems.FERROSILICON, Math.min(64, left)));
+				}
+				dryKg = 0;
+			}
 			// a load-out bin's dry tails, as items, up to a few stacks: the rest is spilt
 			int blocks = (int) Math.min(64 * 9, (dryKg + cakeOut) / dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG);
 			for (int left = blocks; left > 0; left -= 64) {
@@ -1232,6 +1528,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			dryKg = 0;
 			cakeOut = 0;
+			// its heavy mineral concentrate, in whole bags: the rest is spilt
+			for (java.util.Map<dev.wildcatter.tailings.rock.Mineral, Integer> bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc); bag != null; bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc)) {
+				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.of(dev.wildcatter.tailings.TailingsItems.HEAVY_MINERAL_CONCENTRATE, bag));
+			}
+			hmc.clear();
 		}
 	}
 
@@ -1243,7 +1544,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public int[] getSlotsForFace(Direction side) {
 		if (pays()) {
-			return side == Direction.UP ? new int[0] : new int[] {1, 2};
+			return side == Direction.UP ? new int[0] : outputs();
 		}
 		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5} : new int[] {1};
 	}
@@ -1255,6 +1556,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		if (slot == 0 && machine() == Machine.LOADOUT_BIN) {
 			return dryTails(stack);
+		}
+		if (slot == 0 && machine() == Machine.PASTE_MIXER) {
+			return cement(stack);
+		}
+		if (slot == 0 && machine() == Machine.MEDIUM_RECOVERY) {
+			return ferrosilicon(stack);
+		}
+		if (slot == 0 && machine() == Machine.FLUID_BED_DRYER) {
+			return hmcBag(stack) && slots.get(0).isEmpty();
 		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);
@@ -1277,6 +1587,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return (slot == 1 || slot == 2 && pays()) && side != Direction.UP;
+		return (slot == 1 || slot == 2 && pays() || slot >= 3 && slot <= 4 && dev.wildcatter.tailings.plant.DryMill.separates(machine())) && side != Direction.UP;
 	}
 }

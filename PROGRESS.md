@@ -491,3 +491,103 @@ was decided on the best recommendation and logged in `docs/questions/p5-big-mach
   check (`muck_tip` 4 times); the screenshots show the empty ultra's floor whole, the house's stripes and louvres steady at range.
 - **Known gaps (P5):** the rope shovel's PLC points are planned, not built; the drill is still one
   machine (its parts planned); the cable is drawn straight; the rest are in ROADMAP's Known gaps.
+## L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, branch `l2-l3-trains`)
+Built while Tim was away on the draft specs `docs/multiblocks/battery-locomotive.md` and `bottom-dump-cars.md`; decisions in
+`docs/questions/l2-l3-trains.md` (20 entries; #7, #12 and #16 most need Tim's eye).
+- **L2:** the `battery_locomotive` (the trolley locomotive's entity with a 58 kWh lead-acid battery, 46 kWh usable, and 2 x 22 kW: 0.20
+  m/s loaded up the decline, 3 m/s on the flat) runs on any rail, fed or not, and takes nothing from a fed one. It reads LOW BATTERY
+  under 20 % and stops FLAT, braked, at its floor. The `loco_battery` keeps its charge as item data; batteries swap by a click. The
+  `battery_charger` (2 x 2 x 1) plugs into a NEMA L22-30 or IEC 60309 red 32 A receptacle as a 20 kW, PF 0.95 Wildcatter `DriveLoad`
+  and puts 18 kW into the battery it holds, or a battery locomotive standing within 3 m; PLC points CHARGING, FULL, CHARGE.
+- **L3:** the `bottom_dump_car` (the Granby car's size) drops its load through drop-bottom doors on the move over a `track_grizzly`
+  under the rails beside a `dump_cam_rail`, into the dump pocket under the grizzly. A full pocket holds the train with the car over
+  the grizzly, doors shut. Mixed trains dump each kind at its own station; the signal before a dump counts only that station's kind.
+- **Art:** the two skins painted by `tools/models/vehicles.py` in the Ludo swatches; three Ludo item icons (3 credits); the three parts
+  in Wildcatter's materials (`tools/models/trains.py`). No placeholders.
+- **What building it found:** the scenes' extra forced chunks load a tick late, so their vehicles go on the track after 20 ticks (a
+  10-car train placed at once coupled none of its cars); a bottom-dump train near the end of its track was braking over the grizzly.
+- **Scenes:** NeoForge `battery_loco_run`, `battery_loco_climb` (7.86 kWh per 50 m measured), `battery_loco_flat`, `battery_charge` (a
+  real diesel set through Wildcatter cable; 18.0 kW into the battery), `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`,
+  `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump` (`TAILINGS_ONLY=battery_bottom_dump`) passes and is filmed: four cars of
+  copper ore and cobble dropped on the move at up to 3 m/s, doors open over the grizzly and shut past it, 1,268 items in the pocket.
+- **The film found:** its first layout set the charger across the track and ended before the last car reached the grizzly.
+
+## L1: ventilation of the drive (2026-11-09, branch `l1-ventilation`)
+Built while Tim was away on the draft spec `docs/multiblocks/ventilation.md`; decisions in `docs/questions/l1-ventilation.md` (19
+entries; #1 and #2 need Tim).
+- **The fan and duct:** the `vent_fan` (3 x 3 x 5, 75 kW on the industrial tier, a Wildcatter motor with the plant's PLC points and
+  FLOW) reads its `vent_duct` line once a second, through any `booster_fan` (2 x 2 x 3, 30 kW): fan curves against Darcy friction
+  and 1 % leakage a 100 m (`mine.Airflow`). One fan carries 10.8 m³/s about 3.2 km; a booster carries 3.5 km.
+- **The TBM:** reads the air at its back-up (screen, readout, junction AIR AT BACK-UP); its reel gantry takes a 100 m
+  `vent_duct_cassette` and pays duct out a metre a block. With `interlock=true` in `config/tailings-ventilation.properties` it holds
+  NO VENTILATION after 60 s of poor air.
+- **Players:** the `gas_detector` reads fresh or STALE AIR and RADON; with `stale_air=true`, Mining Fatigue after 30 s and Weakness
+  after 2 minutes of stale air. **Both rules are off by default: existing worlds run as before.**
+- **Art:** three Ludo pictures (3 credits: the duct fabric, the cassette and detector icons); the fans in Wildcatter's materials
+  (`tools/models/vent.py`). No placeholders.
+- **Tests:** NeoForge `vent_fresh`, `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off`, `vent_parts`;
+  `AirflowTest` (with the rules' parsing); the client film `vent` (the fan blowing 24.7 m³/s through the duct to the back-up as the
+  cassette pays duct out at the crown).
+
+## L4: the shaft and hoist (2026-11-09, branch `l4-shaft`)
+Built while Tim was away on the draft spec `docs/multiblocks/shaft-and-hoist.md`; decisions in `docs/questions/l4-shaft.md` (21 entries;
+#1, #5 and #20 most need Tim's eye). Nothing in an existing world changes.
+- **Built:** the `headframe` (9 x 30 x 9 over a 5 x 5 shaft), the `hoist_house` (10 x 8 x 12, a 450 kW Wildcatter motor at the
+  medium-voltage tier), two 3 t `skip`s in balance (entities hung by clicking the headframe, drawn from their own model with their
+  ropes), the `measuring_flask` at the shaft bottom fed by the L3 bottom-dump station's apron feeder, and the 100 t `headframe_bin`
+  feeding a belt. 10 m/s at 0.75 m/s², a 10 s rest at the ends: about 270 t/h from 150 m. STOPPED (brakes hold), WINDING, WAITING FOR
+  ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPED.
+- **Planned, not built:** the raise borer (L4b) and the cage (L4c), written out in the spec's "Still to build"; the shaft as a return
+  airway with L1.
+- **Art:** five models in Wildcatter's materials (`tools/models/shaft.py`); no Ludo credits, no placeholders.
+- **Scenes:** NeoForge `shaft_hoist` (150 m: a measured cycle of 39.75 s against 40.1 s, 272 t/h), `shaft_not_built`, `shaft_flask_feed`,
+  `shaft_bin_full`, `shaft_power`: **130 NeoForge scenes pass** (125 before, 5 new). Unit tests `HoistingTest` (7) and `MachineTest`:
+  127 pass. The Fabric client film `shaft_hoist` (`TAILINGS_ONLY=shaft_hoist`).
+
+## L5: paste backfill (2026-11-10, branch `l5-paste`)
+Built while Tim was away on the draft spec `docs/multiblocks/paste-backfill.md`; decisions in `docs/questions/l5-paste.md` (22 entries;
+#8, #14 and #19 most need Tim's eye). Nothing in an existing world changes.
+- **Built:** the `paste_filter` (5 x 5 x 8, 75 kW vacuum disc filter: thickened tails to an 80 % cake), the `paste_mixer` (3 x 3 x 5,
+  75 kW: the cake, a trim of thickened tails and 5 % `cement` to paste at 78 % solids), the `paste_pump` (3 x 3 x 6, 110 kW, 35 m³/h at
+  8 MPa), the `fill_outlet` (reads its void: up to 20,000 m³, NOT ENCLOSED if open to the sky, FULL to its level), the
+  `fill_bulkhead` (shotcrete; broken with wet paste behind it, the paste runs out by the settle rule) and `paste_fill` (wet, then set
+  in a game day). LINE PRESSURE past 8 MPa (1 km of line on the flat, less where it falls). PLC: the pump's FLOW and PRESSURE.
+- **Art:** three models in Wildcatter's materials and the outlet (`tools/models/paste.py`); four Ludo pictures (4 credits: cement, the
+  shotcrete, wet and set paste). No placeholders.
+- **Scenes:** NeoForge `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+  `paste_line_pressure`: **143 NeoForge scenes pass** (136 before, 7 new). Unit tests `PasteFillTest` (7), `FillVoidTest` (9) and
+  `MachineTest`: 152 pass. The Fabric client film `paste` (`TAILINGS_ONLY=paste`).
+## L6: the dry mill (2026-11-10, branch `l6-dry-mill`)
+Built while Tim was away on the draft spec `docs/multiblocks/dry-mill.md`; decisions in `docs/questions/l6-dry-mill.md` (16 entries;
+#3, #9 and #14 most need Tim's eye). Nothing in an existing world changes: a plant without scavenger spirals carries no HMC.
+- **Built:** the `scavenger_spiral_bank` (another 45 % of the heavy minerals off the spirals' tails), the filter keeping that share as
+  heavy mineral concentrate, the gas-fired `fluid_bed_dryer`, the `rer_separator` (ilmenite), `ht_roll_separator` (rutile,
+  cassiterite) and `irm_separator` (monazite, zircon), and the `heavy_mineral_concentrate` bag. 50 + 45 = 95 %, the 4x. NO FEED, WET,
+  NO GAS, FULL, nowhere to go; the plant motor's PLC points on each.
+- **Proposed, not built:** the zircon compat to Wildcatter's chlorinator (L6-3).
+- **Art:** five models in Wildcatter's materials (`tools/models/drymill.py`); the HMC bag's icon from Ludo (1 credit); no placeholders.
+- **Scenes:** NeoForge `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`:
+  **142 NeoForge scenes pass** (136 before, 6 new). Unit tests `DryMillTest` (6) and `MachineTest`: 142 pass. The Fabric client film `dry_mill` (`TAILINGS_ONLY=dry_mill`).
+
+## L7: dense-medium separation (2026-11-10, branch `l7-dms`)
+Built while Tim was away on the draft spec `docs/multiblocks/dense-medium-separation.md`; decisions in `docs/questions/l7-dms.md`
+(16 entries; #4, #5 and #8 most need Tim's eye). Nothing in an existing world changes: four new parts and an item; the screen's gravel
+face was already built (plant-gaps) and is used as it is.
+- **Built:** the `deslime_screen`, the `dms_cyclone_module` (each rock floats or sinks by its density, by the mixing rule over its
+  minerals, against a ferrosilicon medium at SG 2.6-3.3, default 2.75, set by a sneaking click), two `drain_rinse_screen`s (floats out
+  as vanilla gravel, 1.9 t a block; sinks onto a belt to the cone), the `medium_recovery` (0.3 kg of ferrosilicon lost a tonne), and
+  the `ferrosilicon` bag (placeholder recipe). 2 % each way. NO FEED, NO WATER, NO MEDIUM, NOT BUILT, FULL, nowhere to go; DENSITY and
+  FLOATS on the PLC.
+- **Art:** four models in Wildcatter's materials (`tools/models/dms.py`); the ferrosilicon icon from Ludo (1 credit); no placeholders.
+- **Scenes:** NeoForge `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`. Unit tests `DenseMediumTest` (6) and
+  `MachineTest`. The Fabric client film `dms` (`TAILINGS_ONLY=dms`).
+## L8: the X-ray ore sorter (2026-11-10, branch `l8-xrt`)
+Built while Tim was away on the draft spec `docs/multiblocks/xrt-ore-sorter.md`; decisions in `docs/questions/l8-xrt.md` (16 entries;
+#3, #5 and #6 most need Tim's eye). Nothing in an existing world changes, and the dump sorter is untouched.
+- **Built:** the `xrt_sorter` (reads each piece's effective atomic number from its minerals' real formulas; five threshold steps; 97/3
+  and 95/5 splits; 250 t/h on crushed rock, half on gravel) and its `sorter_compressor` (160 kW). NO FEED, NO AIR, FULL, nowhere to go;
+  PLC THRESHOLD (4-20 mA), PRODUCT and WASTE (a pulse a tonne).
+- **Not built:** the spec's sizing screen (#8); a reverse mode for light ores (#5, a question).
+- **Art:** two models in Wildcatter's materials (`tools/models/xrt.py`); no placeholders, no Ludo credits.
+- **Scenes:** NeoForge `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`: **the full suite passes, 154 required
+  tests** (5 new). Unit tests `XrtSortingTest` (7) and `MachineTest`: 165 pass. The Fabric client film `xrt` (`TAILINGS_ONLY=xrt`).

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DDD",
+    "DID",
+    "DDD"
+  ],
+  "key": {
+    "D": "tailings:vent_duct",
+    "I": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "tailings:vent_duct_cassette",
+    "count": 1
+  }
+}

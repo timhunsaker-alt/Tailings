@@ -48,7 +48,7 @@ What the revisions in pull request 7 delivered, and what the later art pull requ
 
 Pull request 3, between the phases, is docs only: an unscheduled PLC idea. See Ideas below.
 
-Ventilation (old 3c) was only a proposal. It is not in the game.
+Ventilation (old 3c) was only a proposal then. It is built as L1 (below).
 
 ## Realignment with Wildcatter (R) — done
 
@@ -240,18 +240,116 @@ lead and zinc concentrate mixed make a bulk cake (`bulk_concentrate`); the ore s
 the assay. Kept as they are: concentrate as mineral only, and the old `fines_*` items. The waste bin's way out is written, not built
 into the playthrough.
 
+## Later — L2 and L3: battery locomotives and bottom-dump cars (2026-11-09)
+
+Built while Tim was away on the draft specs [multiblocks/battery-locomotive.md](multiblocks/battery-locomotive.md) and
+[multiblocks/bottom-dump-cars.md](multiblocks/bottom-dump-cars.md), decisions in [questions/l2-l3-trains.md](questions/l2-l3-trains.md).
+**L2:** the `battery_locomotive` (8 t, 2 x 22 kW, 58 kWh lead-acid, 46 kWh usable) runs on any rail, fed or not, on its
+`loco_battery`; the `battery_charger` (20 kW) plugs into the world's three-phase 30 A receptacle as a Wildcatter load and charges the
+battery it holds or a locomotive standing beside it; batteries swap by hand; LOW BATTERY and FLAT; PLC points CHARGING, FULL, CHARGE.
+**L3:** the `bottom_dump_car` drops its load through its doors on the move over a `track_grizzly` beside a `dump_cam_rail`, into the
+pocket under the track; mixed trains dump each kind at its own station. NeoForge scenes `battery_loco_run`, `battery_loco_climb`,
+`battery_loco_flat`, `battery_charge`, `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`, `train_models_l2_l3`; unit
+tests `BatteryTest`; the client film `battery_bottom_dump`.
+- **Left out, planned (the specs' "Left out"):** lithium packs and fast charging; regeneration down the decline; hydrogen from charging
+  and the bay's ventilation (with L1, ventilation); battery life and cycles; battery-electric pit trucks and loaders (open-pit.md);
+  doors jamming on sticky muck and frozen loads; oversize and a rock breaker on the track grizzly; rotary car dumpers. The shaft's
+  measuring pocket (L4) is the next user of the bottom-dump station.
+
+## Later — L1: ventilation of the drive (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/ventilation.md](multiblocks/ventilation.md), decisions in
+[questions/l1-ventilation.md](questions/l1-ventilation.md). The `vent_fan` (75 kW) blows through `vent_duct` laid like pipe, with
+`booster_fan`s (30 kW) for long drives; the TBM's reel gantry takes a `vent_duct_cassette` and pays duct out as it advances; the cab,
+the junction's AIR AT BACK-UP and the `gas_detector` read the air (10.8 m³/s, 0.3 m/s, needed) and RADON in tuff and sandstone.
+**The interlock (NO VENTILATION) and stale air's effects are off unless `config/tailings-ventilation.properties` turns them on**, so
+existing drives run as before (questions #1, #2 for Tim). NeoForge scenes `vent_fresh`, `vent_cassette`, `vent_stale_player`,
+`vent_booster`, `vent_default_off`, `vent_parts`; unit tests `AirflowTest`.
+- **Left out, planned (the spec's "Left out"):** a network solver (Hardy Cross), return airways, regulators and doors; a shaft as the
+  return airway (with L4, shaft-and-hoist.md, Later); heat from the rock at depth and refrigeration; real gases (methane, blasting
+  fumes, diesel particulate) and the diesel rule (0.06 m³/s a kW) for when a diesel machine goes below; the battery bay's hydrogen
+  (L2). A per-world rule in place of the config file (questions #2).
+## Later — L4: the shaft and hoist (2026-11-09)
+
+Built while Tim was away on the draft spec [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md), decisions in
+[questions/l4-shaft.md](questions/l4-shaft.md), branch `l4-shaft`. The `headframe` (9 x 30 x 9) stands over a 5 x 5 shaft; the
+`hoist_house` (10 x 8 x 12, a 450 kW motor at the medium-voltage tier) stands behind it within 60 m and winds two 3 t `skip`s in
+balance at up to 10 m/s between the `measuring_flask` at the shaft bottom and the dump in the headframe, into the 100 t `headframe_bin`
+beside it, which feeds a belt. The L3 bottom-dump station's apron feeder feeds the flask. About 270-280 t/h from 150 m. Reads STOPPED,
+WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPED. NeoForge scenes `shaft_hoist`, `shaft_not_built`,
+`shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; unit tests `HoistingTest`; the client film `shaft_hoist`.
+- **Still to build, planned (the spec's "Still to build"):** L4b the raise borer (pilot and ream, cuttings into the drive); L4c the cage
+  on the second drum (CAGE mode, riding, two landings); the shaft as the drive's return airway (with L1 ventilation); then the spec's
+  "Left out": Koepe hoists, rope stretch and inspection, overwind, sinking by drill and blast, several levels, lowering the TBM down
+  the shaft.
+
+## Later — L5: paste backfill (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/paste-backfill.md](multiblocks/paste-backfill.md), decisions in
+[questions/l5-paste.md](questions/l5-paste.md), branch `l5-paste`. The `paste_filter` (75 kW) takes thickened tails to an 80 % cake; the
+`paste_mixer` (75 kW) trims it with thickened tails and binds it with 5 % `cement` (a 50 kg bag, a placeholder recipe) to 78 % paste; the
+`paste_pump` (110 kW, 35 m³/h at 8 MPa) pushes it down a steel fill line to a `fill_outlet` in any closed underground void (up to 20,000
+m³, its openings closed with `fill_bulkhead`s), where it lands as wet `paste_fill`, lowest first, and sets in a game day. A broken
+bulkhead lets the wet paste run out. Reads NO FEED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE; PLC FLOW and PRESSURE on the pump.
+NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
+`paste_line_pressure`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`.
+- **Left out, planned (the spec's "Left out"):** uncemented hydraulic and rock fill; fill strength and exposing a fill wall; boreholes
+  and their wear; paste rheology; a real cement kiln (cement is a crafted placeholder).
+## Later — L6: the dry mill (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/dry-mill.md](multiblocks/dry-mill.md), decisions in
+[questions/l6-dry-mill.md](questions/l6-dry-mill.md), branch `l6-dry-mill`. A `scavenger_spiral_bank` on the spirals' tails takes
+another 45 % of ilmenite, rutile, zircon, monazite and cassiterite to heavy mineral concentrate; the filter keeps it apart and passes
+it to a gas-fired `fluid_bed_dryer` touching it (or bags it, `heavy_mineral_concentrate`, 100 kg with its assay); the dryer feeds the
+`rer_separator` (ilmenite), the `ht_roll_separator` (rutile, cassiterite) and the `irm_separator` (monazite, and zircon), each paying
+its minerals at the top rung's rate: 50 + 45 = 95 %, the 4x, by the real route. The leach's exception stays for a plant without them.
+Existing plants pay as before. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`, `dry_mill_wet`, `dry_mill_no_dryer`,
+`dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client film `dry_mill`.
+- **Proposed, not built:** Wildcatter's chlorinator taking Tailings' `zircon_concentrate` (L6-3; questions #14).
+- **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
+  ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
+
+## Later — L7: dense-medium separation (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/dense-medium-separation.md](multiblocks/dense-medium-separation.md), decisions
+in [questions/l7-dms.md](questions/l7-dms.md), branch `l7-dms`. On the belt off the double-deck screen's gravel face (already built),
+a `deslime_screen` washes the fines off the gravel into a `dms_cyclone_module`, which splits it by each rock's density against a
+ferrosilicon medium (default SG 2.75, 2.6-3.3): the floats leave through a `drain_rinse_screen` as vanilla gravel, a block for 1.9 t,
+their minerals with them; the sinks go on through a second one to the cone. A `medium_recovery` makes up the ferrosilicon lost, 0.3 kg
+a tonne; `ferrosilicon` is a 25 kg bag with a placeholder recipe. 2 % each way goes wrong. Existing plants run as before. NeoForge
+scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; unit tests `DenseMediumTest`; the client film `dms`.
+- **Questions for Tim:** the light ores float at any setting (#4); the sinks go round again, about 3 % of an ore block lost (#5); the
+  ferrosilicon recipe (#8).
+- **Left out, planned (the spec's "Left out"):** a DMS drum for coarser feed; real partition curves and near-gravity material; coal
+  washing and diamond recovery (X-2); medium viscosity and contamination by slimes; a starting charge of medium; a screen for the
+  setting and a PLC setpoint; floats on a belt.
+## Later — L8: the X-ray ore sorter (2026-11-10)
+
+Built while Tim was away on the draft spec [multiblocks/xrt-ore-sorter.md](multiblocks/xrt-ore-sorter.md), decisions in
+[questions/l8-xrt.md](questions/l8-xrt.md), branch `l8-xrt`. A 1.2 m `xrt_sorter` (4 x 5 x 8, 20 kW) reads each piece's effective
+atomic number from the real formulas of the minerals its rock holds and splits crushed rock and gravel two ways: over the threshold
+(five steps, set by a sneaking click or the PLC's 4-20 mA THRESHOLD) to product, under it to waste, with 3 % and 5 % misplaced; 250
+t/h on crushed rock. Its own 160 kW `sorter_compressor` gives the ejectors air; without it, NO AIR, and it stops. PRODUCT and WASTE pulse
+a tonne each. The dump sorter is unchanged. NeoForge scenes `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; unit
+tests `XrtSortingTest`; the client film `xrt`.
+- **Not built:** the spec's sizing screen (questions/l8-xrt.md, 8); a reverse mode that ejects light pieces (5, a question).
+- **Left out, planned (the spec's "Left out"):** other sensors (optical, laser, NIR, X-ray fluorescence and luminescence for diamonds);
+  a grade spread inside one rock; dust extraction.
+
 ## Later, not scheduled
 
-- Ventilation of the drive.
-- Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
-- Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
-- A shaft and hoist (headframe, skip) instead of the decline.
-- Battery locomotives charged from Wildcatter receptacles, for unpowered track.
-- Bottom-dump cars over a grizzly.
+- Ventilation of the drive: built as L1 (above).
+- Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
+- Dense-medium separation: built as L7 (above). X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
+- Dense-medium separation, and X-ray ore sorting as its own machine (X-ray sorting built as L8, above). The dump sorter is a stand-in, not that machine, and stays.
+- A shaft and hoist (headframe, skip) instead of the decline: built as L4 (above); the raise borer and the cage are still to build.
+- Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
+- Bottom-dump cars over a grizzly: built as L3 (above).
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
 - Paste backfill of old stopes with tailings.
 - From P5's spec, Left out: electric-drive and trolley-assist ultra trucks; tyre heat and the ton-km-per-hour limit; cable damage,
   cable crossings and the cable reel truck; shovel tooth wear and the dipper's door trip as its own action.
+- Paste backfill of old stopes with tailings: built as L5 (above).
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
@@ -286,6 +384,68 @@ into the playthrough.
 - **The emulsion truck is driven by hand only (P3):** no self-running charge crew (spec, Left out); no hose drawn to the hole.
 - **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
   damage, less armour and Blast Protection, but no scene checks a player.
+- **Ferrosilicon is a crafted placeholder (L7):** 4 bags of 25 kg from an iron ingot, a sand and a metallurgical coke, until
+  Wildcatter's ferroalloy plant makes it (questions/l7-dms.md, 8).
+- **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).
+- **The medium is set by clicks (L7):** no screen and no PLC setpoint; the PLC reads it (questions/l7-dms.md, 10).
+- **Floats leave by hopper or hand only (L7):** not on a belt (questions/l7-dms.md, 11).
+- **DMS sinks go round again (L7):** through the cone, the screen and the DMS, losing 2 % a pass (questions/l7-dms.md, 5).
+- **A flat 2 % misplacement (L7):** no partition curve; a whole block floats or sinks as one (questions/l7-dms.md, 6).
+- **No new L7 sounds:** the screens use the vibrating screen, the module the slurry rush, the recovery Wildcatter's motor hum.
+
+- **Cement is a crafted placeholder (L5):** a 50 kg bag from one quicklime and a clay ball, until a cement kiln exists
+  (questions/l5-paste.md, 8).
+- **Paste is marked tails slurry (L5):** Wildcatter 0.5.1 has no product for paste; it carries `tailings:solids` and `tailings:binder`
+  in its assay. A `PASTE` product is proposed for Wildcatter.
+- **Only a broken bulkhead spills paste (L5):** breaking a stone wall next to wet paste lets nothing out; the spill happens in one tick
+  (questions/l5-paste.md, 14).
+- **Muck tipped onto wet paste replaces it (L5):** the shared settle rule sees a block with no collision as free (questions/l5-paste.md,
+  15).
+- **Paste fills at the real rate (L5):** a 360 m³ branch takes about 11 hours of play (questions/l5-paste.md, 19).
+- **The filter and mixer have no slurry gauges (L5):** only their motor's points; the pump has FLOW and PRESSURE.
+- **No new L5 sounds:** the filter and pump use Wildcatter's motor hum, the mixer the agitator; paste sounds as mud.
+- **Paste does not cure while its chunk is unloaded (L5):** a scheduled step waits with its chunk.
+
+- **Ventilation's rules are off by default (L1):** the TBM's interlock and stale air's effects wait on Tim (questions/l1-ventilation.md,
+  1 and 2); until then ventilation is readings only.
+- **The duct is drawn a metre round (L1):** the real 1.4 m does not fit a block; its friction is worked at 1.4 m.
+- **A duct line is one line (L1):** at a branch the farther end gets the air; the rest is not counted.
+- **No new L1 sounds:** the fans use Wildcatter's fan loop.
+
+- **Charging takes 2.6 real hours (L2):** built at the real 18 kW into a 46 kWh battery; whether to scale it is a question for Tim
+  (questions/l2-l3-trains.md, 12).
+- **The charger takes 20 kW on either standard (L2):** on an IEC world that is 30.4 A on a 32 A receptacle, over the 80 % continuous
+  the 480 V case keeps (questions/l2-l3-trains.md, 9).
+- **The track grizzly keeps the pocket's oversize (L3):** the spec says TBM muck has none (questions/l2-l3-trains.md, 16).
+- **Bottom-dump doors snap (L3):** they are drawn open or shut, not swinging; the load drops in one tick rather than over the grizzly's
+  4 m.
+- **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
+- **The battery locomotive has no PLC points of its own (L2):** only the charger has (CHARGING, FULL, CHARGE).
+- **No raise borer and no cage yet (L4):** the shaft is dug by hand; the hoist only checks the skips' compartments are clear
+  (questions/l4-shaft.md, 1, 2). Planned in shaft-and-hoist.md, "Still to build".
+- **The hoist motor draws its full 450 kW while it runs (L4):** Wildcatter 0.5.1's motor has no part load, so the real lift (346 kW,
+  less between winds) is not modelled (questions/l4-shaft.md, 8).
+- **A 3 t skip against a 1,555 t car (L4):** the hoist is right in tonnes but takes over five hours to lift one car's 576 items
+  (questions/l4-shaft.md, 20).
+- **Only the scavengers' share goes through the dry mill (L6):** the filter still pays the spiral bank's 50 %; a real plant sends all
+  its HMC through (questions/l6-dry-mill.md, 3).
+- **The dry mill is 2 t/h (L6):** on heavy mineral sand ore the scavengers make about 7.5 t/h; the filter bags what the dryer cannot
+  take (questions/l6-dry-mill.md, 9).
+- **Dry HMC moves by touching (L6):** filter to dryer to each separator, no elevator or chute; the separators pay into their own
+  stacks, with no product bins (questions/l6-dry-mill.md, 6, 7).
+- **Each separator takes all of its mineral (L6):** no misplacement or middlings.
+- **No new L6 sounds:** the dryer uses Wildcatter's fan, the separators its motor hum.
+- **Every piece of one rock reads the same (L8):** the X-ray sorter's 3 % and 5 % errors stand in for the real spread inside a rock
+  (questions/l8-xrt.md, 4).
+- **Light ores go to waste at the X-ray sorter (L8):** graphite, magnesite, borax, bauxite, spodumene and bentonite read under quartz;
+  there is no reverse mode, and the platinum reef's platinum cannot be seen (questions/l8-xrt.md, 5).
+- **The X-ray sorter's air is a running compressor, not a pressure (L8):** its own 160 kW compressor touching it, not Wildcatter's
+  instrument air, which has no flow model (questions/l8-xrt.md, 6).
+- **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
+- **No X-ray sorter sounds of its own (L8):** it plays the dump sorter's air jets; its compressor Wildcatter's motor hum.
+- **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
+- **The headframe bin feeds belts only (L4):** a hopper under it takes nothing (questions/l4-shaft.md, 12).
+
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).
 - **Thickened tails are marked tails slurry (P4):** Wildcatter 0.5.1 has no product for them, so the underflow is tails slurry whose

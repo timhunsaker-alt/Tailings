@@ -94,3 +94,44 @@ on transparency):
 | trailing_cable (a) | A single steel reel wound with thick black rubber-jacketed mining trailing cable, the cable's end hanging off it with a heavy yellow coupler plug, generic, no brand names |
 | ultra_haul_truck (b) | A single huge yellow 360 tonne ultra-class rigid mining haul truck seen from the side at three-quarter view, very large black tyres, high dump body with a long canopy reaching over the cab, stairway at the front, generic, no brand names |
 | hydraulic_shovel (b) | A single large yellow hydraulic mining front shovel seen from the side at three-quarter view, on black crawler tracks, boom and stick with a big steel front bucket facing forward, cab at its front left, generic, no brand names |
+## L2 and L3 (2026-11-09)
+Items, `item-icon`, Photorealistic 3D, 2 variations each, the first (a) kept; returned on transparency:
+
+| File | Prompt |
+|---|---|
+| battery_locomotive (a) | A single small yellow underground mining battery locomotive seen from the side at three-quarter view, low steel frame on rail wheels, a large grey steel traction battery box on its middle, a small driver's cab at one end, a headlight, generic, no brand names |
+| bottom_dump_car (a) | A single small underground mine ore car with a drop-bottom, weathered grey steel box body with rust streaks on four small rail wheels, two hinged floor doors hanging open underneath, seen at three-quarter view, generic |
+| loco_battery (a) | A single lead-acid traction battery box for a mining locomotive: a rectangular steel tray painted grey holding rows of battery cells with red and black terminal caps, two lifting lugs on top and a heavy cable connector, three-quarter view, generic |
+
+## L1 ventilation (2026-11-09)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the better kept (3 credits).
+
+| File | Kind | Prompt |
+|---|---|---|
+| vent_duct (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: bright yellow PVC-coated polyester fabric of a flexible mine ventilation duct, slightly glossy, with a faint woven texture, a stitched seam and light dust, plain, no text |
+| vent_duct_cassette (b) | item-icon | A single cassette of folded yellow lay-flat ventilation duct for a tunnel boring machine: a steel drum frame holding concertina-folded yellow fabric duct, game item icon, plain white background, no text |
+| gas_detector (a) | item-icon | A single handheld personal multi-gas detector for underground mining: a small rugged yellow and black plastic case with a dark display window and a clip, generic, no brand names, game item icon, plain white background, no text |
+
+## L5 paste backfill (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the first (a) kept (4 credits). The wet paste is darkened to 78 %
+in `tools/process_art.py` so it reads wetter than the set paste.
+
+| File | Kind | Prompt |
+|---|---|---|
+| cement (a) | item-icon | A single grey paper sack of portland cement, 50 kg bag, folded top, light grey powder dust on it, plain unbranded, game item icon, plain white background, no text |
+| fill_bulkhead (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: rough grey sprayed shotcrete concrete wall of an underground mine bulkhead, bumpy sprayed surface with small aggregate, slightly damp, plain, no text |
+| paste_fill_wet (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: wet fresh cemented paste fill, smooth glossy pale grey-brown mud like thick toothpaste with a wet sheen and soft ripples, plain, no text |
+| paste_fill_set (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: cured cemented paste backfill, dry matte pale grey-beige weak rock with fine grain, faint layering and tiny pores, plain, no text |
+## L6 dry mill (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations, the first (a) kept (1 credit):
+
+| File | Prompt |
+|---|---|
+| heavy_mineral_concentrate (a) | A single small woven white polypropylene sack, top open, full of damp dark heavy mineral sand concentrate: black, dark grey and reddish-brown fine grains, game item icon, plain white background, no text |
+
+## L7 dense-medium separation (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations, the first (a) kept (1 credit):
+
+| File | Prompt |
+|---|---|
+| ferrosilicon (a) | A single small heavy woven grey polypropylene sack, top open, full of fine dark grey metallic ferrosilicon powder with a slight silver sheen, plain unbranded, game item icon, plain white background, no text |

@@ -59,6 +59,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.SHOVEL_CRAWLERS) {
 			return new RopeShovelBlockEntity(pos, state);
 		}
+		if (machine == Machine.BATTERY_CHARGER) {
+			return new BatteryChargerBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -82,6 +85,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.SHOVEL_CRAWLERS) {
 			return createTickerHelper(type, TailingsBlocks.ROPE_SHOVEL_ENTITY, RopeShovelBlockEntity::tick);
 		}
+		if (machine == Machine.BATTERY_CHARGER) {
+			return createTickerHelper(type, TailingsBlocks.BATTERY_CHARGER_ENTITY, BatteryChargerBlockEntity::tick);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
 	}
@@ -92,6 +98,13 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (stack.getItem() instanceof dev.wildcatter.tailings.item.TrailingCableItem) {
 			return InteractionResult.PASS;   // the reel takes an outlet of a switch house: the item's own use
 		}
+		if (level.getBlockEntity(main(pos, state)) instanceof BatteryChargerBlockEntity charger) {
+			// a traction battery goes into the charger; it hands back the one it held
+			if (!level.isClientSide() && charger.offer(player, hand, stack)) {
+				player.sendOverlayMessage(charger.inspect());
+			}
+			return stack.getItem() == dev.wildcatter.tailings.TailingsItems.LOCO_BATTERY ? InteractionResult.SUCCESS : super.useItemOn(stack, state, level, pos, player, hand, hit);
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0
 				&& stack.is(net.minecraft.tags.ItemTags.PICKAXES)) {
 			// a pickaxe breaks a piece of oversize through the grizzly's bars, as a rock breaker does
@@ -100,6 +113,20 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				stack.hurtAndBreak(1, player, hand);
 				player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("broke " + Feeds.stack(broke, 1).getHoverName().getString()
 						+ " through the grizzly; " + pocket.oversize() + " oversize left on its bars"));
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (machine == Machine.HEADFRAME && stack.getItem() == dev.wildcatter.tailings.TailingsItems.SKIP
+				&& level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity headframe) {
+			// a skip hangs on the next free rope, at the dump (shaft-and-hoist.md, L4)
+			if (level instanceof net.minecraft.server.level.ServerLevel server) {
+				var skip = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(server, ShaftLayout.Frame.of(headframe));
+				if (skip == null) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("both ropes have their skips"));
+				} else {
+					stack.consume(1, player);
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("hung a skip in the " + (skip.compartment() == 0 ? "west" : "east") + " compartment"));
+				}
 			}
 			return InteractionResult.SUCCESS;
 		}
@@ -155,6 +182,16 @@ public class PlantMachineBlock extends TailingsPartBlock {
 			}
 			return InteractionResult.SUCCESS;
 		}
+		if (level.getBlockEntity(main(pos, state)) instanceof BatteryChargerBlockEntity charger) {
+			// a sneaking click takes its battery out; a click reads it
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					charger.takeOut(player);
+				}
+				player.sendOverlayMessage(charger.inspect());
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (player.isShiftKeyDown() && level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0) {
 			// lifting the oversize off the grizzly by hand: it comes back to the player
 			if (!level.isClientSide()) {
@@ -173,6 +210,21 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				if (!level.isClientSide()) {
 					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new SorterMenu(id, inventory, plant),
 							net.minecraft.network.chat.Component.literal(plant.machine().displayName())));
+				}
+				return InteractionResult.SUCCESS;
+			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.DMS_MODULE) {
+				// the module's medium setting, a step a click (dense-medium-separation.md, L7)
+				if (!level.isClientSide()) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.stepMedium()));
+				}
+				return InteractionResult.SUCCESS;
+			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.XRT_SORTER) {
+				// its screen's threshold, a step a click (xrt-ore-sorter.md, L8)
+				if (!level.isClientSide()) {
+					plant.stepThreshold();
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
 				}
 				return InteractionResult.SUCCESS;
 			}

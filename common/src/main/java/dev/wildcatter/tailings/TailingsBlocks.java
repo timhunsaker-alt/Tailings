@@ -102,6 +102,46 @@ public final class TailingsBlocks {
 	public static final Block SHOVEL_BOOM = plant(Machine.SHOVEL_BOOM, MapColor.COLOR_YELLOW);
 	public static final Block SHOVEL_HANDLE = plant(Machine.SHOVEL_HANDLE, MapColor.COLOR_YELLOW);
 	public static final Block SHOVEL_DIPPER = plant(Machine.SHOVEL_DIPPER, MapColor.METAL);
+	public static final Block TRACK_GRIZZLY = plant(Machine.TRACK_GRIZZLY, MapColor.METAL);
+	public static final Block DUMP_CAM_RAIL = plant(Machine.DUMP_CAM_RAIL, MapColor.METAL);
+	public static final Block BATTERY_CHARGER = plant(Machine.BATTERY_CHARGER, MapColor.COLOR_GRAY);
+	public static final Block VENT_FAN = plant(Machine.VENT_FAN, MapColor.COLOR_YELLOW);
+	public static final Block BOOSTER_FAN = plant(Machine.BOOSTER_FAN, MapColor.COLOR_YELLOW);
+	/** Lay-flat ventilation duct (ventilation.md, L1): a block a metre, laid like pipe, joining fans and the TBM's cassette. */
+	public static final Block VENT_DUCT = block("vent_duct", props -> new dev.wildcatter.tailings.block.VentDuctBlock(props.mapColor(MapColor.COLOR_YELLOW)
+			.strength(0.8F, 1.0F).sound(SoundType.WOOL).noOcclusion()));
+	public static final Block HEADFRAME = plant(Machine.HEADFRAME, MapColor.COLOR_GRAY);
+	public static final Block HEADFRAME_BIN = plant(Machine.HEADFRAME_BIN, MapColor.METAL);
+	public static final Block HOIST_HOUSE = plant(Machine.HOIST_HOUSE, MapColor.COLOR_GRAY);
+	public static final Block MEASURING_FLASK = plant(Machine.MEASURING_FLASK, MapColor.METAL);
+	public static final Block PASTE_FILTER = plant(Machine.PASTE_FILTER, MapColor.COLOR_GRAY);
+	public static final Block PASTE_MIXER = plant(Machine.PASTE_MIXER, MapColor.COLOR_GRAY);
+	public static final Block PASTE_PUMP = plant(Machine.PASTE_PUMP, MapColor.COLOR_YELLOW);
+	/** A shotcrete fill bulkhead (paste-backfill.md, L5): a metre of the barricade that closes a void's opening for paste fill. */
+	public static final Block FILL_BULKHEAD = block("fill_bulkhead", props -> new dev.wildcatter.tailings.block.FillBulkheadBlock(props.mapColor(MapColor.STONE)
+			.strength(2.0F, 6.0F).sound(SoundType.STONE).requiresCorrectToolForDrops()));
+	/** The open end of the paste fill line inside the void (L5). */
+	public static final Block FILL_OUTLET = block("fill_outlet", props -> new dev.wildcatter.tailings.block.FillOutletBlock(props.mapColor(MapColor.METAL)
+			.strength(3.0F, 6.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.FillOutletBlockEntity> FILL_OUTLET_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FillOutletBlockEntity::new, Set.of(FILL_OUTLET));
+	/** Placed paste fill (L5): wet when placed, set after a game day. A cubic metre of tails and cement: it drops nothing. */
+	public static final Block PASTE_FILL = block("paste_fill", props -> new dev.wildcatter.tailings.block.PasteFillBlock(props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY)
+			.strength(1.0F, 3.0F).sound(SoundType.MUD).noLootTable().isSuffocating((state, getter, pos) -> false)));
+	public static final Block SCAVENGER_SPIRAL_BANK = plant(Machine.SCAVENGER_SPIRAL_BANK, MapColor.METAL);
+	public static final Block FLUID_BED_DRYER = plant(Machine.FLUID_BED_DRYER, MapColor.COLOR_GRAY);
+	public static final Block RER_SEPARATOR = plant(Machine.RER_SEPARATOR, MapColor.COLOR_BLUE);
+	public static final Block HT_ROLL_SEPARATOR = plant(Machine.HT_ROLL_SEPARATOR, MapColor.COLOR_LIGHT_GRAY);
+	public static final Block IRM_SEPARATOR = plant(Machine.IRM_SEPARATOR, MapColor.COLOR_BLUE);
+	public static final Block DESLIME_SCREEN = plant(Machine.DESLIME_SCREEN, MapColor.METAL);
+	public static final Block DMS_MODULE = plant(Machine.DMS_MODULE, MapColor.COLOR_GRAY);
+	public static final Block DRAIN_RINSE_SCREEN = plant(Machine.DRAIN_RINSE_SCREEN, MapColor.METAL);
+	public static final Block MEDIUM_RECOVERY = plant(Machine.MEDIUM_RECOVERY, MapColor.COLOR_BLUE);
+	public static final Block XRT_SORTER = plant(Machine.XRT_SORTER, MapColor.COLOR_YELLOW);
+	public static final Block SORTER_COMPRESSOR = plant(Machine.SORTER_COMPRESSOR, MapColor.COLOR_BLUE);
+	/** A skip's looks (shaft-and-hoist.md, L4), drawn by its entity: the block itself has no item and is never placed. */
+	public static final Block SKIP = block("skip", props -> new dev.wildcatter.tailings.block.SkipPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F)
+			.sound(SoundType.METAL).noOcclusion().noLootTable()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.BatteryChargerBlockEntity> BATTERY_CHARGER_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BatteryChargerBlockEntity::new, Set.of(BATTERY_CHARGER));
 	/** The tailings filter's cake as a placed block (open-pit-p4-dry-stack.md): 1 m³ at 1.8 t, falling like sand. */
 	public static final Block DRY_TAILS = block("dry_tails", props -> new net.minecraft.world.level.block.ColoredFallingBlock(new net.minecraft.util.ColorRGBA(0x9a8f7f),
 			props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).strength(0.6F).sound(SoundType.SAND)));
@@ -129,7 +169,10 @@ public final class TailingsBlocks {
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
-					SHOVEL_HOUSE, SHOVEL_GANTRY, SHOVEL_BOOM, SHOVEL_HANDLE, SHOVEL_DIPPER));
+					SHOVEL_HOUSE, SHOVEL_GANTRY, SHOVEL_BOOM, SHOVEL_HANDLE, SHOVEL_DIPPER,
+					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
+					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR,
+					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -198,6 +241,7 @@ public final class TailingsBlocks {
 			Registry.register(BuiltInRegistries.BLOCK, Tailings.id(gantry.id()), gantryBlock(gantry));
 		}
 		add("cable_junction", CABLE_JUNCTION);
+		Registry.register(BuiltInRegistries.BLOCK, Tailings.id("skip"), SKIP);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("tbm_part"), TBM_PART);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("cable_junction"), CABLE_JUNCTION_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("hand_mill"), MILL);
@@ -218,6 +262,11 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("muck"), MUCK_ENTITY);
 		add("survey_stake", SURVEY_STAKE);
 		add("dry_tails", DRY_TAILS);
+		add("vent_duct", VENT_DUCT);
+		add("fill_bulkhead", FILL_BULKHEAD);
+		add("fill_outlet", FILL_OUTLET);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fill_outlet"), FILL_OUTLET_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK, Tailings.id("paste_fill"), PASTE_FILL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("matrix_fill_point"), MATRIX_FILL_POINT_ENTITY);
@@ -227,6 +276,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasthole"), BLASTHOLE_ENTITY);
 		add("blasting_machine", BLASTING_MACHINE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasting_machine"), BLASTING_MACHINE_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("battery_charger"), BATTERY_CHARGER_ENTITY);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -275,6 +325,29 @@ public final class TailingsBlocks {
 			case SHOVEL_BOOM -> SHOVEL_BOOM;
 			case SHOVEL_HANDLE -> SHOVEL_HANDLE;
 			case SHOVEL_DIPPER -> SHOVEL_DIPPER;
+			case TRACK_GRIZZLY -> TRACK_GRIZZLY;
+			case DUMP_CAM_RAIL -> DUMP_CAM_RAIL;
+			case BATTERY_CHARGER -> BATTERY_CHARGER;
+			case VENT_FAN -> VENT_FAN;
+			case BOOSTER_FAN -> BOOSTER_FAN;
+			case HEADFRAME -> HEADFRAME;
+			case HEADFRAME_BIN -> HEADFRAME_BIN;
+			case HOIST_HOUSE -> HOIST_HOUSE;
+			case MEASURING_FLASK -> MEASURING_FLASK;
+			case PASTE_FILTER -> PASTE_FILTER;
+			case PASTE_MIXER -> PASTE_MIXER;
+			case PASTE_PUMP -> PASTE_PUMP;
+			case SCAVENGER_SPIRAL_BANK -> SCAVENGER_SPIRAL_BANK;
+			case FLUID_BED_DRYER -> FLUID_BED_DRYER;
+			case RER_SEPARATOR -> RER_SEPARATOR;
+			case HT_ROLL_SEPARATOR -> HT_ROLL_SEPARATOR;
+			case IRM_SEPARATOR -> IRM_SEPARATOR;
+			case DESLIME_SCREEN -> DESLIME_SCREEN;
+			case DMS_MODULE -> DMS_MODULE;
+			case DRAIN_RINSE_SCREEN -> DRAIN_RINSE_SCREEN;
+			case MEDIUM_RECOVERY -> MEDIUM_RECOVERY;
+			case XRT_SORTER -> XRT_SORTER;
+			case SORTER_COMPRESSOR -> SORTER_COMPRESSOR;
 		};
 	}
 

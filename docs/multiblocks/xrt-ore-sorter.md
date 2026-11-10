@@ -1,6 +1,6 @@
 # X-ray transmission ore sorting (its own machine)
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Proposed wave **L8**. The choices are listed
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **L8**, built (see "As built"). The choices are listed
 in [../questions/specs-tailings.md](../questions/specs-tailings.md) (Later section).
 
 ROADMAP "Later": X-ray ore sorting as its own machine; "the dump sorter is a stand-in, not that machine". A real **XRT sorter**
@@ -74,6 +74,27 @@ All motors at the world's standard industrial low voltage.
 
 ## The wave plan
 - **L8**, last of the Later waves: its use grows with the pit line (P7).
+
+## As built (L8, 2026-11-10, branch `l8-xrt`)
+Decisions in [../questions/l8-xrt.md](../questions/l8-xrt.md) (16 entries; #3, #5 and #6 need Tim).
+- **Existing worlds and the dump sorter are untouched (#1):** two new parts; the dump station's `ore_sorter` is unchanged. No setting
+  was needed.
+- **Code:** `plant.XrtSorting` (each mineral's formula, the effective atomic number of a piece, the five steps, the errors, the rating,
+  the sorter's state; unit-tested in `XrtSortingTest`), `block.stage.Xrt` (the sorter and its compressor), `Machine.XRT_SORTER` (4 x 5
+  x 8, 20 kW) and `Machine.SORTER_COMPRESSOR` (2 x 2 x 3, 160 kW) on the plant's motors, `tools/models/xrt.py`.
+- **As the spec, except:** a piece is judged by its effective atomic number worked from its minerals' real formulas, not by its ore
+  share (#2); the steps are Zeff 11.5, 12.0 (the default), 13.0, 15.0 and 20.0 (#3); light ores (graphite, magnesite, borax, bauxite,
+  spodumene, bentonite) read under quartz and go to waste (#5); the compressor is the sorter's own, not Wildcatter's 7.5 kW instrument
+  air (#6); no sizing screen: it takes crushed rock at 250 t/h and gravel at 125 t/h, and refuses sand and fines (#8). Fed over its
+  north end; product out of its south face, waste out of its east face (#10). A sneaking click steps the threshold (#11).
+- **Measured (the scenes):** 1 t of galena ore and 1 t of andesite through it: 970 kg of galena and 50 kg of andesite to product,
+  30 kg of galena and 950 kg of andesite to waste; at LOW 97 % of andesite is product; at HIGH 95 % of molybdenum ore is waste while
+  97 % of galena ore is still product.
+- **PLC:** the plant motor's six points, then THRESHOLD (analog out, 4-20 mA, 4 mA a step), PRODUCT and WASTE (pulse inputs, a pulse
+  a tonne).
+- **Tests:** NeoForge `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; unit tests `XrtSortingTest`,
+  `MachineTest`; the client film `xrt`.
+- **Not built:** the sizing screen (#8); a reverse mode for light ores (#5, a question); the spec's "Left out".
 
 ## Sources
 - A sorter maker's 1.2 m and 2.4 m XRT product data: 1,200 mm working width, 10-125 mm, up to 250 t/h; 2,400 mm to 500 t/h; 152 or 192

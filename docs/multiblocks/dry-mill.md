@@ -1,6 +1,6 @@
 # The dry mill: magnetic separation for ilmenite, electrostatic separation for rutile and zircon
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Proposed wave **L6**. The choices are listed
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **L6**, built (see "As built"). The choices are listed
 in [../questions/specs-tailings.md](../questions/specs-tailings.md) (Later section).
 
 ROADMAP "Later": magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. In a real mineral sands
@@ -99,6 +99,25 @@ All motors at the world's standard industrial low voltage.
 
 ## The wave plan
 - **L6**, after the spirals (built) and the top rung (built). It needs no Wildcatter change, except the optional compat entry.
+
+## As built (L6, 2026-11-10, branch `l6-dry-mill`)
+Decisions in [../questions/l6-dry-mill.md](../questions/l6-dry-mill.md) (16 entries; #3, #9 and #14 need Tim).
+- **Existing worlds are untouched (#1):** a plant without scavenger spirals carries no HMC, so its filter, leach and cells pay as
+  before. No setting was needed.
+- **Code:** `plant.DryMill` (which minerals, which separator, the 45 % share, the pay, the gas, the bag; unit-tested in
+  `DryMillTest`), `plant.HeavyMinerals` (kg by mineral), `block.stage.DryMillStages` (the scavenger spirals, the filter's HMC, the
+  dryer, the three separators), `item.HeavyMineralConcentrateItem`, `Machine.SCAVENGER_SPIRAL_BANK`, `FLUID_BED_DRYER`,
+  `RER_SEPARATOR`, `HT_ROLL_SEPARATOR`, `IRM_SEPARATOR` on the plant's motors and PLC points; `tools/models/drymill.py`.
+- **As the spec, except:** the HMC travels in the assay as `tailings:hmc_*` and what the scavengers leave as `tailings:scavenged_*`
+  (#2); only the scavengers' 45 % goes through the dry mill, the filter still paying the spirals' 50 % (#3); iron, chromite and
+  scheelite keep the leach (#4); the parts pass dry HMC by touching (#6); no product bins, each separator pays into four stacks (#7);
+  the filter bags HMC 100 kg at a time when no dryer has room (#9, #12); the dryer burns any natural gas on its east side (#10).
+- **Measured (DryMillTest, the scenes):** 4 nuggets' worth of zircon and of ilmenite pay 2 at the filter and 2 at the separators,
+  4 in all; 5 % of each goes to the tails marked scavenged and the leach finds none. The dryer burns 7.9 m³ of gas a tonne.
+- **Tests:** NeoForge `dry_mill_split` (a bag of five minerals to four products at three separators), `dry_mill_ladder` (fines to 4x
+  through spirals, scavenger spirals, filter and the dry mill), `dry_mill_wet`, `dry_mill_no_dryer` (an 80/20 bag and 50 kg waiting),
+  `dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`, `MachineTest`; the client film `dry_mill`.
+- **Not built:** the zircon compat to Wildcatter (L6-3, #14, a question); the spec's "Left out".
 
 ## Sources
 - A magnet maker's note on rare-earth and induced-roll magnets: about 4 t/h a metre for ilmenite sands, 3-5 for chromite.
