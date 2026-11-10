@@ -12,7 +12,11 @@ is not built: its plan is in ROADMAP (#32).
   assay; PRESSURE on the PLC). WEIGHT on the mills.
 - **Art:** five models in Wildcatter's materials (`tools/models/sagline.py`). No Ludo credits.
 - **Scenes:** NeoForge `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests in `PitLineTest` (10
-  in all) and `MachineTest`. The Fabric client film `p7_line` (`TAILINGS_ONLY=p7_line`).
+  in all) and `MachineTest`. The Fabric client film `p7_line` (`TAILINGS_ONLY=p7_line`), filmed and passing: an ultra
+  tips 363 t of copper ore into the gyratory's pocket, the gyratory crushes it up a 60 m heavy belt onto a 1,500-block pile, three
+  reclaim feeders draw it at the weigher's 1,000 t/h up to the SAG, and the SAG line classifies 71 t in the 90 s, all force-run.
+- **Full server suite:** all 194 scenes pass (180 before P7; one run lost `pit_dozer_cut` to a timeout under load, a flake seen in
+  the P4 branches too, and it passed alone and in the rerun).
 
 ## P7a: the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, branch `p7-pit-line`)
 Built while Tim was away on the draft spec `docs/multiblocks/primary-gyratory-stockpile.md`; decisions in

@@ -524,7 +524,7 @@ public final class PitLineStages {
 					}
 				}
 				part.run = belt;
-				part.say(belt == null ? "NOT BUILT: sits beside or under a heavy belt" : String.format("reads %.0f t/h, setpoint %.0f t/h", part.pit().rateTph(), part.setpointTph()));
+				part.say(belt == null ? "NOT BUILT: sits beside or under a heavy belt" : "weighing its belt");
 			}
 			if (part.run instanceof BlockPos belt) {
 				PlantBlockEntity mill = headOf(level, belt);

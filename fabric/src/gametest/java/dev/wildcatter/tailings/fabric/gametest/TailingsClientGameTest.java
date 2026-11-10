@@ -149,6 +149,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("xrt")) {
 				xrt(context, world, server);
 			}
+			if (only("p7_line")) {
+				p7Line(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -2406,5 +2409,196 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(loaded.startsWith("362") || loaded.startsWith("363"), "the rope shovel should fill the ultra: " + loaded);
 		// the dipper's dig sounds at the face, out of the camera's hearing; the dump into the truck is heard
 		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_tip");
+	}
+
+	private static BlockState heavyBelt(Direction.Axis axis) {
+		return TailingsBlocks.HEAVY_BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, axis);
+	}
+
+	private static void fillBox(ServerLevel level, BlockPos o, Block block, int x0, int x1, int y0, int y1, int z0, int z1) {
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= z1; z++) {
+				for (int yy = y0; yy <= y1; yy++) {
+					level.setBlock(o.offset(x, yy, z), block.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+		}
+	}
+
+	/**
+	 * P7, the pit line (primary-gyratory-stockpile.md, sag-mill-line.md): an ultra truck on its bench tips 363 t of copper ore into the
+	 * gyratory's dump pocket; the gyratory crushes into the surge pocket and the primary apron feeder sends it up a 60 m heavy belt to the
+	 * stockpile head, dropping it onto a pile of 1,500 blocks; three reclaim feeders in the tunnel under the pile draw it past the belt
+	 * weigher and up a heavy belt to the SAG mill, whose undersize goes through the pump, the cyclones and the large ball mill. Every part
+	 * on its forced motors at the real rate. Built on the flat world's ground, never below it.
+	 */
+	private void p7Line(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(1100, y, 2100);
+		final int sy = 6, sz = 149;
+		Object[] v = new Object[16];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			net.minecraft.world.level.ChunkPos c0 = net.minecraft.world.level.ChunkPos.containing(o.offset(-30, 0, -50));
+			net.minecraft.world.level.ChunkPos c1 = net.minecraft.world.level.ChunkPos.containing(o.offset(70, 0, 200));
+			for (int cx = c0.x(); cx <= c1.x(); cx++) {
+				for (int cz = c0.z(); cz <= c1.z(); cz++) {
+					level.setChunkForced(cx, cz, true);
+				}
+			}
+			fillBox(level, o, Blocks.AIR, -25, 40, 0, 45, -45, 190);
+			// the primary: the apron feeder at the ground, the surge pocket, the gyratory, the dump pocket 18 m up, the breaker on its rim
+			PlantBlockEntity feeder = plant(level, Machine.PRIMARY_APRON_FEEDER, o.offset(5, 0, 3));
+			PlantBlockEntity surge = plant(level, Machine.SURGE_POCKET, o.offset(3, 2, 1));
+			PlantBlockEntity crusher = plant(level, Machine.GYRATORY_CRUSHER, o.offset(4, 8, 2));
+			part(level, TailingsBlocks.GYRATORY_POCKET, o.offset(0, 18, 0));
+			PlantBlockEntity breaker = plant(level, Machine.ROCK_BREAKER, o.offset(12, 26, 2));
+			// the trucks' bench north of it, its dump wall at the pocket's rim
+			fillBox(level, o, Blocks.STONE, -2, 15, 0, 25, -40, -3);
+			fillBox(level, o, Blocks.STONE, -2, 15, 0, 21, -2, -1);
+			part(level, TailingsBlocks.TRUCK_DUMP_WALL, o.offset(1, 22, -2));
+			// the stockpile conveyor off the feeder's south face, 1 in 3 up to the head
+			int by = 0;
+			for (int z = 15; z <= 75; z++) {
+				if (z > 15 && (z - 15) % 3 == 0) {
+					by++;
+				}
+				level.setBlock(o.offset(6, by, z), heavyBelt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity stackDrive = plant(level, Machine.HEAVY_CONVEYOR_DRIVE, o.offset(7, by, 73));
+			PlantBlockEntity head = plant(level, Machine.STOCKPILE_HEAD, o.offset(5, by - 4, 76));
+			// the stockpile's bench with the reclaim tunnel in it, its roof open over each feeder's north end
+			fillBox(level, o, Blocks.SMOOTH_STONE, -16, 28, 0, 4, 58, 100);
+			fillBox(level, o, Blocks.AIR, 6, 9, 1, 3, 62, 100);
+			PlantBlockEntity[] feeders = new PlantBlockEntity[3];
+			int[] at = {73, 79, 85};
+			for (int i = 0; i < 3; i++) {
+				feeders[i] = plant(level, Machine.RECLAIM_FEEDER, o.offset(6, 2, at[i]));
+				fillBox(level, o, Blocks.AIR, 6, 7, 4, 4, at[i], at[i]);
+			}
+			BlockPos tip = o.offset(6, 30, 79);
+			for (int i = 0; i < 1500; i++) {
+				dev.wildcatter.tailings.pit.Loose.muck(level, tip, TailingsBlocks.STOCKPILE_ROCK.defaultBlockState(), java.util.Map.of("minecraft:copper_ore", 3));
+			}
+			// the SAG feed belt: along the tunnel under the feeders, out and up 1 in 3 over the SAG's feed chute; the weigher beside it
+			int ry = 1;
+			for (int z = 70; z <= sz; z++) {
+				if (z > 100 && (z - 100) % 3 == 0) {
+					ry++;
+				}
+				level.setBlock(o.offset(6, ry, z), heavyBelt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity sagDrive = plant(level, Machine.HEAVY_CONVEYOR_DRIVE, o.offset(7, ry, sz - 2));
+			PlantBlockEntity weigher = plant(level, Machine.BELT_WEIGHER, o.offset(7, 1, 92));
+			// the SAG line on its slab, as the NeoForge scenes lay it
+			fillBox(level, o, Blocks.SMOOTH_STONE, -2, 22, 0, sy - 2, sz, sz + 36);
+			fillBox(level, o, Blocks.AIR, 17, 22, 0, sy - 2, sz + 8, sz + 19);
+			PlantBlockEntity sag = plant(level, Machine.SAG_MILL, o.offset(1, sy, sz));
+			PlantBlockEntity pump = plant(level, Machine.CYCLONE_FEED_PUMP, o.offset(4, sy, sz + 14));
+			PlantBlockEntity cluster = plant(level, Machine.CYCLONE_CLUSTER_LARGE, o.offset(5, sy, sz + 22));
+			PlantBlockEntity ball = plant(level, Machine.BALL_MILL_LARGE, o.offset(11, sy, sz + 20));
+			pipe(level, o.offset(5, sy, sz + 19), o.offset(5, sy, sz + 20), o.offset(5, sy, sz + 21));
+			pipe(level, o.offset(11, sy, sz + 36), o.offset(11, sy - 1, sz + 36), o.offset(10, sy - 1, sz + 36), o.offset(9, sy - 1, sz + 36), o.offset(8, sy - 1, sz + 36));
+			for (int z = sz + 35; z >= sz + 16; z--) {
+				pipe(level, o.offset(8, sy - 1, z));
+			}
+			pipe(level, o.offset(8, sy, sz + 16));
+			for (int x = 12; x <= 17; x++) {
+				level.setBlock(o.offset(x, sy, sz + 10), heavyBelt(Direction.Axis.X), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity pebbleDrive = plant(level, Machine.HEAVY_CONVEYOR_DRIVE, o.offset(16, sy + 1, sz + 8));
+			PlantBlockEntity pebbles = plant(level, Machine.PEBBLE_CRUSHER, o.offset(18, sy - 5, sz + 9));
+			for (int z = sz + 12; z <= sz + 18; z++) {
+				level.setBlock(o.offset(19, sy - 6, z), heavyBelt(Direction.Axis.Z), Block.UPDATE_ALL);
+			}
+			PlantBlockEntity returnDrive = plant(level, Machine.HEAVY_CONVEYOR_DRIVE, o.offset(20, sy - 6, sz + 16));
+			level.setBlock(o.offset(19, sy - 6, sz + 19), Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
+			dev.wildcatter.tailings.plant.RockLoad charge = new dev.wildcatter.tailings.plant.RockLoad();
+			charge.add(dev.wildcatter.tailings.rock.Rock.COPPER, dev.wildcatter.tailings.rock.SizeClass.CRUSHED, dev.wildcatter.tailings.plant.PitLine.SAG_NORMAL_CHARGE_KG);
+			sag.receive(charge);
+			PlantBlockEntity[] all = {feeder, crusher, breaker, stackDrive, feeders[0], feeders[1], feeders[2], sagDrive, sag, pump, ball, pebbleDrive, pebbles, returnDrive};
+			for (PlantBlockEntity part : all) {
+				part.forceRunning();
+			}
+			var truck = dev.wildcatter.tailings.TailingsEntities.ULTRA_HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(o.getX() + 7.0, o.getY() + 26, o.getZ() - 3.0 - truck.spec().length() / 2);
+			truck.setYRot(180);
+			truck.setFuel(truck.tank());
+			truck.load().add("minecraft:copper_ore", 363_000);
+			truck.refreshLoad();
+			level.addFreshEntity(truck);
+			v[0] = truck;
+			v[1] = crusher;
+			v[2] = head;
+			v[3] = feeders;
+			v[4] = weigher;
+			v[5] = sag;
+			v[6] = cluster;
+			v[7] = pump;
+			v[8] = ball;
+			v[9] = all;
+			v[10] = surge;
+		});
+		Runnable water = () -> server.runOnServer(srv -> {
+			((PlantBlockEntity) v[5]).addWater(100_000);
+			((PlantBlockEntity) v[7]).addWater(100_000);
+			((PlantBlockEntity) v[6]).out().give(dev.wildcatter.fluid.Product.FINES_SLURRY, Double.MAX_VALUE);
+		});
+		water.run();
+		server.runCommand("effect give @p minecraft:night_vision 600 0 true");
+		server.runCommand("tp @p " + (o.getX() + 30) + " " + (o.getY() + 38) + " " + (o.getZ() - 20) + " 44 23");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-p7-primary");
+		Filming film = film(context, world, "p7_line");
+		server.runOnServer(srv -> ((dev.wildcatter.tailings.entity.UltraHaulTruckEntity) v[0]).testDrive(new net.minecraft.world.entity.player.Input(false, false, false, false, true, false, false)));
+		context.waitTicks(10);
+		server.runOnServer(srv -> ((dev.wildcatter.tailings.entity.UltraHaulTruckEntity) v[0]).testDrive(net.minecraft.world.entity.player.Input.EMPTY));
+		String[] shots = {"tailings-p7-tipping", "tailings-p7-stockpile", "tailings-p7-reclaim", "tailings-p7-sag", "tailings-p7-sag-close"};
+		for (int t = 0; t < 90; t++) {
+			context.waitTicks(20);
+			water.run();
+			if (t == 18) {
+				context.takeScreenshot(shots[0]);
+				server.runCommand("tp @p " + (o.getX() + 34) + " " + (o.getY() + 22) + " " + (o.getZ() + 58) + " 53 19");
+			}
+			if (t == 38) {
+				context.takeScreenshot(shots[1]);
+				server.runCommand("tp @p " + (o.getX() + 8) + " " + (o.getY() + 2) + " " + (o.getZ() + 64) + " 0 8");
+			}
+			if (t == 52) {
+				context.takeScreenshot(shots[2]);
+				server.runCommand("tp @p " + (o.getX() + 36) + " " + (o.getY() + 24) + " " + (o.getZ() + sz - 12) + " 49 21");
+			}
+			if (t == 72) {
+				context.takeScreenshot(shots[3]);
+				server.runCommand("tp @p " + (o.getX() + 26) + " " + (o.getY() + 12) + " " + (o.getZ() + sz + 28) + " 120 15");
+			}
+			if (t % 10 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : (PlantBlockEntity[]) v[9]) {
+						System.out.println("[tailings-test] p7_line: " + part.inspect().getString());
+					}
+					System.out.println("[tailings-test] p7_line: " + ((PlantBlockEntity) v[4]).inspect().getString());
+					System.out.println("[tailings-test] p7_line: " + ((PlantBlockEntity) v[6]).inspect().getString());
+				});
+			}
+		}
+		context.takeScreenshot(shots[4]);
+		film.stop();
+		double[] got = server.computeOnServer(srv -> {
+			double drawn = 0;
+			for (PlantBlockEntity f : (PlantBlockEntity[]) v[3]) {
+				drawn += f.pit().drawnKg();
+			}
+			return new double[] {((PlantBlockEntity) v[10]).hold().total() + ((PlantBlockEntity) v[2]).pit().stackedKg(), ((PlantBlockEntity) v[2]).pit().dropped(), drawn,
+					((PlantBlockEntity) v[4]).pit().totalKg(), ((PlantBlockEntity) v[6]).pit().totalKg(), ((dev.wildcatter.tailings.entity.UltraHaulTruckEntity) v[0]).load().total()};
+		});
+		System.out.printf("[tailings-test] p7_line end: %.0f kg crushed, %.0f blocks stacked, %.0f kg reclaimed, %.0f kg weighed, %.0f kg classified, %.0f kg left in the truck%n",
+				got[0], got[1], got[2], got[3], got[4], got[5]);
+		require(got[5] < 1, "the ultra should tip its load into the gyratory's pocket");
+		require(got[0] > 20_000, "the gyratory should crush the load");
+		require(got[1] >= 1, "the stockpile head should drop blocks onto the pile");
+		require(got[2] > 10_000 && got[3] > 10_000, "the reclaim feeders should draw the pile past the weigher");
+		require(got[4] > 10_000, "the SAG line should classify its undersize");
+		heard("p7_line", "tailings:cone_crusher", "tailings:ball_mill");
 	}
 }
