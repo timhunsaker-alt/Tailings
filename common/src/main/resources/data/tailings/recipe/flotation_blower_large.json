@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BBB",
+    "BIB",
+    "BKB"
+  ],
+  "key": {
+    "B": "tailings:air_blower",
+    "I": "minecraft:iron_block",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:flotation_blower_large",
+    "count": 1
+  }
+}

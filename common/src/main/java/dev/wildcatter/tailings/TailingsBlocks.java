@@ -102,6 +102,11 @@ public final class TailingsBlocks {
 	public static final Block BALL_MILL_LARGE = plant(Machine.BALL_MILL_LARGE, MapColor.COLOR_GRAY);
 	public static final Block CYCLONE_FEED_PUMP = plant(Machine.CYCLONE_FEED_PUMP, MapColor.COLOR_BLUE);
 	public static final Block CYCLONE_CLUSTER_LARGE = plant(Machine.CYCLONE_CLUSTER_LARGE, MapColor.COLOR_ORANGE);
+	public static final Block CONDITIONING_TANK_LARGE = plant(Machine.CONDITIONING_TANK_LARGE, MapColor.COLOR_GRAY);
+	public static final Block TANK_CELL = plant(Machine.TANK_CELL, MapColor.COLOR_GRAY);
+	public static final Block COLUMN_CELL = plant(Machine.COLUMN_CELL, MapColor.COLOR_GRAY);
+	public static final Block FLOTATION_BLOWER_LARGE = plant(Machine.FLOTATION_BLOWER_LARGE, MapColor.COLOR_BLUE);
+	public static final Block TAILINGS_THICKENER_LARGE = plant(Machine.TAILINGS_THICKENER_LARGE, MapColor.STONE);
 	public static final Block FUEL_BAY = plant(Machine.FUEL_BAY, MapColor.COLOR_YELLOW);
 	public static final Block HAUL_DISPATCH = plant(Machine.HAUL_DISPATCH, MapColor.TERRACOTTA_WHITE);
 	public static final Block MATRIX_FILL_POINT = plant(Machine.MATRIX_FILL_POINT, MapColor.COLOR_ORANGE);
@@ -203,7 +208,8 @@ public final class TailingsBlocks {
 					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR,
 					DRAGLINE_HOUSE, DRAGLINE_SHOE, DRAGLINE_MAST, DRAGLINE_BOOM, DRAGLINE_BUCKET,
 					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER,
-					SAG_MILL, PEBBLE_CRUSHER, BALL_MILL_LARGE, CYCLONE_FEED_PUMP, CYCLONE_CLUSTER_LARGE));
+					SAG_MILL, PEBBLE_CRUSHER, BALL_MILL_LARGE, CYCLONE_FEED_PUMP, CYCLONE_CLUSTER_LARGE,
+					CONDITIONING_TANK_LARGE, TANK_CELL, COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -402,6 +408,11 @@ public final class TailingsBlocks {
 			case BALL_MILL_LARGE -> BALL_MILL_LARGE;
 			case CYCLONE_FEED_PUMP -> CYCLONE_FEED_PUMP;
 			case CYCLONE_CLUSTER_LARGE -> CYCLONE_CLUSTER_LARGE;
+			case CONDITIONING_TANK_LARGE -> CONDITIONING_TANK_LARGE;
+			case TANK_CELL -> TANK_CELL;
+			case COLUMN_CELL -> COLUMN_CELL;
+			case FLOTATION_BLOWER_LARGE -> FLOTATION_BLOWER_LARGE;
+			case TAILINGS_THICKENER_LARGE -> TAILINGS_THICKENER_LARGE;
 		};
 	}
 

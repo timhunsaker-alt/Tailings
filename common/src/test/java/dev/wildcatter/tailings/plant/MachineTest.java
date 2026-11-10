@@ -96,7 +96,12 @@ class MachineTest {
 			Map.entry(Machine.PEBBLE_CRUSHER, new int[] {4, 5, 4}),
 			Map.entry(Machine.BALL_MILL_LARGE, new int[] {9, 9, 16}),
 			Map.entry(Machine.CYCLONE_FEED_PUMP, new int[] {4, 4, 5}),
-			Map.entry(Machine.CYCLONE_CLUSTER_LARGE, new int[] {6, 6, 6}));
+			Map.entry(Machine.CYCLONE_CLUSTER_LARGE, new int[] {6, 6, 6}),
+			Map.entry(Machine.CONDITIONING_TANK_LARGE, new int[] {8, 9, 8}),
+			Map.entry(Machine.TANK_CELL, new int[] {7, 7, 7}),
+			Map.entry(Machine.COLUMN_CELL, new int[] {4, 14, 4}),
+			Map.entry(Machine.FLOTATION_BLOWER_LARGE, new int[] {4, 4, 6}),
+			Map.entry(Machine.TAILINGS_THICKENER_LARGE, new int[] {45, 6, 45}));
 
 	@Test
 	void everyPartIsItsSpecSize() {
@@ -126,5 +131,11 @@ class MachineTest {
 		assertEquals(Machine.Supply.MEDIUM, Machine.SAG_MILL.supply());
 		assertEquals(Machine.Supply.MEDIUM, Machine.BALL_MILL_LARGE.supply());
 		assertEquals(1, Machine.BALL_MILL.motors());
+		// pit flotation (pit-flotation.md, P7c): the blower on the medium-voltage tier, the rest on the industrial
+		assertEquals(160_000, Machine.TANK_CELL.watts());
+		assertEquals(400_000, Machine.FLOTATION_BLOWER_LARGE.watts());
+		assertEquals(Machine.Supply.MEDIUM, Machine.FLOTATION_BLOWER_LARGE.supply());
+		assertEquals(Machine.Supply.INDUSTRIAL, Machine.TANK_CELL.supply());
+		assertEquals(12_150, Machine.TAILINGS_THICKENER_LARGE.cells());
 	}
 }

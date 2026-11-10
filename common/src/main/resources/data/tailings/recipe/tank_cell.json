@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IBI",
+    "IKI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "tailings:flotation_bank",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:tank_cell",
+    "count": 1
+  }
+}

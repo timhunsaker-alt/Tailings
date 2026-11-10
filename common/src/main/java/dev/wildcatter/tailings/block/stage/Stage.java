@@ -88,6 +88,11 @@ public interface Stage {
 			case BALL_MILL_LARGE -> SagLineStages.BALL;
 			case CYCLONE_FEED_PUMP -> SagLineStages.PUMP;
 			case CYCLONE_CLUSTER_LARGE -> SagLineStages.CLUSTER;
+			case CONDITIONING_TANK_LARGE -> PitFlotationStages.CONDITIONER;
+			case TANK_CELL -> PitFlotationStages.CELL;
+			case COLUMN_CELL -> PitFlotationStages.COLUMN;
+			case FLOTATION_BLOWER_LARGE -> PitFlotationStages.BLOWER;
+			case TAILINGS_THICKENER_LARGE -> PitFlotationStages.THICKENER;
 			case ORE_BIN -> Belts.BIN;
 			case SPIRAL_BANK -> Gravity.SPIRALS;
 			case SCAVENGER_BANK -> FullRecovery.SCAVENGER;

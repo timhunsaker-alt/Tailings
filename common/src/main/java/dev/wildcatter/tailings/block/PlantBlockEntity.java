@@ -108,6 +108,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		} else if (machine() == Machine.SAG_MILL || machine() == Machine.BALL_MILL_LARGE) {
 			// the mill's weight on its bearings, over its rated charge (P7b)
 			out.add(new Point("WEIGHT 4-20 mA, RATED CHARGE", false, Signal.MA));
+		} else if (machine() == Machine.TANK_CELL || machine() == Machine.COLUMN_CELL) {
+			// the cell's air off the large blower's line (pit-flotation.md, P7c)
+			out.add(new Point("AIR 4-20 mA", false, Signal.MA));
+		} else if (machine() == Machine.TAILINGS_THICKENER_LARGE) {
+			// the rake's torque, rising as its bed backs up (P7c)
+			out.add(new Point("TORQUE 4-20 mA, RATED", false, Signal.MA));
 		} else if (machine() == Machine.RECLAIM_FEEDER) {
 			out.add(new Point(String.format("SPEED 4-20 mA, %.0f t/h", dev.wildcatter.tailings.plant.PitLine.RECLAIM_FEEDER_TPH), false, Signal.MA));
 		} else if (machine() == Machine.VENT_FAN) {
@@ -212,6 +218,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.BALL_MILL_LARGE && point == 6) {
 			return 4 + 16 * Math.min(1.03, back.held(Product.MILL_DISCHARGE) / (dev.wildcatter.tailings.plant.PitLine.SLURRY_HOLD_SECONDS * dev.wildcatter.tailings.plant.PitLine.BALL_MILL_TPH / 3.6));
 		}
+		if ((machine() == Machine.TANK_CELL || machine() == Machine.COLUMN_CELL) && point == 6) {
+			return dev.wildcatter.tailings.block.stage.PitFlotationStages.hasAir(this) ? 20 : 4;
+		}
+		if (machine() == Machine.TAILINGS_THICKENER_LARGE && point == 6) {
+			return 4 + 16 * dev.wildcatter.tailings.block.stage.PitFlotationStages.torque(this);
+		}
 		if (machine() == Machine.RECLAIM_FEEDER && point == 6) {
 			return dev.wildcatter.tailings.plant.PlcScale.ma(feederTph, 0, dev.wildcatter.tailings.plant.PitLine.RECLAIM_FEEDER_TPH);
 		}
@@ -246,7 +258,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** One of the pit line's parts, whose state is saved (P7). */
 	private boolean pitPart() {
 		return switch (machine()) {
-			case GYRATORY_CRUSHER, BELT_WEIGHER, STOCKPILE_HEAD, RECLAIM_FEEDER -> true;
+			case GYRATORY_CRUSHER, BELT_WEIGHER, STOCKPILE_HEAD, RECLAIM_FEEDER, TANK_CELL -> true;
 			default -> false;
 		};
 	}
@@ -1129,7 +1141,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	/** The parts that take reagents by hopper or hand. */
 	private boolean dosed() {
-		return machine() == Machine.CONDITIONER || machine() == Machine.ACTIVATION_TANK;
+		return machine() == Machine.CONDITIONER || machine() == Machine.ACTIVATION_TANK || machine() == Machine.CONDITIONING_TANK_LARGE;
 	}
 
 	public ReagentStock reagents() {
@@ -1417,6 +1429,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.STOCKPILE_HEAD) {
 			held.append(String.format("; %.0f t stacked in %d blocks", pit.stackedKg() / 1000, pit.dropped()));
 		}
+		if (machine() == Machine.TANK_CELL) {
+			held.append(String.format("; %.1f t of mineral floated; %s", pit.totalKg() / 1000, dev.wildcatter.tailings.block.stage.PitFlotationStages.hasAir(this) ? "air on" : "no air"));
+		}
+		if (machine() == Machine.COLUMN_CELL) {
+			held.append(dev.wildcatter.tailings.block.stage.PitFlotationStages.hasAir(this) ? "; air on" : "; no air");
+		}
+		if (machine() == Machine.TAILINGS_THICKENER_LARGE) {
+			held.append(String.format("; rake torque %.0f %%", dev.wildcatter.tailings.block.stage.PitFlotationStages.torque(this) * 100));
+		}
 		if (machine() == Machine.RECLAIM_FEEDER) {
 			held.append(String.format("; %.0f t/h now, %.0f t drawn", feederTph, pit.drawnKg() / 1000));
 		}
@@ -1697,7 +1718,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			return switch (machine()) {
 				case ORE_BIN -> binCount() < PlantRates.BIN_ITEMS;
-				case CONDITIONER, ACTIVATION_TANK, FILTER, ELECTROWINNING_BANK -> false;
+				case CONDITIONER, ACTIVATION_TANK, CONDITIONING_TANK_LARGE, FILTER, ELECTROWINNING_BANK -> false;
 				default -> accepts(charge.rock(), charge.size());
 			};
 		}

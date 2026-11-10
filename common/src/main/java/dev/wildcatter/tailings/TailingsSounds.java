@@ -73,6 +73,8 @@ public final class TailingsSounds {
 			case SAG_MILL, BALL_MILL_LARGE -> BALL_MILL;
 			case PEBBLE_CRUSHER -> CONE_CRUSHER;
 			case CYCLONE_FEED_PUMP -> WildcatterSounds.MOTOR_HUM;
+			case CONDITIONING_TANK_LARGE, TANK_CELL -> AGITATOR;
+			case COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
 	}
@@ -86,7 +88,8 @@ public final class TailingsSounds {
 			case SAG_MILL, BALL_MILL_LARGE -> 4F;
 			case PRIMARY_APRON_FEEDER -> 1.5F;
 			case HEAVY_CONVEYOR_DRIVE -> 1F;
-			case FLOTATION_BANK -> 1.2F;
+			case FLOTATION_BANK, TANK_CELL -> 1.2F;
+			case FLOTATION_BLOWER_LARGE -> 1.5F;
 			case SCREEN, APRON_FEEDER -> 1F;
 			case CONVEYOR_DRIVE, CONDITIONER, ACTIVATION_TANK -> 0.6F;
 			case THICKENER, TAILINGS_THICKENER -> 0.4F;

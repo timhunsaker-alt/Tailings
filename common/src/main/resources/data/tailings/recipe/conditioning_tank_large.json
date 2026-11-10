@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CIC",
+    "CKC"
+  ],
+  "key": {
+    "C": "tailings:conditioning_tank",
+    "I": "minecraft:iron_block",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:conditioning_tank_large",
+    "count": 1
+  }
+}

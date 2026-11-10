@@ -1,0 +1,145 @@
+{
+ "textures": {
+  "concrete": "wildcatter:block/mat/mat_concrete",
+  "dark": "wildcatter:block/mat/mat_oil_dark",
+  "galv": "wildcatter:block/mat/mat_galvanized",
+  "grating": "wildcatter:block/mat/mat_grating",
+  "hipaint": "wildcatter:block/mat/mat_hitemp_aluminium",
+  "blue": "wildcatter:block/mat/mat_paint_ansi70",
+  "grey": "wildcatter:block/mat/mat_paint_ansi61",
+  "rubber": "wildcatter:block/mat/mat_rubber",
+  "iron": "wildcatter:block/mat/mat_cast_iron",
+  "danger": "wildcatter:block/mat/decal_danger_hv",
+  "pipe_water": "wildcatter:block/mat/decal_pipe_water",
+  "particle": "wildcatter:block/mat/mat_concrete"
+ },
+ "elements": [
+  {
+   "from": [
+    0,
+    8.8,
+    0
+   ],
+   "to": [
+    16,
+    9.6,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      6.4,
+      16.0,
+      7.2
+     ]
+    },
+    "south": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      6.4,
+      16.0,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    },
+    "down": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    4.9138,
+    6.4,
+    -4.2921
+   ],
+   "to": [
+    9.7138,
+    14.4,
+    18.5042
+   ],
+   "faces": {
+    "north": {
+     "texture": "#galv",
+     "uv": [
+      6.2862,
+      1.6,
+      11.0862,
+      9.6
+     ]
+    },
+    "south": {
+     "texture": "#galv",
+     "uv": [
+      4.9138,
+      1.6,
+      9.7138,
+      9.6
+     ]
+    },
+    "west": {
+     "texture": "#galv",
+     "uv": [
+      0.0,
+      1.6,
+      16.0,
+      9.6
+     ]
+    },
+    "east": {
+     "texture": "#galv",
+     "uv": [
+      0.0,
+      1.6,
+      16.0,
+      9.6
+     ]
+    },
+    "up": {
+     "texture": "#galv",
+     "uv": [
+      4.9138,
+      0.0,
+      9.7138,
+      16.0
+     ]
+    },
+    "down": {
+     "texture": "#galv",
+     "uv": [
+      4.9138,
+      0.0,
+      9.7138,
+      16.0
+     ]
+    }
+   },
+   "rotation": {
+    "origin": [
+     7.3138,
+     10.4,
+     7.106
+    ],
+    "axis": "y",
+    "angle": -33.75
+   }
+  }
+ ]
+}

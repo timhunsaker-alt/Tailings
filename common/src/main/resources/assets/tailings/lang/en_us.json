@@ -391,5 +391,10 @@
   "block.tailings.pebble_crusher": "Pebble Crusher",
   "block.tailings.ball_mill_large": "Large Ball Mill",
   "block.tailings.cyclone_feed_pump": "Cyclone Feed Pump",
-  "block.tailings.cyclone_cluster_large": "Large Cyclone Cluster"
+  "block.tailings.cyclone_cluster_large": "Large Cyclone Cluster",
+  "block.tailings.conditioning_tank_large": "Large Conditioning Tank",
+  "block.tailings.tank_cell": "Tank Cell",
+  "block.tailings.column_cell": "Column Cell",
+  "block.tailings.flotation_blower_large": "Large Flotation Blower",
+  "block.tailings.tailings_thickener_large": "Large Tailings Thickener"
 }

@@ -1,0 +1,6 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "tailings:block/tank_cell/item"
+ }
+}

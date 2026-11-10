@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "TTT",
+    "TIT",
+    "TTT"
+  ],
+  "key": {
+    "T": "tailings:tailings_thickener",
+    "I": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "tailings:tailings_thickener_large",
+    "count": 1
+  }
+}

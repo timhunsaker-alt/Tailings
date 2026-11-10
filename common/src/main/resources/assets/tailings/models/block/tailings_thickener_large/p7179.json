@@ -1,0 +1,86 @@
+{
+ "textures": {
+  "concrete": "wildcatter:block/mat/mat_concrete",
+  "dark": "wildcatter:block/mat/mat_oil_dark",
+  "galv": "wildcatter:block/mat/mat_galvanized",
+  "grating": "wildcatter:block/mat/mat_grating",
+  "hipaint": "wildcatter:block/mat/mat_hitemp_aluminium",
+  "blue": "wildcatter:block/mat/mat_paint_ansi70",
+  "grey": "wildcatter:block/mat/mat_paint_ansi61",
+  "rubber": "wildcatter:block/mat/mat_rubber",
+  "iron": "wildcatter:block/mat/mat_cast_iron",
+  "danger": "wildcatter:block/mat/decal_danger_hv",
+  "pipe_water": "wildcatter:block/mat/decal_pipe_water",
+  "particle": "wildcatter:block/mat/mat_concrete"
+ },
+ "elements": [
+  {
+   "from": [
+    -3.7042,
+    9.6,
+    3.4843
+   ],
+   "to": [
+    12.2728,
+    16,
+    5.0843
+   ],
+   "faces": {
+    "west": {
+     "texture": "#galv",
+     "uv": [
+      3.4843,
+      0,
+      5.0843,
+      6.4
+     ]
+    },
+    "east": {
+     "texture": "#galv",
+     "uv": [
+      10.9157,
+      0,
+      12.5157,
+      6.4
+     ]
+    },
+    "north": {
+     "texture": "#galv",
+     "uv": [
+      0.023,
+      0,
+      16.0,
+      6.4
+     ]
+    },
+    "south": {
+     "texture": "#galv",
+     "uv": [
+      0.023,
+      0,
+      16.0,
+      6.4
+     ]
+    },
+    "down": {
+     "texture": "#galv",
+     "uv": [
+      0.023,
+      10.9157,
+      16.0,
+      12.5157
+     ]
+    }
+   },
+   "rotation": {
+    "origin": [
+     4.2843,
+     22.4,
+     4.2843
+    ],
+    "axis": "y",
+    "angle": 45.0
+   }
+  }
+ ]
+}

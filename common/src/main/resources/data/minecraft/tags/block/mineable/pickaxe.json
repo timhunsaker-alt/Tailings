@@ -117,6 +117,11 @@
     "tailings:pebble_crusher",
     "tailings:ball_mill_large",
     "tailings:cyclone_feed_pump",
-    "tailings:cyclone_cluster_large"
+    "tailings:cyclone_cluster_large",
+    "tailings:conditioning_tank_large",
+    "tailings:tank_cell",
+    "tailings:column_cell",
+    "tailings:flotation_blower_large",
+    "tailings:tailings_thickener_large"
   ]
 }

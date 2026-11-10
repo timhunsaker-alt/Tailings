@@ -28,7 +28,7 @@ _spec = importlib.util.spec_from_file_location("wildcatter_build", os.path.join(
 wildcatter_build = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(wildcatter_build)
 
-MODULES = ["crushing", "flotation", "gravity", "recovery", "dump", "rectifier", "belt", "tbm", "pit", "blast", "trains", "shaft", "vent", "paste", "drymill", "dms", "xrt", "dragline", "pitline", "sagline"]
+MODULES = ["crushing", "flotation", "gravity", "recovery", "dump", "rectifier", "belt", "tbm", "pit", "blast", "trains", "shaft", "vent", "paste", "drymill", "dms", "xrt", "dragline", "pitline", "sagline", "pitflotation"]
 
 
 def own_texture(ref):
@@ -67,13 +67,61 @@ def colours(model):
 		mlib.ASSETS = saved
 
 
+def export_sharing_empty(model, **args):
+	"""Exports a part whose empty pieces (no box of the drawing in their cell) all share one empty model, <part>/empty.json, in place
+	of a p<k>.json each; their blockstate variants name it and turn nothing. Wildcatter's mlib writes a model per cell, so its writer
+	is wrapped for this one export: the 45 m thickener (P7c) is 12,150 cells, most of them the air over its tank. Only a model that
+	sets share_empty = True is exported this way; every other model is written exactly as mlib writes it."""
+	folder = os.path.join(mlib.ASSETS, "models/block", model.name)
+	blockstate = os.path.join(mlib.ASSETS, "blockstates", model.name + ".json")
+	empty = set()
+	textures = {}
+	save = mlib._save
+
+	def sharing(path, obj):
+		name = os.path.basename(path)
+		if os.path.dirname(path) == folder and name.startswith("p") and name[1:-5].isdigit() and name.endswith(".json"):
+			textures.update(obj.get("textures", {}))
+			if not obj.get("elements"):
+				empty.add(int(name[1:-5]))
+				if os.path.exists(path):
+					os.remove(path)   # a piece model left by an earlier export
+				return
+		if path == blockstate and empty:
+			# an empty piece looks the same every way round: one variant names it for all four facings, and the file is written
+			# without indentation (it still holds four variants for each drawn piece)
+			variants = {}
+			for key, value in obj["variants"].items():
+				piece = int(key.split("piece=")[1])
+				if piece not in empty:
+					variants[key] = value
+				elif f"piece={piece}" not in variants:
+					variants[f"piece={piece}"] = {"model": f"{mlib.NS}:block/{model.name}/empty"}
+			save(os.path.join(folder, "empty.json"), {"textures": {"particle": textures["particle"]}, "elements": []})
+			with open(path, "w") as f:
+				json.dump({"variants": variants}, f, separators=(",", ":"))
+			return
+		save(path, obj)
+
+	mlib._save = sharing
+	try:
+		count = model.export(**args)
+	finally:
+		mlib._save = save
+	print(f"{model.name}: {len(empty)} empty pieces share {model.name}/empty")
+	return count
+
+
 def main(names):
 	previews = os.path.join(ROOT, "build/model-previews")
 	os.makedirs(previews, exist_ok=True)
 	for name in names or MODULES:
 		module = importlib.import_module(name)
 		for model in module.MODELS:
-			model.export(**getattr(model, "export_args", {}))
+			if getattr(model, "share_empty", False):
+				export_sharing_empty(model, **getattr(model, "export_args", {}))
+			else:
+				model.export(**getattr(model, "export_args", {}))
 			fix_textures(model.name)
 			model.preview(os.path.join(previews, model.name + ".png"), colours(model))
 		if hasattr(module, "after"):

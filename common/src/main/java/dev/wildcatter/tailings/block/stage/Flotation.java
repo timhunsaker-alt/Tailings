@@ -50,9 +50,14 @@ final class Flotation {
 
 	/** Draws {@code product} off the pipe at the inlet into the part's buffer, up to {@link #HOLD}. */
 	static void draw(PlantBlockEntity part, Product product) {
-		double room = HOLD - part.back().held(product);
+		draw(part, product, HOLD, FEED_PER_TICK);
+	}
+
+	/** As {@link #draw(PlantBlockEntity, Product)}, for a part of another rate: up to {@code hold}, four ticks of {@code perTick} at a time. */
+	static void draw(PlantBlockEntity part, Product product, double hold, double perTick) {
+		double room = hold - part.back().held(product);
 		if (room > 1e-6) {
-			Slurry.Taken got = Slurry.take(part.getLevel(), inlet(part), product, Math.min(room, 4 * FEED_PER_TICK), part);
+			Slurry.Taken got = Slurry.take(part.getLevel(), inlet(part), product, Math.min(room, 4 * perTick), part);
 			if (got.kg() > 0) {
 				part.back().offer(product, got.kg(), got.assay());
 				part.setChanged();

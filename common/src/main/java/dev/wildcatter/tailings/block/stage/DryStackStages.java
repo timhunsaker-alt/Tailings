@@ -72,48 +72,58 @@ final class DryStackStages {
 	}
 
 	/** The tailings thickener: tails slurry in at its north face, 60 % underflow at its south face, overflow water at its east. */
-	static final Stage THICKENER = new Stage() {
-		@Override
-		public @Nullable Product outlet(PlantBlockEntity part, int[] at, Direction localSide) {
-			return Flotation.backFace(part, at, localSide, -1) ? Product.TAILS_SLURRY : null;
-		}
+	static final Stage THICKENER = thickener(Flotation.FEED_PER_TICK, Flotation.HOLD, UNDERFLOW_HOLD, null);
 
-		@Override
-		public void tick(PlantBlockEntity part) {
-			returnWater(part);
-			Flotation.draw(part, Product.TAILS_SLURRY);
-			double waiting = part.back().held(Product.TAILS_SLURRY);
-			if (waiting < 1e-6) {
-				part.say("NO FEED");
-				return;
+	/**
+	 * A tailings thickener working {@code perTick} kg of tails slurry a tick at full power, drawing up to {@code feedHold} into its feed
+	 * well and holding up to {@code underflowHold} of underflow for the line out. The P4 thickener at the plant's rate; the pit line's
+	 * 45 m one (pit-flotation.md, P7c) at the line's, which also takes the row's marks off its tails ({@code tails}).
+	 */
+	static Stage thickener(double perTick, double feedHold, double underflowHold, java.util.function.@Nullable UnaryOperator<SlurryAssay> tails) {
+		return new Stage() {
+			@Override
+			public @Nullable Product outlet(PlantBlockEntity part, int[] at, Direction localSide) {
+				return Flotation.backFace(part, at, localSide, -1) ? Product.TAILS_SLURRY : null;
 			}
-			part.want();
-			if (!part.running()) {
-				part.say("waiting for its motor");
-				return;
-			}
-			SlurryAssay feed = part.back().assayOf(Product.TAILS_SLURRY);
-			double ratio = Math.min(1, solids(feed) / DryStack.UNDERFLOW_SOLIDS);
-			double room = Math.max(0, UNDERFLOW_HOLD - part.out().held(Product.TAILS_SLURRY));
-			double max = Math.min(Math.min(Flotation.FEED_PER_TICK * part.strength(), waiting), room / ratio);
-			if (max < 1e-6) {
-				part.say(Crushing.NOWHERE + " (thickened tails on the pipe at its south side)");
-				return;
-			}
-			Slurry.Taken taken = Flotation.use(part, Product.TAILS_SLURRY, max);
-			Map<String, Double> shares = new HashMap<>();
-			for (String id : taken.assay().minerals()) {
-				if (!id.equals(DryStack.SOLIDS_KEY)) {
-					shares.put(id, taken.assay().get(id) / ratio);
+
+			@Override
+			public void tick(PlantBlockEntity part) {
+				returnWater(part);
+				Flotation.draw(part, Product.TAILS_SLURRY, feedHold, perTick);
+				double waiting = part.back().held(Product.TAILS_SLURRY);
+				if (waiting < 1e-6) {
+					part.say("NO FEED");
+					return;
 				}
+				part.want();
+				if (!part.running()) {
+					part.say("waiting for its motor");
+					return;
+				}
+				SlurryAssay feed = part.back().assayOf(Product.TAILS_SLURRY);
+				double ratio = Math.min(1, solids(feed) / DryStack.UNDERFLOW_SOLIDS);
+				double room = Math.max(0, underflowHold - part.out().held(Product.TAILS_SLURRY));
+				double max = Math.min(Math.min(perTick * part.strength(), waiting), room / ratio);
+				if (max < 1e-6) {
+					part.say(Crushing.NOWHERE + " (thickened tails on the pipe at its south side)");
+					return;
+				}
+				Slurry.Taken taken = Flotation.use(part, Product.TAILS_SLURRY, max);
+				SlurryAssay in = tails == null ? taken.assay() : tails.apply(taken.assay());
+				Map<String, Double> shares = new HashMap<>();
+				for (String id : in.minerals()) {
+					if (!id.equals(DryStack.SOLIDS_KEY)) {
+						shares.put(id, in.get(id) / ratio);
+					}
+				}
+				shares.put(DryStack.SOLIDS_KEY, DryStack.UNDERFLOW_SOLIDS);
+				part.out().offer(Product.TAILS_SLURRY, taken.kg() * ratio, SlurryAssay.of(shares));
+				part.overflow(taken.kg() * (1 - ratio));   // the overflow: the water the underflow no longer carries
+				part.say("thickening");
+				part.setChanged();
 			}
-			shares.put(DryStack.SOLIDS_KEY, DryStack.UNDERFLOW_SOLIDS);
-			part.out().offer(Product.TAILS_SLURRY, taken.kg() * ratio, SlurryAssay.of(shares));
-			part.overflow(taken.kg() * (1 - ratio));   // the overflow: the water the underflow no longer carries
-			part.say("thickening");
-			part.setChanged();
-		}
-	};
+		};
+	}
 
 	/** The press's cycle in ticks, for a part (a game test runs it faster). */
 	static double cycleTicks(PlantBlockEntity part) {

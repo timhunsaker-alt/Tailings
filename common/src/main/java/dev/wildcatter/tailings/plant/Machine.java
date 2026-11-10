@@ -173,7 +173,17 @@ public enum Machine {
 	/** The cyclone feed sump and its 600 kW slurry pump, about 1 m³/s at 25 m head (P7b, proposed). */
 	CYCLONE_FEED_PUMP("cyclone_feed_pump", "Cyclone Feed Pump", 4, 4, 5, 600_000, Supply.MEDIUM),
 	/** Twelve 660 mm hydrocyclones on a ring manifold, ten running, cut at 150 µm; the pump drives them (P7b, proposed). */
-	CYCLONE_CLUSTER_LARGE("cyclone_cluster_large", "Large Cyclone Cluster", 6, 6, 6, 0, Supply.NONE);
+	CYCLONE_CLUSTER_LARGE("cyclone_cluster_large", "Large Cyclone Cluster", 6, 6, 6, 0, Supply.NONE),
+	/** An 8 m agitated tank, about 6 minutes of the pit line's fines slurry, 90 kW; reagents by hopper, dosed per tonne as the small tank (pit-flotation.md, P7c, proposed). */
+	CONDITIONING_TANK_LARGE("conditioning_tank_large", "Large Conditioning Tank", 8, 9, 8, 90_000, Supply.INDUSTRIAL),
+	/** One 160 m³ forced-air tank cell, about 6.5 m across, its own 160 kW mechanism (P7c, unverified): a row of them joined by pipe. */
+	TANK_CELL("tank_cell", "Tank Cell", 7, 7, 7, 160_000, Supply.INDUSTRIAL),
+	/** A 4 m x 14 m column cleaner with its sparger and wash water; 15 kW for its tails pump (P7c, proposed). */
+	COLUMN_CELL("column_cell", "Column Cell", 4, 14, 4, 15_000, Supply.INDUSTRIAL),
+	/** A multistage centrifugal blower for the row's air, 400 kW at the medium-voltage tier (P7c, proposed). */
+	FLOTATION_BLOWER_LARGE("flotation_blower_large", "Large Flotation Blower", 4, 4, 6, 400_000, Supply.MEDIUM),
+	/** A 45 m high-rate thickener on the pit line's tails, its 55 kW rake drive (P7c, proposed: 24,000 t/day at about 0.07 m² a t/day). */
+	TAILINGS_THICKENER_LARGE("tailings_thickener_large", "Large Tailings Thickener", 45, 6, 45, 55_000, Supply.INDUSTRIAL);
 
 	/** Motors on the part: the two pinions of the big mills' twin-pinion drives, one for every other part. */
 	public int motors() {
