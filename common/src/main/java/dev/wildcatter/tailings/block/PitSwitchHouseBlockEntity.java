@@ -267,9 +267,17 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 
 	/** Test hook: an ideal medium-voltage supply on its incoming side, as if the pit's loop reached it. */
 	public void forceSupply(boolean on) {
+		forceSupply(on, 0.01);
+	}
+
+	/** Test hook: the same supply behind {@code ohms} a phase (a weak feed, for LOW VOLTAGE). */
+	public void forceSupply(boolean on, double ohms) {
 		forceSupply = on;
+		supplyOhms = ohms;
 		CircuitManager.markDirty(level);
 	}
+
+	private double supplyOhms = 0.01;
 
 	// ---- where its couplers are -------------------------------------------------------------------------------------------------
 
@@ -371,7 +379,7 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 			for (int k = 0; k < 3; k++) {
 				int internal = circuit.node();
 				circuit.source(internal, neutral, phase, dev.wildcatter.circuit.ThreePhaseSource.DEGREES[k]);
-				circuit.resistor(internal, line[k], 0.01);
+				circuit.resistor(internal, line[k], supplyOhms);
 			}
 		}
 		for (Outlet o : outlets) {

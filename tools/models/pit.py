@@ -13,6 +13,12 @@
 - pit_switch_house, 3 x 3 x 6 (P5a): a skid-mounted steel house: the medium-voltage cable entry on its north end, four breaker
   cubicles down its east side, each with its door, meter and arc-flash label, and on its south end four trailing-cable couplers,
   each under its ground-check relay box; lifting eyes at its corners and tow eyes on its skids, as a dozer drags it round the pit.
+- the electric rope shovel's six parts (P5d), drawn as they stand built: shovel_crawlers, 14 x 3 x 12 (two crawlers and the car body
+  with the roller circle and swing rack); shovel_house, 12 x 9 x 15 (the revolving frame, the machinery house with its louvres, the cab
+  at its front left corner, the boom foot's brackets and the counterweight); shovel_gantry, 6 x 6 x 3 (the A-frame and its head);
+  and laid on the ground ahead, as a boom is before it is raised, shovel_boom, 3 x 3 x 20 (two box chords, the point sheaves at its
+  north end and the saddle block), shovel_handle, 2 x 2 x 14 (the tubular handle and its rack), shovel_dipper, 5 x 5 x 5 (the dipper,
+  its teeth to the north and its door).
 """
 import tlib
 from tlib import model, motor_box, stepped
@@ -197,4 +203,67 @@ for x in (0.1, 2.75):
 		SH.box((x, 2.95, z), (x + 0.15, 3.0, z + 0.15), "steel")            # lifting eyes
 SH.collide((0.0, 0.0, 0.0), (3.0, 2.95, 6.0))
 
-MODELS = [W, H, F, D, TT, TF, LF, LB, SH]
+# ---- the electric rope shovel's parts (P5d) -----------------------------------------------------------------------------------------
+SC = model("shovel_crawlers", 14, 3, 12, "steel")
+for x0 in (0.0, 9.5):
+	SC.box((x0, 0.0, 0.3), (x0 + 4.5, 0.4, 11.7), "rubber")                # the crawler shoes' lower run
+	SC.box((x0 + 0.3, 0.4, 0.8), (x0 + 4.2, 2.2, 11.2), "steel")           # the crawler frame
+	SC.box((x0, 2.2, 0.3), (x0 + 4.5, 2.6, 11.7), "rubber")                # its upper run
+	SC.box((x0 + 0.2, 0.5, 0.0), (x0 + 4.3, 2.5, 1.2), "iron")             # the idler at the front
+	SC.box((x0 + 0.2, 0.5, 10.8), (x0 + 4.3, 2.5, 12.0), "iron")           # the drive tumbler at the rear
+SC.box((4.5, 0.8, 3.0), (9.5, 2.6, 9.0), "steel")                          # the car body between them
+SC.box((2.5, 2.6, 1.5), (11.5, 2.95, 10.5), "galv")                        # the roller circle and swing rack under the house
+SC.decal((5.0, 1.2, 2.99), (9.0, 2.2, 3.0), "nameplate", "north", "steel")
+SC.collide((0.0, 0.0, 0.3), (14.0, 2.95, 11.7))
+
+SHO = model("shovel_house", 12, 9, 15, "grey")
+SHO.box((0.0, 0.0, 0.0), (12.0, 0.8, 15.0), "steel")                       # the revolving frame
+SHO.box((0.3, 0.8, 2.5), (11.7, 7.5, 14.3), "grey")                        # the machinery house: hoist, crowd and swing drives, transformer
+SHO.box((0.1, 7.5, 2.3), (11.9, 7.8, 14.5), "galv")                        # its roof
+for z in (4.0, 7.0, 10.0):
+	SHO.decal((-0.01, 4.0, z), (0.0, 6.5, z + 2.0), "louvre", "west", "grey")
+	SHO.decal((12.0, 4.0, z), (12.01, 6.5, z + 2.0), "louvre", "east", "grey")
+SHO.box((0.3, 0.8, 0.0), (3.5, 3.5, 2.5), "steel")                         # the cab's stand at the front left corner
+SHO.box((0.3, 3.5, 0.0), (3.5, 6.8, 2.5), "hipaint")                       # the cab
+SHO.decal((0.6, 4.5, -0.01), (3.2, 6.4, 0.0), "gauge", "north", "hipaint")
+SHO.box((4.5, 0.8, 0.0), (7.5, 2.6, 1.2), "steel")                         # the boom foot's brackets
+SHO.box((0.5, 0.8, 14.3), (11.5, 4.5, 15.0), "dark")                       # the counterweight box at the rear
+SHO.box((8.0, 7.8, 9.0), (10.5, 8.8, 12.0), "radfin")                      # the transformer's cooler on the roof
+SHO.collide((0.0, 0.0, 0.0), (12.0, 7.8, 15.0))
+
+SG = model("shovel_gantry", 6, 6, 3, "steel")
+for x in (0.0, 5.4):
+	SG.box((x, 0.0, 0.0), (x + 0.6, 6.0, 0.6), "hipaint")                  # the front legs
+	SG.box((x, 0.0, 2.4), (x + 0.6, 4.5, 3.0), "hipaint")                  # the back struts
+	SG.box((x, 4.5, 1.2), (x + 0.6, 5.4, 3.0), "hipaint")
+SG.box((0.0, 5.4, 0.0), (6.0, 6.0, 1.8), "hipaint")                        # the head
+SG.box((1.0, 5.0, 0.6), (5.0, 5.4, 1.2), "iron")                           # the suspension ropes' equaliser
+SG.collide((0.0, 0.0, 0.0), (6.0, 6.0, 3.0))
+
+SB = model("shovel_boom", 3, 3, 20, "steel")
+for x in (0.2, 2.0):
+	SB.box((x, 0.3, 1.5), (x + 0.8, 2.7, 20.0), "hipaint")                 # the two box chords
+for z in range(3, 20, 3):
+	SB.box((1.0, 1.0, z), (2.0, 1.6, z + 0.4), "hipaint")                  # the cross bracing
+SB.box((0.3, 0.2, 0.0), (2.7, 2.8, 1.5), "iron")                           # the point sheaves at its north end
+SB.box((0.4, 0.3, 10.5), (2.6, 2.9, 12.0), "steel")                        # the saddle block the handle runs through
+SB.collide((0.0, 0.0, 0.0), (3.0, 2.9, 20.0))
+
+SHA = model("shovel_handle", 2, 2, 14, "steel")
+SHA.box((0.2, 0.2, 0.0), (1.8, 1.8, 14.0), "hipaint")                      # the tubular handle
+for z in range(1, 14, 2):
+	SHA.box((0.6, 1.8, z), (1.4, 1.95, z + 1.0), "iron")                   # its crowd rack
+SHA.collide((0.0, 0.0, 0.0), (2.0, 2.0, 14.0))
+
+SDI = model("shovel_dipper", 5, 5, 5, "steel")
+SDI.box((0.2, 0.3, 0.5), (4.8, 0.6, 4.6), "steel")                         # the door, under it
+SDI.box((0.2, 0.6, 0.5), (0.5, 4.6, 4.6), "steel")                         # the sides
+SDI.box((4.5, 0.6, 0.5), (4.8, 4.6, 4.6), "steel")
+SDI.box((0.5, 0.6, 4.3), (4.5, 4.6, 4.6), "steel")                         # the back, where the handle joins
+SDI.box((0.2, 0.3, 0.0), (4.8, 0.9, 0.5), "iron")                          # the lip
+for x in (0.5, 1.5, 2.5, 3.5, 4.3):
+	SDI.box((x, 0.3, -0.0), (x + 0.3, 0.7, 0.3), "dark")                   # the teeth
+SDI.box((1.8, 3.6, 4.6), (3.2, 4.8, 5.0), "hipaint")                       # the handle's padlock
+SDI.collide((0.0, 0.0, 0.0), (5.0, 4.8, 5.0))
+
+MODELS = [W, H, F, D, TT, TF, LF, LB, SH, SC, SHO, SG, SB, SHA, SDI]

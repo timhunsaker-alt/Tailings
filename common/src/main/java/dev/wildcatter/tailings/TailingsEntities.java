@@ -80,6 +80,12 @@ public final class TailingsEntities {
 			.clientTrackingRange(16)
 			.updateInterval(1)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("hydraulic_shovel")));
+	public static final EntityType<dev.wildcatter.tailings.entity.RopeShovelEntity> ROPE_SHOVEL = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.RopeShovelEntity>of(dev.wildcatter.tailings.entity.RopeShovelEntity::new, MobCategory.MISC)
+			.sized(14.4F, 21.0F)
+			.clientTrackingRange(20)
+			.updateInterval(1)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("rope_shovel")));
 	public static final EntityType<dev.wildcatter.tailings.entity.TrackDozerEntity> TRACK_DOZER = EntityType.Builder
 			.<dev.wildcatter.tailings.entity.TrackDozerEntity>of(dev.wildcatter.tailings.entity.TrackDozerEntity::new, MobCategory.MISC)
 			.sized(4.9F, 4.6F)
@@ -123,6 +129,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("track_dozer"), TRACK_DOZER);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("ultra_haul_truck"), ULTRA_HAUL_TRUCK);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("hydraulic_shovel"), HYDRAULIC_SHOVEL);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("rope_shovel"), ROPE_SHOVEL);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

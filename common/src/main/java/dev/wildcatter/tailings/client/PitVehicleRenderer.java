@@ -27,6 +27,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	private static final Identifier DOZER_TEXTURE = Tailings.id("textures/entity/track_dozer.png");
 	private static final Identifier ULTRA_TEXTURE = Tailings.id("textures/entity/ultra_haul_truck.png");
 	private static final Identifier HYD_TEXTURE = Tailings.id("textures/entity/hydraulic_shovel.png");
+	private static final Identifier ROPE_TEXTURE = Tailings.id("textures/entity/rope_shovel.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
@@ -35,6 +36,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	private final TrackDozerModel dozer;
 	private final UltraHaulTruckModel ultra;
 	private final HydraulicShovelModel hydraulic;
+	private final RopeShovelModel rope;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -45,6 +47,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		dozer = new TrackDozerModel(context.bakeLayer(TrackDozerModel.LAYER));
 		ultra = new UltraHaulTruckModel(context.bakeLayer(UltraHaulTruckModel.LAYER));
 		hydraulic = new HydraulicShovelModel(context.bakeLayer(HydraulicShovelModel.LAYER));
+		rope = new RopeShovelModel(context.bakeLayer(RopeShovelModel.LAYER));
 	}
 
 	@Override
@@ -63,7 +66,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
-		state.kind = entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
+		state.kind = entity instanceof dev.wildcatter.tailings.entity.RopeShovelEntity ? 7 : entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
 				: entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity ? 4 : state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
@@ -71,6 +74,42 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.roll = entity.rolled(partialTick);
 		state.swing = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.swing() : 0;
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
+		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : NO_CABLE;
+	}
+
+	/**
+	 * The rope shovel's ropes, from the entity, as pairs of points: two hoist ropes from the boom's point sheaves down to the dipper's
+	 * bail, and two suspension ropes from the gantry's head to the boom point (open-pit-p5-big-machines.md, P5d).
+	 */
+	private static float[] ropes(float yaw, float swing, float lift) {
+		double up = RopeShovelModel.BOOM_ANGLE, a = RopeShovelModel.handleAngle(lift);
+		double[] foot = {0, 5.0, -6.5}, saddle = {0, 11.36, -12.86};
+		double[] point = {0, foot[1] + 20.8 * Math.sin(up), foot[2] - 20.8 * Math.cos(up)};
+		double d = 14.2, h = 2.2;
+		double[] bail = {0, saddle[1] + h * Math.cos(a) - d * Math.sin(a), saddle[2] - d * Math.cos(a) - h * Math.sin(a)};
+		double[] head = {0, 16.5, -3.1};
+		float[] out = new float[24];
+		int n = 0;
+		for (double side : new double[] {-0.6, 0.6}) {
+			n = put(out, n, yaw, swing, side, point[1], point[2]);
+			n = put(out, n, yaw, swing, side, bail[1], bail[2]);
+		}
+		for (double side : new double[] {-0.9, 0.9}) {
+			n = put(out, n, yaw, swing, side * 2.8, head[1], head[2]);
+			n = put(out, n, yaw, swing, side, point[1], point[2]);
+		}
+		return java.util.Arrays.copyOf(out, n);
+	}
+
+	/** A point of the machine (x to its right, y up, z back, from its centre on the ground), its house swung, from the entity. */
+	private static int put(float[] out, int n, float yaw, float swing, double x, double y, double z) {
+		double s = Math.toRadians(swing), r = Math.toRadians(yaw);
+		double xs = x * Math.cos(s) - z * Math.sin(s), zs = x * Math.sin(s) + z * Math.cos(s);
+		double rx = -Math.cos(r), rz = -Math.sin(r), ax = -Math.sin(r), az = Math.cos(r);
+		out[n] = (float) (xs * rx - zs * ax);
+		out[n + 1] = (float) y;
+		out[n + 2] = (float) (xs * rz - zs * az);
+		return n + 3;
 	}
 
 	private static final float[] NO_CABLE = new float[0];
@@ -128,6 +167,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 4 -> dozer;
 			case 5 -> ultra;
 			case 6 -> hydraulic;
+			case 7 -> rope;
 			default -> loader;
 		};
 		Identifier texture = switch (state.kind) {
@@ -137,10 +177,23 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 4 -> DOZER_TEXTURE;
 			case 5 -> ULTRA_TEXTURE;
 			case 6 -> HYD_TEXTURE;
+			case 7 -> ROPE_TEXTURE;
 			default -> LOADER_TEXTURE;
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		pose.popPose();
+		float[] r = state.ropes;
+		if (r.length >= 6) {
+			net.minecraft.client.renderer.texture.TextureAtlasSprite steel = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
+					.getAtlasOrThrow(net.minecraft.data.AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/gray_concrete"));
+			int light = state.lightCoords;
+			collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS),
+					(at, v) -> {
+						for (int i = 0; i + 5 < r.length; i += 6) {
+							GantryRenderer.rod(at, v, steel, r[i], r[i + 1], r[i + 2], r[i + 3], r[i + 4], r[i + 5], 0.09f, light);
+						}
+					});
+		}
 		float[] p = state.cable;
 		if (p.length >= 6) {
 			net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
@@ -158,7 +211,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
-		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel. */
+		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel, 7 the rope shovel. */
 		public int kind;
 		public boolean loaded;
 		public float lift;
@@ -169,5 +222,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float swing;
 		/** Its trailing cable's points from it, x y z in turn; empty with none. */
 		public float[] cable = NO_CABLE;
+		/** The rope shovel's ropes, pairs of points from it; empty for any other machine. */
+		public float[] ropes = NO_CABLE;
 	}
 }

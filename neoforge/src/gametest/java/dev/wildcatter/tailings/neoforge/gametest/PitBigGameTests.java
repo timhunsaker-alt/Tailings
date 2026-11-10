@@ -14,7 +14,10 @@ import dev.wildcatter.tailings.TailingsItems;
 import dev.wildcatter.tailings.block.DumpBlockEntity;
 import dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity;
 import dev.wildcatter.tailings.block.MuckBlockEntity;
+import dev.wildcatter.tailings.block.RopeShovelBlockEntity;
 import dev.wildcatter.tailings.entity.HydraulicShovelEntity;
+import dev.wildcatter.tailings.entity.RopeShovelEntity;
+import dev.wildcatter.tailings.pit.RopeShovelLayout;
 import dev.wildcatter.tailings.entity.UltraHaulTruckEntity;
 import dev.wildcatter.tailings.entity.WheelLoaderEntity;
 import dev.wildcatter.tailings.pit.StopKind;
@@ -37,11 +40,13 @@ import net.minecraft.world.item.ItemStack;
  * ultra truck (P5b), the hydraulic front shovel (P5c) and the electric rope shovel (P5d).
  */
 final class PitBigGameTests {
-	static final String[] SCENES = {"pit_switch_house", "pit_cable_end", "pit_ultra_haul", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric"};
-	static final Map<String, Integer> TICKS = Map.of("pit_switch_house", 1200, "pit_cable_end", 1600, "pit_ultra_haul", 7200, "pit_ultra_loader", 400,
-			"pit_hyd_shovel", 2400, "pit_hyd_electric", 1200);
+	static final String[] SCENES = {"pit_switch_house", "pit_cable_end", "pit_ultra_haul", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric",
+			"pit_rope_shovel_built", "pit_rope_shovel", "pit_low_voltage"};
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_low_voltage", 1200), Map.entry("pit_switch_house", 1200), Map.entry("pit_cable_end", 1600),
+			Map.entry("pit_ultra_haul", 7200), Map.entry("pit_ultra_loader", 400), Map.entry("pit_hyd_shovel", 2400), Map.entry("pit_hyd_electric", 1200),
+			Map.entry("pit_rope_shovel_built", 400), Map.entry("pit_rope_shovel", 3000));
 	static final Map<String, Integer> PADDING = Map.of("pit_switch_house", 60, "pit_cable_end", 60, "pit_ultra_haul", 200, "pit_ultra_loader", 60,
-			"pit_hyd_shovel", 80, "pit_hyd_electric", 60);
+			"pit_hyd_shovel", 80, "pit_hyd_electric", 60, "pit_rope_shovel_built", 80, "pit_rope_shovel", 120);
 	private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
 
 	private PitBigGameTests() {
@@ -49,8 +54,9 @@ final class PitBigGameTests {
 
 	static int[] reach(String scene) {
 		return switch (scene) {
-			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric" -> new int[] {-1, 4, -1, 4};
+			case "pit_switch_house", "pit_cable_end", "pit_ultra_loader", "pit_hyd_shovel", "pit_hyd_electric", "pit_low_voltage" -> new int[] {-1, 4, -1, 4};
 			case "pit_ultra_haul" -> new int[] {-3, 4, -1, 11};
+			case "pit_rope_shovel_built", "pit_rope_shovel" -> new int[] {-1, 5, -1, 6};
 			default -> new int[] {-1, 2, -1, 2};
 		};
 	}
@@ -338,6 +344,135 @@ final class PitBigGameTests {
 					helper.assertTrue(shovel.fuel() == 500, Component.literal("no diesel burnt"));
 					helper.assertTrue(shovel.demand() <= 860_000 + 1, Component.literal("within its 860 kW"));
 				})
+				.thenSucceed();
+	}
+
+	// ---- P5d: the electric rope shovel --------------------------------------------------------------------------------------------
+
+	/** The rope shovel's parts, facing north, its crawlers' main cell at {@code at}, all but {@code leaveOut}. */
+	static RopeShovelBlockEntity ropeShovel(GameTestHelper helper, BlockPos at, RopeShovelLayout.Part leaveOut) {
+		for (RopeShovelLayout.Part part : RopeShovelLayout.Part.values()) {
+			if (part != leaveOut) {
+				int[] o = part.offset();
+				part(helper, TailingsBlocks.plantBlock(part.machine()), at.offset(o[0], o[1], o[2]), null);
+			}
+		}
+		return helper.getBlockEntity(at, RopeShovelBlockEntity.class);
+	}
+
+	/** Built without its boom it reads NOT BUILT naming the boom; with it, NO CABLE until a trailing cable reaches it. */
+	static void ropeShovelBuilt(GameTestHelper helper) {
+		floor(helper, 0, 50, 1, 1, 0, 70);
+		BlockPos at = new BlockPos(20, 2, 40);
+		RopeShovelBlockEntity crawlers = ropeShovel(helper, at, RopeShovelLayout.Part.BOOM);
+		String said = crawlers.run(helper.getLevel());
+		helper.assertTrue(said.startsWith("NOT BUILT") && said.contains("Shovel Boom"), Component.literal("it should name the missing boom: " + said));
+		int[] o = RopeShovelLayout.Part.BOOM.offset();
+		part(helper, TailingsBlocks.SHOVEL_BOOM, at.offset(o[0], o[1], o[2]), null);
+		helper.assertTrue(crawlers.check() == null, Component.literal("built: " + crawlers.check()));
+		said = crawlers.run(helper.getLevel());
+		helper.assertTrue(said.startsWith("NO CABLE"), Component.literal("no cable, no lift: " + said));
+		helper.assertTrue(helper.getLevel().getEntitiesOfClass(RopeShovelEntity.class, new net.minecraft.world.phys.AABB(helper.absolutePos(at)).inflate(40)).isEmpty(),
+				Component.literal("it stays as its parts"));
+		helper.succeed();
+	}
+
+	/**
+	 * Built and on a cable from a switch house, RUN lifts the rope shovel into one machine; in AUTO it fills an ultra on its right in 4
+	 * passes from the muck face (3 x 99.9 t and a part dipper last), the outlet carrying its 3.5 MW hoist and 0.6 MW the rest of each
+	 * cycle; STOP sets its parts back down, its cable still on.
+	 */
+	static void ropeShovelLoads(GameTestHelper helper) {
+		floor(helper, 0, 75, 1, 1, 0, 90);
+		BlockPos at = new BlockPos(20, 2, 40);
+		RopeShovelBlockEntity crawlers = ropeShovel(helper, at, null);
+		PitSwitchHouseBlockEntity house = house(helper, new BlockPos(62, 2, 75));
+		ItemStack reel = new ItemStack(TailingsItems.TRAILING_CABLE);
+		TrailingCableItem.pickUp(reel, house);
+		long[] from = TrailingCableItem.from(reel);
+		String why = crawlers.couple(helper.getLevel(), BlockPos.of(from[0]), (int) from[1]);
+		helper.assertTrue(why == null, Component.literal("the crawlers should take the cable: " + why));
+		UUID name = crawlers.machine();
+		UltraHaulTruckEntity truck = vehicle(helper, TailingsEntities.ULTRA_HAUL_TRUCK, 50.0, 2, 46.0, 180);
+		RopeShovelEntity[] shovel = new RopeShovelEntity[1];
+		double[] most = {0}, rest = {0};
+		helper.onEachTick(() -> {
+			if (shovel[0] != null && house.state(0) == PitSwitchHouseBlockEntity.State.CLOSED) {
+				most[0] = Math.max(most[0], house.watts(0));
+				if (shovel[0].busy() && !shovel[0].digging() && house.watts(0) > 1000) {
+					rest[0] = house.watts(0);
+				}
+			}
+		});
+		helper.startSequence()
+				.thenIdle(3)
+				.thenExecute(() -> {
+					helper.assertTrue(house.close(0) == null, Component.literal("its outlet should close on the standing machine's cable"));
+					String said = crawlers.run(helper.getLevel());
+					helper.assertTrue(said.startsWith("lifted"), Component.literal("RUN should lift it: " + said));
+					var found = helper.getLevel().getEntity(name);
+					helper.assertTrue(found instanceof RopeShovelEntity, Component.literal("one machine, by the crawlers' name: " + found));
+					shovel[0] = (RopeShovelEntity) found;
+					helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(at)).isAir(), Component.literal("its parts' cells are air"));
+					// the face, where the boom lay: 10 wide, 4 deep in front of its crawlers
+					muck(helper, 22, 31, 2, 14, 35, 38);
+					shovel[0].fastPasses(4);
+					shovel[0].setAutoHere();
+				})
+				.thenWaitUntil(() -> helper.assertTrue(truck.load().total() > 300_000 && shovel[0].loadingTruck() == null,
+						Component.literal("it should fill the ultra: " + shovel[0].status() + "; truck " + truck.load().tonnes())))
+				.thenExecute(() -> {
+					System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_rope_shovel: %s after %d passes; outlet peak %.0f kW, the rest of the cycle %.0f kW%n",
+							truck.load().tonnes(), shovel[0].passes(), most[0] / 1000, rest[0] / 1000);
+					helper.assertTrue(shovel[0].passes() == 4, Component.literal("4 passes fill an ultra: " + shovel[0].passes()));
+					helper.assertTrue(truck.load().room() < 50_000, Component.literal("the ultra full: " + truck.load().tonnes()));
+					helper.assertTrue(Math.abs(most[0] - 3_500_000) < 350_000, Component.literal("the hoist's 3.5 MW on its cable: " + most[0]));
+					helper.assertTrue(Math.abs(rest[0] - 600_000) < 100_000, Component.literal("0.6 MW the rest of its cycle: " + rest[0]));
+					shovel[0].setAuto(helper.getLevel(), List.of());
+				})
+				.thenWaitUntil(() -> helper.assertTrue(!shovel[0].busy(), Component.literal("its pass done")))
+				.thenExecute(() -> {
+					// its boom, handle and dipper are laid down ahead of it: that ground must be clear, so the face's last muck goes
+					for (int x = 22; x <= 31; x++) {
+						for (int y = 2; y <= 14; y++) {
+							for (int z = 35; z <= 38; z++) {
+								helper.setBlock(x, y, z, net.minecraft.world.level.block.Blocks.AIR);
+							}
+						}
+					}
+					String said = shovel[0].stopAndSetDown(helper.getLevel());
+					helper.assertTrue(said.startsWith("set down"), Component.literal("STOP should set it down: " + said));
+					RopeShovelBlockEntity back = helper.getBlockEntity(at, RopeShovelBlockEntity.class);
+					helper.assertTrue(back.check() == null && back.cable() != null && back.machine().equals(name),
+							Component.literal("its parts back where they were, its cable on: " + back.status()));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * A switch house on a weak feed (5 ohms a phase behind it): an electric drill drilling draws its volts down under 90 % and stops,
+	 * LOW VOLTAGE; its drives stay stopped 10 s before they try again.
+	 */
+	static void lowVoltage(GameTestHelper helper) {
+		floor(helper, 0, 40, 1, 1, 0, 40);
+		PitSwitchHouseBlockEntity house = house(helper, new BlockPos(4, 2, 4));
+		house.forceSupply(true, 5.0);
+		BlastholeDrillEntity drill = electricDrill(helper, 20.5, 2, 26.5, 0);
+		String why = couple(helper, house, drill);
+		helper.assertTrue(why == null, Component.literal("the drill should couple: " + why));
+		helper.startSequence()
+				.thenIdle(5)
+				.thenExecute(() -> helper.assertTrue(house.close(0) == null, Component.literal("outlet 1 should close")))
+				.thenWaitUntil(() -> helper.assertTrue(drill.cable().live(), Component.literal("standing, its volts are good: " + drill.powerInfo())))
+				.thenExecute(() -> drill.pressJump(helper.getLevel()))
+				.thenWaitUntil(() -> helper.assertTrue(drill.status().startsWith("LOW VOLTAGE"), Component.literal("drilling pulls the weak feed under 90 %: " + drill.status()
+						+ "; " + house.inspect().getString())))
+				.thenExecute(() -> {
+					System.out.println("[tailings-test] pit_low_voltage: " + drill.status());
+					helper.assertTrue(!drill.cable().live() && drill.demand() == 0, Component.literal("its drives stopped"));
+				})
+				.thenIdle(40)
+				.thenExecute(() -> helper.assertTrue(!drill.cable().live(), Component.literal("and stay stopped a while: " + drill.powerInfo())))
 				.thenSucceed();
 	}
 }

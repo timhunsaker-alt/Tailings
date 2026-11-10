@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "TCT",
+    "SSS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:iron_block",
+    "C": "tailings:track_dozer"
+  },
+  "result": {
+    "id": "tailings:shovel_crawlers",
+    "count": 1
+  }
+}

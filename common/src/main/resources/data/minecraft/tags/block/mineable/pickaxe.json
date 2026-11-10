@@ -64,6 +64,12 @@
     "tailings:tailings_filter",
     "tailings:loadout_frame",
     "tailings:loadout_bin",
-    "tailings:pit_switch_house"
+    "tailings:pit_switch_house",
+    "tailings:shovel_crawlers",
+    "tailings:shovel_house",
+    "tailings:shovel_gantry",
+    "tailings:shovel_boom",
+    "tailings:shovel_handle",
+    "tailings:shovel_dipper"
   ]
 }

@@ -125,6 +125,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_dry_stack")) {
 				pitDryStack(context, world, server);
 			}
+			if (only("pit_big")) {
+				pitBig(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -1645,5 +1648,109 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 				}
 			}
 		}
+	}
+
+	/**
+	 * The open pit's P5 (open-pit-p5-big-machines.md), the spec's film: a rope shovel built from its six parts on a bench, its trailing
+	 * cable from a pit switch house; RUN lifts it into one machine; in AUTO it digs the muck face and loads an ultra truck on its right
+	 * in four passes, swinging to it and back; loaded, the ultra drives off.
+	 */
+	private void pitBig(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(700, y + 8, 1400).offset(0, -59, 0);   // b + (x, 60, z) is the bench's floor
+		Object[] v = new Object[3];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -12; x <= 82; x++) {
+				for (int z = -12; z <= 92; z++) {
+					for (int yy = 50; yy <= 90; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= 59 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			BlockPos at = b.offset(20, 60, 40);
+			for (dev.wildcatter.tailings.pit.RopeShovelLayout.Part p : dev.wildcatter.tailings.pit.RopeShovelLayout.Part.values()) {
+				int[] o = p.offset();
+				part(level, TailingsBlocks.plantBlock(p.machine()), at.offset(o[0], o[1], o[2]));
+			}
+			part(level, TailingsBlocks.PIT_SWITCH_HOUSE, b.offset(62, 60, 75));
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) level.getBlockEntity(b.offset(62, 60, 75));
+			house.forceSupply(true);
+			ItemStack reel = new ItemStack(dev.wildcatter.tailings.TailingsItems.TRAILING_CABLE);
+			dev.wildcatter.tailings.item.TrailingCableItem.pickUp(reel, house);
+			long[] from = dev.wildcatter.tailings.item.TrailingCableItem.from(reel);
+			var crawlers = (dev.wildcatter.tailings.block.RopeShovelBlockEntity) level.getBlockEntity(at);
+			System.out.println("[tailings-test] pit_big: cable " + crawlers.couple(level, BlockPos.of(from[0]), (int) from[1]));
+			v[0] = house;
+			v[1] = crawlers;
+			var truck = dev.wildcatter.tailings.TailingsEntities.ULTRA_HAUL_TRUCK.create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+			truck.setPos(b.getX() + 50.0, b.getY() + 60, b.getZ() + 46.0);
+			truck.setYRot(180);
+			truck.setFuel(truck.tank());
+			level.addFreshEntity(truck);
+			v[2] = truck;
+		});
+		server.runCommand("tp @p " + (b.getX() + 70) + " " + (b.getY() + 84) + " " + (b.getZ() + 88) + " 145 28");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-pit-big-parts");
+		Filming film = film(context, world, "pit_big");
+		java.util.UUID[] ids = new java.util.UUID[2];
+		ids[0] = server.computeOnServer(srv -> {
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) v[0];
+			System.out.println("[tailings-test] pit_big: outlet " + house.close(0));
+			var crawlers = (dev.wildcatter.tailings.block.RopeShovelBlockEntity) v[1];
+			java.util.UUID name = crawlers.machine();
+			System.out.println("[tailings-test] pit_big: " + crawlers.run(srv.overworld()));
+			for (int x = 22; x <= 31; x++) {
+				for (int z = 35; z <= 38; z++) {
+					for (int yy = 60; yy <= 72; yy++) {
+						BlockPos p = b.offset(x, yy, z);
+						srv.overworld().setBlock(p, TailingsBlocks.MUCK.defaultBlockState(), Block.UPDATE_ALL);
+						((dev.wildcatter.tailings.block.MuckBlockEntity) srv.overworld().getBlockEntity(p)).set(java.util.Map.of("minecraft:cobblestone", 3));
+					}
+				}
+			}
+			if (srv.overworld().getEntity(name) instanceof dev.wildcatter.tailings.entity.RopeShovelEntity shovel) {
+				shovel.fastPasses(2);
+				shovel.setAutoHere();
+			}
+			return name;
+		});
+		ids[1] = server.computeOnServer(srv -> ((net.minecraft.world.entity.Entity) v[2]).getUUID());
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-big-lifted");
+		for (int t = 0; t < 240; t++) {
+			context.waitTicks(10);
+			String said = server.computeOnServer(srv -> srv.overworld().getEntity(ids[0]) instanceof dev.wildcatter.tailings.entity.RopeShovelEntity shovel
+					? shovel.passes() + " passes; " + shovel.status() : "gone");
+			if (t % 20 == 0) {
+				System.out.println("[tailings-test] pit_big: " + said);
+			}
+			if (t == 12) {
+				context.takeScreenshot("tailings-pit-big-digging");
+			}
+			if (t == 22) {
+				server.runCommand("tp @p " + (b.getX() + 40) + " " + (b.getY() + 78) + " " + (b.getZ() + 78) + " 165 30");
+			}
+			if (t == 30) {
+				context.takeScreenshot("tailings-pit-big-dumping");
+			}
+			if (said.startsWith("4 passes") && server.computeOnServer(srv -> srv.overworld().getEntity(ids[1]) instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity tr
+					&& tr.load().room() < 50_000)) {
+				break;
+			}
+		}
+		String loaded = server.computeOnServer(srv -> srv.overworld().getEntity(ids[1]) instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity tr ? tr.load().tonnes() : "gone");
+		System.out.println("[tailings-test] pit_big: the ultra holds " + loaded);
+		context.takeScreenshot("tailings-pit-big-loaded");
+		server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(ids[1]) instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity tr) {
+				tr.testDrive(new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false));
+			}
+		});
+		context.waitTicks(160);
+		context.takeScreenshot("tailings-pit-big-away");
+		film.stop();
+		require(loaded.startsWith("362") || loaded.startsWith("363"), "the rope shovel should fill the ultra: " + loaded);
+		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_load");
 	}
 }

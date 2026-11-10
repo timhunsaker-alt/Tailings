@@ -191,6 +191,53 @@ HYD_WHEELS = [
 ]
 
 
+# The 4100-class electric rope shovel, lifted and running (open-pit-p5-big-machines.md, P5d): two crawlers 14 m across and 12 m long
+# under the car body; the house (12 x 15 m, the cab at its front left, the gantry on its roof) swings on the roller circle; the 20 m boom
+# stands at 45 degrees from its foot; the dipper handle runs through the saddle block on the boom and is hoisted up and down with the
+# dipper on its end. The hoist and suspension ropes are drawn by the renderer, as lines.
+ROPE_HOUSE = (0.0, 3.0, 0.0)
+ROPE_BOOM = (0.0, 5.0, -6.5)
+ROPE_SADDLE = (0.0, 11.36, -12.86)
+ROPE = [
+	("crawler_l", None, (-7.0, -2.5), (0.4, 2.2), (-5.5, 5.5), DARK, "plate"),
+	("crawler_r", None, (2.5, 7.0), (0.4, 2.2), (-5.5, 5.5), DARK, "plate"),
+	("shoes_top_l", None, (-7.0, -2.5), (2.2, 2.6), (-5.7, 5.7), BLACK, "tread"),
+	("shoes_top_r", None, (2.5, 7.0), (2.2, 2.6), (-5.7, 5.7), BLACK, "tread"),
+	("shoes_low_l", None, (-7.0, -2.5), (0.0, 0.4), (-5.7, 5.7), BLACK, "tread"),
+	("shoes_low_r", None, (2.5, 7.0), (0.0, 0.4), (-5.7, 5.7), BLACK, "tread"),
+	("carbody", None, (-2.5, 2.5), (0.8, 2.6), (-3.0, 3.0), DARK, "plate"),
+	("roller_circle", None, (-4.5, 4.5), (2.6, 3.0), (-4.5, 4.5), STEEL, "flat"),
+	("frame", "house", (-6.0, 6.0), (3.0, 3.8), (-7.0, 8.0), DARK, "plate"),
+	("machinery", "house", (-5.7, 5.7), (3.8, 10.5), (-4.5, 7.3), YELLOW, "louvres"),
+	("roof", "house", (-5.9, 5.9), (10.5, 10.8), (-4.7, 7.5), DARK, "plate"),
+	("counterweight", "house", (-5.5, 5.5), (3.8, 7.5), (7.3, 8.0), DARK, "hazard"),
+	("cab_stand", "house", (-5.7, -2.5), (3.8, 6.5), (-7.0, -4.5), DARK, "plate"),
+	("cab", "house", (-5.7, -2.5), (6.5, 9.8), (-7.0, -4.5), YELLOW, "cab"),
+	("foot_brackets", "house", (-1.5, 1.5), (3.8, 5.6), (-7.0, -5.8), DARK, "plate"),
+	("gantry_leg_l", "house", (-3.0, -2.4), (10.8, 16.8), (-4.0, -3.4), YELLOW, "plate"),
+	("gantry_leg_r", "house", (2.4, 3.0), (10.8, 16.8), (-4.0, -3.4), YELLOW, "plate"),
+	("gantry_strut_l", "house", (-3.0, -2.4), (10.8, 15.3), (-1.6, -1.0), YELLOW, "plate"),
+	("gantry_strut_r", "house", (2.4, 3.0), (10.8, 15.3), (-1.6, -1.0), YELLOW, "plate"),
+	("gantry_head", "house", (-3.0, 3.0), (16.2, 16.8), (-4.0, -2.2), YELLOW, "plate"),
+	("chord_l", "boom", (-1.3, -0.5), (3.8, 6.2), (-26.5, -6.5), YELLOW, "plate"),
+	("chord_r", "boom", (0.5, 1.3), (3.8, 6.2), (-26.5, -6.5), YELLOW, "plate"),
+	("bracing", "boom", (-0.5, 0.5), (4.6, 5.4), (-26.5, -6.5), DARK, "ribs"),
+	("point_sheaves", "boom", (-1.2, 1.2), (3.7, 6.3), (-28.0, -26.5), STEEL, "flat"),
+	("saddle", "dipper", (-1.4, 1.4), (10.3, 12.4), (-13.6, -12.1), DARK, "plate"),
+	("handle", "dipper", (-0.8, 0.8), (10.86, 11.86), (-24.9, -10.9), YELLOW, "plate"),
+	("dipper", "dipper", (-2.3, 2.3), (9.0, 13.5), (-29.4, -24.9), STEEL, "plate"),
+	("teeth", "dipper", (-2.2, 2.2), (8.6, 9.0), (-29.6, -28.8), DARK, "flat"),
+	("dipper_load", "dipper", (-2.0, 2.0), (12.5, 13.6), (-29.1, -25.2), ROCK, "rock"),
+]
+
+ROPE_WHEELS = [
+	("idler_l", (-7.0, -2.5), 1.0, -5.5, 1.0, -1),
+	("idler_r", (2.5, 7.0), 1.0, -5.5, 1.0, 1),
+	("tumbler_l", (-7.0, -2.5), 1.0, 5.5, 1.0, -1),
+	("tumbler_r", (2.5, 7.0), 1.0, 5.5, 1.0, 1),
+]
+
+
 def disc(radius_px):
 	"""A disc's pixel rows about its axle: (the row's top, its half-length) for each row, as round as whole pixels allow."""
 	rows = []
@@ -234,7 +281,7 @@ def px(v):
 	return int(round(v * 16))
 
 
-def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET):
+def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET, extra=""):
 	"""groups: names hung from the one hinge, or (name, hinge, parent) for a group with its own hinge, hung from its parent group
 	(listed before it); a group's boxes are given in the machine's frame as any other."""
 	SHEET = sheet
@@ -364,7 +411,7 @@ public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 		return LayerDefinition.create(mesh, {SHEET}, {SHEET});
 	}}
 
-	/** Set when the frame is drawn, from this machine's own state. */
+{extra}	/** Set when the frame is drawn, from this machine's own state. */
 	@Override
 	public void setupAnim(PitVehicleRenderer.PitState state) {{
 		super.setupAnim(state);
@@ -387,6 +434,8 @@ def main(names):
 		ultra()
 	if not names or "hydraulic_shovel" in names:
 		hydraulic()
+	if not names or "rope_shovel" in names:
+		rope()
 	if not names or "wheel_loader" in names:
 		loader()
 	if not names or "track_dozer" in names:
@@ -399,6 +448,25 @@ def dozer():
 		"\t\tModelPart blade = root().getChild(BLADE);\n"
 		"\t\tblade.y += (0.5F - state.lift) * 24F;   // CUT a block lower than CARRY, RAISED a block and a half higher\n"
 		"\t\tblade.getChild(\"blade_load\").visible = state.loaded;", DOZER_WHEELS)
+
+
+def rope():
+	paint(ROPE, "rope_shovel", ROPE_HOUSE, "RopeShovelModel",
+		"The 4100-class electric rope shovel at its real size: crawlers 14 x 12 m, the house 12 x 15 m swinging on them, the 20 m boom at 45"
+		+ " degrees and the dipper on its handle, hoisted up and down.",
+		[("house", ROPE_HOUSE, None), ("boom", ROPE_BOOM, "house"), ("dipper", ROPE_SADDLE, "house")],
+		"\t\tModelPart house = root().getChild(HOUSE);\n"
+		"\t\thouse.yRot = (float) Math.toRadians(state.swing);   // plus swings its front to its right\n"
+		"\t\thouse.getChild(BOOM).xRot = -BOOM_ANGLE;   // the boom stands at 45 degrees\n"
+		"\t\tModelPart dipper = house.getChild(DIPPER);\n"
+		"\t\tdipper.xRot = handleAngle(state.lift);\n"
+		"\t\tdipper.getChild(\"dipper_load\").visible = state.loaded;", ROPE_WHEELS, 2048,
+		"\t/** The boom's angle up from level, radians. */\n"
+		"\tpublic static final float BOOM_ANGLE = (float) Math.toRadians(45);\n\n"
+		"\t/** The dipper handle's angle down from level, radians, for the hoist from 0 (in the face) to 1 (up over a truck). */\n"
+		"\tpublic static float handleAngle(float lift) {\n"
+		"\t\treturn 0.7F - lift * 0.75F;\n"
+		"\t}\n\n")
 
 
 def hydraulic():

@@ -63,7 +63,22 @@ public enum Machine {
 	 * The pit switch house (open-pit-p5-big-machines.md, P5a): a skid house on the pit's medium-voltage loop, 3 x 3 x 6, the medium
 	 * voltage in on its north face and four breaker outlets for trailing cables on its south. It is no motor: its machines' draw is theirs.
 	 */
-	PIT_SWITCH_HOUSE("pit_switch_house", "Pit Switch House", 3, 3, 6, 0, Supply.NONE);
+	PIT_SWITCH_HOUSE("pit_switch_house", "Pit Switch House", 3, 3, 6, 0, Supply.NONE),
+	/**
+	 * The electric rope shovel's six parts (open-pit-p5-big-machines.md, P5d), built as the dragline will be and lifted into one machine
+	 * when it runs. Its power is its trailing cable's, not a motor box: the crawlers' main cell holds its reel and its panel.
+	 */
+	SHOVEL_CRAWLERS("shovel_crawlers", "Shovel Crawlers", 14, 3, 12, 0, Supply.NONE),
+	/** The revolving frame and machinery house: the hoist, crowd and swing motors on their drives, the transformer, the cab. */
+	SHOVEL_HOUSE("shovel_house", "Shovel House", 12, 9, 15, 0, Supply.NONE),
+	/** The A-frame gantry on the house that holds the boom's suspension ropes. */
+	SHOVEL_GANTRY("shovel_gantry", "Shovel Gantry", 6, 6, 3, 0, Supply.NONE),
+	/** The 20 m boom, laid on the ground ahead of the house until the machine runs. */
+	SHOVEL_BOOM("shovel_boom", "Shovel Boom", 3, 3, 20, 0, Supply.NONE),
+	/** The dipper handle, crowded in and out through the boom's saddle block. */
+	SHOVEL_HANDLE("shovel_handle", "Shovel Dipper Handle", 2, 2, 14, 0, Supply.NONE),
+	/** The 55 m³ dipper with its door and teeth. */
+	SHOVEL_DIPPER("shovel_dipper", "Shovel Dipper", 5, 5, 5, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

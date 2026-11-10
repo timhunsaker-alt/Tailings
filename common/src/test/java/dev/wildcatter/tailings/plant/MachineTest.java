@@ -47,7 +47,13 @@ class MachineTest {
 			Map.entry(Machine.TAILINGS_FILTER, new int[] {6, 6, 24}),
 			Map.entry(Machine.LOADOUT_FRAME, new int[] {12, 10, 12}),
 			Map.entry(Machine.LOADOUT_BIN, new int[] {10, 7, 10}),
-			Map.entry(Machine.PIT_SWITCH_HOUSE, new int[] {3, 3, 6}));
+			Map.entry(Machine.PIT_SWITCH_HOUSE, new int[] {3, 3, 6}),
+			Map.entry(Machine.SHOVEL_CRAWLERS, new int[] {14, 3, 12}),
+			Map.entry(Machine.SHOVEL_HOUSE, new int[] {12, 9, 15}),
+			Map.entry(Machine.SHOVEL_GANTRY, new int[] {6, 6, 3}),
+			Map.entry(Machine.SHOVEL_BOOM, new int[] {3, 3, 20}),
+			Map.entry(Machine.SHOVEL_HANDLE, new int[] {2, 2, 14}),
+			Map.entry(Machine.SHOVEL_DIPPER, new int[] {5, 5, 5}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

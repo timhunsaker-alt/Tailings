@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S S",
+    "SSS",
+    "S S"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot"
+  },
+  "result": {
+    "id": "tailings:shovel_gantry",
+    "count": 1
+  }
+}

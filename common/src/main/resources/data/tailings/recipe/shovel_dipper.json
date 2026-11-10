@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S S",
+    "S S",
+    "TTT"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "T": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "tailings:shovel_dipper",
+    "count": 1
+  }
+}

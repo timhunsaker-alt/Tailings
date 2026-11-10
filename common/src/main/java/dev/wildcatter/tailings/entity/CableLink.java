@@ -31,6 +31,9 @@ public final class CableLink {
 	private double volts;
 	private String why = "";
 	private boolean end;
+	/** After LOW VOLTAGE its drives stay stopped this long before they try again (proposed: 10 s). */
+	public static final int LOW_VOLTAGE_HOLD = 200;
+	private long lowUntil = Long.MIN_VALUE;
 
 	public CableLink(BlockPos house, int outlet, double metres, double paid) {
 		this.house = house.immutable();
@@ -131,11 +134,17 @@ public final class CableLink {
 			return;
 		}
 		h.report(outlet, machine, demandWatts, peakWatts, metres, paid);
-		live = h.live(outlet);
+		long now = level.getGameTime();
 		volts = h.volts(outlet);
-		why = live ? "" : h.noPower(outlet);
-		if (why.isEmpty() && !live) {
-			why = String.format(Locale.ROOT, "LOW VOLTAGE: %.0f of %.0f V", volts, Voltage.MEDIUM.lineToLine());
+		String said = h.noPower(outlet);
+		if (said.startsWith("LOW VOLTAGE")) {
+			// its drives trip on undervoltage and stay stopped a while before trying again, rather than hunting on the cable's drop
+			lowUntil = now + LOW_VOLTAGE_HOLD;
+			why = String.format(Locale.ROOT, "LOW VOLTAGE: %.0f of %.0f V at the machine", volts, Voltage.MEDIUM.lineToLine());
+		}
+		live = h.live(outlet) && now >= lowUntil;
+		if (!live && !said.isEmpty()) {
+			why = said.startsWith("LOW VOLTAGE") ? why : said;
 		}
 	}
 

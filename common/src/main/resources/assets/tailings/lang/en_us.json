@@ -321,5 +321,12 @@
   "item.tailings.ultra_haul_truck": "Ultra Haul Truck",
   "entity.tailings.ultra_haul_truck": "Ultra Haul Truck",
   "item.tailings.hydraulic_shovel": "Hydraulic Shovel",
-  "entity.tailings.hydraulic_shovel": "Hydraulic Shovel"
+  "entity.tailings.hydraulic_shovel": "Hydraulic Shovel",
+  "entity.tailings.rope_shovel": "Rope Shovel",
+  "block.tailings.shovel_crawlers": "Shovel Crawlers",
+  "block.tailings.shovel_house": "Shovel House",
+  "block.tailings.shovel_gantry": "Shovel Gantry",
+  "block.tailings.shovel_boom": "Shovel Boom",
+  "block.tailings.shovel_handle": "Shovel Dipper Handle",
+  "block.tailings.shovel_dipper": "Shovel Dipper"
 }

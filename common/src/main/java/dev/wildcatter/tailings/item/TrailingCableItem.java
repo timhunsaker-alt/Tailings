@@ -37,6 +37,22 @@ public class TrailingCableItem extends Item {
 			return InteractionResult.PASS;
 		}
 		BlockPos main = PlantMachineBlock.mainOf(context.getClickedPos(), state);
+		if (context.getLevel().getBlockEntity(main) instanceof dev.wildcatter.tailings.block.RopeShovelBlockEntity crawlers) {
+			// the rope shovel standing as its parts: its reel is in the crawlers
+			if (context.getLevel() instanceof ServerLevel server && context.getPlayer() != null) {
+				long[] from = from(context.getItemInHand());
+				String why = crawlers.cable() == null && from == null ? "click a pit switch house first, to take one of its outlets"
+						: crawlers.couple(server, from == null ? BlockPos.ZERO : BlockPos.of(from[0]), from == null ? 0 : (int) from[1]);
+				if (why == null) {
+					context.getItemInHand().remove(DataComponents.CUSTOM_DATA);
+					if (!context.getPlayer().getAbilities().instabuild) {
+						context.getItemInHand().shrink(1);
+					}
+				}
+				context.getPlayer().sendOverlayMessage(Component.literal("Rope Shovel: " + (why == null ? crawlers.cable().describe() : why)));
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (!(context.getLevel().getBlockEntity(main) instanceof PitSwitchHouseBlockEntity house)) {
 			return InteractionResult.PASS;
 		}

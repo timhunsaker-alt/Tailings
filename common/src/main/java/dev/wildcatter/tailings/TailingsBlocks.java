@@ -96,6 +96,12 @@ public final class TailingsBlocks {
 	public static final Block LOADOUT_FRAME = plant(Machine.LOADOUT_FRAME, MapColor.COLOR_GRAY);
 	public static final Block LOADOUT_BIN = plant(Machine.LOADOUT_BIN, MapColor.METAL);
 	public static final Block PIT_SWITCH_HOUSE = plant(Machine.PIT_SWITCH_HOUSE, MapColor.COLOR_GRAY);
+	public static final Block SHOVEL_CRAWLERS = plant(Machine.SHOVEL_CRAWLERS, MapColor.COLOR_GRAY);
+	public static final Block SHOVEL_HOUSE = plant(Machine.SHOVEL_HOUSE, MapColor.COLOR_YELLOW);
+	public static final Block SHOVEL_GANTRY = plant(Machine.SHOVEL_GANTRY, MapColor.COLOR_YELLOW);
+	public static final Block SHOVEL_BOOM = plant(Machine.SHOVEL_BOOM, MapColor.COLOR_YELLOW);
+	public static final Block SHOVEL_HANDLE = plant(Machine.SHOVEL_HANDLE, MapColor.COLOR_YELLOW);
+	public static final Block SHOVEL_DIPPER = plant(Machine.SHOVEL_DIPPER, MapColor.METAL);
 	/** The tailings filter's cake as a placed block (open-pit-p4-dry-stack.md): 1 m³ at 1.8 t, falling like sand. */
 	public static final Block DRY_TAILS = block("dry_tails", props -> new net.minecraft.world.level.block.ColoredFallingBlock(new net.minecraft.util.ColorRGBA(0x9a8f7f),
 			props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).strength(0.6F).sound(SoundType.SAND)));
@@ -104,6 +110,7 @@ public final class TailingsBlocks {
 			.strength(0.5F, 1.0F).sound(SoundType.WOOD).noCollision().noOcclusion()));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.FuelBayBlockEntity> FUEL_BAY_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FuelBayBlockEntity::new, Set.of(FUEL_BAY));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.HaulDispatchBlockEntity> HAUL_DISPATCH_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.HaulDispatchBlockEntity::new, Set.of(HAUL_DISPATCH));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.RopeShovelBlockEntity> ROPE_SHOVEL_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.RopeShovelBlockEntity::new, Set.of(SHOVEL_CRAWLERS));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity> PIT_SWITCH_HOUSE_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity::new, Set.of(PIT_SWITCH_HOUSE));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.MatrixFillPointBlockEntity> MATRIX_FILL_POINT_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MatrixFillPointBlockEntity::new, Set.of(MATRIX_FILL_POINT));
 	/** A blasthole (open-pit-p3-blasting.md): stone-hard, each block remembering the rock it replaced; it drops that rock, not itself. */
@@ -121,7 +128,8 @@ public final class TailingsBlocks {
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
-					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN));
+					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
+					SHOVEL_HOUSE, SHOVEL_GANTRY, SHOVEL_BOOM, SHOVEL_HANDLE, SHOVEL_DIPPER));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -214,6 +222,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("matrix_fill_point"), MATRIX_FILL_POINT_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("pit_switch_house"), PIT_SWITCH_HOUSE_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("shovel_crawlers"), ROPE_SHOVEL_ENTITY);
 		add("blasthole", BLASTHOLE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasthole"), BLASTHOLE_ENTITY);
 		add("blasting_machine", BLASTING_MACHINE);
@@ -260,6 +269,12 @@ public final class TailingsBlocks {
 			case LOADOUT_FRAME -> LOADOUT_FRAME;
 			case LOADOUT_BIN -> LOADOUT_BIN;
 			case PIT_SWITCH_HOUSE -> PIT_SWITCH_HOUSE;
+			case SHOVEL_CRAWLERS -> SHOVEL_CRAWLERS;
+			case SHOVEL_HOUSE -> SHOVEL_HOUSE;
+			case SHOVEL_GANTRY -> SHOVEL_GANTRY;
+			case SHOVEL_BOOM -> SHOVEL_BOOM;
+			case SHOVEL_HANDLE -> SHOVEL_HANDLE;
+			case SHOVEL_DIPPER -> SHOVEL_DIPPER;
 		};
 	}
 

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "  S",
+    "CS ",
+    "SC "
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "C": "minecraft:iron_bars"
+  },
+  "result": {
+    "id": "tailings:shovel_boom",
+    "count": 1
+  }
+}

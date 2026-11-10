@@ -197,3 +197,67 @@ best recommendation while Tim was away. Nothing here is final until he has been 
   their own hinges, hung from other groups. Its item icon is `hydraulic_shovel_placeholder`.
 - **Why:** the same tool as the other pit machines; the nested groups let the front ride the swinging house.
 - **Alternatives:** a contraption of parts (P5-4's alternative).
+
+## P5d: the electric rope shovel
+
+### 27. How the six parts are laid out to build
+- **Chosen:** the crawlers and the house stand as they work (the house on the crawlers, its rear overhanging); the gantry on the house's
+  roof; the boom, the dipper handle and the dipper lie on the ground ahead, the boom's foot at the house's front (`pit.RopeShovelLayout`).
+  All six face the same way; the check reads each part's main cell where it should be and names the first one missing.
+- **Why:** the spec's parts are a 3 x 3 x 20 boom and a 2 x 2 x 14 handle, which only fit their cells lying down; a real boom is laid out
+  on the ground and raised by the gantry's ropes.
+- **Alternatives:** parts at their working angle (a 20 m boom at 45 degrees is 14 x 14 cells, not the spec's 3 x 3 x 20).
+
+### 28. Lifting it into one machine, and drawing it
+- **Chosen:** RUN on the crawlers' panel checks the parts and the cable, then the parts' cells go to air, quietly, and one
+  `RopeShovelEntity` stands in their place, at the crawlers' centre, with the crawlers' name (its outlet keeps knowing it) and its cable.
+  It is drawn with its own model (`RopeShovelModel`, the vehicle generator in Ludo's materials): the crawlers, the house that swings, the
+  boom raised at 45 degrees, the handle and dipper hoisted with each pass; the hoist and suspension ropes are drawn as lines. STOP sets
+  the parts back down as blocks where it stands, square to the nearest way, if every cell is free (the ground ahead must be clear for the
+  boom, handle and dipper, as for building); the new crawlers take its name and cable.
+- **Why:** the spec ("started, it lifts into one entity ... stopped, it sets down if the cells are free"); drawing the lifted machine with
+  one model rather than its 2,600 cells' block models keeps it cheap to draw and lets the boom stand up.
+- **Alternatives:** draw each cell's own model (as the TBM does; heavy at this size, and the boom would stay lying down).
+
+### 29. Its power by its cycle
+- **Chosen:** on its cable it draws the hoist's 3.5 MW while it digs (12 s of each 35 s cycle) and 0.6 MW the rest of the time it works
+  (swinging, dumping, tramming, standing in AUTO); 1.59 MW on average. It has no diesel. `pit_rope_shovel` reads 3,500 kW and 600 kW on its
+  outlet.
+- **Why:** the spec's figures (proposed), on the solver so the cable's drop and the breaker see them.
+- **Alternatives:** a steady 1.5 MW (no hoist peak for the breaker to see).
+
+### 30. LOW VOLTAGE holds for 10 s
+- **Chosen:** under 90 % at its end of the cable an electric machine's drives stop, and stay stopped 10 s (proposed) before they try
+  again.
+- **Why:** with the drives stopped the drop goes and the volts come back, so without a hold the machine would hunt on and off every
+  solve; real drives trip on undervoltage and restart after a delay.
+- **Alternatives:** latch until the operator restarts it (a machine in AUTO would sit stopped).
+
+### 31. Its figures not in the spec
+- **Chosen:** its face is 10 wide, 15 high and 4 deep from the front of its crawlers (spec); it dumps about 18 m out from its centre (its
+  boom point, proposed) to a truck within 6 m of that arc; 12 s digging and 23 s swinging, dumping and back; the box it moves as is its
+  crawlers and house, 15 x 14.4 m and 21 m to the boom point; in AUTO it works trucks within 40 m.
+- **Why:** from the spec's reach and cycle; the dump radius from a 20 m boom at 45 degrees.
+- **Alternatives:** none needed now.
+
+### 32. Its PLC points: planned, not built
+- **Chosen:** the rope shovel has no PLC points yet; its readout and panel show status, passes, tonnes, kW and cable. The spec's points
+  (RUN, RUNNING, AUTO, PASSES, POWER) are planned on its switch house outlet's cable, as the TBM's are on its cable junction (ROADMAP,
+  Known gaps).
+- **Why:** a machine that lifts and moves has no fixed block to land a control cable on; the switch house is the fixed point, but
+  giving each outlet a machine's points needs a second device on the house, which is its own piece of work.
+- **Alternatives:** points on the crawlers only while it stands as parts (they would vanish when it runs, which is when they matter).
+
+### 33. Recipes and items
+- **Chosen:** each part has a placeholder recipe from Wildcatter's steel (the house takes Wildcatter's medium-voltage drive cells and
+  drive transformer; the crawlers a track dozer). The lifted machine has no item: broken by hand (sneak, empty hand) it gives back its
+  six parts and its cable.
+- **Why:** it is built from parts, as the TBM; the art wave and real recipes come later.
+- **Alternatives:** none needed now.
+
+### 34. The client film `pit_big`
+- **Chosen:** a rope shovel built from its parts on a bench, coupled to a switch house; RUN lifts it; in AUTO it fills an ultra on its
+  right in 4 passes from a muck face; the loaded ultra drives off. Its passes are sped up (fastPasses) so the film runs about two
+  minutes.
+- **Why:** the spec's film; the speed-up as the other films' (pit_blast's drill).
+- **Alternatives:** film it at real time (about 2 min 20 s of loading alone).

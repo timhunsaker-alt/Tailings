@@ -57,6 +57,12 @@ public final class PitDrive {
 	public static final Spec HYD_SHOVEL = new Spec(15.0, 8.04, 7.25, 258_000, 27_000, 1_119_000, 1.5 / 3.6, 1.5 / 3.6, 4.0);
 	/** Its electric variant: the same machine on an 860 kW motor off a trailing cable (spec sheet). */
 	public static final Spec HYD_SHOVEL_ELECTRIC = new Spec(15.0, 8.04, 7.25, 258_000, 27_000, 860_000, 1.5 / 3.6, 1.5 / 3.6, 4.0);
+	/**
+	 * The 4100-class electric rope shovel (open-pit-p5-big-machines.md, P5d), lifted: its crawlers and house 14.4 x 15 m (open-pit.md),
+	 * about 21 m to its boom point and 1,400 t (unverified); a 100 t dipper; 3.5 MW at its hoist's peak (proposed); crawling at 1.5 km/h
+	 * (proposed). It turns on its crawlers on 8 m (proposed).
+	 */
+	public static final Spec ROPE_SHOVEL = new Spec(15.0, 14.4, 21.0, 1_400_000, 100_000, 3_500_000, 1.5 / 3.6, 1.5 / 3.6, 8.0);
 	/** The emulsion truck: 8.5 x 2.5 x 3.8 m, about 300 kW, 12 t of matrix, about 14 t empty and 40 km/h (proposed). */
 	public static final Spec EMULSION_TRUCK = new Spec(8.5, 2.5, 3.8, 14_000, 12_000, 300_000, 40 / 3.6, 3.0, 8.0);
 

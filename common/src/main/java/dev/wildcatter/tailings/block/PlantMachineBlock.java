@@ -56,6 +56,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.PIT_SWITCH_HOUSE) {
 			return new PitSwitchHouseBlockEntity(pos, state);
 		}
+		if (machine == Machine.SHOVEL_CRAWLERS) {
+			return new RopeShovelBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -75,6 +78,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		}
 		if (machine == Machine.PIT_SWITCH_HOUSE) {
 			return createTickerHelper(type, TailingsBlocks.PIT_SWITCH_HOUSE_ENTITY, PitSwitchHouseBlockEntity::tick);
+		}
+		if (machine == Machine.SHOVEL_CRAWLERS) {
+			return createTickerHelper(type, TailingsBlocks.ROPE_SHOVEL_ENTITY, RopeShovelBlockEntity::tick);
 		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
@@ -127,6 +133,18 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				} else {
 					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, house),
 							net.minecraft.network.chat.Component.literal(Machine.PIT_SWITCH_HOUSE.displayName())));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (level.getBlockEntity(main(pos, state)) instanceof RopeShovelBlockEntity crawlers) {
+			// the rope shovel standing as its parts: its panel, RUN to lift it; sneak for the readout
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					player.sendSystemMessage(crawlers.inspect());
+				} else {
+					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, crawlers),
+							net.minecraft.network.chat.Component.literal("Rope Shovel")));
 				}
 			}
 			return InteractionResult.SUCCESS;
