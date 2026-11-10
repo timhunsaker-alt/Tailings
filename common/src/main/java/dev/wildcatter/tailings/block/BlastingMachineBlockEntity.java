@@ -208,6 +208,8 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 		warnedUntil = -1;
 		armedUntil = -1;
 		sirenUntil = server.getGameTime() + Blasting.SIREN_TICKS;
+		// the machine keeps its own chunk ticking until the shot is done: the player may stand out of range of the firing point
+		ChunkRunner.refresh(server, worldPosition);
 		setChanged();
 		return say("SIREN: firing in 10 s");
 	}
@@ -242,6 +244,9 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 	private void serverTick(ServerLevel server) {
 		long now = server.getGameTime();
 		if (sirenUntil >= 0 || shot != null) {
+			if (now % ChunkRunner.REFRESH_TICKS == 0) {
+				ChunkRunner.refresh(server, worldPosition);
+			}
 			for (Shot.Hole h : holes) {
 				if (now % 40 == 0) {
 					ChunkRunner.refresh(server, h.collar());
