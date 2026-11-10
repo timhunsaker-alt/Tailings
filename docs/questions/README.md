@@ -65,6 +65,12 @@ These are the only items that wait on you; everything else is built and only nee
     `config/wildcatter.properties`) be on for new worlds? Worth a look: #1 (the ADU drum is its own item), #19 (a placed fuel assembly
     forgets its assay).
 
+18. **Wildcatter Phase 17a, the ferroalloys** (branch `phase17`, `phase17-ferroalloys.md`, 19 entries): the furnace transformer (15
+    taps), an 8 MW submerged arc furnace at PF 0.80 (ferrochrome, ferromanganese, ferrosilicon), a 3 Mvar capacitor bank lifting the
+    feeder to PF 0.935, the moly roaster (its SO2 to the acid plant) and the aluminothermic vessel (ferromolybdenum, ferrotungsten).
+    Nothing changes in existing worlds; not merged to master, for the same reason as Phase 16. Needs you: #1 (Tailings' DMS could take
+    Wildcatter's ferrosilicon instead of its placeholder recipe), #7 (green anodes stand in for electrode paste), #14 (one vessel batch
+    is one bag; iron ingots for mill scale).
 ## Every file, by wave
 
 | Mod | File | Entries | What |
@@ -101,6 +107,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
 | Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
 | Wildcatter | `phase16-uranium.md` (branch `phase16`) | 30 | ADU and the calciner, cathode H2, ash bed, KOH, product assay, spin-up, cooling, ISR CO2, bleed, satellites |
+| Wildcatter | `phase17-ferroalloys.md` (branch `phase17`) | 19 | the furnace transformer, the SAF at PF 0.80, the capacitor bank, the moly roaster, the aluminothermic vessel |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.
