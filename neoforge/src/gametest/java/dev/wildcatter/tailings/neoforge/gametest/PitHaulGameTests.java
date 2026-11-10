@@ -50,11 +50,11 @@ final class PitHaulGameTests {
 	}
 
 	static int ticks(String scene, int otherwise) {
-		return TICKS.getOrDefault(scene, PitDispatchGameTests.TICKS.getOrDefault(scene, PitDryStackGameTests.TICKS.getOrDefault(scene, PitBlastGameTests.TICKS.getOrDefault(scene, PitBigGameTests.TICKS.getOrDefault(scene, otherwise)))));
+		return TICKS.getOrDefault(scene, PitDispatchGameTests.TICKS.getOrDefault(scene, PitDryStackGameTests.TICKS.getOrDefault(scene, PitBlastGameTests.TICKS.getOrDefault(scene, PitBigGameTests.TICKS.getOrDefault(scene, DraglineGameTests.TICKS.getOrDefault(scene, otherwise))))));
 	}
 
 	static int padding(String scene, int otherwise) {
-		return PADDING.getOrDefault(scene, PitDispatchGameTests.PADDING.getOrDefault(scene, PitDryStackGameTests.PADDING.getOrDefault(scene, PitBlastGameTests.PADDING.getOrDefault(scene, PitBigGameTests.PADDING.getOrDefault(scene, otherwise)))));
+		return PADDING.getOrDefault(scene, PitDispatchGameTests.PADDING.getOrDefault(scene, PitDryStackGameTests.PADDING.getOrDefault(scene, PitBlastGameTests.PADDING.getOrDefault(scene, PitBigGameTests.PADDING.getOrDefault(scene, DraglineGameTests.PADDING.getOrDefault(scene, otherwise))))));
 	}
 
 	/** Chunks the long scenes reach, from the test's origin, in chunks. */

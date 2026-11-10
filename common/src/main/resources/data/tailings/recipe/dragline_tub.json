@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SIS",
+    "ICI",
+    "SIS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "I": "minecraft:iron_block",
+    "C": "minecraft:iron_bars"
+  },
+  "result": {
+    "id": "tailings:dragline_tub",
+    "count": 1
+  }
+}

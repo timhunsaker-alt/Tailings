@@ -244,6 +244,78 @@ ROPE_WHEELS = [
 ]
 
 
+# The walking dragline, lifted and working (dragline.md, P6): its tub 15 m across on the ground; the house (24 x 20 m, 12 m high, the
+# cab at its front left) swinging on the tub's roller path, its walking shoes hung from cams on its sides; the A-frame mast on its roof;
+# the 75 m lattice boom at 32 degrees from its foot at the house's front, in ten 7.5 m sections; and the 33 m³ bucket, hung from the
+# boom point and dragged in by the drag ropes, placed by the renderer. The hoist, drag and suspension ropes are drawn as lines.
+DRAG_HOUSE = (0.0, 0.0, 0.0)
+DRAG_BOOM = (0.0, 4.4, -8.5)
+DRAG_SHOES = (0.0, 2.6, 0.0)
+DRAG_BUCKET = (0.0, 0.0, 0.0)
+DRAG = [
+	("tub_a", None, (-2.8, 2.8), (0.0, 1.6), (-6.85, 6.85), DARK, "plate"),
+	("tub_b", None, (-6.85, 6.85), (0.0, 1.6), (-2.8, 2.8), DARK, "plate"),
+	("tub_c", None, (-4.8, 4.8), (0.0, 1.6), (-4.8, 4.8), DARK, "plate"),
+	("roller_path", None, (-5.0, 5.0), (1.6, 2.2), (-5.0, 5.0), STEEL, "flat"),
+	("frame", "house", (-12.0, 12.0), (2.2, 3.4), (-8.5, 11.5), DARK, "plate"),
+	("machinery", "house", (-11.5, 11.5), (3.4, 14.6), (-5.5, 11.0), YELLOW, "louvres"),
+	("roof", "house", (-11.7, 11.7), (14.6, 15.0), (-5.7, 11.2), DARK, "plate"),
+	("cooler_l", "house", (-8.0, -4.0), (15.0, 15.8), (3.0, 7.0), STEEL, "ribs"),
+	("cooler_r", "house", (4.0, 8.0), (15.0, 15.8), (3.0, 7.0), STEEL, "ribs"),
+	("counterweight", "house", (-11.0, 11.0), (3.4, 8.0), (11.0, 11.5), DARK, "hazard"),
+	("cab_stand", "house", (-11.5, -7.5), (3.4, 6.2), (-8.5, -5.5), DARK, "plate"),
+	("cab", "house", (-11.5, -7.5), (6.2, 9.7), (-8.5, -5.5), YELLOW, "cab"),
+	("fairlead", "house", (-1.2, 1.2), (3.4, 4.8), (-9.0, -7.5), STEEL, "flat"),
+	("foot_brackets", "house", (-2.4, 2.4), (3.4, 5.4), (-8.6, -7.4), DARK, "plate"),
+	("mast_leg_l", "house", (-3.0, -2.3), (15.0, 35.0), (-7.2, -6.5), YELLOW, "plate"),
+	("mast_leg_r", "house", (2.3, 3.0), (15.0, 35.0), (-7.2, -6.5), YELLOW, "plate"),
+	("mast_strut_l", "house", (-3.0, -2.3), (15.0, 31.0), (-3.5, -2.8), YELLOW, "plate"),
+	("mast_strut_r", "house", (2.3, 3.0), (15.0, 31.0), (-3.5, -2.8), YELLOW, "plate"),
+	("mast_tie_l", "house", (-3.0, -2.3), (30.5, 31.0), (-6.5, -3.5), YELLOW, "plate"),
+	("mast_tie_r", "house", (2.3, 3.0), (30.5, 31.0), (-6.5, -3.5), YELLOW, "plate"),
+	("mast_brace_1", "house", (-2.3, 2.3), (20.0, 20.4), (-7.1, -6.6), DARK, "flat"),
+	("mast_brace_2", "house", (-2.3, 2.3), (26.0, 26.4), (-7.1, -6.6), DARK, "flat"),
+	("mast_head", "house", (-3.0, 3.0), (34.2, 35.0), (-7.4, -5.4), YELLOW, "plate"),
+	("equaliser", "house", (-1.5, 1.5), (33.4, 34.2), (-7.2, -5.8), STEEL, "flat"),
+]
+for side in (-1, 1):
+	x0, x1 = (-10.5, -7.5) if side < 0 else (7.5, 10.5)
+	n = "l" if side < 0 else "r"
+	DRAG += [
+		(f"shoe_pad_{n}", "shoes", (x0, x1), (0.0, 0.5), (-7.0, 7.0), DARK, "plate"),
+		(f"shoe_side_{n}", "shoes", (x0 + 0.3, x1 - 0.3), (0.5, 2.0), (-6.0, 6.0), YELLOW, "plate"),
+		(f"shoe_cam_{n}", "shoes", (x0 + 0.6, x1 - 0.6), (2.0, 3.0), (-1.5, 1.5), STEEL, "flat"),
+	]
+# the boom: ten 7.5 m sections, four chords each, and the lacing every 1.5 m; laid out ahead of its foot and turned up 32 degrees
+for k in range(10):
+	z1, z0 = -8.5 - 7.5 * k, -8.5 - 7.5 * (k + 1)
+	for cx, cy, n in ((-2.0, 2.4, "bl"), (1.5, 2.4, "br"), (-2.0, 5.9, "tl"), (1.5, 5.9, "tr")):
+		DRAG.append((f"chord_{n}_{k}", "boom", (cx, cx + 0.5), (cy, cy + 0.5), (z0, z1), YELLOW, "plate"))
+	for j in range(5):
+		z = z0 + 0.65 + 1.5 * j
+		DRAG += [
+			(f"lace_l_{k}_{j}", "boom", (-1.95, -1.55), (2.9, 5.9), (z, z + 0.2), DARK, "flat"),
+			(f"lace_r_{k}_{j}", "boom", (1.55, 1.95), (2.9, 5.9), (z, z + 0.2), DARK, "flat"),
+			(f"lace_b_{k}_{j}", "boom", (-1.5, 1.5), (2.45, 2.85), (z, z + 0.2), DARK, "flat"),
+			(f"lace_t_{k}_{j}", "boom", (-1.5, 1.5), (5.95, 6.35), (z, z + 0.2), DARK, "flat"),
+		]
+DRAG += [
+	("point_sheaves", "boom", (-1.5, 1.5), (2.0, 6.8), (-85.0, -83.5), STEEL, "flat"),
+	# the bucket about its own origin, its mouth toward the machine (plus z), placed by the renderer
+	("bucket_floor", "bucket", (-2.2, 2.2), (0.0, 0.4), (-2.8, 2.6), STEEL, "plate"),
+	("bucket_side_l", "bucket", (-2.2, -1.8), (0.4, 3.0), (-2.8, 2.6), STEEL, "plate"),
+	("bucket_side_r", "bucket", (1.8, 2.2), (0.4, 3.0), (-2.8, 2.6), STEEL, "plate"),
+	("bucket_back", "bucket", (-1.8, 1.8), (0.4, 2.6), (-2.8, -2.4), STEEL, "plate"),
+	("bucket_lip", "bucket", (-2.2, 2.2), (0.0, 0.6), (2.6, 3.0), DARK, "flat"),
+	("bucket_teeth", "bucket", (-2.0, 2.0), (0.05, 0.4), (3.0, 3.4), DARK, "flat"),
+	("bucket_arch", "bucket", (-2.2, 2.2), (3.0, 3.6), (2.0, 2.6), YELLOW, "plate"),
+	("bucket_chain_l", "bucket", (-2.35, -2.25), (1.2, 3.8), (-0.2, 0.0), DARK, "flat"),
+	("bucket_chain_r", "bucket", (2.25, 2.35), (1.2, 3.8), (-0.2, 0.0), DARK, "flat"),
+	("spreader", "bucket", (-2.4, 2.4), (3.8, 4.0), (-0.4, 0.2), STEEL, "flat"),
+	("bucket_load", "bucket", (-1.8, 1.8), (2.4, 3.2), (-2.4, 2.4), ROCK, "rock"),
+]
+
+
 def disc(radius_px):
 	"""A disc's pixel rows about its axle: (the row's top, its half-length) for each row, as round as whole pixels allow."""
 	rows = []
@@ -294,9 +366,11 @@ def px(v):
 	return int(round(v * 16))
 
 
-def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET, extra=""):
+def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET, extra="", share=False):
 	"""groups: names hung from the one hinge, or (name, hinge, parent) for a group with its own hinge, hung from its parent group
-	(listed before it); a group's boxes are given in the machine's frame as any other."""
+	(listed before it); a group's boxes are given in the machine's frame as any other. share: boxes of the same size, colour and
+	pattern draw from one patch of the skin (the dragline's 40 boom chords and 200 lacing bars)."""
+	shared = {}
 	SHEET = sheet
 	info = {}
 	for g in groups:
@@ -315,24 +389,33 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET, ex
 		sx, sy, sz = px(x1 - x0), px(y1 - y0), px(z1 - z0)
 		sx, sy, sz = max(sx, 1), max(sy, 1), max(sz, 1)
 		w, h = 2 * (sx + sz), sy + sz
-		if u + w > SHEET:
-			u, v, row = 0, v + row + 1, 0
-		if v + h > SHEET:
-			raise SystemExit(f"{name}: the skin is full at {part}")
+		key = (sx, sy, sz, colour, pattern)
+		again = share and key in shared
+		if again:
+			bu, bv = shared[key]
+		else:
+			if u + w > SHEET:
+				u, v, row = 0, v + row + 1, 0
+			if v + h > SHEET:
+				raise SystemExit(f"{name}: the skin is full at {part}")
+			bu, bv = u, v
+			shared[key] = (u, v)
+		if group:
+			gh = info[group][0]
+			hx, hy, hz = px(-gh[0]), px(-gh[1]), px(gh[2])
+			group_lines[group].append(f'\t\t{group}.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({bu}, {bv})'
+							f'.addBox({mx0 - hx}F, {my0 - hy}F, {mz0 - hz}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);')
+		else:
+			root_lines.append(f'\t\troot.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({bu}, {bv})'
+							f'.addBox({mx0}F, {my0}F, {mz0}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);')
+		if again:
+			continue
 		face(img, u + sz, v, sx, sz, colour, pattern if pattern in ("plate", "rock") else "flat", rng, 1.08)
 		face(img, u + sz + sx, v, sx, sz, colour, "flat", rng, 0.7)
 		face(img, u, v + sz, sz, sy, colour, pattern, rng, 0.88)
 		face(img, u + sz, v + sz, sx, sy, colour, pattern, rng)
 		face(img, u + sz + sx, v + sz, sz, sy, colour, pattern, rng, 0.88)
 		face(img, u + sz + sx + sz, v + sz, sx, sy, colour, pattern, rng, 0.92)
-		if group:
-			gh = info[group][0]
-			hx, hy, hz = px(-gh[0]), px(-gh[1]), px(gh[2])
-			group_lines[group].append(f'\t\t{group}.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({u}, {v})'
-							f'.addBox({mx0 - hx}F, {my0 - hy}F, {mz0 - hz}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);')
-		else:
-			root_lines.append(f'\t\troot.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({u}, {v})'
-							f'.addBox({mx0}F, {my0}F, {mz0}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);')
 		u += w + 1
 		row = max(row, h)
 	# the wheels: a tread region, a hub region and a nut region, each shared by every slice (a slice uses the corner it needs)
@@ -449,6 +532,8 @@ def main(names):
 		hydraulic()
 	if not names or "rope_shovel" in names:
 		rope()
+	if not names or "dragline" in names:
+		dragline()
 	if not names or "wheel_loader" in names:
 		loader()
 	if not names or "track_dozer" in names:
@@ -480,6 +565,35 @@ def rope():
 		"\tpublic static float handleAngle(float lift) {\n"
 		"\t\treturn 0.7F - lift * 0.75F;\n"
 		"\t}\n\n")
+
+
+def dragline():
+	# its skin is packed in shelves: the tallest boxes first, or a 75 m boom and a 24 m house do not fit one 2048 sheet
+	tall = sorted(DRAG, key=lambda b: -(px(b[3][1] - b[3][0]) + px(b[4][1] - b[4][0])))
+	paint(tall, "dragline", DRAG_HOUSE, "DraglineModel",
+		"The walking dragline at its real size: its tub 15 m across, the house 24 x 20 m swinging on it with its walking shoes, the mast,"
+		+ " the 75 m boom at 32 degrees and the 33 m\u00b3 bucket, placed under the boom by the hoist and drag.",
+		[("house", DRAG_HOUSE, None), ("shoes", DRAG_SHOES, "house"), ("boom", DRAG_BOOM, "house"), ("bucket", DRAG_BUCKET, "house")],
+		"\t\tModelPart house = root().getChild(HOUSE);\n"
+		"\t\thouse.yRot = (float) Math.toRadians(state.swing);   // plus swings its front to its right\n"
+		"\t\thouse.getChild(BOOM).xRot = -BOOM_ANGLE;   // the boom stands at 32 degrees\n"
+		"\t\tModelPart shoes = house.getChild(SHOES);\n"
+		"\t\tshoes.y -= shoeLift(state.walk) * 16F;\n"
+		"\t\tshoes.z -= shoeAhead(state.walk) * 16F;\n"
+		"\t\tModelPart bucket = house.getChild(BUCKET);\n"
+		"\t\tbucket.y = -state.bucketUp * 16F;\n"
+		"\t\tbucket.z = -state.bucketOut * 16F;\n"
+		"\t\tbucket.getChild(\"bucket_load\").visible = state.loaded;", (), 2048,
+		"\t/** The boom's angle up from level, radians: 32 degrees. */\n"
+		"\tpublic static final float BOOM_ANGLE = (float) Math.toRadians(32);\n\n"
+		"\t/** The shoes' lift off the ground through a step, metres: hung 0.5 m up while it digs, down on the ground while it moves. */\n"
+		"\tpublic static float shoeLift(float walk) {\n"
+		"\t\treturn walk < 0.25F ? 0.5F * (1 - walk / 0.25F) : walk < 0.75F ? 0F : 0.5F * (walk - 0.75F) / 0.25F;\n"
+		"\t}\n\n"
+		"\t/** The shoes ahead of the tub through a step, metres: out 2 m and set down, then the tub moves up to them. */\n"
+		"\tpublic static float shoeAhead(float walk) {\n"
+		"\t\treturn walk < 0.25F ? 2F * walk / 0.25F : walk < 0.75F ? 2F * (1 - (walk - 0.25F) / 0.5F) : 0F;\n"
+		"\t}\n\n", share=True)
 
 
 def hydraulic():

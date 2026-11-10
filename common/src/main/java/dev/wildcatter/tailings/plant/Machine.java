@@ -124,7 +124,22 @@ public enum Machine {
 	/** A 1.2 m X-ray transmission ore sorter (xrt-ore-sorter.md, L8): feeder, 3 m/s belt, X-ray line and 192 air ejectors; 20 kW (unverified). */
 	XRT_SORTER("xrt_sorter", "X-Ray Ore Sorter", 4, 5, 8, 20_000, Supply.INDUSTRIAL),
 	/** The sorter's screw compressor and air receiver for its ejectors, 160 kW (L8, proposed). */
-	SORTER_COMPRESSOR("sorter_compressor", "Sorter Air Compressor", 2, 2, 3, 160_000, Supply.INDUSTRIAL);
+	SORTER_COMPRESSOR("sorter_compressor", "Sorter Air Compressor", 2, 2, 3, 160_000, Supply.INDUSTRIAL),
+	/**
+	 * The walking dragline's parts (dragline.md, P6), built as the rope shovel's and lifted into one machine when it runs. Its power is
+	 * its trailing cable's, not a motor box: the tub's main cell holds its reel, its panel and its job. The tub is its round base.
+	 */
+	DRAGLINE_TUB("dragline_tub", "Dragline Tub", 15, 2, 15, 0, Supply.NONE),
+	/** The revolving frame and machinery house: hoist, drag and swing motors on their generator sets; the cab at its front corner. */
+	DRAGLINE_HOUSE("dragline_house", "Dragline House", 24, 12, 20, 0, Supply.NONE),
+	/** A walking shoe on its cam, one each side. */
+	DRAGLINE_SHOE("dragline_shoe", "Dragline Walking Shoe", 3, 3, 14, 0, Supply.NONE),
+	/** The A-frame and mast holding the boom's suspension ropes. */
+	DRAGLINE_MAST("dragline_mast", "Dragline Mast", 6, 20, 4, 0, Supply.NONE),
+	/** A 15 m length of the 75 m lattice boom, two of its 7.5 m sections pinned together; five laid in a line make the boom. */
+	DRAGLINE_BOOM("dragline_boom_section", "Dragline Boom Section", 4, 4, 15, 0, Supply.NONE),
+	/** The 33 m³ bucket with its rigging: chains, spreader bar and dump block. */
+	DRAGLINE_BUCKET("dragline_bucket", "Dragline Bucket", 5, 4, 6, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

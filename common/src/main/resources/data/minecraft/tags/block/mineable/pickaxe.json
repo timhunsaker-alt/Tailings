@@ -96,6 +96,12 @@
     "tailings:drain_rinse_screen",
     "tailings:medium_recovery",
     "tailings:xrt_sorter",
-    "tailings:sorter_compressor"
+    "tailings:sorter_compressor",
+    "tailings:dragline_tub",
+    "tailings:dragline_house",
+    "tailings:dragline_shoe",
+    "tailings:dragline_mast",
+    "tailings:dragline_boom_section",
+    "tailings:dragline_bucket"
   ]
 }

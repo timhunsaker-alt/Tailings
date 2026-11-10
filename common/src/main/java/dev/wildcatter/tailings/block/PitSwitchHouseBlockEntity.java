@@ -70,6 +70,11 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		double volts;
 		double watts;
 		double over;
+		/** What a machine with PLC points on its cable last said (the dragline, P6): running, done, its cycles; not saved. */
+		boolean plc;
+		boolean running;
+		boolean done;
+		long cycles;
 		final int[] far = new int[3];
 		final int[] cable = {-1, -1, -1};
 		final int[] star = {-1, -1, -1};
@@ -81,7 +86,8 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 	}
 
 	private final Outlet[] outlets = new Outlet[PitPower.OUTLETS];
-	private final Remote remote = new Remote(PitPower.OUTLETS);
+	/** Each outlet's CLOSE, then each outlet's machine's RUN (P6). */
+	private final Remote remote = new Remote(PitPower.OUTLETS * 2);
 	private boolean grown;
 	private boolean busTripped;
 	private double busOver;
@@ -144,6 +150,7 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		o.name = "";
 		o.closed = false;
 		o.groundFault = false;
+		o.plc = o.running = o.done = false;
 		o.amps = o.volts = o.watts = 0;
 		setChanged();
 		if (level != null) {
@@ -165,6 +172,29 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		o.peak = Math.max(1, peakWatts);
 		o.cableM = cableM;
 		o.paid = paid;
+	}
+
+	/**
+	 * A machine with PLC points answers on its cable's control pair (the dragline, P6): whether it runs, whether its job is done, and the
+	 * cycles it has worked, ever.
+	 */
+	public void reportPlc(int i, UUID machine, boolean running, boolean done, long cycles) {
+		Outlet o = outlets[i];
+		if (!machine.equals(o.machine)) {
+			return;
+		}
+		o.plc = true;
+		o.running = running;
+		o.done = done;
+		o.cycles = cycles;
+	}
+
+	/** The PLC's RUN for the machine on outlet {@code i}: on or off while the selector is AUTO and the command fresh; null otherwise. */
+	public @Nullable Boolean runCommand(int i) {
+		if (level == null || !remote.auto() || !remote.fresh(PitPower.OUTLETS + i, level.getGameTime())) {
+			return null;
+		}
+		return remote.on(PitPower.OUTLETS + i, level.getGameTime());
 	}
 
 	/** The machine's cable has torn out or been broken: a ground fault, which trips the outlet, and the cable is off it. */
@@ -468,11 +498,47 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 			out.add(new Point("OUTLET " + i + " AMPS 4-20 mA, 1,200 A", false, Signal.MA));
 		}
 		out.add(new Point("AUTO", false));
+		// each outlet's machine, on its cable's control pair (P6): after the house's own points, so theirs keep their numbers
+		for (int i = 1; i <= PitPower.OUTLETS; i++) {
+			out.add(new Point("OUTLET " + i + " MACHINE RUN", true));
+			out.add(new Point("OUTLET " + i + " MACHINE RUNNING", false));
+			out.add(new Point("OUTLET " + i + " MACHINE DONE", false));
+			out.add(new Point("OUTLET " + i + " MACHINE CYCLES", false, Signal.PULSE));
+			out.add(new Point("OUTLET " + i + " MACHINE POWER 4-20 mA, its peak", false, Signal.MA));
+		}
 		return out;
+	}
+
+	/** The first of the machines' points, and how many each outlet has. */
+	public static final int MACHINE_POINTS = PitPower.OUTLETS * 4 + 1;
+	public static final int POINTS_EACH = 5;
+
+	/** The outlet whose machine point {@code point} is, and which of its five (0 RUN, 1 RUNNING, 2 DONE, 3 CYCLES, 4 POWER); null for the house's own. */
+	private static int @Nullable [] machinePoint(int point) {
+		if (point < MACHINE_POINTS || point >= MACHINE_POINTS + PitPower.OUTLETS * POINTS_EACH) {
+			return null;
+		}
+		return new int[] {(point - MACHINE_POINTS) / POINTS_EACH, (point - MACHINE_POINTS) % POINTS_EACH};
+	}
+
+	/** True while a machine answering with PLC points is on outlet {@code i}. */
+	private boolean plcOn(Outlet o) {
+		return o.plc && answering(o);
+	}
+
+	@Override
+	public long readPulses(int point) {
+		int[] m = machinePoint(point);
+		return m != null && m[1] == 3 && plcOn(outlets[m[0]]) ? outlets[m[0]].cycles : 0;
 	}
 
 	@Override
 	public boolean readPoint(int point) {
+		int[] m = machinePoint(point);
+		if (m != null) {
+			Outlet o = outlets[m[0]];
+			return plcOn(o) && (m[1] == 1 ? o.running : m[1] == 2 && o.done);
+		}
 		if (point == PitPower.OUTLETS * 4) {
 			return remote.auto();
 		}
@@ -489,12 +555,21 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		if (point < PitPower.OUTLETS * 4 && point % 4 == 0) {
 			remote.command(point / 4, on, gameTime);
 		}
+		int[] m = machinePoint(point);
+		if (m != null && m[1] == 0) {
+			remote.command(PitPower.OUTLETS + m[0], on, gameTime);
+		}
 	}
 
 	@Override
 	public double readMa(int point) {
 		if (point < PitPower.OUTLETS * 4 && point % 4 == 3) {
 			return PitPower.ampsMa(outlets[point / 4].amps);
+		}
+		int[] m = machinePoint(point);
+		if (m != null && m[1] == 4) {
+			Outlet o = outlets[m[0]];
+			return plcOn(o) ? 4 + 16 * Math.min(1.03, o.watts / Math.max(1, o.peak)) : 0;
 		}
 		return 0;
 	}
