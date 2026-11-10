@@ -22,8 +22,8 @@ import net.minecraft.resources.Identifier;
 public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehicleRenderer.PitState> {
 	private static final Identifier TRUCK_TEXTURE = Tailings.id("textures/entity/haul_truck.png");
 	private static final Identifier LOADER_TEXTURE = Tailings.id("textures/entity/wheel_loader.png");
-	private static final Identifier DRILL_TEXTURE = Tailings.id("textures/entity/blasthole_drill_placeholder.png");
-	private static final Identifier EMULSION_TEXTURE = Tailings.id("textures/entity/emulsion_truck_placeholder.png");
+	private static final Identifier DRILL_TEXTURE = Tailings.id("textures/entity/blasthole_drill.png");
+	private static final Identifier EMULSION_TEXTURE = Tailings.id("textures/entity/emulsion_truck.png");
 	private static final Identifier DOZER_TEXTURE = Tailings.id("textures/entity/track_dozer.png");
 	private static final Identifier ULTRA_TEXTURE = Tailings.id("textures/entity/ultra_haul_truck.png");
 	private static final Identifier HYD_TEXTURE = Tailings.id("textures/entity/hydraulic_shovel.png");

@@ -1,9 +1,9 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "tailings:block/blasting_machine_placeholder",
-    "box": "tailings:block/blasting_machine_placeholder",
-    "stand": "tailings:block/blasting_machine_stand_placeholder"
+    "particle": "tailings:block/blasting_machine",
+    "box": "tailings:block/blasting_machine",
+    "stand": "tailings:block/blasting_machine_stand"
   },
   "elements": [
     {

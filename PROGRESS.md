@@ -325,7 +325,6 @@ what building it raised was decided on the best recommendation and logged in `do
 - **The client film** `pit_blast` is written in `TailingsClientGameTest` (`TAILINGS_ONLY=pit_blast`): drill a 3 x 4 pattern, prime,
   charge from two truck stands, stem, log, fire from 60 m with the siren, then a loader digs the muck. Compiled, not yet filmed.
 - NeoForge scenes: **96 pass** (86 before, 10 new). Unit tests: 100 pass (`BlastingTest` new).
-
 ## The dispatch office filmed; ground tips come away clean (2026-11-09)
 
 - **`pit_dispatch` (Fabric client, filmed):** the office in HAND runs the route; the truck hauls to the dump point and tips (LOADS 1,
@@ -433,6 +432,16 @@ building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.
 - **pit_dozer_cut** waits for the dozer to stop before it reads the ramp (it failed under a loaded server).
 - **The haul dispatch office** registers for trucks when it is loaded, not only when it first ticks (from the P3 branch).
 - 117 NeoForge scenes pass.
+
+## Open pit P3 and P4 art (2026-11-09)
+
+Tim was away and asked for all known gaps closed; the choices are in [docs/questions/art-p3.md](docs/questions/art-p3.md).
+- Every P3 and P4 `*_placeholder` texture is Ludo art made as the art wave's (`art/source/PROMPTS.md`, `tools/process_art.py`):
+  seven item icons, the blasting machine, the blasthole column and its six collars (one cuttings picture ringed in each state's
+  colour), and dry tails. The drill's and emulsion truck's skins are painted by `pit_blast_vehicles.py` from the swatches, with a
+  new white paint; their UVs and models are unchanged. 12 Ludo jobs, 12 credits.
+- `tools/models/blast_assets.py` now writes only the block states and models; it no longer draws textures.
+- Build passes; no texture a model or renderer names is missing.
 
 ## Open pit P5: the pit switch house, trailing cables, the ultra truck, the big shovels (2026-11-09)
 

@@ -386,7 +386,6 @@ while building are in [questions/p3-blasting.md](questions/p3-blasting.md). The 
 - **The loader** stops before a pass that would take a misfired hole's block: "misfire in the muck: stop".
 - **Sounds:** the drill's rotary head is `tailings:tbm_cutter`; the truck's pump Wildcatter's `motor_hum`; the siren vanilla's raid
   horn; the blast vanilla's explosion (decisions 15).
-
 ## The open pit (P4): dry stack, the load-out, dumps, berms and the dozer
 
 Spec: [multiblocks/open-pit-p4-dry-stack.md](multiblocks/open-pit-p4-dry-stack.md) (draft, decided on recommendation); the choices made

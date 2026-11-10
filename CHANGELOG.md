@@ -23,6 +23,14 @@ Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-
   `shovel_dipper`), couple a trailing cable to the crawlers and press RUN on their panel: it lifts into one machine with a 100 t dipper,
   drawing 3.5 MW as it hoists, and loads an ultra in 4 passes. STOP sets it back down as its parts.
 
+### Open pit P3 and P4 art (2026-11-09, decided while Tim was away)
+
+- **Ludo art for the blasting and dry stack:** the drill, emulsion truck, cast booster, detonator, blast logger, blasting key and
+  track dozer icons; the blasting machine and its stand; the blasthole column and its six collars, each still ringed in its
+  state's colour (white drilled, yellow primed, orange charged, grey stemmed, green logged, red misfired); and dry tails. The drill
+  and emulsion truck skins are painted from Ludo material swatches (a white paint added for the truck). No `*_placeholder`
+  texture is left. Decisions in `docs/questions/art-p3.md`.
+
 ### Open pit P3 — drilling and blasting (2026-11-09)
 
 Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
@@ -44,8 +52,6 @@ Needs Wildcatter 0.6.0 (its ammonia plant makes the emulsion matrix).
   left flat. Short stemming blows out with flyrock; players and mobs within 50 m are hurt, more nearer. Holes with no booster or
   detonator, or too little charge, misfire and stand in the muck; the next shot waits 30 s and a loader will not dig into one. No
   shot fires with a machine or vehicle in the rock it breaks.
-
-
 ### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
 
 - **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a
