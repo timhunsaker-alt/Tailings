@@ -212,19 +212,45 @@ lead and zinc concentrate mixed make a bulk cake (`bulk_concentrate`); the ore s
 the assay. Kept as they are: concentrate as mineral only, and the old `fines_*` items. The waste bin's way out is written, not built
 into the playthrough.
 
+## Later — L2 and L3: battery locomotives and bottom-dump cars (2026-11-09)
+
+Built while Tim was away on the draft specs [multiblocks/battery-locomotive.md](multiblocks/battery-locomotive.md) and
+[multiblocks/bottom-dump-cars.md](multiblocks/bottom-dump-cars.md), decisions in [questions/l2-l3-trains.md](questions/l2-l3-trains.md).
+**L2:** the `battery_locomotive` (8 t, 2 x 22 kW, 58 kWh lead-acid, 46 kWh usable) runs on any rail, fed or not, on its
+`loco_battery`; the `battery_charger` (20 kW) plugs into the world's three-phase 30 A receptacle as a Wildcatter load and charges the
+battery it holds or a locomotive standing beside it; batteries swap by hand; LOW BATTERY and FLAT; PLC points CHARGING, FULL, CHARGE.
+**L3:** the `bottom_dump_car` drops its load through its doors on the move over a `track_grizzly` beside a `dump_cam_rail`, into the
+pocket under the track; mixed trains dump each kind at its own station. NeoForge scenes `battery_loco_run`, `battery_loco_climb`,
+`battery_loco_flat`, `battery_charge`, `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`, `train_models_l2_l3`; unit
+tests `BatteryTest`; the client film `battery_bottom_dump`.
+- **Left out, planned (the specs' "Left out"):** lithium packs and fast charging; regeneration down the decline; hydrogen from charging
+  and the bay's ventilation (with L1, ventilation); battery life and cycles; battery-electric pit trucks and loaders (open-pit.md);
+  doors jamming on sticky muck and frozen loads; oversize and a rock breaker on the track grizzly; rotary car dumpers. The shaft's
+  measuring pocket (L4) is the next user of the bottom-dump station.
+
 ## Later, not scheduled
 
 - Ventilation of the drive.
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon. Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation, and X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
 - A shaft and hoist (headframe, skip) instead of the decline.
-- Battery locomotives charged from Wildcatter receptacles, for unpowered track.
-- Bottom-dump cars over a grizzly.
+- Battery locomotives charged from Wildcatter receptacles, for unpowered track: built as L2 (above).
+- Bottom-dump cars over a grizzly: built as L3 (above).
 - Open-pit and strip mining: scheduled, waves P1-P7 (above).
 - Paste backfill of old stopes with tailings.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **Charging takes 2.6 real hours (L2):** built at the real 18 kW into a 46 kWh battery; whether to scale it is a question for Tim
+  (questions/l2-l3-trains.md, 12).
+- **The charger takes 20 kW on either standard (L2):** on an IEC world that is 30.4 A on a 32 A receptacle, over the 80 % continuous
+  the 480 V case keeps (questions/l2-l3-trains.md, 9).
+- **The track grizzly keeps the pocket's oversize (L3):** the spec says TBM muck has none (questions/l2-l3-trains.md, 16).
+- **Bottom-dump doors snap (L3):** they are drawn open or shut, not swinging; the load drops in one tick rather than over the grizzly's
+  4 m.
+- **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
+- **The battery locomotive has no PLC points of its own (L2):** only the charger has (CHARGING, FULL, CHARGE).
 
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).

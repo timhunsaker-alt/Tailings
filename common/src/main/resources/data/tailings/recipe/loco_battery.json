@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LCL",
+    "LSL",
+    "LCL"
+  ],
+  "key": {
+    "L": "wildcatter:lead_ingot",
+    "C": "minecraft:copper_ingot",
+    "S": "wildcatter:steel_ingot"
+  },
+  "result": {
+    "id": "tailings:loco_battery",
+    "count": 1
+  }
+}

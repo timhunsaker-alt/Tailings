@@ -94,6 +94,10 @@ public final class TailingsBlocks {
 	public static final Block TAILINGS_FILTER = plant(Machine.TAILINGS_FILTER, MapColor.TERRACOTTA_WHITE);
 	public static final Block LOADOUT_FRAME = plant(Machine.LOADOUT_FRAME, MapColor.COLOR_GRAY);
 	public static final Block LOADOUT_BIN = plant(Machine.LOADOUT_BIN, MapColor.METAL);
+	public static final Block TRACK_GRIZZLY = plant(Machine.TRACK_GRIZZLY, MapColor.METAL);
+	public static final Block DUMP_CAM_RAIL = plant(Machine.DUMP_CAM_RAIL, MapColor.METAL);
+	public static final Block BATTERY_CHARGER = plant(Machine.BATTERY_CHARGER, MapColor.COLOR_GRAY);
+	public static final BlockEntityType<dev.wildcatter.tailings.block.BatteryChargerBlockEntity> BATTERY_CHARGER_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BatteryChargerBlockEntity::new, Set.of(BATTERY_CHARGER));
 	/** The tailings filter's cake as a placed block (open-pit-p4-dry-stack.md): 1 m³ at 1.8 t, falling like sand. */
 	public static final Block DRY_TAILS = block("dry_tails", props -> new net.minecraft.world.level.block.ColoredFallingBlock(new net.minecraft.util.ColorRGBA(0x9a8f7f),
 			props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).strength(0.6F).sound(SoundType.SAND)));
@@ -109,7 +113,8 @@ public final class TailingsBlocks {
 	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
-					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN));
+					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
+					TRACK_GRIZZLY, DUMP_CAM_RAIL));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -200,6 +205,7 @@ public final class TailingsBlocks {
 		add("dry_tails", DRY_TAILS);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("battery_charger"), BATTERY_CHARGER_ENTITY);
 	}
 
 	public static Block plantBlock(Machine machine) {
@@ -240,6 +246,9 @@ public final class TailingsBlocks {
 			case TAILINGS_FILTER -> TAILINGS_FILTER;
 			case LOADOUT_FRAME -> LOADOUT_FRAME;
 			case LOADOUT_BIN -> LOADOUT_BIN;
+			case TRACK_GRIZZLY -> TRACK_GRIZZLY;
+			case DUMP_CAM_RAIL -> DUMP_CAM_RAIL;
+			case BATTERY_CHARGER -> BATTERY_CHARGER;
 		};
 	}
 

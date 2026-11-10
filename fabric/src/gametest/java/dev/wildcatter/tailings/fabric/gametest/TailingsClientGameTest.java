@@ -119,6 +119,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_dispatch")) {
 				pitDispatch(context, world, server);
 			}
+			if (only("battery_bottom_dump")) {
+				batteryBottomDump(context, world, server);
+			}
 			if (only("pit_dry_stack")) {
 				pitDryStack(context, world, server);
 			}
@@ -602,6 +605,86 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		sorter.setSide(Direction.EAST, new ItemStack(Blocks.COPPER_ORE));
 		sorter.setWasteSide(Direction.SOUTH);
 		return new PlantBlockEntity[] {feeder, sorter, oreBin, wasteBin};
+	}
+
+	/**
+	 * L2 and L3 (battery-locomotive.md, bottom-dump-cars.md): a battery locomotive leaves its charger on a branch with no rectifier,
+	 * pulling four bottom-dump cars of copper ore and cobble, and drops each car's load on the move through its doors over a track
+	 * grizzly into the pocket under the track; the cam rail opens the doors and the closing ramp shuts them.
+	 */
+	private void batteryBottomDump(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x = 200, z0 = 900, ry = y + 5;
+		MineVehicleEntity[] train = new MineVehicleEntity[5];
+		dev.wildcatter.tailings.block.DumpBlockEntity[] pocket = new dev.wildcatter.tailings.block.DumpBlockEntity[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			BlockState rail = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
+			for (int z = -2; z <= 48; z++) {
+				level.setBlock(new BlockPos(x, ry - 1, z0 + z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(new BlockPos(x, ry, z0 + z), rail, Block.UPDATE_ALL);
+			}
+			// the track grizzly under the rails from z 12 to 15, the cam rail beside it, the pocket under it turned along the track
+			for (int k = 0; k < 4; k++) {
+				level.setBlock(new BlockPos(x, ry - 1, z0 + 12 + k), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+			}
+			part(level, TailingsBlocks.TRACK_GRIZZLY, new BlockPos(x, ry - 1, z0 + 12));
+			part(level, TailingsBlocks.DUMP_CAM_RAIL, new BlockPos(x + 1, ry, z0 + 12));
+			BlockPos pocketAt = new BlockPos(x + 1, ry - 4, z0 + 12);
+			level.setBlock(pocketAt, TailingsBlocks.DUMP_POCKET.defaultBlockState().setValue(BigPartBlock.FACING, Direction.EAST), Block.UPDATE_ALL);
+			BigParts.grow(level, pocketAt, level.getBlockState(pocketAt));
+			pocket[0] = (dev.wildcatter.tailings.block.DumpBlockEntity) level.getBlockEntity(pocketAt);
+			for (int k = 0; k < 4; k++) {
+				level.setBlock(new BlockPos(x, ry, z0 + 12 + k), rail, Block.UPDATE_ALL);
+			}
+			// the charging bay at the far end: the charger on a wall beside the track
+			for (int yy = 0; yy < 3; yy++) {
+				for (int z = 41; z <= 44; z++) {
+					level.setBlock(new BlockPos(x - 2, ry + yy, z0 + z), Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+				}
+			}
+			part(level, TailingsBlocks.BATTERY_CHARGER, new BlockPos(x - 1, ry, z0 + 42));
+		});
+		server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + (z0 + 38) + " 90 15");
+		context.waitTicks(40);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			train[0] = MineVehicleEntity.placeLocomotive(level, new BlockPos(x, ry, z0 + 38), Heading.NORTH, dev.wildcatter.tailings.TailingsEntities.BATTERY_LOCOMOTIVE);
+			train[0].setBatteryWh(dev.wildcatter.tailings.haul.Battery.USABLE_WH * 0.9);
+			String[] loads = {"minecraft:copper_ore", "minecraft:cobblestone", "minecraft:copper_ore", "minecraft:cobblestone"};
+			for (int i = 0; i < 4; i++) {
+				double slot = z0 + 38.5 + dev.wildcatter.tailings.haul.Haul.carOffset(i);
+				train[i + 1] = MineVehicleEntity.placeCar(level, new BlockPos(x, ry, (int) Math.floor(slot)), Heading.NORTH, dev.wildcatter.tailings.TailingsEntities.BOTTOM_DUMP_CAR);
+				train[i + 1].load().add(loads[i], 320);
+				train[i + 1].refreshLoad();
+			}
+			train[0].setRunning(false);
+		});
+		Filming film = film(context, world, "battery_bottom_dump");
+		context.takeScreenshot("tailings-battery-bay");
+		context.waitTicks(30);
+		server.runOnServer(srv -> train[0].setRunning(true));
+		boolean shot = false;
+		for (int t = 0; t < 70; t++) {
+			context.waitTicks(5);
+			double z = server.computeOnServer(srv -> train[0].getZ());
+			// follow the train until its locomotive is past the grizzly, then hold on the grizzly while the cars cross it
+			int camZ = (int) Math.max(z0 + 14, z + 4);
+			server.runCommand("tp @p " + (x + 8) + " " + (ry + 3) + " " + camZ + " 90 15");
+			boolean open = server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).anyMatch(MineVehicleEntity::doorsOpen));
+			if (open && !shot) {
+				context.takeScreenshot("tailings-bottom-dump-doors");
+				shot = true;
+			}
+			if (t % 10 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] battery_bottom_dump: " + train[0].status() + "; cars "
+						+ java.util.Arrays.stream(train, 1, 5).map(c -> c.load().total() + (c.doorsOpen() ? " open" : "")).toList() + "; pocket " + pocket[0].pocket()));
+			}
+		}
+		context.takeScreenshot("tailings-bottom-dump-end");
+		film.stop();
+		int left = server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).mapToInt(c -> c.load().total()).sum());
+		require(left == 0, "every bottom-dump car should drop its load over the grizzly, " + left + " left");
+		heard("battery_bottom_dump", "tailings:mine_locomotive", "tailings:muck_tip");
 	}
 
 	/** A train tips a car of copper ore and a car of cobble on the move, and the sorter splits them to their bins. */

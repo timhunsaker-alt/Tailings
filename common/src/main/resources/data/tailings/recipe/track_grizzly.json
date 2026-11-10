@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BBB",
+    "IRI",
+    "CCC"
+  ],
+  "key": {
+    "B": "minecraft:iron_bars",
+    "I": "minecraft:iron_ingot",
+    "R": "tailings:mine_rail",
+    "C": "minecraft:smooth_stone"
+  },
+  "result": {
+    "id": "tailings:track_grizzly",
+    "count": 1
+  }
+}

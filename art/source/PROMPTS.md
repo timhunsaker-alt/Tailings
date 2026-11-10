@@ -49,3 +49,12 @@ noted:
 | mibc (a) | A single small blue plastic jerrycan of clear liquid flotation frother (MIBC), screw cap, generic |
 | xanthate (a) | A small heap of pale yellow sodium xanthate pellets, short cylindrical pellets (the item is potassium amyl xanthate, which looks the same) |
 | zinc_sulfate (a) | A small heap of colourless to white zinc sulfate heptahydrate crystals (dark grey background) |
+
+## L2 and L3 (2026-11-09)
+Items, `item-icon`, Photorealistic 3D, 2 variations each, the first (a) kept; returned on transparency:
+
+| File | Prompt |
+|---|---|
+| battery_locomotive (a) | A single small yellow underground mining battery locomotive seen from the side at three-quarter view, low steel frame on rail wheels, a large grey steel traction battery box on its middle, a small driver's cab at one end, a headlight, generic, no brand names |
+| bottom_dump_car (a) | A single small underground mine ore car with a drop-bottom, weathered grey steel box body with rust streaks on four small rail wheels, two hinged floor doors hanging open underneath, seen at three-quarter view, generic |
+| loco_battery (a) | A single lead-acid traction battery box for a mining locomotive: a rectangular steel tray painted grey holding rows of battery cells with red and black terminal caps, two lifting lugs on top and a heavy cable connector, three-quarter view, generic |

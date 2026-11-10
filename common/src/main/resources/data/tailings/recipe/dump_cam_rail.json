@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "III",
+    "CCC"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:smooth_stone"
+  },
+  "result": {
+    "id": "tailings:dump_cam_rail",
+    "count": 1
+  }
+}

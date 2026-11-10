@@ -25,6 +25,8 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		MenuScreens.register(DrillMenus.SORTER, dev.wildcatter.tailings.client.SorterScreen::new);
 		ModelLayerRegistry.registerModelLayer(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(MineCarModel.LAYER, MineCarModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.BatteryLocomotiveModel.LAYER, dev.wildcatter.tailings.client.BatteryLocomotiveModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.BottomDumpCarModel.LAYER, dev.wildcatter.tailings.client.BottomDumpCarModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.TrackDozerModel.LAYER, dev.wildcatter.tailings.client.TrackDozerModel::createBodyLayer);
@@ -32,6 +34,8 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		EntityRendererRegistry.register(TailingsEntities.TRAIN, NoopRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.CAR, MineVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.BATTERY_LOCOMOTIVE, MineVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.BOTTOM_DUMP_CAR, MineVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.TBM, dev.wildcatter.tailings.client.TbmRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.PUMP_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.REEL_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);

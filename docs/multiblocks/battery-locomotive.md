@@ -73,3 +73,17 @@ and is to be checked before approval.
 - AGH paper on a lithium monorail battery locomotive: a 143.5 kWh lithium system, 11 kW a drive, 88 kW in all (a different class, for
   comparison).
 - Wildcatter ROADMAP Phase 3: three-phase receptacles and plugs (L21-30, L22-30, IEC 60309 red).
+
+## As built (L2, 2026-11-09, branch `l2-l3-trains`)
+Decisions in [../questions/l2-l3-trains.md](../questions/l2-l3-trains.md) (#1-#13, #18-#20).
+- **Code:** `haul.Battery` (the numbers, unit-tested in `BatteryTest`); the `battery_locomotive` entity type on `MineVehicleEntity`;
+  `item.LocoBatteryItem` (`loco_battery`, its usable Wh as item data, a charge bar and tooltip); `block.BatteryChargerBlockEntity`
+  (`battery_charger`, a `Machine` part); `client.BatteryLocomotiveModel`.
+- **As the spec, except:** a placed locomotive has no battery until one is put in (a crafted battery holds 10 %); the flat costs about
+  1.5 kWh a km (the 85 % applied, #4); sneak-clicking takes the battery out only when the locomotive is held and standing, otherwise
+  it reverses (#7); the charger is Wildcatter's `DriveLoad` at PF 0.95, so it picks up its 20 kW over about 10 s (#8); it fits NEMA
+  L22-30 and IEC 60309 red 32 A (#9).
+- **Measured in the game tests:** 0.20 m/s loaded up the 1-in-2 (0.204); 7.86 kWh per 50 m of height; 18.0 kW into the battery from
+  20 kW drawn; FLAT holds on the rack.
+- **Tests:** NeoForge `battery_loco_run`, `battery_loco_climb`, `battery_loco_flat`, `battery_charge` (a real 500 kW set feeding the
+  receptacle; it also charges a battery locomotive standing beside it), `train_models_l2_l3`; the client film `battery_bottom_dump`.

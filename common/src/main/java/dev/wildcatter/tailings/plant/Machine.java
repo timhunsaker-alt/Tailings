@@ -56,7 +56,13 @@ public enum Machine {
 	/** The load-out's legs over a 10 m wide, 9 m clear drive-through lane, with the clamshell gate under its deck: the gate's 7.5 kW hydraulics. */
 	LOADOUT_FRAME("loadout_frame", "Load-Out Frame", 12, 10, 12, 7_500, Supply.INDUSTRIAL),
 	/** The load-out's 400 t steel bin of dry tails, on the frame. */
-	LOADOUT_BIN("loadout_bin", "Load-Out Bin", 10, 7, 10, 0, Supply.NONE);
+	LOADOUT_BIN("loadout_bin", "Load-Out Bin", 10, 7, 10, 0, Supply.NONE),
+	/** A rail bridge over a dump pocket, its 300 mm bars between and under the rails (bottom-dump-cars.md, L3): mine rail runs on it. */
+	TRACK_GRIZZLY("track_grizzly", "Track Grizzly", 1, 1, 4, 0, Supply.NONE),
+	/** The cam rail beside a track grizzly that opens each bottom-dump car's doors, with its closing ramp at the far end (L3). */
+	DUMP_CAM_RAIL("dump_cam_rail", "Dump Cam Rail", 1, 1, 4, 0, Supply.NONE),
+	/** A traction battery charger on a wall, plugged into a three-phase 30 A receptacle, 20 kW (battery-locomotive.md, L2). */
+	BATTERY_CHARGER("battery_charger", "Battery Charger", 2, 2, 1, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

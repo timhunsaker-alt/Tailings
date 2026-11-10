@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I I",
+    "ITI",
+    "IRI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "T": "minecraft:iron_trapdoor",
+    "R": "tailings:mine_rail"
+  },
+  "result": {
+    "id": "tailings:bottom_dump_car",
+    "count": 1
+  }
+}

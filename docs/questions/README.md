@@ -41,6 +41,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `art-wave.md` | 5 | the Ludo art and the vehicle skins |
 | Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
 | Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
+| Tailings | `l2-l3-trains.md` (branch `l2-l3-trains`) | 20 | battery locomotives and their charger, bottom-dump cars over a track grizzly |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |

@@ -4,6 +4,21 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, decided while Tim was away)
+
+- **Battery locomotive:** an 8 t locomotive on its own 58 kWh traction battery runs on any mine rail, with or without a rectifier:
+  0.20 m/s loaded up the decline, 3 m/s on the flat, about 8 kWh for 50 m of climb. LOW BATTERY under 20 %; FLAT at the floor, braked.
+  A new one has no battery: right-click it with a Traction Battery; right-click with another to swap; sneak-click a held, standing
+  locomotive to take its battery out.
+- **Battery charger:** plugs into a three-phase 30 A receptacle (NEMA L22-30 or IEC 60309 red 32 A) and draws 20 kW from that
+  circuit, charging the battery it holds or a battery locomotive standing beside it (a flat battery in about 2.6 hours). PLC points
+  CHARGING, FULL and CHARGE (4-20 mA).
+- **Bottom-dump cars:** the Granby car's size; they drop their load on the move over a new **track grizzly** (under the rails, over a
+  dump pocket) beside a new **dump cam rail**. Granby cars pass a grizzly and bottom-dump cars pass a ramp without dumping, so one
+  train can carry both.
+- **Tests:** `battery_loco_run`, `battery_loco_climb`, `battery_loco_flat`, `battery_charge`, `bottom_dump_on_move`, `bottom_dump_full`,
+  `bottom_dump_mixed`, `train_models_l2_l3`; `BatteryTest`. Decisions in `docs/questions/l2-l3-trains.md`.
+
 ### Playthrough fix: motors run on through gaps in their feed (2026-11-09, decided while Tim was away)
 
 - **A plant part's started motor runs on, empty, for 60 s** after its work runs out (proposed). Since belts carry rock at 2 m/s, a

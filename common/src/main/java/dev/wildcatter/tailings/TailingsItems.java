@@ -27,6 +27,9 @@ public final class TailingsItems {
 	public static final List<Item> REAGENTS = new ArrayList<>();
 	public static Item LOCOMOTIVE;
 	public static Item CAR;
+	public static Item BATTERY_LOCOMOTIVE;
+	public static Item BOTTOM_DUMP_CAR;
+	public static Item LOCO_BATTERY;
 	public static Item HAUL_TRUCK;
 	public static Item WHEEL_LOADER;
 	public static Item TRACK_DOZER;
@@ -50,6 +53,10 @@ public final class TailingsItems {
 		}
 		LOCOMOTIVE = item("mine_locomotive");
 		CAR = item("mine_car");
+		BATTERY_LOCOMOTIVE = item("battery_locomotive");
+		BOTTOM_DUMP_CAR = item("bottom_dump_car");
+		ResourceKey<Item> battery = ResourceKey.create(Registries.ITEM, Tailings.id("loco_battery"));
+		LOCO_BATTERY = Registry.register(BuiltInRegistries.ITEM, battery, new dev.wildcatter.tailings.item.LocoBatteryItem(new Item.Properties().setId(battery).stacksTo(1)));
 		HAUL_TRUCK = vehicle("haul_truck", () -> TailingsEntities.HAUL_TRUCK);
 		WHEEL_LOADER = vehicle("wheel_loader", () -> TailingsEntities.WHEEL_LOADER);
 		TRACK_DOZER = vehicle("track_dozer", () -> TailingsEntities.TRACK_DOZER);

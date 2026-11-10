@@ -406,3 +406,22 @@ building it are in [docs/questions/p4-dry-stack.md](docs/questions/p4-dry-stack.
 - **pit_dozer_cut** waits for the dozer to stop before it reads the ramp (it failed under a loaded server).
 - **The haul dispatch office** registers for trucks when it is loaded, not only when it first ticks (from the P3 branch).
 - 117 NeoForge scenes pass.
+
+## L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, branch `l2-l3-trains`)
+Built while Tim was away on the draft specs `docs/multiblocks/battery-locomotive.md` and `bottom-dump-cars.md`; decisions in
+`docs/questions/l2-l3-trains.md` (20 entries; #7, #12 and #16 most need Tim's eye).
+- **L2:** the `battery_locomotive` (the trolley locomotive's entity with a 58 kWh lead-acid battery, 46 kWh usable, and 2 x 22 kW: 0.20
+  m/s loaded up the decline, 3 m/s on the flat) runs on any rail, fed or not, and takes nothing from a fed one. It reads LOW BATTERY
+  under 20 % and stops FLAT, braked, at its floor. The `loco_battery` keeps its charge as item data; batteries swap by a click. The
+  `battery_charger` (2 x 2 x 1) plugs into a NEMA L22-30 or IEC 60309 red 32 A receptacle as a 20 kW, PF 0.95 Wildcatter `DriveLoad`
+  and puts 18 kW into the battery it holds, or a battery locomotive standing within 3 m; PLC points CHARGING, FULL, CHARGE.
+- **L3:** the `bottom_dump_car` (the Granby car's size) drops its load through drop-bottom doors on the move over a `track_grizzly`
+  under the rails beside a `dump_cam_rail`, into the dump pocket under the grizzly. A full pocket holds the train with the car over
+  the grizzly, doors shut. Mixed trains dump each kind at its own station; the signal before a dump counts only that station's kind.
+- **Art:** the two skins painted by `tools/models/vehicles.py` in the Ludo swatches; three Ludo item icons (3 credits); the three parts
+  in Wildcatter's materials (`tools/models/trains.py`). No placeholders.
+- **What building it found:** the scenes' extra forced chunks load a tick late, so their vehicles go on the track after 20 ticks (a
+  10-car train placed at once coupled none of its cars); a bottom-dump train near the end of its track was braking over the grizzly.
+- **Scenes:** NeoForge `battery_loco_run`, `battery_loco_climb` (7.86 kWh per 50 m measured), `battery_loco_flat`, `battery_charge` (a
+  real diesel set through Wildcatter cable; 18.0 kW into the battery), `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`,
+  `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump`.

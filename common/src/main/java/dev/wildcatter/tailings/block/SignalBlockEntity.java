@@ -77,6 +77,11 @@ public class SignalBlockEntity extends BlockEntity implements dev.wildcatter.con
 	 * cannot take its load. It follows the section's rails from the signal, up to 32 of them.
 	 */
 	public @org.jspecify.annotations.Nullable DumpBlockEntity dumpPocket() {
+		return dumpPocket(false);
+	}
+
+	/** As {@link #dumpPocket()}, for a car of the kind given: a side-dump ramp's pocket, or a track grizzly's (L3). */
+	public @org.jspecify.annotations.Nullable DumpBlockEntity dumpPocket(boolean bottomDump) {
 		if (level == null) {
 			return null;
 		}
@@ -92,7 +97,7 @@ public class SignalBlockEntity extends BlockEntity implements dev.wildcatter.con
 				continue;
 			}
 			rails++;
-			DumpBlockEntity pocket = DumpBlockEntity.under(level, at);
+			DumpBlockEntity pocket = DumpBlockEntity.under(level, at, bottomDump);
 			if (pocket != null && !pocket.pit()) {
 				return pocket;
 			}

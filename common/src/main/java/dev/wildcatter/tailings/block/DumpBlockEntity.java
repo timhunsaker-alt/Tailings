@@ -121,6 +121,42 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		return null;
 	}
 
+	/**
+	 * The pocket a bottom-dump car on the rail at {@code rail} drops its load into (docs/multiblocks/bottom-dump-cars.md, L3): the rail
+	 * on a track grizzly, a dump pocket under the grizzly, and a dump cam rail beside the rail or beside the grizzly to open the
+	 * car's doors. Null when there is none.
+	 */
+	public static @org.jspecify.annotations.Nullable DumpBlockEntity grizzlyUnder(net.minecraft.world.level.Level level, BlockPos rail) {
+		BlockPos bridge = rail.below();
+		if (!is(level, bridge, dev.wildcatter.tailings.plant.Machine.TRACK_GRIZZLY)) {
+			return null;
+		}
+		boolean cam = false;
+		for (net.minecraft.core.Direction side : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+			cam |= is(level, rail.relative(side), dev.wildcatter.tailings.plant.Machine.DUMP_CAM_RAIL)
+					|| is(level, bridge.relative(side), dev.wildcatter.tailings.plant.Machine.DUMP_CAM_RAIL);
+		}
+		if (!cam) {
+			return null;
+		}
+		BlockPos under = bridge.below();
+		BlockState below = level.getBlockState(under);
+		if (below.getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.DUMP_POCKET
+				&& level.getBlockEntity(PlantMachineBlock.mainOf(under, below)) instanceof DumpBlockEntity pocket) {
+			return pocket;
+		}
+		return null;
+	}
+
+	/** The pocket a car of the kind given dumps into from the rail at {@code rail}: a side-dump ramp's, or a track grizzly's. */
+	public static @org.jspecify.annotations.Nullable DumpBlockEntity under(net.minecraft.world.level.Level level, BlockPos rail, boolean bottomDump) {
+		return bottomDump ? grizzlyUnder(level, rail) : under(level, rail);
+	}
+
+	private static boolean is(net.minecraft.world.level.Level level, BlockPos pos, dev.wildcatter.tailings.plant.Machine machine) {
+		return level.getBlockState(pos).getBlock() instanceof PlantMachineBlock block && block.machine() == machine;
+	}
+
 	/** The items the pocket holds. */
 	public int pocket() {
 		int n = 0;

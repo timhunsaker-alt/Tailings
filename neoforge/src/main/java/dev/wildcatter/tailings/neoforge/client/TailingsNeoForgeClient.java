@@ -27,6 +27,8 @@ public final class TailingsNeoForgeClient {
 		modBus.addListener(EntityRenderersEvent.RegisterLayerDefinitions.class, event -> {
 			event.registerLayerDefinition(MineLocomotiveModel.LAYER, MineLocomotiveModel::createBodyLayer);
 			event.registerLayerDefinition(MineCarModel.LAYER, MineCarModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.BatteryLocomotiveModel.LAYER, dev.wildcatter.tailings.client.BatteryLocomotiveModel::createBodyLayer);
+			event.registerLayerDefinition(dev.wildcatter.tailings.client.BottomDumpCarModel.LAYER, dev.wildcatter.tailings.client.BottomDumpCarModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.HaulTruckModel.LAYER, dev.wildcatter.tailings.client.HaulTruckModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.WheelLoaderModel.LAYER, dev.wildcatter.tailings.client.WheelLoaderModel::createBodyLayer);
 			event.registerLayerDefinition(dev.wildcatter.tailings.client.TrackDozerModel.LAYER, dev.wildcatter.tailings.client.TrackDozerModel::createBodyLayer);
@@ -36,6 +38,8 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.TRAIN, NoopRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.CAR, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.BATTERY_LOCOMOTIVE, MineVehicleRenderer::new);
+			event.registerEntityRenderer(TailingsEntities.BOTTOM_DUMP_CAR, MineVehicleRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.TBM, dev.wildcatter.tailings.client.TbmRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.PUMP_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 			event.registerEntityRenderer(TailingsEntities.REEL_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);

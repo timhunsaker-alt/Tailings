@@ -304,5 +304,13 @@
   "block.tailings.loadout_bin": "Load-Out Bin",
   "block.tailings.dry_tails": "Dry Tails",
   "item.tailings.track_dozer": "Track Dozer",
-  "entity.tailings.track_dozer": "Track Dozer"
+  "entity.tailings.track_dozer": "Track Dozer",
+  "entity.tailings.battery_locomotive": "Battery Locomotive",
+  "entity.tailings.bottom_dump_car": "Bottom-Dump Car",
+  "item.tailings.battery_locomotive": "Battery Locomotive",
+  "item.tailings.bottom_dump_car": "Bottom-Dump Car",
+  "item.tailings.loco_battery": "Traction Battery",
+  "block.tailings.track_grizzly": "Track Grizzly",
+  "block.tailings.dump_cam_rail": "Dump Cam Rail",
+  "block.tailings.battery_charger": "Battery Charger"
 }

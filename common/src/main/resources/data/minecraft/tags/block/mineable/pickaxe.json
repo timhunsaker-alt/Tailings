@@ -60,6 +60,9 @@
     "tailings:tailings_thickener",
     "tailings:tailings_filter",
     "tailings:loadout_frame",
-    "tailings:loadout_bin"
+    "tailings:loadout_bin",
+    "tailings:track_grizzly",
+    "tailings:dump_cam_rail",
+    "tailings:battery_charger"
   ]
 }

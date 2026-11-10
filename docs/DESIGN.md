@@ -202,6 +202,29 @@ IRI
 
 `C` chest, `R` mine rail, `I` iron ingot. One car.
 
+### Battery locomotives and bottom-dump cars (L2, L3)
+
+Specs: [multiblocks/battery-locomotive.md](multiblocks/battery-locomotive.md), [multiblocks/bottom-dump-cars.md](multiblocks/bottom-dump-cars.md);
+decisions in [questions/l2-l3-trains.md](questions/l2-l3-trains.md). The figures are in `haul.Battery` (unit-tested).
+- **The battery locomotive** (`battery_locomotive`, the same `MineVehicleEntity` class): 2 x 22 kW on a 132 V, 440 Ah lead-acid battery,
+  46,464 Wh usable (80 %). It runs on any rail, fed or not, and draws nothing from a fed one. Speed is `Traction.limit` at 44 kW. The
+  battery gives the motors' output over 85 % (nothing down the decline). Under 20 % of usable it reads LOW BATTERY; at 0 it stops,
+  braked, FLAT. Placed, it has no battery (NO BATTERY). Right-click with a `loco_battery` swaps batteries; sneak-click with an empty
+  hand on a held, standing one takes its battery out; otherwise sneak-click reverses as the trolley locomotive. Broken, it drops its
+  battery too.
+- **The traction battery** (`loco_battery`, `item.LocoBatteryItem`): usable Wh as custom data (`charge_wh`); one with none holds 10 %.
+- **The charger** (`battery_charger`, 2 x 2 x 1, `block.BatteryChargerBlockEntity`): its plug is wired where any of its cells touches a
+  NEMA L22-30 or IEC 60309 red 32 A receptacle (WRONG RECEPTACLE, NOT PLUGGED IN otherwise). On the circuit it is Wildcatter's
+  `DriveLoad` on the industrial tier at PF 0.95, 20 kW while it has a battery to charge; 90 % of what it draws goes in. It charges the
+  battery it holds (right-click with one; sneak-click takes it out), or else a battery locomotive standing within 3 m. PLC inputs
+  CHARGING, FULL, CHARGE (4-20 mA, empty to full).
+- **The bottom-dump car** (`bottom_dump_car`): over a rail on a `track_grizzly` (1 x 1 x 4) with a `dump_pocket` under the grizzly and a
+  `dump_cam_rail` (1 x 1 x 4) beside the rail or the grizzly (`DumpBlockEntity.grizzlyUnder`), it drops its whole load on the move,
+  and its doors (synced, drawn swung down) are open while it is there empty. A pocket that cannot take the load holds the train with
+  the car over the grizzly. Granby cars dump only at a ramp and bottom-dump cars only over a grizzly; the signal before a dump counts
+  only that kind's cars (`SignalBlockEntity.dumpPocket(bottomDump)`). The pocket's oversize rule applies to both.
+- **Recipes (placeholders):** listed in questions/l2-l3-trains.md, 13.
+
 ### Dump and signals
 
 The dump station (R4c, docs/multiblocks/dump-station.md):
@@ -426,6 +449,9 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `traction_rectifier` | Iron, redstone, copper block | 300 kW, feeds joined rail |
 | `mine_locomotive` | Item, not a block. See haulage | Spawns the train entity |
 | `mine_car` | Item, not a block. See haulage | Marks a rail as a car |
+| `track_grizzly` | Iron bars, iron, a rail, smooth stone (placeholder) | 1 x 1 x 4 rail bridge over a pocket: bottom-dump cars dump over it (L3) |
+| `dump_cam_rail` | Iron over smooth stone (placeholder) | 1 x 1 x 4, beside a track grizzly: opens the cars' doors (L3) |
+| `battery_charger` | Steel, copper, redstone, Wildcatter cable (placeholder) | 2 x 2 x 1, 20 kW on a three-phase 30 A receptacle (L2) |
 | `dump_station` | 8 iron around a hopper | Pocket, sorter, bins |
 | `block_signal` | Redstone torch over an iron ingot | 16-rail section |
 | `mine_switch` | None | Clockwise turnout when thrown |
@@ -487,7 +513,7 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Nuggets:** one per mineral, except iron and gold, which use vanilla. Nine nuggets, shapeless, make the mineral item: a Wildcatter item, a vanilla ingot (copper), or a Tailings item for zircon, ilmenite, rutile, and monazite.
 - **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`. No crafting recipe. The 50% machines produce them.
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
-- **Haulage items:** `mine_locomotive`, `mine_car`.
+- **Haulage items:** `mine_locomotive`, `mine_car`, `battery_locomotive`, `bottom_dump_car`, `loco_battery` (L2, L3).
 
 Block items exist for every block above, including the ones with no crafting recipe.
 
@@ -498,6 +524,8 @@ Block items exist for every block above, including the ones with no crafting rec
 | `tunnel_drill` | `TunnelDrillEntity` | `NoopRenderer` on both loaders | Not spawned since R1; an old one discards itself. Kept registered for the contraption wave |
 | `mine_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` | Drives its train: path, speed, direction, cars |
 | `mine_car` | `MineVehicleEntity` | `MineVehicleRenderer` | A car; its load, and whether it is loaded (synced) |
+| `battery_locomotive` | `MineVehicleEntity` | `MineVehicleRenderer` (`BatteryLocomotiveModel`) | Drives its train on its own battery (L2) |
+| `bottom_dump_car` | `MineVehicleEntity` | `MineVehicleRenderer` (`BottomDumpCarModel`) | A car that dumps through its floor over a track grizzly; its doors synced (L3) |
 | `mine_train` | `MineTrainEntity` | `NoopRenderer` | The block-stepped train before R5; an old one discards itself |
 | `haul_truck` | `HaulTruckEntity` | `PitVehicleRenderer` (`HaulTruckModel`) | The 100 t truck: 91 t in its body by kilograms; driven, tips on jump |
 | `wheel_loader` | `WheelLoaderEntity` | `PitVehicleRenderer` (`WheelLoaderModel`) | Digs soft ground or muck into its 20.4 t bucket and dumps it into a truck, on jump |

@@ -50,6 +50,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.HAUL_DISPATCH) {
 			return new HaulDispatchBlockEntity(pos, state);
 		}
+		if (machine == Machine.BATTERY_CHARGER) {
+			return new BatteryChargerBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -64,6 +67,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.HAUL_DISPATCH) {
 			return createTickerHelper(type, TailingsBlocks.HAUL_DISPATCH_ENTITY, HaulDispatchBlockEntity::tick);
 		}
+		if (machine == Machine.BATTERY_CHARGER) {
+			return createTickerHelper(type, TailingsBlocks.BATTERY_CHARGER_ENTITY, BatteryChargerBlockEntity::tick);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
 	}
@@ -71,6 +77,13 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
+		if (level.getBlockEntity(main(pos, state)) instanceof BatteryChargerBlockEntity charger) {
+			// a traction battery goes into the charger; it hands back the one it held
+			if (!level.isClientSide() && charger.offer(player, hand, stack)) {
+				player.sendOverlayMessage(charger.inspect());
+			}
+			return stack.getItem() == dev.wildcatter.tailings.TailingsItems.LOCO_BATTERY ? InteractionResult.SUCCESS : super.useItemOn(stack, state, level, pos, player, hand, hit);
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0
 				&& stack.is(net.minecraft.tags.ItemTags.PICKAXES)) {
 			// a pickaxe breaks a piece of oversize through the grizzly's bars, as a rock breaker does
@@ -101,6 +114,16 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (level.getBlockEntity(main(pos, state)) instanceof HaulDispatchBlockEntity office) {
 			if (!level.isClientSide()) {
 				player.sendSystemMessage(office.inspect());
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (level.getBlockEntity(main(pos, state)) instanceof BatteryChargerBlockEntity charger) {
+			// a sneaking click takes its battery out; a click reads it
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					charger.takeOut(player);
+				}
+				player.sendOverlayMessage(charger.inspect());
 			}
 			return InteractionResult.SUCCESS;
 		}
