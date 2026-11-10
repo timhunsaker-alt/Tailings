@@ -4,6 +4,18 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### L4: the shaft and hoist (2026-11-09, decided while Tim was away)
+
+- **Headframe, hoist house, skips:** a 30 m steel headframe over a 5 x 5 shaft and a hoist house behind it (a 450 kW double-drum hoist
+  on the world's medium-voltage tier) wind two 3 t skips in balance at up to 10 m/s: the loaded one up to the dump in the headframe,
+  the empty one down. Hang a skip by clicking the headframe with it. About 270 t/h from 150 m.
+- **Measuring flask and headframe bin:** at the shaft bottom an apron feeder from a dump pocket (the L3 bottom-dump station) feeds the
+  measuring flask, which measures each skip's 3 t; at the top the skips dump into a 100 t bin that feeds a belt to the plant.
+- **Reads:** STOPPED (the brakes hold the skips without power), WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT naming what is missing.
+  PLC: the motor's points, FILL as the bin's level, SKIP DUMPED.
+- **Tests:** `shaft_hoist`, `shaft_not_built`, `shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; `HoistingTest`; the client film
+  `shaft_hoist`. Decisions in `docs/questions/l4-shaft.md`. The raise borer and the cage are planned, not built.
+
 ### L2 and L3: battery locomotives and bottom-dump cars (2026-11-09, decided while Tim was away)
 
 - **Battery locomotive:** an 8 t locomotive on its own 58 kWh traction battery runs on any mine rail, with or without a rectifier:

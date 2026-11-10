@@ -63,6 +63,10 @@
     "tailings:loadout_bin",
     "tailings:track_grizzly",
     "tailings:dump_cam_rail",
-    "tailings:battery_charger"
+    "tailings:battery_charger",
+    "tailings:headframe",
+    "tailings:headframe_bin",
+    "tailings:hoist_house",
+    "tailings:measuring_flask"
   ]
 }

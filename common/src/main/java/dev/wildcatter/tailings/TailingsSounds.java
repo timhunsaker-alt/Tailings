@@ -58,6 +58,7 @@ public final class TailingsSounds {
 			case REGRIND_MILL -> BALL_MILL;
 			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case THICKENER, TAILINGS_THICKENER -> WildcatterSounds.MOTOR_HUM;
+			case HOIST_HOUSE -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
 	}

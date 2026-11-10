@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "B B",
+    "IBI",
+    "B B"
+  ],
+  "key": {
+    "B": "minecraft:iron_block",
+    "I": "minecraft:iron_bars"
+  },
+  "result": {
+    "id": "tailings:headframe",
+    "count": 1
+  }
+}

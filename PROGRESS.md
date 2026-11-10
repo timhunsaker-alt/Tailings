@@ -427,3 +427,18 @@ Built while Tim was away on the draft specs `docs/multiblocks/battery-locomotive
   `train_models_l2_l3`: **125 NeoForge scenes pass** (117 before, 8 new). Unit tests `BatteryTest`, `MachineTest` (the three parts): 120 pass. The Fabric client film `battery_bottom_dump` (`TAILINGS_ONLY=battery_bottom_dump`) passes and is filmed: four cars of
   copper ore and cobble dropped on the move at up to 3 m/s, doors open over the grizzly and shut past it, 1,268 items in the pocket.
 - **The film found:** its first layout set the charger across the track and ended before the last car reached the grizzly.
+
+## L4: the shaft and hoist (2026-11-09, branch `l4-shaft`)
+Built while Tim was away on the draft spec `docs/multiblocks/shaft-and-hoist.md`; decisions in `docs/questions/l4-shaft.md` (21 entries;
+#1, #5 and #20 most need Tim's eye). Nothing in an existing world changes.
+- **Built:** the `headframe` (9 x 30 x 9 over a 5 x 5 shaft), the `hoist_house` (10 x 8 x 12, a 450 kW Wildcatter motor at the
+  medium-voltage tier), two 3 t `skip`s in balance (entities hung by clicking the headframe, drawn from their own model with their
+  ropes), the `measuring_flask` at the shaft bottom fed by the L3 bottom-dump station's apron feeder, and the 100 t `headframe_bin`
+  feeding a belt. 10 m/s at 0.75 m/s², a 10 s rest at the ends: about 270 t/h from 150 m. STOPPED (brakes hold), WINDING, WAITING FOR
+  ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPED.
+- **Planned, not built:** the raise borer (L4b) and the cage (L4c), written out in the spec's "Still to build"; the shaft as a return
+  airway with L1.
+- **Art:** five models in Wildcatter's materials (`tools/models/shaft.py`); no Ludo credits, no placeholders.
+- **Scenes:** NeoForge `shaft_hoist` (150 m: a measured cycle of 39.75 s against 40.1 s, 272 t/h), `shaft_not_built`, `shaft_flask_feed`,
+  `shaft_bin_full`, `shaft_power`: **130 NeoForge scenes pass** (125 before, 5 new). Unit tests `HoistingTest` (7) and `MachineTest`:
+  127 pass. The Fabric client film `shaft_hoist` (`TAILINGS_ONLY=shaft_hoist`).

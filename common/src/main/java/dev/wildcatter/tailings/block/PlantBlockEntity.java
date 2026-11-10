@@ -86,6 +86,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			for (String side : SIDE_POINTS) {
 				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
 			}
+		} else if (machine() == Machine.HOIST_HOUSE) {
+			// the hoist's FILL is the headframe bin's level; a pulse each skip dumped (shaft-and-hoist.md, L4)
+			out.add(new Point("SKIP DUMPED", false));
 		} else if (dev.wildcatter.tailings.block.stage.SlurryGauge.gauged(machine())) {
 			out.add(new Point("LEVEL 4-20 mA", false, Signal.MA));
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f L/s", dev.wildcatter.tailings.plant.PlcScale.FLOW_HIGH), false, Signal.MA));
@@ -100,6 +103,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			case 1 -> motor != null && motor.output() > 0;
 			case 2 -> motor != null && motor.stalled();
 			case 3 -> remote.auto();
+			case 6 -> machine() == Machine.HOIST_HOUSE && dev.wildcatter.tailings.block.stage.Shaft.dumpedRecently(this);
 			default -> false;
 		};
 	}
@@ -157,6 +161,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 				default -> dev.wildcatter.tailings.plant.PlcScale.ma(dev.wildcatter.tailings.block.stage.SlurryGauge.density(this), dev.wildcatter.tailings.plant.PlcScale.DENSITY_LOW,
 						dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH);
 			};
+		}
+		if (point == 5 && machine() == Machine.HOIST_HOUSE) {
+			return 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.Shaft.binLevel(this));
 		}
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
 	}
@@ -236,7 +243,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private boolean forced;
 	private boolean loading;
 	private String status = "idle";
-	/** A conveyor drive's last scan of its run (not saved). */
+	/** A hoist house's drums, skips and their loads (shaft-and-hoist.md, L4). */
+	private final dev.wildcatter.tailings.shaft.Winder winder = new dev.wildcatter.tailings.shaft.Winder();
+
+	public dev.wildcatter.tailings.shaft.Winder winder() {
+		return winder;
+	}
+
+	/** A conveyor drive's last scan of its run; a hoist house's last look at its shaft (not saved). */
 	public @Nullable Object run;
 
 	private static final List<Product> SLURRIES = List.of(Product.LEACH_SLURRY, Product.PREGNANT_LIQUOR, Product.MILL_DISCHARGE, Product.FINES_SLURRY, Product.CONDITIONED_SLURRY,
@@ -1054,6 +1068,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (machine() == Machine.CONDITIONER) {
 			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
 		}
+		if (machine() == Machine.HOIST_HOUSE) {
+			held.append(String.format("; %d skips dumped (%.0f t); skips at %.0f and %.0f m of %.0f m", winder.dumps(), winder.dumps() * dev.wildcatter.tailings.shaft.Hoisting.SKIP_KG / 1000,
+					winder.height(0), winder.height(1), winder.travel()));
+		}
 		if (machine() == Machine.ORE_BIN) {
 			held.append("; ").append(binCount()).append(" of ").append(PlantRates.BIN_ITEMS).append(" items");
 		}
@@ -1107,6 +1125,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putDouble("water_returned", waterReturned);
 		output.putInt("cycles", cycles);
 		output.putString("sort", sorter.save());
+		if (machine() == Machine.HOIST_HOUSE) {
+			output.putString("winder", winder.save());
+		}
 		remote.save(output);
 		output.putBoolean("selective", selective);
 		StringBuilder bin = new StringBuilder();
@@ -1151,6 +1172,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		waterReturned = input.getDoubleOr("water_returned", 0);
 		cycles = input.getIntOr("cycles", 0);
 		sorter.load(input.getStringOr("sort", ""));
+		winder.load(input.getStringOr("winder", ""));
 		selective = input.getBooleanOr("selective", false);
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {

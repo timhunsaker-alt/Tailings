@@ -93,6 +93,9 @@ public interface Stage {
 			case TAILINGS_FILTER -> DryStackStages.FILTER;
 			case LOADOUT_BIN -> DryStackStages.BIN;
 			case LOADOUT_FRAME -> DryStackStages.FRAME;
+			case HOIST_HOUSE -> Shaft.HOIST;
+			case MEASURING_FLASK -> Shaft.FLASK;
+			case HEADFRAME_BIN -> Shaft.BIN;
 			default -> Idle.INSTANCE;
 		};
 	}

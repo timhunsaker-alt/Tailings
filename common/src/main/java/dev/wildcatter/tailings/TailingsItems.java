@@ -34,6 +34,8 @@ public final class TailingsItems {
 	public static Item WHEEL_LOADER;
 	public static Item TRACK_DOZER;
 	public static Item SURVEY_BOOK;
+	/** A shaft skip (shaft-and-hoist.md, L4): clicked on a headframe, it hangs on the next free rope. */
+	public static Item SKIP;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -65,6 +67,8 @@ public final class TailingsItems {
 		for (TbmGantry gantry : TbmGantry.values()) {
 			GANTRIES.put(gantry, item(gantry.id()));
 		}
+		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
+		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
 		Set<String> seen = new LinkedHashSet<>();
 		for (Mineral mineral : Mineral.values()) {
 			if (!mineral.vanillaNugget()) {

@@ -57,8 +57,13 @@ final class Dump {
 				return;
 			}
 			PlantBlockEntity sorter = part.touching(Machine.ORE_SORTER);
-			if (sorter == null) {
-				part.say("NOT BUILT: needs an Ore Sorter at its tail end");
+			PlantBlockEntity flask = sorter == null ? part.touching(Machine.MEASURING_FLASK) : null;
+			if (sorter == null && flask == null) {
+				part.say("NOT BUILT: needs an Ore Sorter (or, at a shaft bottom, a Measuring Flask) at its tail end");
+				return;
+			}
+			if (flask != null) {
+				feedFlask(part, pocket, flask);
 				return;
 			}
 			if (pocket.pocket() == 0) {
@@ -84,6 +89,37 @@ final class Dump {
 			part.say("feeding the sorter, " + pocket.pocket() + " items in the pocket");
 		}
 	};
+
+	/**
+	 * At a shaft bottom (shaft-and-hoist.md, L4): the feeder drops a rock item's 2.7 t into the flask's surge whenever the surge is
+	 * empty, once a second; the flask measures each skip's 3 t out of it.
+	 */
+	private static void feedFlask(PlantBlockEntity part, DumpBlockEntity pocket, PlantBlockEntity flask) {
+		if (!flask.made().isEmpty()) {
+			part.say("FULL: the flask's surge is full");
+			return;
+		}
+		if (pocket.pocket() == 0) {
+			part.say("NO FEED: the pocket is empty");
+			return;
+		}
+		part.want();
+		if (!part.running()) {
+			part.say("waiting for its motor");
+			return;
+		}
+		if (part.getLevel().getGameTime() % 20 != 0) {
+			return;
+		}
+		pocket.draw(1).forEach((id, n) -> {
+			dev.wildcatter.tailings.block.Feeds.Charge charge = dev.wildcatter.tailings.block.Feeds.parse(dev.wildcatter.tailings.block.Feeds.stack(id, 1));
+			if (charge != null) {
+				flask.made().add(charge.rock(), charge.size(), PlantRates.BLOCK_KG * n);
+			}
+		});
+		flask.setChanged();
+		part.say("feeding the measuring flask, " + pocket.pocket() + " items in the pocket");
+	}
 
 	static final Stage SORTER = new Stage() {
 		@Override

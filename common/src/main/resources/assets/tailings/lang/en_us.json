@@ -312,5 +312,12 @@
   "item.tailings.loco_battery": "Traction Battery",
   "block.tailings.track_grizzly": "Track Grizzly",
   "block.tailings.dump_cam_rail": "Dump Cam Rail",
-  "block.tailings.battery_charger": "Battery Charger"
+  "block.tailings.battery_charger": "Battery Charger",
+  "block.tailings.headframe": "Headframe",
+  "block.tailings.headframe_bin": "Headframe Bin",
+  "block.tailings.hoist_house": "Hoist House",
+  "block.tailings.measuring_flask": "Measuring Flask",
+  "block.tailings.skip": "Skip",
+  "item.tailings.skip": "Skip",
+  "entity.tailings.skip": "Skip"
 }

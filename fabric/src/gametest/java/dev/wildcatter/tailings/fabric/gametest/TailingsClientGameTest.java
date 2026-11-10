@@ -122,6 +122,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("battery_bottom_dump")) {
 				batteryBottomDump(context, world, server);
 			}
+			if (only("shaft_hoist")) {
+				shaftHoist(context, world, server);
+			}
 			if (only("pit_dry_stack")) {
 				pitDryStack(context, world, server);
 			}
@@ -692,6 +695,95 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		int left = server.computeOnServer(srv -> java.util.Arrays.stream(train, 1, 5).mapToInt(c -> c.load().total()).sum());
 		require(left == 0, "every bottom-dump car should drop its load over the grizzly, " + left + " left");
 		heard("battery_bottom_dump", "tailings:mine_locomotive", "tailings:muck_tip");
+	}
+
+	/**
+	 * L4 (shaft-and-hoist.md): a headframe over a 40 m shaft, cut away on its east side so the shaft shows, the hoist house behind it,
+	 * the measuring flask at the bottom and the headframe bin at the top. The two skips wind in balance: the loaded one comes up, dumps
+	 * into the bin, and goes back down as the other comes up loaded.
+	 */
+	private void shaftHoist(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		int x0 = 300, z0 = 1200, depth = 40;
+		int collar = server.computeOnServer(srv -> srv.overworld().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x0 + 4, z0 + 4));
+		PlantBlockEntity[] parts = new PlantBlockEntity[4];
+		dev.wildcatter.tailings.entity.ShaftSkipEntity[] skips = new dev.wildcatter.tailings.entity.ShaftSkipEntity[2];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			// a level yard over it all, and the shaft: its 5 x 5 down to the flask, and the ground east of it cut away to show it
+			for (int x = x0 - 8; x <= x0 + 30; x++) {
+				for (int z = z0 - 8; z <= z0 + 34; z++) {
+					level.setBlock(new BlockPos(x, collar - 1, z), Blocks.STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int yy = collar; yy < collar + 34; yy++) {
+						level.setBlock(new BlockPos(x, yy, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			for (int yy = collar - depth - 1; yy < collar; yy++) {
+				for (int x = x0 + 2; x <= x0 + 30; x++) {
+					for (int z = z0 - 8; z <= z0 + 14; z++) {
+						boolean shaft = x <= x0 + 6 && z >= z0 + 2 && z <= z0 + 6;
+						boolean cut = x >= x0 + 7 && yy < collar - 2;
+						BlockState to = yy == collar - depth - 1 && (cut || shaft) ? Blocks.STONE.defaultBlockState()
+								: shaft || cut ? Blocks.AIR.defaultBlockState() : null;
+						if (to != null) {
+							level.setBlock(new BlockPos(x, yy, z), to, Block.UPDATE_CLIENTS);
+						}
+					}
+				}
+			}
+			parts[0] = plant(level, Machine.HEADFRAME, new BlockPos(x0, collar, z0));
+			parts[1] = plant(level, Machine.HEADFRAME_BIN, new BlockPos(x0 + 2, collar, z0 - 4));
+			parts[2] = plant(level, Machine.HOIST_HOUSE, new BlockPos(x0, collar, z0 + 20));
+			parts[3] = plant(level, Machine.MEASURING_FLASK, new BlockPos(x0 + 7, collar - depth, z0 + 4));
+			parts[2].forceRunning();
+			var frame = dev.wildcatter.tailings.block.ShaftLayout.Frame.of(parts[0]);
+			skips[0] = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			skips[1] = dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			parts[3].made().add(Rock.GRANITE, null, 2700);
+		});
+		server.runCommand("tp @p " + (x0 + 30) + " " + (collar + 6) + " " + (z0 + 4) + " 90 10");
+		context.waitTicks(60);
+		Filming film = film(context, world, "shaft_hoist");
+		context.takeScreenshot("tailings-shaft-collar");
+		boolean shotMid = false;
+		int lastDumps = 0;
+		for (int t = 0; t < 260; t++) {
+			context.waitTicks(5);
+			server.runOnServer(srv -> {
+				if (parts[3].made().isEmpty()) {
+					parts[3].made().add(Rock.GRANITE, null, 2700);
+				}
+			});
+			// follow the skip coming up loaded, from the cutaway's side
+			double[] at = server.computeOnServer(srv -> {
+				var w = parts[2].winder();
+				int up = w.winding() ? w.bottom() : w.top();
+				return new double[] {skips[up].getY(), w.speed(), w.dumps()};
+			});
+			int camY = (int) Math.round(Math.min(collar + 22, Math.max(collar - depth + 4, at[0] + 2)));
+			server.runCommand("tp @p " + (x0 + 24) + " " + camY + " " + (z0 + 4) + " 90 8");
+			if (!shotMid && at[1] > 4) {
+				context.takeScreenshot("tailings-shaft-winding");
+				shotMid = true;
+			}
+			if (t % 20 == 0) {
+				server.runOnServer(srv -> System.out.println("[tailings-test] shaft_hoist: " + parts[2].status() + "; bin " + parts[1].hold().total() + " kg; flask " + parts[3].hold().total()));
+			}
+			if ((int) at[2] > lastDumps) {
+				lastDumps = (int) at[2];
+				context.takeScreenshot("tailings-shaft-dump-" + lastDumps);
+			}
+			if (lastDumps >= 2) {
+				context.waitTicks(40);
+				break;
+			}
+		}
+		server.runCommand("tp @p " + (x0 + 26) + " " + (collar + 18) + " " + (z0 + 30) + " 135 20");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-shaft-end");
+		film.stop();
+		int dumps = server.computeOnServer(srv -> parts[2].winder().dumps());
+		require(dumps >= 2, "the skips should dump twice into the headframe bin, got " + dumps);
 	}
 
 	/** A train tips a car of copper ore and a car of cobble on the move, and the sorter splits them to their bins. */

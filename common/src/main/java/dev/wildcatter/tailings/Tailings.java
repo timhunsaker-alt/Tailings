@@ -57,6 +57,7 @@ public final class Tailings {
 		for (var gantry : TailingsItems.GANTRIES.values()) {
 			output.accept(new ItemStack(gantry));
 		}
+		output.accept(new ItemStack(TailingsItems.SKIP));
 		output.accept(new ItemStack(TailingsBlocks.LINING));
 		output.accept(new ItemStack(TailingsBlocks.MINE_RAIL));
 		output.accept(new ItemStack(TailingsBlocks.TRACTION_RECTIFIER));

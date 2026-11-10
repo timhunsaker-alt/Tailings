@@ -49,6 +49,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Tailings | `art-p3.md` (branch `p3-blasting`) | 7 | the blasting and dry-stack art |
 | Tailings | `playthrough.md` | 4 | the playthrough fix: motors run on 60 s, failing fast |
 | Tailings | `l2-l3-trains.md` | 20 | battery locomotives and their charger, bottom-dump cars over a track grizzly (merged; #7, #12, #16 need you) |
+| Tailings | `l4-shaft.md` (branch `l4-shaft`) | 21 | the shaft and hoist: headframe, hoist house, skips in balance, the measuring flask, the headframe bin (#1, #5, #20 need you) |
 | Tailings | `p5-big-machines.md` (branch `p5-big-machines`) | 35 | the switch house, trailing cables, the ultra truck, both shovels |
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
