@@ -242,6 +242,8 @@ any ore; standing rock reads BLOCKED, blast it first. With its reach dug out it 
 6 MW while the bucket fills, 1.2 MW the rest, 2.5 MW walking. Its PLC points (RUN, RUNNING, DONE, CYCLES, POWER) are on its switch
 house outlet, for any machine there. A reel can now be clicked onto any pit machine (a P5 gap). NeoForge scenes `dragline_built`,
 `dragline_cycle`, `dragline_strip`, `dragline_walk`, `dragline_hard`, `dragline_plc`; unit tests `DraglineTest`; client film `dragline`.
+Tim (2026-11-10, answer 10): the house is a hollow shell (2,790 cells, 11,880 fewer block states), and every big part's empty cells
+share one model (13,604 fewer files).
 
 Next: P7 (the pit-sized plant). Left out from P6's spec (Later, below): cast blasting, hand control, highwall and spoil failures, rehandle,
 bucket-wheel excavators and spreaders.
@@ -257,7 +259,7 @@ branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which 
   trucks tip into the pocket; a boulder every 200 hard blocks bridges the bowl until the `rock_breaker` breaks it (30 s). The
   `heavy_belt_conveyor` and its `heavy_conveyor_drive`s (355 kW, 75 kW a 30 m plus the lift; 1 in 3 at most); the `stockpile_head`
   building a real pile of `stockpile_rock` by the settle rule; `reclaim_feeder`s under openings in a tunnel of any solid blocks, the
-  pile draining as cones (one feeder 26 % live, three 41 %); the `belt_weigher` whose setpoint the feeders share. NeoForge scenes
+  pile draining as cones (one feeder 20 % live, three 33 %: the draw-down stands steeper than the pile, Tim 2026-11-10); the `belt_weigher` whose setpoint the feeders share. NeoForge scenes
   `p7_gyratory_tip`, `p7_gyratory_bridge`, `p7_stockpile_cone`, `p7_stockpile_live`, `p7_stockpile_one`, `p7_reclaim_rate`,
   `p7_heavy_belt`, `p7_primary_line`, `p7a_parts`; unit tests `PitLineTest`.
 - **P7b — DONE (2026-11-10):** [multiblocks/sag-mill-line.md](multiblocks/sag-mill-line.md). The `sag_mill` (2 x 4.1 MW), the
@@ -437,7 +439,6 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
 - **No reclaim tunnel part (P7a):** the tunnel is the player's own solid blocks with an opening over each feeder (p7-pit-line.md, 9).
 - **The stockpile is not counted (P7a):** the head counts tonnes stacked and the feeders tonnes drawn; nothing reads the pile's live
   and dead tonnes (p7-pit-line.md, 13).
-- **Three close feeders draw 41 % of a pile (P7a):** the spec's 25-35 % with three; one feeder draws 26 % (p7-pit-line.md, 11).
 - **The rock breaker has no seat (P7a):** it breaks a boulder by itself while its motor runs (p7-pit-line.md, 5).
 - **No mill start interlock (P7b):** a direct start draws six times the current and trips its breaker; nothing refuses it
   (p7-pit-line.md, 21). No scene starts a mill on a real 8 MW supply.
@@ -469,8 +470,6 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
   rope shovel does not yet: it would report RUNNING and a pulse a pass from `PitShovelEntity.afterPass`, and take RUN as its AUTO.
 - **The dragline is driven by its job only (P6, spec):** a player may sit in its cab, but the keys do nothing: no hand control of
   swing, drag and hoist. Its strip is set on its panel from where it was lifted, square to the grid.
-- **The dragline's parts fill whole boxes (P6, p6-dragline.md 3):** 8,262 cells, 5,760 of them its house; a hollow house would save
-  about 15,000 block states if start-up time is noticed.
 - **The dragline's spoil and highwall never fail (P6, spec Left out):** the pile stands at the settle rule's angle; nothing slides under
   the machine; spoil that rolls into the cut is dug again (it is kept 6 m out and leaned away, so it rarely does).
 - **Two paints on the dragline (P6):** as the rope shovel's: its parts in Wildcatter's materials, the lifted machine in Ludo's.

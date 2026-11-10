@@ -129,8 +129,8 @@ Decisions in [../questions/p7-pit-line.md](../questions/p7-pit-line.md) (#1-#19;
   is any solid blocks with an opening in its roof over each feeder (#9); the head counts tonnes stacked and the feeders tonnes drawn, not
   the pile itself (#13); the weigher counts what the feeders put on its run (#14); the PLC points as #17.
 - **Measured (the scenes):** an ultra's 363 t of granite is 134 bank blocks in the pocket and 1.2 t kept; the gyratory crushes at
-  2,400 t/h; a boulder holds it 30 s; a 2,000-block pile stands about 10 m at 37 degrees; **one feeder under its middle draws 26 % of it,
-  three 6 m apart 41 %** (#11); two feeders at the default setpoint run at 500 t/h each and the weigher reads 1,000 t/h, one alone reads
+  2,400 t/h; a boulder holds it 30 s; a 2,000-block pile stands about 10 m at 37 degrees; **one feeder under its middle draws 20 % of it,
+  three 6 m apart 33 %** (#11; 26 and 41 % before Tim's answer of 2026-11-10 made the draw-down stand at 45 degrees); two feeders at the default setpoint run at 500 t/h each and the weigher reads 1,000 t/h, one alone reads
   500; a 150 m flat heavy run needs two drives.
 - **Tests:** NeoForge `p7_gyratory_tip`, `p7_gyratory_bridge`, `p7_stockpile_cone`, `p7_stockpile_live`, `p7_stockpile_one`,
   `p7_reclaim_rate`, `p7_heavy_belt`, `p7_primary_line`, `p7a_parts`; unit tests `PitLineTest`, `MachineTest`; the client film

@@ -4,6 +4,13 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Tim's answers on P5-P7: the hollow dragline house and the reclaim draw-down (2026-11-10)
+
+- **Dragline House:** its machinery house is a hollow shell: 2,790 cells, not 5,760; it looks the same.
+- **Big parts:** every part's empty cells now share one model: about 13,600 fewer files, no change in look.
+- **Reclaim Feeder:** a pile drains to a steeper draw-down cone (45 degrees): three feeders close together draw about a third of a
+  pile, not 41 %; one feeder about a fifth.
+
 ### Open pit P6 — the walking dragline (2026-11-10)
 
 Built while Tim was away on the approved spec `docs/multiblocks/dragline.md`; decisions in `docs/questions/p6-dragline.md`.

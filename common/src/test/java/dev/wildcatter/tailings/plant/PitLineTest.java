@@ -47,6 +47,34 @@ class PitLineTest {
 		assertEquals(4.2, tonnes / (PitLine.TONNES_PER_HOUR * 24), 0.05);
 	}
 
+	/**
+	 * The draw-down (Tim, 2026-11-10, p7-pit-line.md #11): beside the column a feeder draws, a block may stand a step of 2 over the hole,
+	 * where the pile's own rule rolls it in, and over a run it stands at 1 in 1 (45 degrees), not the pile's 3 in 4. p7_stockpile_one and
+	 * p7_stockpile_live measure what this leaves live: about 20 % with one feeder, about 33 % with three close ones (the spec's 25-35 %),
+	 * not 26 and 41.
+	 */
+	@Test
+	void theDrawDownStandsSteeperBesideTheDrawnColumn() {
+		// flat ground to y 0, a hole one deep at x 0, z 0 (the drawn column), one block on the ground beside it at x 1
+		dev.wildcatter.tailings.mine.Settle.Ground ground = new dev.wildcatter.tailings.mine.Settle.Ground() {
+			@Override
+			public boolean free(int x, int y, int z) {
+				return y >= 0 || (x == 0 && z == 0 && y == -1);
+			}
+
+			@Override
+			public int floor() {
+				return -64;
+			}
+		};
+		assertEquals(new dev.wildcatter.tailings.mine.Settle.Cell(0, -1, 0), dev.wildcatter.tailings.mine.Settle.rest(ground, 1, 0, 0, new java.util.Random(1)),
+				"by the pile's rule a step of 2 rolls into the hole");
+		assertEquals(new dev.wildcatter.tailings.mine.Settle.Cell(1, 0, 0),
+				dev.wildcatter.tailings.mine.Settle.rest(ground, 1, 0, 0, new java.util.Random(1), dev.wildcatter.tailings.mine.Settle.DRAW_DOWN_RISE),
+				"on the draw-down it stands");
+		assertEquals(4, dev.wildcatter.tailings.mine.Settle.DRAW_DOWN_RISE[4], "over a run of 4 it stands 4 up at most: 1 in 1");
+	}
+
 	@Test
 	void feedersShareTheSetpoint() {
 		assertEquals(500, PitLine.feederShareTph(1000, 2), 1e-9);

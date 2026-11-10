@@ -98,6 +98,16 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
 - **Question:** is 41 % with three close feeders acceptable? Real plants space feeders to get 30-35 %; a player who spaces them wider
   gets more, which is right.
 - **Alternatives:** muck rolling too (would change existing worlds' muck heaps); a live share written as a number (P7-7 rejected it).
+- **Tim (2026-11-10): "tune three close feeders down to the spec's 25-35 %." Built:** the draw-down has its own row of the settle
+  rule (`Settle.DRAW_DOWN_RISE`), used only by a stockpile block on the pile's top rolling as a feeder draws under it: its slopes stand
+  at 1 in 1 over a run (45 degrees, not the pile's 3 in 4) and a step of 2 may stand beside the drawn column, as real draw-down cones
+  stand steeper than the angle of repose. The pile is built, and a block falling into the drawn column rests, by the rule as before;
+  muck is unchanged. **Measured** on the same 2,000-block pile: three feeders 6 m apart draw **33 %** (32.6-34.5 % over eight seeded
+  runs of an offline model of the scene, which gave the old 26 and 41 % too); one feeder **20 %** (19.8-20.8 %), the low end of real
+  piles' 20-30 % with one feeder. No row of the rule kept one feeder at 26 % with three under 35 %: every draw-down slope tried left
+  three feeders at about 1.55 times one (the cones' overlap is geometry), so 26 % for one meant 40 % for three. The steeper slope
+  was chosen over a 63-degree lip with a 37-degree run (one 22 %, three 34-35 %, too near the spec's edge). `p7_stockpile_live` now
+  asks 25-35 %, `p7_stockpile_one` 17-30 %; `PitLineTest` checks the rule.
 
 ### 12. The stockpile head
 - **Chosen:** a heavy belt delivers over its top; it drops the load through its chute, under the middle of its south end, as stockpile
@@ -272,6 +282,12 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   run writes a `duct` entry into later modules' models that the committed files (each built alone) lack. Harmless (an unused texture);
   the new module keeps its own table. Fixed on main (6678e33): `vent.py` now copies the table, and a full regeneration matches git.
 - **Alternatives:** change `mlib` in Wildcatter (the brief said not to); a smaller thickener (the spec's 45 m is the real size).
+- **Tim (2026-11-10): "turn the shared empty model on for every big part." Built:** `build.py` exports every big part (more than one
+  cell, its blockstate written by `mlib`) this way; a model may still set `share_empty = False`. The export now clears a part's old
+  piece models first, so a part with fewer pieces leaves none behind. Regenerated: 13,604 piece models deleted, 67 `empty.json` added,
+  67 blockstates (written compact) and the dragline house's shape file rewritten: 31,644 model and blockstate files to 18,107, 96.2 to
+  63.7 MB. Every one of the 67 parts, rebuilt from its blockstate and piece models in all four facings, draws the same boxes before and
+  after, and all 103 previews in `build/model-previews` are byte for byte the same. With the hollow dragline house (p6-dragline.md #3).
 
 ### 34. How the 45 m thickener is drawn
 - **Chosen:** the concrete wall (96 plates), the overflow launder inside its rim, the slurry's surface drawn a row at a time (one box a

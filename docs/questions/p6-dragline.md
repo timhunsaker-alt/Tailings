@@ -31,6 +31,13 @@ lifted into one machine when it runs, on its trailing cable from a pit switch ho
 - **Why:** the spec's sizes are approved; a box is what Wildcatter's big parts and Tailings' model tool are built for.
 - **Alternatives:** a hollow house (a shell of 1,800 cells: about 15,000 fewer states; needs a non-box footprint in `PlantMachineBlock`
   and the model tool). Recommended only if start-up time is noticed.
+- **Tim (2026-11-10): "a hollow house; turn the shared empty model on for every big part." Built:** `Machine.hollow()` leaves the
+  machinery house's closed inside out of the house's footprint (`Footprint.of`, the box's order kept): 22 x 9 x 15 = 2,970 cells, none
+  of which drew anything, so the house is 2,790 pieces, not 5,760, and **11,880 fewer block states** (the dragline 5,292 cells in all,
+  not 8,262). The other 581 empty cells (the open air in front of the machinery house and over
+  its frame) stay, so the part still claims the whole box it is set down in. `tools/models/tlib.py` leaves out the same cells (`model(..., hollow=)`). With every big part sharing one empty
+  model (p7-pit-line.md #33) the house is 2,209 piece models and one `empty.json`. Nothing looks different: every part rebuilt from its
+  blockstate and pieces draws the same boxes in all four facings, and the previews are byte for byte the same.
 
 ### 4. Recipes and items
 - **Chosen:** placeholder recipes from Wildcatter's steel and vanilla iron (the house takes Wildcatter's medium-voltage drive cells and

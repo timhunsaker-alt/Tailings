@@ -21,6 +21,14 @@ public final class Settle {
 	public static final int MOST_ROLLS = 64;
 	/** The most a column may stand above the one {@code k} away, for k = 1 to 4: 1 in 1 near, 3 in 4 over a run. */
 	private static final int[] MOST_RISE = {0, 1, 2, 3, 3};
+	/**
+	 * The draw-down's own rule, for a stockpile block on the pile's top as a reclaim feeder draws under it (P7a; Tim, 2026-11-10,
+	 * p7-pit-line.md #11). Real draw-down cones stand steeper than the angle of repose: here the drawn slopes stand at 1 in 1 over a
+	 * run (45 degrees, not the pile's 3 in 4), and beside the drawn column a block may stand a step of 2 over its neighbour, as the flow
+	 * channel's wall does. One feeder under a 2,000-block pile then draws about 20 % of it, three 6 m apart about 33 % (the spec's
+	 * 25-35 %; 26 and 41 % when the draw-down rolled in at the pile's own 37 degrees).
+	 */
+	public static final int[] DRAW_DOWN_RISE = {0, 2, 2, 3, 4};
 
 	/** The world as the rule sees it. */
 	public interface Ground {
@@ -44,6 +52,11 @@ public final class Settle {
 	 * then sees it.
 	 */
 	public static Cell rest(Ground ground, int x, int y, int z, RandomGenerator random) {
+		return rest(ground, x, y, z, random, MOST_RISE);
+	}
+
+	/** As {@link #rest(Ground, int, int, int, RandomGenerator)}, with the most a column may stand over the one k away given. */
+	public static Cell rest(Ground ground, int x, int y, int z, RandomGenerator random, int[] mostRise) {
 		if (!ground.free(x, y, z)) {
 			return null;
 		}
@@ -60,13 +73,13 @@ public final class Settle {
 				int first = fall(ground, nx, y, nz);
 				// resting here, this column's top is y + 1: how far past the steepest it may stand is it, looking k columns out?
 				int excess = 0;
-				for (int k = 1; k < MOST_RISE.length; k++) {
+				for (int k = 1; k < mostRise.length; k++) {
 					int kx = x + side[0] * k, kz = z + side[1] * k;
 					if (!ground.free(kx, y, kz)) {
 						break;
 					}
 					int top = k == 1 ? first : fall(ground, kx, y, kz);
-					excess = Math.max(excess, (y + 1) - top - MOST_RISE[k]);
+					excess = Math.max(excess, (y + 1) - top - mostRise[k]);
 				}
 				if (excess <= 0) {
 					continue;

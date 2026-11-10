@@ -2,6 +2,23 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Tim's answers 10 and 13 on P5-P7, and main merged in (2026-11-10, branch `p5-big-machines`)
+Main merged in (gaps2, Tim's answers, the per-world rules); answers 10 and 13 built. Decisions in `docs/questions/p6-dragline.md` #3
+and `p7-pit-line.md` #11 and #33.
+- **The merge:** conflicts kept both sides (the XRT sorter's REVERSE point stays in its branch ahead of the pit line's points; the
+  scene registration takes main's rule batches with P5-P7's lists, ticks and padding). P5-P7's scenes run in the new world with main's
+  rules on and pass there; none needed a rules batch.
+- **A hollow dragline house (answer 10):** `Machine.hollow()` leaves the machinery house's closed inside (2,970 cells that drew
+  nothing) out of its footprint: 2,790 pieces, 11,880 fewer block states. The model tool leaves out the same cells.
+- **One empty model for every big part (answer 10):** `build.py` now shares `<part>/empty.json` among the empty pieces of every part
+  of more than one cell: 13,604 piece models deleted, 67 empty models added; 31,644 model and blockstate files to 18,107, 96.2 to
+  63.7 MB. All 67 parts draw the same boxes before and after in every facing; the 103 previews are byte for byte the same.
+- **Reclaim (answer 13):** the draw-down stands steeper than the pile (`Settle.DRAW_DOWN_RISE`, 45 degrees over a run): three close
+  feeders draw 33 % of the pile (41 % before), one 20 % (26 %). Muck and the pile's own slopes are unchanged.
+- **Tests:** `DraglineTest` (the hollow footprint), `PitLineTest` (the draw-down rule); `p7_stockpile_live` asks 25-35 %.
+  Full server suite: **all 223 scenes pass** in one run (205 of P5-P7 and 18 from main), with `build`; this run measured 34.2 % and
+  21.0 %.
+
 ## P7c: pit flotation and the tails (2026-11-10, branch `p7c-pit-flotation`)
 Built while Tim was away on the draft spec `docs/multiblocks/pit-flotation.md` and ROADMAP's plan; decisions in
 `docs/questions/p7-pit-line.md` (#33-#44; #33, #36, #37 and #40 most need Tim). Five new parts; the small plant and existing worlds

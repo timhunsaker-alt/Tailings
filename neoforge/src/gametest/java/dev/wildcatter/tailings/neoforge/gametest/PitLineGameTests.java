@@ -302,16 +302,20 @@ final class PitLineGameTests {
 
 	/**
 	 * p7_stockpile_live: a pile of 2,000 blocks, about 10 m high, over three feeders in a line along the tunnel. They draw until each reads NO FEED: the pile
-	 * drains as cones over the openings, and what stands outside them is the dead stockpile. The live share falls out of the settle rule;
-	 * it should be between 20 and 40 % (real conical piles: 20-30 % with one feeder).
+	 * drains as cones over the openings, and what stands outside them is the dead stockpile. The live share falls out of the settle rule's
+	 * draw-down table: the spec's 25-35 % with three (Tim, 2026-11-10, p7-pit-line.md #11; about 33 %, 41 % before the draw-down stood
+	 * steeper than the pile).
 	 */
 	private static void stockpileLive(GameTestHelper helper) {
-		drawDown(helper, new int[] {12, 18, 24}, 0.20, 0.45);
+		drawDown(helper, new int[] {12, 18, 24}, 0.25, 0.35);
 	}
 
-	/** p7_stockpile_one: the same pile over one feeder under its middle: a real conical pile with one feeder is 20-30 % live. */
+	/**
+	 * p7_stockpile_one: the same pile over one feeder under its middle: a real conical pile with one feeder is 20-30 % live; about 20 % here
+	 * (26 % before the draw-down stood steeper than the pile).
+	 */
 	private static void stockpileOne(GameTestHelper helper) {
-		drawDown(helper, new int[] {18}, 0.15, 0.35);
+		drawDown(helper, new int[] {18}, 0.17, 0.30);
 	}
 
 	/** Builds a 2,000 block pile over feeders at {@code feederZ} and draws it until each reads NO FEED; the live share must be in range. */

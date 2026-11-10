@@ -75,8 +75,8 @@ public final class Loose {
 	}
 
 	/**
-	 * Where a loose block standing at {@code pos} would roll to by the settle rule, were it let go: its own cell when it stands, as at
-	 * 37 degrees or less (the stockpile's slopes rolling in over a reclaim feeder, P7a).
+	 * Where a stockpile block standing on the pile's top at {@code pos} would roll to as a reclaim feeder draws the pile down (P7a), by
+	 * the settle rule's draw-down table ({@link Settle#DRAW_DOWN_RISE}): its own cell when it stands.
 	 */
 	public static BlockPos wouldRoll(ServerLevel level, BlockPos pos) {
 		Settle.Ground world = ground(level);
@@ -91,7 +91,7 @@ public final class Loose {
 				return world.floor();
 			}
 		};
-		Settle.Cell cell = Settle.rest(without, pos.getX(), pos.getY(), pos.getZ(), new java.util.Random(level.getRandom().nextLong()));
+		Settle.Cell cell = Settle.rest(without, pos.getX(), pos.getY(), pos.getZ(), new java.util.Random(level.getRandom().nextLong()), Settle.DRAW_DOWN_RISE);
 		return cell == null ? pos : new BlockPos(cell.x(), cell.y(), cell.z());
 	}
 
