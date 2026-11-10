@@ -53,11 +53,17 @@ These are the only items that wait on you; everything else is built and only nee
     big parts too (about 10,000 fewer files); the row's air on instrument tubing or a real air header; should the concentrate
     thickener refuse uncleaned concentrate; and Wildcatter's decant tower takes about 72 t/h against the line's 1,670 t/h, so raise its
     rate? P5, P6 and P7 (all of it) pass 205 server scenes together and merge to main after the Wildcatter v0.6.0 release.
-16. **The gaps2 fixes** (branch `gaps2`, `gaps2.md`): three are built but **off by default** in `config/tailings-rules.properties`, as
+16. **The gaps2 fixes** (merged, `gaps2.md`): three are built but **off by default** in `config/tailings-rules.properties`, as
     they would change existing worlds. Should each default on? #4 `headframe_hopper` (a hopper under a headframe bin takes its rock as
     items), #5 `paste_wall_breach` (a solid wall mined out beside wet paste spills it), #6 `paste_unloaded_cure` (paste makes up the
     time its chunk was unloaded). And two that are on: #2, the press's and load-out's new PLC points (CYCLE as a pulse counter or a
     one-second bit?), and #3, the paste filter's and mixer's gauges (should the mixer's LEVEL read its paste hopper, not its trim?).
+17. **Wildcatter Phase 16, the uranium routes** (branch `phase16`, `phase16-uranium.md`, 30 entries): ADU yellowcake and the uranium
+    calciner, conversion's cathode hydrogen, the ash bed and KOH scrubber, product assay with spin-up and cascade cooling, ISR CO2, the
+    bleed to a disposal well and satellite IX. Built and tested (53 server scenes, 360 unit tests), not merged to master so the v0.6.0
+    release stays as you left it. Needs you: #8 and #21, should `fluorinatorAshBed` and `cascadeSpinUp` (off by default in
+    `config/wildcatter.properties`) be on for new worlds? Worth a look: #1 (the ADU drum is its own item), #19 (a placed fuel assembly
+    forgets its assay).
 
 ## Every file, by wave
 
@@ -94,6 +100,7 @@ These are the only items that wait on you; everything else is built and only nee
 | Wildcatter | `plc-gaps.md` | 12 | PLC gaps: cable cores, the 24 V supply, rack owners, ladder jumps, FBD wire routing, every signal run in the world |
 | Wildcatter | `misc-gaps.md` | 9 | steam plant lines, the 1 MW alternator, land rig cables, coke oven gas derating, spool icons |
 | Wildcatter | `phase15-oilfield.md` (branch `phase15`) | 25 | salt domes, drilling mud, the BOP and blowouts |
+| Wildcatter | `phase16-uranium.md` (branch `phase16`) | 30 | ADU and the calciner, cathode H2, ash bed, KOH, product assay, spin-up, cooling, ISR CO2, bleed, satellites |
 | Wildcatter | `specs-wildcatter.md` | 103 | the specs written for every unscheduled idea (see `docs/ideas-plan.md`) |
 
 Films of the waves were sent to you in the session as they were made.
