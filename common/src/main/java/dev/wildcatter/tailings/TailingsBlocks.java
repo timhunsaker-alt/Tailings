@@ -88,6 +88,15 @@ public final class TailingsBlocks {
 	public static final Block ORE_BIN = plant(Machine.ORE_BIN, MapColor.METAL);
 	public static final Block TRUCK_DUMP_WALL = plant(Machine.TRUCK_DUMP_WALL, MapColor.STONE);
 	public static final Block PIT_HOPPER = plant(Machine.PIT_HOPPER, MapColor.METAL);
+	public static final Block GYRATORY_CRUSHER = plant(Machine.GYRATORY_CRUSHER, MapColor.COLOR_GRAY);
+	public static final Block GYRATORY_POCKET = plant(Machine.GYRATORY_POCKET, MapColor.STONE);
+	public static final Block ROCK_BREAKER = plant(Machine.ROCK_BREAKER, MapColor.COLOR_YELLOW);
+	public static final Block SURGE_POCKET = plant(Machine.SURGE_POCKET, MapColor.METAL);
+	public static final Block PRIMARY_APRON_FEEDER = plant(Machine.PRIMARY_APRON_FEEDER, MapColor.COLOR_GRAY);
+	public static final Block HEAVY_CONVEYOR_DRIVE = plant(Machine.HEAVY_CONVEYOR_DRIVE, MapColor.COLOR_GRAY);
+	public static final Block STOCKPILE_HEAD = plant(Machine.STOCKPILE_HEAD, MapColor.METAL);
+	public static final Block RECLAIM_FEEDER = plant(Machine.RECLAIM_FEEDER, MapColor.COLOR_GRAY);
+	public static final Block BELT_WEIGHER = plant(Machine.BELT_WEIGHER, MapColor.METAL);
 	public static final Block FUEL_BAY = plant(Machine.FUEL_BAY, MapColor.COLOR_YELLOW);
 	public static final Block HAUL_DISPATCH = plant(Machine.HAUL_DISPATCH, MapColor.TERRACOTTA_WHITE);
 	public static final Block MATRIX_FILL_POINT = plant(Machine.MATRIX_FILL_POINT, MapColor.COLOR_ORANGE);
@@ -164,15 +173,22 @@ public final class TailingsBlocks {
 	/** Broken rock (open-pit.md): falls and settles, holding what it was. Its drops are its contents, not a loot table. */
 	public static final Block MUCK = block("muck", props -> new dev.wildcatter.tailings.block.MuckBlock(props.mapColor(MapColor.STONE).strength(0.8F, 1.0F)
 			.sound(SoundType.GRAVEL).noLootTable()));
-	public static final BlockEntityType<dev.wildcatter.tailings.block.MuckBlockEntity> MUCK_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MuckBlockEntity::new, Set.of(MUCK));
-	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR));
+	/** The coarse-ore stockpile's crushed rock (primary-gyratory-stockpile.md, P7a): muck that also rolls in over a reclaim feeder. */
+	public static final Block STOCKPILE_ROCK = block("stockpile_rock", props -> new dev.wildcatter.tailings.block.StockpileRockBlock(props.mapColor(MapColor.STONE).strength(0.8F, 1.0F)
+			.sound(SoundType.GRAVEL).noLootTable()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.MuckBlockEntity> MUCK_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MuckBlockEntity::new, Set.of(MUCK, STOCKPILE_ROCK));
+	/** The pit line's 1,400 mm belt (P7a), laid as the 600 mm belt is; a run is all one kind. */
+	public static final Block HEAVY_BELT_CONVEYOR = block("heavy_belt_conveyor", props -> new dev.wildcatter.tailings.block.HeavyBeltBlock(props.mapColor(MapColor.COLOR_BLACK).strength(2.5F, 6.0F)
+			.sound(SoundType.METAL).requiresCorrectToolForDrops()));
+	public static final BlockEntityType<BeltBlockEntity> BELT = new BlockEntityType<>(BeltBlockEntity::new, Set.of(BELT_CONVEYOR, HEAVY_BELT_CONVEYOR));
 	public static final BlockEntityType<PlantBlockEntity> PLANT = new BlockEntityType<>(PlantBlockEntity::new,
 			Set.of(ACTIVATION_TANK, GRIZZLY, JAW, CONE, SCREEN, CONVEYOR_DRIVE, BALL_MILL, CYCLONE, SPIRAL_BANK, BYPRODUCT_PLANT, HEAP_PAD, SCAVENGER_BANK, REGRIND_MILL, CLEANER_BANK, LEACH_TANK, CCD_THICKENER, ELECTROWINNING_BANK, CONDITIONER, FLOTATION_BANK, BLOWER, THICKENER, FILTER, TAILINGS_POND,
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
 					SHOVEL_HOUSE, SHOVEL_GANTRY, SHOVEL_BOOM, SHOVEL_HANDLE, SHOVEL_DIPPER,
 					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
 					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR,
-					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR));
+					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR,
+					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -209,7 +225,7 @@ public final class TailingsBlocks {
 			.sound(SoundType.METAL).requiresCorrectToolForDrops().lightLevel(state -> state.getValue(BlockSignalBlock.LIT) ? 12 : 0)));
 	public static final Block TRACTION_RECTIFIER = block("traction_rectifier", props -> new TractionRectifierBlock(props.mapColor(MapColor.COLOR_YELLOW)
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
-	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET, PIT_HOPPER));
+	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET, PIT_HOPPER, GYRATORY_POCKET));
 	public static final BlockEntityType<SignalBlockEntity> SIGNAL = new BlockEntityType<>(SignalBlockEntity::new, Set.of(BLOCK_SIGNAL));
 	public static final BlockEntityType<RectifierBlockEntity> RECTIFIER = new BlockEntityType<>(RectifierBlockEntity::new, Set.of(TRACTION_RECTIFIER));
 
@@ -259,6 +275,8 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("block_signal"), SIGNAL);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("traction_rectifier"), RECTIFIER);
 		add("muck", MUCK);
+		add("stockpile_rock", STOCKPILE_ROCK);
+		add("heavy_belt_conveyor", HEAVY_BELT_CONVEYOR);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("muck"), MUCK_ENTITY);
 		add("survey_stake", SURVEY_STAKE);
 		add("dry_tails", DRY_TAILS);
@@ -348,6 +366,15 @@ public final class TailingsBlocks {
 			case MEDIUM_RECOVERY -> MEDIUM_RECOVERY;
 			case XRT_SORTER -> XRT_SORTER;
 			case SORTER_COMPRESSOR -> SORTER_COMPRESSOR;
+			case GYRATORY_CRUSHER -> GYRATORY_CRUSHER;
+			case GYRATORY_POCKET -> GYRATORY_POCKET;
+			case ROCK_BREAKER -> ROCK_BREAKER;
+			case SURGE_POCKET -> SURGE_POCKET;
+			case PRIMARY_APRON_FEEDER -> PRIMARY_APRON_FEEDER;
+			case HEAVY_CONVEYOR_DRIVE -> HEAVY_CONVEYOR_DRIVE;
+			case STOCKPILE_HEAD -> STOCKPILE_HEAD;
+			case RECLAIM_FEEDER -> RECLAIM_FEEDER;
+			case BELT_WEIGHER -> BELT_WEIGHER;
 		};
 	}
 

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IBI",
+    "I I",
+    "IHI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "tailings:heavy_belt_conveyor",
+    "H": "minecraft:hopper"
+  },
+  "result": {
+    "id": "tailings:stockpile_head",
+    "count": 1
+  }
+}

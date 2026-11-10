@@ -62,7 +62,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.BATTERY_CHARGER) {
 			return new BatteryChargerBlockEntity(pos, state);
 		}
-		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
+		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER || machine == Machine.GYRATORY_POCKET ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.BATTERY_CHARGER) {
 			return createTickerHelper(type, TailingsBlocks.BATTERY_CHARGER_ENTITY, BatteryChargerBlockEntity::tick);
 		}
-		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
+		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER || machine == Machine.GYRATORY_POCKET ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
 	}
 
@@ -224,6 +224,14 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				// its screen's threshold, a step a click (xrt-ore-sorter.md, L8)
 				if (!level.isClientSide()) {
 					plant.stepThreshold();
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+				}
+				return InteractionResult.SUCCESS;
+			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.BELT_WEIGHER) {
+				// its screen's setpoint, a step a click (primary-gyratory-stockpile.md, P7a)
+				if (!level.isClientSide()) {
+					plant.stepSetpoint();
 					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
 				}
 				return InteractionResult.SUCCESS;

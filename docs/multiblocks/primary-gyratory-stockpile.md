@@ -1,6 +1,6 @@
 # P7a: the primary gyratory crusher, the coarse-ore stockpile and its reclaim
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** The choices are listed in
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **P7a**, built (see "As built"). The choices are listed in
 [../questions/specs-tailings.md](../questions/specs-tailings.md) (P7 section).
 
 The first of the pit-sized line's three specs (open-pit.md, "The plant's size", decided (a)). Trucks tip straight into a gyratory
@@ -114,6 +114,28 @@ and is to be checked before approval.
 - P7 is three specs and three waves: **P7a** this spec; **P7b** the SAG mill line; **P7c** pit flotation and the tails.
 - P7a can run on its own: until P7b, the reclaim belt may feed the existing 50 t/h crushing circuit's grizzly *(the feeders follow the
   belt weigher's setpoint, set to 50 t/h)*.
+
+## As built (P7a, 2026-11-10, branch `p7-pit-line`)
+Decisions in [../questions/p7-pit-line.md](../questions/p7-pit-line.md) (#1-#19; #11 and #14 need Tim).
+- **Existing worlds are untouched (#1):** new parts, a heavy belt and the stockpile block. A belt run is now one kind of belt; a truck
+  finds the gyratory's pocket as well as the pit hopper; muck does not roll.
+- **Code:** `plant.PitLine` (the line's rates, the heavy belt's drives, the cone, the feeders' share; unit-tested in `PitLineTest`),
+  `plant.PitState` (the boulder count, the weigher's setpoint and counts, the tonnes stacked and drawn), `block.stage.PitLineStages`
+  (gyratory, rock breaker, surge pocket, primary apron feeder, stockpile head, reclaim feeder, belt weigher), `Belts.HEAVY_DRIVE`,
+  `block.HeavyBeltBlock`, `block.StockpileRockBlock`; `Machine.GYRATORY_CRUSHER` to `BELT_WEIGHER`; `tools/models/pitline.py`.
+- **As the spec, except:** the pocket stands on the gyratory, over its bowl, and the stack is pocket, gyratory, surge pocket, apron
+  feeder, 26 m deep (#2); the pocket is the pit hopper's kind (#3); every 200th hard block is a boulder, by count (#4); the breaker works
+  by itself while its motor runs, no seat (#5); the heavy belt is drawn a metre wide (#6); there is no `reclaim_tunnel` part: the tunnel
+  is any solid blocks with an opening in its roof over each feeder (#9); the head counts tonnes stacked and the feeders tonnes drawn, not
+  the pile itself (#13); the weigher counts what the feeders put on its run (#14); the PLC points as #17.
+- **Measured (the scenes):** an ultra's 363 t of granite is 134 bank blocks in the pocket and 1.2 t kept; the gyratory crushes at
+  2,400 t/h; a boulder holds it 30 s; a 2,000-block pile stands about 10 m at 37 degrees; **one feeder under its middle draws 26 % of it,
+  three 6 m apart 41 %** (#11); two feeders at the default setpoint run at 500 t/h each and the weigher reads 1,000 t/h, one alone reads
+  500; a 150 m flat heavy run needs two drives.
+- **Tests:** NeoForge `p7_gyratory_tip`, `p7_gyratory_bridge`, `p7_stockpile_cone`, `p7_stockpile_live`, `p7_stockpile_one`,
+  `p7_reclaim_rate`, `p7_heavy_belt`, `p7_primary_line`, `p7a_parts`; unit tests `PitLineTest`, `MachineTest`; the client film
+  `p7_line` (with P7b).
+- **Not built:** the spec's "Left out".
 
 ## Sources
 - A current primary gyratory crusher maker's brochure (2018): the 42-65, 120 t, 1,066 mm feed opening, 450 kW, 2,354-3,362

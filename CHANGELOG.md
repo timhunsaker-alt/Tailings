@@ -4,6 +4,19 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Open pit P7a — the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, decided while Tim was away)
+
+- **The primary:** trucks tip into the `gyratory_pocket` (400 t) standing on the `gyratory_crusher` (450 kW at the medium-voltage tier),
+  which crushes about 2,400 t/h into the `surge_pocket` (500 t) under it; the `primary_apron_feeder` (up to 3,000 t/h) puts it on a
+  heavy belt. Every 200th hard bank block bridges the bowl until the `rock_breaker` on the pocket's rim breaks it, 30 s.
+- **The heavy belt:** `heavy_belt_conveyor`, 1,400 mm at 4 m/s, 3,000 t/h, with `heavy_conveyor_drive`s of 355 kW: 75 kW a 30 m plus
+  the lift; no steeper than 1 in 3.
+- **The stockpile:** the `stockpile_head` drops crushed rock as `stockpile_rock` blocks by the settle rule; a 30 m pile holds about
+  100,000 t. `reclaim_feeder`s under openings in a tunnel's roof draw the block over them; the slopes roll in at 37 degrees, so the
+  pile drains as cones and the rest is dead stockpile (one feeder draws about a quarter).
+- **The belt weigher:** reads t/h and pulses each 100 t; the feeders share its setpoint (1,000 t/h, a sneaking click or the PLC).
+- **Nothing changes in existing worlds.** Decisions in `docs/questions/p7-pit-line.md`.
+
 ### Open pit P5 — the pit switch house, trailing cables, the ultra truck and the big shovels (2026-11-09)
 
 Built while Tim was away on the draft spec; decisions in `docs/questions/p5-big-machines.md`.

@@ -76,7 +76,16 @@ class MachineTest {
 			Map.entry(Machine.DRAIN_RINSE_SCREEN, new int[] {2, 2, 5}),
 			Map.entry(Machine.MEDIUM_RECOVERY, new int[] {2, 3, 3}),
 			Map.entry(Machine.XRT_SORTER, new int[] {4, 5, 8}),
-			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}));
+			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}),
+			Map.entry(Machine.GYRATORY_CRUSHER, new int[] {6, 10, 6}),
+			Map.entry(Machine.GYRATORY_POCKET, new int[] {14, 8, 10}),
+			Map.entry(Machine.ROCK_BREAKER, new int[] {2, 3, 6}),
+			Map.entry(Machine.SURGE_POCKET, new int[] {8, 6, 8}),
+			Map.entry(Machine.PRIMARY_APRON_FEEDER, new int[] {3, 2, 12}),
+			Map.entry(Machine.HEAVY_CONVEYOR_DRIVE, new int[] {2, 2, 3}),
+			Map.entry(Machine.STOCKPILE_HEAD, new int[] {3, 4, 4}),
+			Map.entry(Machine.RECLAIM_FEEDER, new int[] {2, 2, 6}),
+			Map.entry(Machine.BELT_WEIGHER, new int[] {2, 1, 2}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

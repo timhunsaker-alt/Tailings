@@ -227,8 +227,22 @@ set down by STOP, on its cable at 3.5 MW hoisting; 4 passes to an ultra. NeoForg
 `pit_rope_shovel`, `pit_shovel_edge`; unit tests `PitPowerTest`; client film `pit_big`. The self-running loader and the shovels
 now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan).
 
-Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant). Planned from P5 (Known gaps below): the rope
+Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant, below). Planned from P5 (Known gaps below): the rope
 shovel's PLC points through its outlet; the drill as four parts.
+
+## Open pit — P7: the pit-sized plant line (2026-11-10)
+
+Built while Tim was away on the draft specs, decided on recommendation (decisions in [questions/p7-pit-line.md](questions/p7-pit-line.md)),
+branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which is unchanged.
+
+- **P7a — DONE (2026-11-10):** [multiblocks/primary-gyratory-stockpile.md](multiblocks/primary-gyratory-stockpile.md). The
+  `gyratory_pocket` on the `gyratory_crusher` (450 kW, medium voltage, 2,400 t/h) on the `surge_pocket` over the `primary_apron_feeder`;
+  trucks tip into the pocket; a boulder every 200 hard blocks bridges the bowl until the `rock_breaker` breaks it (30 s). The
+  `heavy_belt_conveyor` and its `heavy_conveyor_drive`s (355 kW, 75 kW a 30 m plus the lift; 1 in 3 at most); the `stockpile_head`
+  building a real pile of `stockpile_rock` by the settle rule; `reclaim_feeder`s under openings in a tunnel of any solid blocks, the
+  pile draining as cones (one feeder 26 % live, three 41 %); the `belt_weigher` whose setpoint the feeders share. NeoForge scenes
+  `p7_gyratory_tip`, `p7_gyratory_bridge`, `p7_stockpile_cone`, `p7_stockpile_live`, `p7_stockpile_one`, `p7_reclaim_rate`,
+  `p7_heavy_belt`, `p7_primary_line`, `p7a_parts`; unit tests `PitLineTest`.
 
 ## Plant gaps (2026-11-09, closed while Tim was away)
 
@@ -353,6 +367,16 @@ tests `XrtSortingTest`; the client film `xrt`.
 - PLCs: moved to Wildcatter's Phase 13 (docs/multiblocks/plc.md there). Tailings' machines, belts, sorter, TBM and track take its signals as wave 13i.
 
 ## Known gaps and stand-ins
+
+- **`stockpile_rock_placeholder` (P7a):** the stockpile block's texture is drawn by script, muck's art made lighter and greyer
+  (questions/p7-pit-line.md, 10). A Ludo texture would replace it.
+- **No reclaim tunnel part (P7a):** the tunnel is the player's own solid blocks with an opening over each feeder (p7-pit-line.md, 9).
+- **The stockpile is not counted (P7a):** the head counts tonnes stacked and the feeders tonnes drawn; nothing reads the pile's live
+  and dead tonnes (p7-pit-line.md, 13).
+- **Three close feeders draw 41 % of a pile (P7a):** the spec's 25-35 % with three; one feeder draws 26 % (p7-pit-line.md, 11).
+- **The rock breaker has no seat (P7a):** it breaks a boulder by itself while its motor runs (p7-pit-line.md, 5).
+- **P7a recipes are placeholders,** as the plant's; the gyratory sounds the cone crusher and the breaker the jaw: no sounds of their own.
+- **No dust, liner wear or tramp metal (P7a, the spec's Left out):** and no stacker-reclaimer, no in-pit crushing.
 
 - **The drill is one machine, not four parts (P3, decision 1):** no build check, no lift into a contraption, no parts to place; and so
   no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW). Its electric drive came in P5a (a panel setting). Plan: four big parts

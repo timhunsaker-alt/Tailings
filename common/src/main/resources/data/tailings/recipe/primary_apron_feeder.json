@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "IAI",
+    "IKI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "A": "tailings:apron_feeder",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:primary_apron_feeder",
+    "count": 1
+  }
+}

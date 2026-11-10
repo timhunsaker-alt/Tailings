@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IHI",
+    "IAI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "H": "minecraft:hopper",
+    "A": "tailings:apron_feeder"
+  },
+  "result": {
+    "id": "tailings:reclaim_feeder",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+ "variants": {
+  "axis=z": {
+   "model": "tailings:block/heavy_belt_conveyor/p0"
+  },
+  "axis=x": {
+   "model": "tailings:block/heavy_belt_conveyor/p0",
+   "y": 90
+  }
+ }
+}

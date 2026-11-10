@@ -40,7 +40,44 @@ final class Belts {
 	/** Kg a metre of belt carries when it is full, at its speed: three times the plant's rate (proposed). */
 	static final double FULL_KG_PER_METRE = BELT_KG_PER_TICK * 20 / PlantRates.BELT_METRES_PER_SECOND;
 
-	static final Stage DRIVE = new Stage() {
+	static final Stage DRIVE = new Drive(Machine.CONVEYOR_DRIVE);
+	/** The pit line's 1,400 mm belt (primary-gyratory-stockpile.md, P7a): 3,000 t/h at 4 m/s, 355 kW drives as its length and lift need. */
+	static final Stage HEAVY_DRIVE = new Drive(Machine.HEAVY_CONVEYOR_DRIVE);
+
+	/** A run's head drive, of the 600 mm belt or the heavy belt: each moves only its own kind of belt. */
+	static final class Drive implements Stage {
+		private final Machine kind;
+
+		Drive(Machine kind) {
+			this.kind = kind;
+		}
+
+		boolean heavy() {
+			return kind == Machine.HEAVY_CONVEYOR_DRIVE;
+		}
+
+		/** kg a tick the run moves at full speed. */
+		double kgPerTick() {
+			return heavy() ? dev.wildcatter.tailings.plant.PitLine.kgPerTick(dev.wildcatter.tailings.plant.PitLine.HEAVY_BELT_TPH) : BELT_KG_PER_TICK;
+		}
+
+		double speed() {
+			return heavy() ? dev.wildcatter.tailings.plant.PitLine.HEAVY_BELT_METRES_PER_SECOND : PlantRates.BELT_METRES_PER_SECOND;
+		}
+
+		double fullKgPerMetre() {
+			return heavy() ? dev.wildcatter.tailings.plant.PitLine.HEAVY_KG_PER_METRE : FULL_KG_PER_METRE;
+		}
+
+		@Override
+		public double runHoldKg(PlantBlockEntity part) {
+			if (!heavy()) {
+				return PlantRates.BELT_HOLD_KG;
+			}
+			int metres = part.run instanceof Scan scan ? scan.run().size() : 1;
+			return dev.wildcatter.tailings.plant.PitLine.heavyBeltHoldKg(metres);
+		}
+
 		@Override
 		public double dropAt(PlantBlockEntity part, @Nullable BlockPos belt) {
 			if (!(part.run instanceof Scan scan) || scan.run().isEmpty()) {
@@ -59,7 +96,7 @@ final class Belts {
 		public void tick(PlantBlockEntity part) {
 			Level level = part.getLevel();
 			if (part.scanDue() || !(part.run instanceof Scan)) {
-				part.run = scan(part);
+				part.run = scan(part, kind);
 			}
 			Scan scan = (Scan) part.run;
 			part.want();
@@ -72,7 +109,11 @@ final class Belts {
 				return;
 			}
 			part.travel().match(part.hold().total());
-			int needed = PlantRates.drivesFor(scan.run().size());
+			int needed = heavy() ? dev.wildcatter.tailings.plant.PitLine.heavyDrivesFor(scan.run().size(), rise(scan.run())) : PlantRates.drivesFor(scan.run().size());
+			if (heavy() && tooSteep(scan.run())) {
+				part.say("TOO STEEP: a heavy belt climbs at most 1 in 3 (18 degrees); rock rolls back on a steeper one");
+				return;
+			}
 			int running = 0;
 			for (BlockPos at : scan.drives()) {
 				if (level.getBlockEntity(at) instanceof PlantBlockEntity drive && drive.running()) {
@@ -82,25 +123,52 @@ final class Belts {
 			boolean moving = running >= needed;
 			if (!moving) {
 				if (part.scanDue()) {
-					draw(part, scan, false);
+					draw(part, scan, false, fullKgPerMetre());
 				}
 				part.say(running == 0 ? "NO DRIVE: the drive's motor is not running"
+						: heavy() ? String.format("NO DRIVE: a %d m run lifting %d m needs %d drives running (%.0f kW)", scan.run().size(), rise(scan.run()), needed,
+								dev.wildcatter.tailings.plant.PitLine.heavyBeltWatts(scan.run().size(), rise(scan.run()), dev.wildcatter.tailings.plant.PitLine.HEAVY_BELT_TPH) / 1000)
 						: "NO DRIVE: a " + scan.run().size() + " m run needs " + needed + " drives running (7.5 kW each 30 m)");
 				return;
 			}
-			boolean blocked = deliver(part, scan);
+			boolean blocked = deliver(part, scan, this);
 			// a run whose head end is blocked stops, as a real belt trips on a full chute, rather than piling rock at its head
 			if (!blocked) {
-				part.travel().advance(PlantRates.BELT_METRES_PER_SECOND / 20);
+				// a game test's fast heavy belt runs that many times as fast (the 600 mm belt never does)
+				part.travel().advance(speed() / 20 * (heavy() ? part.fast() : 1));
 			}
 			if (part.scanDue()) {
-				draw(part, scan, !blocked);
+				draw(part, scan, !blocked, fullKgPerMetre());
 			}
 		}
-	};
+	}
+
+	/** Metres a run climbs from its lowest belt to its highest. */
+	static int rise(List<BlockPos> run) {
+		int low = Integer.MAX_VALUE, high = Integer.MIN_VALUE;
+		for (BlockPos at : run) {
+			low = Math.min(low, at.getY());
+			high = Math.max(high, at.getY());
+		}
+		return run.isEmpty() ? 0 : high - low;
+	}
+
+	/** True if any three metres of the run change height more than once: steeper than 1 in 3. */
+	static boolean tooSteep(List<BlockPos> run) {
+		for (int i = 0; i + 3 < run.size(); i++) {
+			int steps = 0;
+			for (int k = i; k < i + 3; k++) {
+				steps += run.get(k).getY() != run.get(k + 1).getY() ? 1 : 0;
+			}
+			if (steps > dev.wildcatter.tailings.plant.PitLine.HEAVY_MOST_RISES_IN_THREE) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/** Delivers what has reached the head end; true when the head end is blocked (nothing takes it, or what it feeds is full). */
-	private static boolean deliver(PlantBlockEntity part, Scan scan) {
+	private static boolean deliver(PlantBlockEntity part, Scan scan, Drive drive) {
 		if (part.hold().isEmpty()) {
 			part.say("running empty");
 			return false;
@@ -121,7 +189,7 @@ final class Belts {
 			return false;
 		}
 		double room = sink != null ? sink.room(part.hold()) : Math.max(0, 2 * PlantRates.BLOCK_KG - part.made().total());
-		double max = Math.min(Math.min(BELT_KG_PER_TICK * part.strength(), room), ready);
+		double max = Math.min(Math.min(drive.kgPerTick() * part.strength() * (drive.heavy() ? part.fast() : 1), room), ready);
 		if (max < 1e-6) {
 			part.say(box != null ? "FULL: the container at its head end is full" : "FULL: what the head end feeds is full");
 			return true;
@@ -198,7 +266,7 @@ final class Belts {
 			if (scan.run().contains(at) || scan.drives().contains(BigParts.owner(part.getLevel(), at))) {
 				continue;
 			}
-			if (BigParts.entity(part.getLevel(), at) instanceof PlantBlockEntity other && other.machine() == Machine.CONVEYOR_DRIVE) {
+			if (BigParts.entity(part.getLevel(), at) instanceof PlantBlockEntity other && (other.machine() == Machine.CONVEYOR_DRIVE || other.machine() == Machine.HEAVY_CONVEYOR_DRIVE)) {
 				continue;
 			}
 			PlantBlockEntity.Sink sink = part.sinkAt(at, into.get(i), part);
@@ -210,20 +278,20 @@ final class Belts {
 	}
 
 	/** Finds the run this drive touches, its head end and every drive on it, and tells each belt who holds the load. */
-	private static Scan scan(PlantBlockEntity part) {
+	private static Scan scan(PlantBlockEntity part, Machine kind) {
 		Level level = part.getLevel();
 		List<BlockPos> mine = part.cells();
 		for (BlockPos cell : mine) {
 			for (Direction side : Direction.values()) {
 				BlockPos next = cell.relative(side);
-				if (!(level.getBlockState(next).getBlock() instanceof BeltConveyorBlock)) {
+				if (!(level.getBlockState(next).getBlock() instanceof BeltConveyorBlock kindOf) || kindOf.drive() != kind) {
 					continue;
 				}
 				List<BlockPos> run = BeltConveyorBlock.run(level, next);
 				Set<BlockPos> drives = new LinkedHashSet<>();
 				for (BlockPos belt : run) {
 					for (Direction d : Direction.values()) {
-						if (BigParts.entity(level, belt.relative(d)) instanceof PlantBlockEntity drive && drive.machine() == Machine.CONVEYOR_DRIVE) {
+						if (BigParts.entity(level, belt.relative(d)) instanceof PlantBlockEntity drive && drive.machine() == kind) {
 							drives.add(drive.getBlockPos());
 						}
 					}
@@ -272,7 +340,7 @@ final class Belts {
 	}
 
 	/** Each belt of the run shows the load's main rock, how much rides on that metre of it, and which way it moves. */
-	private static void draw(PlantBlockEntity part, Scan scan, boolean moving) {
+	private static void draw(PlantBlockEntity part, Scan scan, boolean moving, double fullKgPerMetre) {
 		Rock rock = part.hold().main();
 		String id = rock == null ? "" : rock.name();
 		List<BlockPos> run = new ArrayList<>(scan.run());
@@ -287,7 +355,7 @@ final class Belts {
 				toward = dx > 0 ? Direction.EAST : dx < 0 ? Direction.WEST : dz > 0 ? Direction.SOUTH : Direction.NORTH;
 			}
 			int fromHead = run.size() - 1 - i;
-			float fill = (float) Math.min(1, part.travel().between(fromHead, fromHead + 1) / FULL_KG_PER_METRE);
+			float fill = (float) Math.min(1, part.travel().between(fromHead, fromHead + 1) / fullKgPerMetre);
 			if (part.getLevel().getBlockEntity(run.get(i)) instanceof BeltBlockEntity belt) {
 				belt.set(part.getBlockPos(), fill > 0 ? id : "", fill, toward, moving);
 			}

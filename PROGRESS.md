@@ -2,6 +2,20 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## P7a: the primary gyratory, the coarse-ore stockpile and its reclaim (2026-11-10, branch `p7-pit-line`)
+Built while Tim was away on the draft spec `docs/multiblocks/primary-gyratory-stockpile.md`; decisions in
+`docs/questions/p7-pit-line.md` (#1-#19; #11 and #14 most need Tim). Nothing in an existing world changes: new parts, a heavy belt and
+the stockpile block.
+- **Built:** the `gyratory_pocket` (400 t, trucks tip in) on the `gyratory_crusher` (450 kW, 2,400 t/h to crushed) on the `surge_pocket`
+  (500 t) over the `primary_apron_feeder` (3,000 t/h); boulders every 200 hard blocks and the `rock_breaker` (30 s); the
+  `heavy_belt_conveyor` and `heavy_conveyor_drive` (355 kW; drives by length and lift; 1 in 3); the `stockpile_head` and
+  `stockpile_rock` (a real pile by the settle rule, its slopes rolling in over a feeder); the `reclaim_feeder` (500 t/h) and the
+  `belt_weigher` (RATE, SETPOINT, TOTAL; the feeders share its setpoint; 10 % back on OVERLOAD). Medium-voltage motors on the world's tier.
+- **Art:** nine part models and the heavy belt in Wildcatter's materials (`tools/models/pitline.py`); `stockpile_rock_placeholder` is
+  drawn by script. No Ludo credits.
+- **Scenes:** NeoForge `p7_gyratory_tip`, `p7_gyratory_bridge`, `p7_stockpile_cone`, `p7_stockpile_live`, `p7_stockpile_one`,
+  `p7_reclaim_rate`, `p7_heavy_belt`, `p7_primary_line`, `p7a_parts`. Unit tests `PitLineTest` (7) and `MachineTest`.
+
 ## Phase 0
 
 Multi-loader skeleton, CC0, CI, and the plain-Java recovery ladder (25/50/75/95%). Merged in pull request 1.

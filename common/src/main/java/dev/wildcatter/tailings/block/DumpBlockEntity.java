@@ -39,7 +39,8 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 
 	/** The truck dump's hopper rather than the rail dump pocket. */
 	public boolean pit() {
-		return getBlockState().getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.PIT_HOPPER;
+		return getBlockState().getBlock() instanceof PlantMachineBlock block
+				&& (block.machine() == dev.wildcatter.tailings.plant.Machine.PIT_HOPPER || block.machine() == dev.wildcatter.tailings.plant.Machine.GYRATORY_POCKET);
 	}
 
 	/** Items it holds when full: a rail pocket one 10-car train, the pit hopper 400 t of bank blocks. */
@@ -292,7 +293,8 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	@Override
 	public Component inspect() {
 		if (pit()) {
-			return Component.literal("Pit Hopper: holds " + pocket() * dev.wildcatter.tailings.pit.PitMass.ROCK_KG / 1000 + " t of " + PIT_HOPPER_KG / 1000 + " t"
+			String name = getBlockState().getBlock() instanceof PlantMachineBlock block ? block.machine().displayName() : "Pit Hopper";
+			return Component.literal(name + ": holds " + pocket() * dev.wildcatter.tailings.pit.PitMass.ROCK_KG / 1000 + " t of " + PIT_HOPPER_KG / 1000 + " t"
 					+ (pocket() >= capacity() ? " (FULL: the next truck waits)" : ""));
 		}
 		String bars = oversize() == 0 ? "" : "; " + oversize() + " oversize on the grizzly" + (choked() ? " (CHOKED: break it with a pickaxe, or sneak-click to lift it off)" : "");
