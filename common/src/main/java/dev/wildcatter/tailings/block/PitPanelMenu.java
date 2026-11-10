@@ -44,7 +44,12 @@ public class PitPanelMenu extends AbstractContainerMenu {
 				new Setting("Outlet 1", 0, 1, 1, 0),
 				new Setting("Outlet 2", 0, 1, 1, 0),
 				new Setting("Outlet 3", 0, 1, 1, 0),
-				new Setting("Outlet 4", 0, 1, 1, 0)}, new String[] {"Reset trips"});
+				new Setting("Outlet 4", 0, 1, 1, 0)}, new String[] {"Reset trips"}),
+		/** The hydraulic shovel (P5c): diesel (0) or its electric variant on a trailing cable (1); AUTO here. */
+		HYD_SHOVEL("Hydraulic Shovel", new Setting[] {
+				new Setting("Electric", 0, 1, 1, 0)}, new String[] {"AUTO on / off"}),
+		/** The rope shovel (P5d): RUN lifts it off its parts and starts it, STOP sets it down; AUTO loads the trucks that come. */
+		ROPE_SHOVEL("Rope Shovel", new Setting[0], new String[] {"RUN", "STOP", "AUTO on / off"});
 
 		private final String title;
 		private final Setting[] settings;

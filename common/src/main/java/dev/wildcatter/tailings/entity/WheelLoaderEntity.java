@@ -44,6 +44,8 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 	/** The LOAD stake it works at by itself, or null when it is driven (open-pit.md, P2a). */
 	private @Nullable BlockPos autoStake;
 	private int retryIn;
+	/** The highest truck body its bucket clears, metres (proposed: the loader's 6 m reach; P5-6). */
+	public static final double DUMP_HEIGHT = 6.0;
 	/** It works by itself within 16 m of its LOAD stake (approved). */
 	public static final double AUTO_REACH = 16;
 
@@ -139,7 +141,9 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 			return;
 		}
 		HaulTruckEntity truck = truckInReach(level);
-		if (truck != null && truck.load().room() > 0 && !truck.busy() && Math.abs(truck.speed()) < 0.05) {
+		if (truck != null && truck.loadingHeight() > DUMP_HEIGHT) {
+			status = "too high to load: the truck's body is " + truck.loadingHeight() + " m up";
+		} else if (truck != null && truck.load().room() > 0 && !truck.busy() && Math.abs(truck.speed()) < 0.05) {
 			dumping = true;
 			passLeft = DUMP_TICKS / passDivisor;
 			status = "dumping";
@@ -185,6 +189,10 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 			HaulTruckEntity truck = truckInReach(level);
 			if (truck == null) {
 				say(driver, "no haul truck under the bucket");
+				return;
+			}
+			if (truck.loadingHeight() > DUMP_HEIGHT) {
+				say(driver, "too high to load: the truck's body is " + truck.loadingHeight() + " m up, over the bucket's " + DUMP_HEIGHT + " m");
 				return;
 			}
 			if (truck.load().room() <= 0) {

@@ -216,6 +216,10 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 
 	/** The jump key pressed once, with nobody in the cab: for game tests. */
 	public void pressJump(ServerLevel level) {
+		if (electric() && outOfFuel()) {
+			status = noPower();   // as its jump key: no power on its cable, no work
+			return;
+		}
 		jump(level, null);
 	}
 

@@ -125,9 +125,12 @@ final class TruckRoute {
 		}
 		clear();
 		stakes.addAll(route);
+		// surveyed for this truck's own box: a route the 100 t takes may be too tight for the ultra (P5b)
 		for (int i = 0; i + 1 < route.size(); i++) {
-			legs.add(SurveyBookItem.survey(level, route.get(i), route.get(i + 1)));
+			legs.add(SurveyBookItem.survey(level, route.get(i), route.get(i + 1), truck.spec().width(), truck.spec().height()));
 		}
+		laneOffset = Autopilot.LANE_OFFSET * truck.spec().width() / dev.wildcatter.tailings.pit.PitDrive.TRUCK.width();
+		turnRound = (int) Math.round(truck.spec().turnRadius() * 2);
 		ends(level);
 		// start at the nearest stake, heading for the end it wants: the dump end loaded, the load end empty
 		int nearest = 0;
@@ -185,8 +188,13 @@ final class TruckRoute {
 		}
 		// its right, going from start to target: yaw from the heading, right() = (-cos, -sin)
 		double yaw = Math.toRadians(Autopilot.yawToward(start.x, start.z, target.x, target.z));
-		return target.add(-Math.cos(yaw) * Autopilot.LANE_OFFSET, 0, -Math.sin(yaw) * Autopilot.LANE_OFFSET);
+		return target.add(-Math.cos(yaw) * laneOffset, 0, -Math.sin(yaw) * laneOffset);
 	}
+
+	/** Its lane, right of the stake line on a two-way leg: 4 m for the 100 t, in proportion to its width for a wider truck (P5b). */
+	private double laneOffset = Autopilot.LANE_OFFSET;
+	/** The open ground it needs to turn round, metres: twice its turning radius. */
+	private int turnRound = 25;
 
 	/** Load-out ends: the leg into a load-out is single file, on the line through its lane, both ways (P4). */
 	private boolean firstLoadout, lastLoadout;
@@ -442,7 +450,7 @@ final class TruckRoute {
 		BlockPos stake = stakes.get(at);
 		Vec3 in = inward();
 		return dev.wildcatter.tailings.pit.Crest.look(HaulTruckEntity.crestGround(level), stake.getX() + 0.5, stake.getY(), stake.getZ() + 0.5, in.x, in.z,
-				truck.spec().width(), dev.wildcatter.tailings.pit.DryStack.bermBlocks(dev.wildcatter.tailings.pit.DryStack.TRUCK_WHEEL_RADIUS));
+				truck.spec().width(), dev.wildcatter.tailings.pit.DryStack.bermBlocks(truck.wheelRadius()));
 	}
 
 	private int noBermFor;
@@ -570,7 +578,7 @@ final class TruckRoute {
 		}
 		if (++waited > TURNING_TICKS) {
 			phase = Phase.HALTED;
-			problem = "can't turn round at stake " + (at - way + 1) + ": give it 25 m of open ground";
+			problem = "can't turn round at stake " + (at - way + 1) + ": give it " + turnRound + " m of open ground";
 			return PitVehicleEntity.Drive.STAND;
 		}
 		truck.setStatus("turning round to back in to " + kind(level, at).label());
@@ -665,7 +673,7 @@ final class TruckRoute {
 			waited = 0;
 		}
 		waited++;
-		if (truck.load().room() <= 0 || (now > 0 && waited > FILL_PATIENCE) || !run) {
+		if (truck.load().room() <= 0 || truck.takeLoadedOut() || (now > 0 && waited > FILL_PATIENCE) || !run) {
 			if (kind(level, at) == StopKind.LOADOUT) {
 				phase = Phase.EXITING;   // out of the far side, not back the way it came
 				waited = 0;

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "HSH",
+    "SFS",
+    "BSB"
+  ],
+  "key": {
+    "H": "tailings:haul_truck",
+    "S": "wildcatter:steel_ingot",
+    "F": "minecraft:blast_furnace",
+    "B": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "tailings:ultra_haul_truck",
+    "count": 1
+  }
+}

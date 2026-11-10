@@ -109,3 +109,91 @@ best recommendation while Tim was away. Nothing here is final until he has been 
   `cable_mv` round black wool); the reel's icon is drawn by script (`trailing_cable_placeholder`).
 - **Why:** the art wave and real recipes come later, as for every new part.
 - **Alternatives:** none needed now.
+
+## P5b: the 360 t ultra truck
+
+### 15. One class with its own figures
+- **Chosen:** `ultra_haul_truck` is its own entity type and item, `UltraHaulTruckEntity`, a subclass of the 100 t truck's class that
+  only gives its figures: 15.08 x 9.76 x 7.71 m, 261 t empty, 363 t, 2,828 kW net, 67.6 km/h, a 3,785 L tank, its body up in 20 s,
+  4 m tyres, a 7.0 m loading height. Driving, tipping, routes, fuel, dispatch, berms and going over a crest are the 100 t's code.
+- **Why:** the spec says "the same entity class ... with these figures"; a subclass is that, and a second entity type is what lets the
+  game give it its own size, item and model.
+- **Alternatives:** one entity type with a class setting (one item placing two sizes; the box would have to change after spawning).
+
+### 16. The engine figure it drives on
+- **Chosen:** the net 2,828 kW, at the wheels x 0.8 as every pit machine; its fuel burns from the same work.
+- **Why:** the spec's climb figure (11 km/h up 10 % loaded) is worked from the net figure; `pit_ultra_haul` measures 11.0 km/h.
+- **Alternatives:** the gross 2,983 kW (about 11.6 km/h).
+
+### 17. Routes sized by the truck on them
+- **Chosen:** a truck surveys its route for its own box when it takes it (the ultra's 9.8 x 7.7 m); its lane is right of the stake line
+  in proportion to its width (4 m for the 100 t, 6.3 m for the ultra); it needs twice its turning radius to turn round (25 m, 40 m:
+  the ultra turns on 20 m, proposed); the berm it needs is mid-axle on its own tyres (2 blocks for the ultra). The survey book still
+  shows the 100 t's survey.
+- **Why:** "a route for both classes is surveyed for the wider" (spec): each truck surveying for itself gives the same answer for a
+  mixed route and still lets a 100 t route through a tight cut work for the 100 t.
+- **Alternatives:** the book surveys for the widest truck always (every old route through a tight cut would read blocked).
+
+### 18. The wheel loader and the ultra
+- **Chosen:** the loader refuses: "too high to load", whenever the truck under its bucket has a body over 6.0 m (its reach,
+  proposed); the self-running loader says so and waits. The 100 t's loading height is set at 4.2 m.
+- **Why:** decision P5-6; real 992-class loaders are not matched to 360 t trucks.
+- **Alternatives:** allow it at 18 passes.
+
+### 19. The ultra's skin and model
+- **Chosen:** drawn by `tools/models/pit_vehicles.py` as the other trucks, painted in Ludo's materials (`skin.py`), on a 2048 sheet
+  (its 15 m body does not fit 1024). Its item icon is drawn by script (`ultra_haul_truck_placeholder`). The body tips to 50 degrees
+  (proposed).
+- **Why:** the same generator gives the same round wheels and the same look as the 100 t; only the icon is new art.
+- **Alternatives:** a Ludo icon now (an art wave).
+
+### 20. A placeholder recipe
+- **Chosen:** two 100 t trucks, steel ingots, a blast furnace and black wool.
+- **Why:** the spec: "a placeholder recipe until the art wave".
+- **Alternatives:** none needed now.
+
+## P5c: the hydraulic front shovel
+
+### 21. One shovel class for both shovels
+- **Chosen:** a shared `PitShovelEntity` (dig a face, swing up to 90 degrees to a truck under its dump arc either side, dump; AUTO with
+  double-side loading; a part bucket last) that the hydraulic shovel and the rope shovel each give their figures to. The wheel loader
+  keeps its own code.
+- **Why:** the spec gives both shovels the same loading ("AUTO as the hydraulic shovel, double-side loading"); the loader is left as it
+  is so none of its scenes change.
+- **Alternatives:** the shovels as kinds of loader (the loader's 4 m bucket reach and single side would leak into them).
+
+### 22. The bucket fills to its rating: muck by the quarter
+- **Chosen:** a shovel takes muck a quarter of a bank block at a time (the muck block keeps what is left), so a bucket fills to its
+  27 t (40 quarters of rock) and a dipper to 99.9 t; soft ground still comes a whole block at a time, as the loader's.
+- **Why:** whole muck blocks (2.0 t each) fill a 27 t bucket to 26.3 t, which makes 13 passes 342 t and an ultra needs 14; by the
+  quarter it is the spec's 13 passes of 27 t.
+- **Alternatives:** whole blocks (14 passes); count the bucket by volume (a different unit from the trucks').
+
+### 23. When a truck is loaded
+- **Chosen:** a truck with under half a bucket of room is loaded: the shovel tells it, it leaves its LOAD stake (a route truck no
+  longer waits for its last tonne or the 60 s), and the shovel turns to the truck on the other side. A truck with half a bucket or more
+  of room gets a part bucket of what it has room for.
+- **Why:** real practice (the 10/10/20 payload policy: no pass that would overload a truck, no truck sent away badly short); it gives
+  the spec's 13 passes (351 t of 363) and the rope shovel's 4 with a part dipper last.
+- **Alternatives:** fill every truck to its last kilogram (a 14th, 12 t pass into an ultra).
+
+### 24. The hydraulic shovel's figures not in the spec
+- **Chosen:** its face is 8 wide, 12 high and 3 deep from its front (spec); it dumps about 10 m out from its centre to a truck whose
+  body is within 6 m of that arc; a pass is 15 s digging and 15 s swinging, dumping and back (its 30 s cycle; proposed split); it
+  burns at 60 % of its rated power through a pass, as the loader. All proposed.
+- **Why:** from its 14.06 m reach and the loader's split; the 6 m is the spec's.
+- **Alternatives:** a longer dig and a shorter swing (real cycles are about 40 % dig).
+
+### 25. The electric variant
+- **Chosen:** a panel setting, **Electric**: on, it takes the 860 kW spec of the same machine and draws through its trailing cable,
+  burning no diesel; off, its 1,119 kW diesel. The panel also turns AUTO on and off where it stands (without a survey book).
+- **Why:** P5-4: its real electric variant as a screen choice; AUTO from the panel lets a shovel work without a route, as a shovel at
+  a face often does.
+- **Alternatives:** a separate item for the electric shovel.
+
+### 26. Its model
+- **Chosen:** drawn by the vehicle generator in Ludo's materials (2048 sheet): crawlers with an idler and sprocket a side, the house
+  that swings on its ring, and the front (boom, stick and bucket) that lifts about the boom foot. The generator learnt groups with
+  their own hinges, hung from other groups. Its item icon is `hydraulic_shovel_placeholder`.
+- **Why:** the same tool as the other pit machines; the nested groups let the front ride the swinging house.
+- **Alternatives:** a contraption of parts (P5-4's alternative).

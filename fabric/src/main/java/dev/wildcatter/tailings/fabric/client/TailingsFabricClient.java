@@ -31,6 +31,8 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.BlastholeDrillModel.LAYER, dev.wildcatter.tailings.client.BlastholeDrillModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.EmulsionTruckModel.LAYER, dev.wildcatter.tailings.client.EmulsionTruckModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.TrackDozerModel.LAYER, dev.wildcatter.tailings.client.TrackDozerModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.UltraHaulTruckModel.LAYER, dev.wildcatter.tailings.client.UltraHaulTruckModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(dev.wildcatter.tailings.client.HydraulicShovelModel.LAYER, dev.wildcatter.tailings.client.HydraulicShovelModel::createBodyLayer);
 		EntityRendererRegistry.register(TailingsEntities.DRILL, NoopRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.TRAIN, NoopRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.LOCOMOTIVE, MineVehicleRenderer::new);
@@ -44,6 +46,8 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		EntityRendererRegistry.register(TailingsEntities.BLASTHOLE_DRILL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.EMULSION_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.TRACK_DOZER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.ULTRA_HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.HYDRAULIC_SHOVEL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		BlockEntityRenderers.register(TailingsBlocks.BELT, context -> new BeltRenderer());
 		Tailings.LOGGER.info("Tailings client ready");
 	}

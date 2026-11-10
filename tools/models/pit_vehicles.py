@@ -123,6 +123,74 @@ DOZER_WHEELS = [
 ]
 
 
+# The 360 t ultra-class truck (open-pit-p5-big-machines.md, P5b): 15.08 m long, 9.53 m over the tyres and 9.76 m outside the body,
+# 7.71 m to the canopy, its body's sides 7.0 m up (its loading height), on six 4 m tyres; its body tips about its rear hinge.
+ULTRA_HINGE = (0.0, 3.0, 6.3)
+ULTRA = [
+	("frame", None, (-1.3, 1.3), (1.9, 2.9), (-7.2, 6.3), DARK, "plate"),
+	("axle", None, (-3.3, 3.3), (1.6, 2.4), (2.8, 3.6), DARK, "flat"),
+	("hood", None, (-1.6, 1.6), (2.4, 4.6), (-7.5, -3.9), YELLOW, "louvres"),
+	("grille", None, (-1.7, 1.7), (2.2, 4.6), (-7.62, -7.5), DARK, "louvres"),
+	("bumper", None, (-3.0, 3.0), (1.8, 2.4), (-7.7, -7.4), YELLOW, "hazard"),
+	("deck", None, (-4.7, 4.7), (4.6, 4.8), (-7.5, -3.9), DARK, "plate"),
+	("stairway", None, (1.9, 3.5), (2.0, 4.6), (-7.75, -7.55), DARK, "ribs"),
+	("cab", None, (-4.5, -2.2), (4.8, 7.0), (-7.2, -4.4), YELLOW, "cab"),
+	("floor", "body", (-4.88, 4.88), (3.0, 3.5), (-3.7, 7.54), YELLOW, "plate"),
+	("side_l", "body", (-4.88, -4.6), (3.5, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
+	("side_r", "body", (4.6, 4.88), (3.5, 7.0), (-3.7, 7.2), YELLOW, "ribs"),
+	("front_wall", "body", (-4.88, 4.88), (3.5, 7.5), (-4.0, -3.7), YELLOW, "plate"),
+	("canopy", "body", (-4.88, 4.88), (7.5, 7.71), (-7.54, -3.7), YELLOW, "plate"),
+	("load", "body", (-4.6, 4.6), (3.5, 6.8), (-3.7, 7.0), ROCK, "rock"),
+]
+
+ULTRA_WHEELS = [
+	("wheel_fl", (-4.76, -3.3), 2.0, -4.3, 2.0, -1),
+	("wheel_fr", (3.3, 4.76), 2.0, -4.3, 2.0, 1),
+	("wheel_rlo", (-4.76, -3.3), 2.0, 3.2, 2.0, -1),
+	("wheel_rli", (-3.2, -1.74), 2.0, 3.2, 2.0, 0),
+	("wheel_rri", (1.74, 3.2), 2.0, 3.2, 2.0, 0),
+	("wheel_rro", (3.3, 4.76), 2.0, 3.2, 2.0, 1),
+]
+
+
+# The 250 t class hydraulic front shovel (open-pit-p5-big-machines.md, P5c): on crawlers 6.0 m wide, its house 8.04 m wide over the
+# walkways and 7.25 m to the cab roof; the house swings on its ring, and its front (boom, stick and the 15 m3 bucket) lifts about the
+# boom foot.
+HYD_HOUSE = (0.0, 1.8, 0.0)
+HYD_FRONT = (0.0, 3.0, -2.6)
+HYD = [
+	("track_frame_l", None, (-3.0, -1.8), (0.4, 1.3), (-3.4, 3.4), DARK, "plate"),
+	("track_frame_r", None, (1.8, 3.0), (0.4, 1.3), (-3.4, 3.4), DARK, "plate"),
+	("tread_top_l", None, (-3.05, -1.75), (1.3, 1.45), (-3.4, 3.4), BLACK, "tread"),
+	("tread_top_r", None, (1.75, 3.05), (1.3, 1.45), (-3.4, 3.4), BLACK, "tread"),
+	("tread_low_l", None, (-3.05, -1.75), (0.0, 0.15), (-3.4, 3.4), BLACK, "tread"),
+	("tread_low_r", None, (1.75, 3.05), (0.0, 0.15), (-3.4, 3.4), BLACK, "tread"),
+	("carbody", None, (-1.8, 1.8), (0.6, 1.6), (-1.8, 1.8), DARK, "plate"),
+	("swing_ring", None, (-1.6, 1.6), (1.6, 1.8), (-1.6, 1.6), STEEL, "flat"),
+	("deck", "house", (-3.2, 3.2), (1.8, 2.4), (-2.6, 4.6), YELLOW, "plate"),
+	("engine_house", "house", (-3.0, 3.0), (2.4, 5.0), (0.0, 4.4), YELLOW, "louvres"),
+	("counterweight", "house", (-3.2, 3.2), (1.9, 4.0), (4.4, 5.6), DARK, "hazard"),
+	("walkway_l", "house", (-4.02, -3.2), (2.2, 2.35), (-2.4, 4.4), DARK, "plate"),
+	("walkway_r", "house", (3.2, 4.02), (2.2, 2.35), (-2.4, 4.4), DARK, "plate"),
+	("cab_base", "house", (-3.0, -1.0), (2.4, 4.6), (-2.4, -0.2), YELLOW, "plate"),
+	("cab", "house", (-3.0, -1.0), (4.6, 7.25), (-2.4, -0.2), YELLOW, "cab"),
+	("boom", "front", (-0.8, 0.8), (3.0, 4.4), (-7.6, -2.4), YELLOW, "plate"),
+	("boom_ram_l", "front", (-1.3, -0.9), (2.2, 3.4), (-5.0, -2.4), STEEL, "flat"),
+	("boom_ram_r", "front", (0.9, 1.3), (2.2, 3.4), (-5.0, -2.4), STEEL, "flat"),
+	("stick", "front", (-0.7, 0.7), (1.6, 5.4), (-8.4, -7.4), YELLOW, "plate"),
+	("bucket", "front", (-2.15, 2.15), (0.0, 2.6), (-10.2, -8.0), STEEL, "plate"),
+	("bucket_load", "front", (-1.9, 1.9), (2.2, 3.0), (-10.0, -8.2), ROCK, "rock"),
+]
+
+# its idlers (front) and sprockets (rear)
+HYD_WHEELS = [
+	("idler_l", (-3.05, -1.75), 0.72, -3.4, 0.72, -1),
+	("idler_r", (1.75, 3.05), 0.72, -3.4, 0.72, 1),
+	("sprocket_l", (-3.05, -1.75), 0.72, 3.4, 0.72, -1),
+	("sprocket_r", (1.75, 3.05), 0.72, 3.4, 0.72, 1),
+]
+
+
 def disc(radius_px):
 	"""A disc's pixel rows about its axle: (the row's top, its half-length) for each row, as round as whole pixels allow."""
 	rows = []
@@ -166,7 +234,17 @@ def px(v):
 	return int(round(v * 16))
 
 
-def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
+def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=(), sheet=SHEET):
+	"""groups: names hung from the one hinge, or (name, hinge, parent) for a group with its own hinge, hung from its parent group
+	(listed before it); a group's boxes are given in the machine's frame as any other."""
+	SHEET = sheet
+	info = {}
+	for g in groups:
+		if isinstance(g, tuple):
+			info[g[0]] = (g[1], g[2])
+		else:
+			info[g] = (hinge, None)
+	groups = list(info)
 	rng = random.Random(name)
 	img = Image.new("RGBA", (SHEET, SHEET), (0, 0, 0, 0))
 	u = v = row = 0
@@ -188,7 +266,8 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 		face(img, u + sz + sx, v + sz, sz, sy, colour, pattern, rng, 0.88)
 		face(img, u + sz + sx + sz, v + sz, sx, sy, colour, pattern, rng, 0.92)
 		if group:
-			hx, hy, hz = px(-hinge[0]), px(-hinge[1]), px(hinge[2])
+			gh = info[group][0]
+			hx, hy, hz = px(-gh[0]), px(-gh[1]), px(gh[2])
 			group_lines[group].append(f'\t\t{group}.addOrReplaceChild("{part}", CubeListBuilder.create().texOffs({u}, {v})'
 							f'.addBox({mx0 - hx}F, {my0 - hy}F, {mz0 - hz}F, {sx}F, {sy}F, {sz}F), PartPose.ZERO);')
 		else:
@@ -243,10 +322,14 @@ def paint(boxes, name, hinge, cls, doc, groups, anim, wheels=()):
 					wheel_lines.append(f'\t\t{wname}.addOrReplaceChild("n{k}", CubeListBuilder.create().texOffs({nu}, {nv})'
 							f'.addBox({nx}F, {ny}F, {nz}F, 1.0F, 2.0F, 2.0F), PartPose.ZERO);')
 	img.save(OUT_TEX + name + ".png")   # painted in the Ludo materials (art/final/vehicle)
-	hx, hy, hz = px(-hinge[0]), px(-hinge[1]), px(hinge[2])
 	body = list(root_lines)
 	for g in groups:
-		body.append(f'\t\tPartDefinition {g} = root.addOrReplaceChild("{g}", CubeListBuilder.create(), PartPose.offset({hx}F, {hy}F, {hz}F));')
+		gh, parent = info[g]
+		hx, hy, hz = px(-gh[0]), px(-gh[1]), px(gh[2])
+		if parent:
+			ph = info[parent][0]
+			hx, hy, hz = hx - px(-ph[0]), hy - px(-ph[1]), hz - px(ph[2])
+		body.append(f'\t\tPartDefinition {g} = {parent or "root"}.addOrReplaceChild("{g}", CubeListBuilder.create(), PartPose.offset({hx}F, {hy}F, {hz}F));')
 		body.extend(group_lines[g])
 	body.extend(wheel_lines)
 	constants = "".join(f'\tpublic static final String {g.upper()} = "{g}";\n' for g in groups)
@@ -263,7 +346,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** {doc} Written by tools/models/pit_vehicles.py, with its 1024 x 1024 skin painted in Ludo's materials: change the script, not this file. */
+/** {doc} Written by tools/models/pit_vehicles.py, with its {SHEET} x {SHEET} skin painted in Ludo's materials: change the script, not this file. */
 public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("{name}"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */
@@ -300,6 +383,10 @@ public class {cls} extends EntityModel<PitVehicleRenderer.PitState> {{
 def main(names):
 	if not names or "haul_truck" in names:
 		truck()
+	if not names or "ultra_haul_truck" in names:
+		ultra()
+	if not names or "hydraulic_shovel" in names:
+		hydraulic()
 	if not names or "wheel_loader" in names:
 		loader()
 	if not names or "track_dozer" in names:
@@ -312,6 +399,25 @@ def dozer():
 		"\t\tModelPart blade = root().getChild(BLADE);\n"
 		"\t\tblade.y += (0.5F - state.lift) * 24F;   // CUT a block lower than CARRY, RAISED a block and a half higher\n"
 		"\t\tblade.getChild(\"blade_load\").visible = state.loaded;", DOZER_WHEELS)
+
+
+def hydraulic():
+	paint(HYD, "hydraulic_shovel", HYD_HOUSE, "HydraulicShovelModel",
+		"The 250 t class hydraulic front shovel at its real size, about 15 x 8.04 x 7.25 m; its house swings and its front lifts.",
+		[("house", HYD_HOUSE, None), ("front", HYD_FRONT, "house")],
+		"\t\tModelPart house = root().getChild(HOUSE);\n"
+		"\t\thouse.yRot = (float) Math.toRadians(state.swing);   // plus swings its front to its right\n"
+		"\t\tModelPart front = house.getChild(FRONT);\n"
+		"\t\tfront.xRot = -state.lift * 0.6F;   // the boom lifts the bucket out of the face and over a truck\n"
+		"\t\tfront.getChild(\"bucket_load\").visible = state.loaded;", HYD_WHEELS, 2048)
+
+
+def ultra():
+	paint(ULTRA, "ultra_haul_truck", ULTRA_HINGE, "UltraHaulTruckModel",
+		"The 360 t ultra-class haul truck at its real size, 15.08 x 9.76 x 7.71 m; its body tips about its rear hinge.", ["body"],
+		"\t\tModelPart body = root().getChild(BODY);\n"
+		"\t\tbody.xRot = -state.lift * 0.87F;   // the body tips to 50 degrees (proposed)\n"
+		"\t\tbody.getChild(\"load\").visible = state.loaded;", ULTRA_WHEELS, 2048)
 
 
 def truck():

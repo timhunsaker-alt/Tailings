@@ -136,6 +136,36 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return raising != 0 || lift() > 0;
 	}
 
+	/** Its body goes up, or down, in this many ticks. */
+	protected int raiseTicks() {
+		return RAISE_TICKS;
+	}
+
+	/** A shovel has told it it is loaded (its room under half a bucket): it leaves its LOAD stake (P5c). */
+	private boolean loadedOut;
+
+	/** Told by the shovel loading it that it is loaded. */
+	public void loadedOut() {
+		loadedOut = true;
+	}
+
+	/** Whether a shovel has said so since it last asked; asking clears it. */
+	boolean takeLoadedOut() {
+		boolean was = loadedOut;
+		loadedOut = false;
+		return was;
+	}
+
+	/** Its wheels' radius, metres: a berm at a dump point is mid-axle high, a block a metre of it (P4). */
+	public double wheelRadius() {
+		return dev.wildcatter.tailings.pit.DryStack.TRUCK_WHEEL_RADIUS;
+	}
+
+	/** Its body's top above the ground, metres: a loader that cannot reach it cannot load it. */
+	public double loadingHeight() {
+		return 4.2;
+	}
+
 	@Override
 	protected Vec3 seat() {
 		return new Vec3(-1.9, 3.1, 3.4);   // the cab, on the deck over the left front wheel
@@ -161,7 +191,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	private void say(@Nullable Player driver, String what) {
 		status = what;
 		if (driver != null) {
-			driver.sendOverlayMessage(Component.literal("Haul Truck: " + what));
+			driver.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": " + what));
 		}
 	}
 
@@ -170,7 +200,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		if (raising == 0) {
 			return;
 		}
-		float lift = Math.max(0, Math.min(1, lift() + raising / (float) RAISE_TICKS));
+		float lift = Math.max(0, Math.min(1, lift() + raising / (float) raiseTicks()));
 		setLift(lift);
 		if (raising > 0 && lift >= 1) {
 			tip(level);
@@ -205,7 +235,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	/** A pit hopper under the body's tail: up to 3 m behind it, across its width, down to 8 m. */
 	public @Nullable DumpBlockEntity hopperBehind(Level level) {
 		for (double back = 0; back <= 3; back += 1) {
-			for (double across = -2; across <= 2; across += 1) {
+			for (double across = -Math.floor(spec().width() / 3); across <= Math.floor(spec().width() / 3); across += 1) {
 				Vec3 at = local(across, 0, -spec().length() / 2 - back);
 				BlockPos column = BlockPos.containing(at);
 				for (int down = 0; down <= 8; down++) {

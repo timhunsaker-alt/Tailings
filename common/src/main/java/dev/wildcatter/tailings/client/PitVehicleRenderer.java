@@ -25,12 +25,16 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	private static final Identifier DRILL_TEXTURE = Tailings.id("textures/entity/blasthole_drill_placeholder.png");
 	private static final Identifier EMULSION_TEXTURE = Tailings.id("textures/entity/emulsion_truck_placeholder.png");
 	private static final Identifier DOZER_TEXTURE = Tailings.id("textures/entity/track_dozer.png");
+	private static final Identifier ULTRA_TEXTURE = Tailings.id("textures/entity/ultra_haul_truck.png");
+	private static final Identifier HYD_TEXTURE = Tailings.id("textures/entity/hydraulic_shovel.png");
 
 	private final HaulTruckModel truck;
 	private final WheelLoaderModel loader;
 	private final BlastholeDrillModel drill;
 	private final EmulsionTruckModel emulsion;
 	private final TrackDozerModel dozer;
+	private final UltraHaulTruckModel ultra;
+	private final HydraulicShovelModel hydraulic;
 
 	public PitVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -39,6 +43,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		drill = new BlastholeDrillModel(context.bakeLayer(BlastholeDrillModel.LAYER));
 		emulsion = new EmulsionTruckModel(context.bakeLayer(EmulsionTruckModel.LAYER));
 		dozer = new TrackDozerModel(context.bakeLayer(TrackDozerModel.LAYER));
+		ultra = new UltraHaulTruckModel(context.bakeLayer(UltraHaulTruckModel.LAYER));
+		hydraulic = new HydraulicShovelModel(context.bakeLayer(HydraulicShovelModel.LAYER));
 	}
 
 	@Override
@@ -57,12 +63,13 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		super.extractRenderState(entity, state, partialTick);
 		state.shadowRadius = 2.5F;
 		state.truck = entity instanceof HaulTruckEntity;
-		state.kind = entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
+		state.kind = entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
 				: entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity ? 4 : state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
+		state.swing = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.swing() : 0;
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
 	}
 
@@ -119,6 +126,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 2 -> drill;
 			case 3 -> emulsion;
 			case 4 -> dozer;
+			case 5 -> ultra;
+			case 6 -> hydraulic;
 			default -> loader;
 		};
 		Identifier texture = switch (state.kind) {
@@ -126,6 +135,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			case 2 -> DRILL_TEXTURE;
 			case 3 -> EMULSION_TEXTURE;
 			case 4 -> DOZER_TEXTURE;
+			case 5 -> ULTRA_TEXTURE;
+			case 6 -> HYD_TEXTURE;
 			default -> LOADER_TEXTURE;
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
@@ -147,13 +158,15 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	public static class PitState extends EntityRenderState {
 		public boolean truck = true;
-		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer. */
+		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel. */
 		public int kind;
 		public boolean loaded;
 		public float lift;
 		public float yaw;
 		/** Metres its wheels have rolled. */
 		public float roll;
+		/** A shovel's house swung from its tracks, degrees, plus to its right. */
+		public float swing;
 		/** Its trailing cable's points from it, x y z in turn; empty with none. */
 		public float[] cable = NO_CABLE;
 	}

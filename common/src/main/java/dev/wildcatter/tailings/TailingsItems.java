@@ -39,6 +39,8 @@ public final class TailingsItems {
 	public static Item BLAST_LOGGER;
 	public static Item BLASTING_KEY;
 	public static Item TRAILING_CABLE;
+	public static Item ULTRA_HAUL_TRUCK;
+	public static Item HYDRAULIC_SHOVEL;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
 
 	private TailingsItems() {
@@ -69,6 +71,8 @@ public final class TailingsItems {
 		ResourceKey<Item> logger = ResourceKey.create(Registries.ITEM, Tailings.id("blast_logger"));
 		BLAST_LOGGER = Registry.register(BuiltInRegistries.ITEM, logger, new dev.wildcatter.tailings.item.BlastLoggerItem(new Item.Properties().setId(logger).stacksTo(1)));
 		TRACK_DOZER = vehicle("track_dozer", () -> TailingsEntities.TRACK_DOZER);
+		ULTRA_HAUL_TRUCK = vehicle("ultra_haul_truck", () -> TailingsEntities.ULTRA_HAUL_TRUCK);
+		HYDRAULIC_SHOVEL = vehicle("hydraulic_shovel", () -> TailingsEntities.HYDRAULIC_SHOVEL);
 		ResourceKey<Item> cable = ResourceKey.create(Registries.ITEM, Tailings.id("trailing_cable"));
 		TRAILING_CABLE = Registry.register(BuiltInRegistries.ITEM, cable, new dev.wildcatter.tailings.item.TrailingCableItem(new Item.Properties().setId(cable).stacksTo(16)));
 		ResourceKey<Item> book = ResourceKey.create(Registries.ITEM, Tailings.id("survey_book"));

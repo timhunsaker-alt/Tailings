@@ -81,7 +81,12 @@ public class SurveyBookItem extends Item {
 
 	/** Surveys a leg for the 100 t truck. */
 	public static Survey.Leg survey(Level level, BlockPos from, BlockPos to) {
-		return Survey.leg(ground(level), from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ(), PitDrive.TRUCK.width(), PitDrive.TRUCK.height());
+		return survey(level, from, to, PitDrive.TRUCK.width(), PitDrive.TRUCK.height());
+	}
+
+	/** A leg surveyed for a truck {@code width} wide and {@code height} high (the ultra's own box, P5b). */
+	public static Survey.Leg survey(Level level, BlockPos from, BlockPos to, double width, double height) {
+		return Survey.leg(ground(level), from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ(), width, height);
 	}
 
 	/** Adds a stake to the book's route, surveying the leg to it; what to tell the player. Public for tests. */

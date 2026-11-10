@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SPS",
+    "LFL",
+    "TST"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "P": "minecraft:piston",
+    "L": "tailings:wheel_loader",
+    "F": "minecraft:blast_furnace",
+    "T": "minecraft:iron_block"
+  },
+  "result": {
+    "id": "tailings:hydraulic_shovel",
+    "count": 1
+  }
+}

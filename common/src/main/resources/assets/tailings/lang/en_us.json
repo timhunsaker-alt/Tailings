@@ -317,5 +317,9 @@
   "item.tailings.track_dozer": "Track Dozer",
   "entity.tailings.track_dozer": "Track Dozer",
   "block.tailings.pit_switch_house": "Pit Switch House",
-  "item.tailings.trailing_cable": "Trailing Cable"
+  "item.tailings.trailing_cable": "Trailing Cable",
+  "item.tailings.ultra_haul_truck": "Ultra Haul Truck",
+  "entity.tailings.ultra_haul_truck": "Ultra Haul Truck",
+  "item.tailings.hydraulic_shovel": "Hydraulic Shovel",
+  "entity.tailings.hydraulic_shovel": "Hydraulic Shovel"
 }

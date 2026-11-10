@@ -43,6 +43,20 @@ public final class PitDrive {
 	 * 600 kW diesel (unverified), tramming at 1.5 km/h (proposed); about 110 t (proposed). By hand it steers on 5 m.
 	 */
 	public static final Spec DRILL = new Spec(15.0, 7.0, 26.0, 110_000, 1, 600_000, 1.5 / 3.6, 1.5 / 3.6, 5.0);
+	/**
+	 * The 360 t ultra-class truck (open-pit-p5-big-machines.md): 363 t payload, 15.08 x 9.76 x 7.71 m to the canopy, about 261 t empty,
+	 * 2,828 kW net, 67.6 km/h loaded (all from the spec sheet, decision P5-3). It turns on 20 m (proposed: it needs about 40 m to turn
+	 * round, the 100 t 25 m).
+	 */
+	public static final Spec ULTRA_TRUCK = new Spec(15.08, 9.76, 7.71, 261_000, 363_000, 2_828_000, 67.6 / 3.6, 3.0, 20.0);
+	/**
+	 * The 250 t class hydraulic front shovel (open-pit-p5-big-machines.md, P5c): 258 t operating, a 27 t bucket, 1,119 kW diesel
+	 * (spec sheet); about 15 m long with its front and 7.25 m to its cab roof (unverified), 8.04 m wide over its house; crawling at
+	 * 1.5 km/h (open-pit.md, proposed). A crawler turns nearly on the spot: 4 m (proposed).
+	 */
+	public static final Spec HYD_SHOVEL = new Spec(15.0, 8.04, 7.25, 258_000, 27_000, 1_119_000, 1.5 / 3.6, 1.5 / 3.6, 4.0);
+	/** Its electric variant: the same machine on an 860 kW motor off a trailing cable (spec sheet). */
+	public static final Spec HYD_SHOVEL_ELECTRIC = new Spec(15.0, 8.04, 7.25, 258_000, 27_000, 860_000, 1.5 / 3.6, 1.5 / 3.6, 4.0);
 	/** The emulsion truck: 8.5 x 2.5 x 3.8 m, about 300 kW, 12 t of matrix, about 14 t empty and 40 km/h (proposed). */
 	public static final Spec EMULSION_TRUCK = new Spec(8.5, 2.5, 3.8, 14_000, 12_000, 300_000, 40 / 3.6, 3.0, 8.0);
 

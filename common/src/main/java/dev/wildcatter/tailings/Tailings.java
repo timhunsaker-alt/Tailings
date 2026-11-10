@@ -75,6 +75,8 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.BLASTING_MACHINE));
 		output.accept(new ItemStack(TailingsItems.TRACK_DOZER));
 		output.accept(new ItemStack(TailingsItems.TRAILING_CABLE));
+		output.accept(new ItemStack(TailingsItems.ULTRA_HAUL_TRUCK));
+		output.accept(new ItemStack(TailingsItems.HYDRAULIC_SHOVEL));
 		output.accept(new ItemStack(TailingsBlocks.DRY_TAILS));
 		output.accept(new ItemStack(TailingsBlocks.SURVEY_STAKE));
 		output.accept(new ItemStack(TailingsItems.SURVEY_BOOK));
