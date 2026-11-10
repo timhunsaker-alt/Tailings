@@ -537,6 +537,31 @@ made building it are in [questions/l7-dms.md](questions/l7-dms.md). The rules ar
   each tonne floated).
 - **Models:** `tools/models/dms.py`, in Wildcatter's materials; the screens sound the vibrating screen, the module the slurry rush,
   the medium recovery Wildcatter's motor hum.
+## The X-ray ore sorter (L8)
+
+Spec: [multiblocks/xrt-ore-sorter.md](multiblocks/xrt-ore-sorter.md) (draft, decided on recommendation); the choices made building it
+are in [questions/l8-xrt.md](questions/l8-xrt.md). The rules are `plant.XrtSorting` (unit-tested), the stages `block.stage.Xrt`. The
+dump station's `ore_sorter` is a different machine and is unchanged.
+
+- **The parts:** `xrt_sorter` (4 x 5 x 8, 20 kW, *unverified*) and `sorter_compressor` (2 x 2 x 3, 160 kW, touching it). Both motors on
+  the world's industrial tier, their boxes on the west face of the main cell.
+- **Faces:** crushed rock or gravel in by a belt over its north (feed) end's top, a hopper on top or a hand; product out of its south
+  face, waste out of its east face, onto a belt or a part's feed face. Sand, fines and unbroken rock are refused.
+- **Reading a piece:** its effective atomic number, Zeff = (Σ fᵢ Zᵢ^2.94)^(1/2.94) over the electrons, each mineral's from its real
+  formula (`XrtSorting.formula`), the rock's minerals at their game grade, the rest of its 2.7 t quartz (11.6). Country rock reads
+  11.6-12.0; galena ore 45; light ores (graphite, magnesite, borax, bauxite) under quartz.
+- **Splitting:** five steps, Zeff 11.5 (LOW), 12.0 (the default), 13.0, 15.0, 20.0 (HIGH). Over the step, 97 % of the rock's kg to
+  product and 3 % to waste; under it, 5 % to product and 95 % to waste. Each keeps its size.
+- **Rate:** 250 t/h on crushed rock, half on gravel, times its motor's output, and only as fast as both belts take.
+- **Air:** it needs its compressor touching and running, else NO AIR, and it keeps its rock. The compressor runs while the sorter has
+  rock or is sorting.
+- **Setting it:** a sneaking click with an empty hand steps the threshold, LOW to HIGH and round. Saved with the part (`xrt`), with the
+  tonnes sent each way.
+- **PLC:** the plant motor's six points, then 6 THRESHOLD (analog out, 4-20 mA, 4 mA a step; in AUTO while fresh, over the screen's
+  step), 7 PRODUCT and 8 WASTE (pulse inputs, a pulse a tonne).
+- **Reads:** NO FEED, NO AIR, FULL, "its output has nowhere to go"; its inspection gives the step, who set it and the tonnes each way.
+- **Models:** `tools/models/xrt.py`, in Wildcatter's materials; the sorter plays the `ore_sorter` loop, the compressor Wildcatter's
+  motor hum.
 
 ## Config
 

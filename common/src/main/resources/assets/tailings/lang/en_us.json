@@ -328,6 +328,8 @@
   "block.tailings.rer_separator": "Rare-Earth Roll Magnet",
   "block.tailings.ht_roll_separator": "High-Tension Roll Separator",
   "block.tailings.irm_separator": "Induced-Roll Magnet",
+  "block.tailings.xrt_sorter": "X-Ray Ore Sorter",
+  "block.tailings.sorter_compressor": "Sorter Air Compressor",
   "block.tailings.skip": "Skip",
   "item.tailings.skip": "Skip",
   "entity.tailings.skip": "Skip",

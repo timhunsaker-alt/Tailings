@@ -169,6 +169,14 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				}
 				return InteractionResult.SUCCESS;
 			}
+			if (player.isShiftKeyDown() && plant.machine() == Machine.XRT_SORTER) {
+				// its screen's threshold, a step a click (xrt-ore-sorter.md, L8)
+				if (!level.isClientSide()) {
+					plant.stepThreshold();
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(plant.status()));
+				}
+				return InteractionResult.SUCCESS;
+			}
 			if (player.isShiftKeyDown() && plant.machine() == Machine.CONDITIONER) {
 				if (!level.isClientSide()) {
 					plant.toggleSelective();

@@ -86,6 +86,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			for (String side : SIDE_POINTS) {
 				out.add(new Point(side + " TAKES 4-20 mA, ROCK CODE", true, Signal.MA));
 			}
+		} else if (machine() == Machine.XRT_SORTER) {
+			// the X-ray sorter's threshold from the PLC, and a pulse a tonne each way (xrt-ore-sorter.md, L8)
+			out.add(new Point("THRESHOLD 4-20 mA, 5 STEPS", true, Signal.MA));
+			out.add(new Point("PRODUCT, A PULSE A TONNE", false, Signal.PULSE));
+			out.add(new Point("WASTE, A PULSE A TONNE", false, Signal.PULSE));
 		} else if (machine() == Machine.VENT_FAN) {
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/s", VENT_FLOW_HIGH), false, Signal.MA));
 		} else if (machine() == Machine.HOIST_HOUSE) {
@@ -131,6 +136,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public void commandMa(int point, double milliamps, long gameTime) {
+		if (machine() == Machine.XRT_SORTER && point == 6) {
+			remote.commandMa(1, milliamps, gameTime);
+			return;
+		}
 		if (machine() == Machine.ORE_SORTER && point >= CODES && point < CODES + dev.wildcatter.tailings.haul.Sorter.SIDES) {
 			remote.commandMa(point - CODES + 5, milliamps, gameTime);
 			if (level != null) {
@@ -188,6 +197,40 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.Shaft.binLevel(this));
 		}
 		return 4 + 16 * Math.min(1.03, point == 4 ? motor.amps() / (motor.fullLoadAmps() * 1.5) : hold.total() / dev.wildcatter.tailings.plant.PlantRates.BELT_HOLD_KG);
+	}
+
+	/** The X-ray sorter's PRODUCT and WASTE counts: a pulse a tonne. */
+	@Override
+	public long readPulses(int point) {
+		if (xrt == null) {
+			return 0;
+		}
+		return point == 7 ? xrt.productPulses() : point == 8 ? xrt.wastePulses() : 0;
+	}
+
+	/** An X-ray sorter's own state (xrt-ore-sorter.md, L8); null for every other part. */
+	private final dev.wildcatter.tailings.plant.XrtSorting.State xrt;
+
+	public dev.wildcatter.tailings.plant.XrtSorting.State xrt() {
+		return xrt;
+	}
+
+	/** True while a PLC in AUTO sets the X-ray sorter's threshold. */
+	public boolean xrtByPlc() {
+		return level != null && remote.fraction(1, level.getGameTime(), -1) >= 0;
+	}
+
+	/** The X-ray sorter's threshold step now: the PLC's while its loop is fresh in AUTO, else its screen's. */
+	public int xrtStep() {
+		double fraction = level == null ? -1 : remote.fraction(1, level.getGameTime(), -1);
+		return fraction < 0 ? xrt.step() : dev.wildcatter.tailings.plant.XrtSorting.stepOf(fraction);
+	}
+
+	/** A sneaking click on the X-ray sorter steps its screen's threshold, LOW to HIGH and round again. */
+	public void stepThreshold() {
+		xrt.nextStep();
+		say("set to " + dev.wildcatter.tailings.plant.XrtSorting.describe(xrt.step()) + (xrtByPlc() ? "; the PLC sets it while in AUTO" : ""));
+		setChanged();
 	}
 
 	/** Litres a second of slurry leaving by pipe over the last second, and what has left in this one. */
@@ -308,6 +351,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		vent = machine == Machine.VENT_FAN ? new VentState() : null;
 		dms = machine == Machine.DMS_MODULE ? new dev.wildcatter.tailings.plant.DmsState() : null;
+		xrt = machine == Machine.XRT_SORTER ? new dev.wildcatter.tailings.plant.XrtSorting.State() : null;
 	}
 
 	/** A DMS cyclone module's medium and counts, or null. */
@@ -1257,6 +1301,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			held.append(String.format("; %d skips dumped (%.0f t); skips at %.0f and %.0f m of %.0f m", winder.dumps(), winder.dumps() * dev.wildcatter.tailings.shaft.Hoisting.SKIP_KG / 1000,
 					winder.height(0), winder.height(1), winder.travel()));
 		}
+		if (xrt != null) {
+			held.append("; ").append(dev.wildcatter.tailings.plant.XrtSorting.describe(xrtStep())).append(xrtByPlc() ? " (PLC)" : "")
+					.append(String.format("; %.1f t to product, %.1f t to waste", xrt.productKg() / 1000, xrt.wasteKg() / 1000));
+		}
 		if (machine() == Machine.ORE_BIN) {
 			held.append("; ").append(binCount()).append(" of ").append(PlantRates.BIN_ITEMS).append(" items");
 		}
@@ -1326,6 +1374,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (dms != null) {
 			output.putString("dms", dms.save());
 		}
+		if (xrt != null) {
+			output.putString("xrt", xrt.save());
+		}
 	}
 
 	@Override
@@ -1374,6 +1425,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		if (dms != null) {
 			dms.load(input.getStringOr("dms", ""));
+		}
+		if (xrt != null) {
+			xrt.load(input.getStringOr("xrt", ""));
 		}
 		binned.clear();
 		for (String part : input.getStringOr("binned", "").split(",")) {

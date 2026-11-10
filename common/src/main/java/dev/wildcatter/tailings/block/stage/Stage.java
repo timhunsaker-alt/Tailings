@@ -110,6 +110,8 @@ public interface Stage {
 			case DMS_MODULE -> DenseMediumStages.MODULE;
 			case DRAIN_RINSE_SCREEN -> DenseMediumStages.DRAIN_RINSE;
 			case MEDIUM_RECOVERY -> DenseMediumStages.RECOVERY;
+			case XRT_SORTER -> Xrt.SORTER;
+			case SORTER_COMPRESSOR -> Xrt.COMPRESSOR;
 			default -> Idle.INSTANCE;
 		};
 	}

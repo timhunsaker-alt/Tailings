@@ -98,7 +98,11 @@ public enum Machine {
 	/** A drain-and-rinse screen, 7.5 kW (L7, proposed): one on the module's north side for the floats, one on its south side for the sinks. */
 	DRAIN_RINSE_SCREEN("drain_rinse_screen", "Drain-and-Rinse Screen", 2, 2, 5, 7_500, Supply.INDUSTRIAL),
 	/** A wet drum magnetic separator and densifier that win the ferrosilicon back from the rinse water, its make-up hopper on top, 5.5 kW (L7, proposed). */
-	MEDIUM_RECOVERY("medium_recovery", "Medium Recovery", 2, 3, 3, 5_500, Supply.INDUSTRIAL);
+	MEDIUM_RECOVERY("medium_recovery", "Medium Recovery", 2, 3, 3, 5_500, Supply.INDUSTRIAL),
+	/** A 1.2 m X-ray transmission ore sorter (xrt-ore-sorter.md, L8): feeder, 3 m/s belt, X-ray line and 192 air ejectors; 20 kW (unverified). */
+	XRT_SORTER("xrt_sorter", "X-Ray Ore Sorter", 4, 5, 8, 20_000, Supply.INDUSTRIAL),
+	/** The sorter's screw compressor and air receiver for its ejectors, 160 kW (L8, proposed). */
+	SORTER_COMPRESSOR("sorter_compressor", "Sorter Air Compressor", 2, 2, 3, 160_000, Supply.INDUSTRIAL);
 
 	public enum Supply {
 		NONE,

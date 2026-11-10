@@ -17,6 +17,17 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 - **Nothing changes in existing plants:** without a DMS module the screen's gravel face, the cone and the mill run as before.
 - **Tests:** `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`; `DenseMediumTest`. Decisions in
   `docs/questions/l7-dms.md`.
+### L8: the X-ray ore sorter (2026-11-10, decided while Tim was away)
+
+- **X-ray ore sorter:** a 1.2 m XRT sorter (4 x 5 x 8, 20 kW) on the dry end. Crushed rock or gravel comes in over its north end; each
+  piece's effective atomic number, worked from the real formulas of the minerals its rock holds, is read against a threshold of five
+  steps (a sneaking click, or the PLC's THRESHOLD loop); over it the ejectors blow it onto the product belt off its south face, under it
+  it drops onto the waste belt off its east face. 3 % of ore is misplaced to waste and 5 % of waste to product. 250 t/h on crushed rock.
+- **Sorter air compressor:** its own 160 kW screw compressor, touching it. Without it the sorter reads NO AIR and stops.
+- **PLC:** THRESHOLD (4-20 mA), PRODUCT and WASTE (a pulse a tonne).
+- **Nothing changes in existing worlds:** two new parts; the dump station's ore sorter is unchanged.
+- **Tests:** `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; `XrtSortingTest`. Decisions in
+  `docs/questions/l8-xrt.md`.
 
 ### L5: paste backfill (2026-11-10, decided while Tim was away)
 

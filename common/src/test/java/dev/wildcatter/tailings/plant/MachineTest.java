@@ -66,7 +66,9 @@ class MachineTest {
 			Map.entry(Machine.DESLIME_SCREEN, new int[] {2, 2, 4}),
 			Map.entry(Machine.DMS_MODULE, new int[] {3, 6, 4}),
 			Map.entry(Machine.DRAIN_RINSE_SCREEN, new int[] {2, 2, 5}),
-			Map.entry(Machine.MEDIUM_RECOVERY, new int[] {2, 3, 3}));
+			Map.entry(Machine.MEDIUM_RECOVERY, new int[] {2, 3, 3}),
+			Map.entry(Machine.XRT_SORTER, new int[] {4, 5, 8}),
+			Map.entry(Machine.SORTER_COMPRESSOR, new int[] {2, 2, 3}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

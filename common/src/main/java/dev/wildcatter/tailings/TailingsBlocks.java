@@ -128,6 +128,8 @@ public final class TailingsBlocks {
 	public static final Block DMS_MODULE = plant(Machine.DMS_MODULE, MapColor.COLOR_GRAY);
 	public static final Block DRAIN_RINSE_SCREEN = plant(Machine.DRAIN_RINSE_SCREEN, MapColor.METAL);
 	public static final Block MEDIUM_RECOVERY = plant(Machine.MEDIUM_RECOVERY, MapColor.COLOR_BLUE);
+	public static final Block XRT_SORTER = plant(Machine.XRT_SORTER, MapColor.COLOR_YELLOW);
+	public static final Block SORTER_COMPRESSOR = plant(Machine.SORTER_COMPRESSOR, MapColor.COLOR_BLUE);
 	/** A skip's looks (shaft-and-hoist.md, L4), drawn by its entity: the block itself has no item and is never placed. */
 	public static final Block SKIP = block("skip", props -> new dev.wildcatter.tailings.block.SkipPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F)
 			.sound(SoundType.METAL).noOcclusion().noLootTable()));
@@ -150,7 +152,7 @@ public final class TailingsBlocks {
 					DUMP_RAMP, APRON_FEEDER, ORE_SORTER, ORE_BIN, TRUCK_DUMP_WALL, TAILINGS_THICKENER, TAILINGS_FILTER, LOADOUT_FRAME, LOADOUT_BIN,
 					TRACK_GRIZZLY, DUMP_CAM_RAIL, VENT_FAN, BOOSTER_FAN, HEADFRAME, HEADFRAME_BIN, HOIST_HOUSE, MEASURING_FLASK,
 					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR,
-					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY));
+					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -309,6 +311,8 @@ public final class TailingsBlocks {
 			case DMS_MODULE -> DMS_MODULE;
 			case DRAIN_RINSE_SCREEN -> DRAIN_RINSE_SCREEN;
 			case MEDIUM_RECOVERY -> MEDIUM_RECOVERY;
+			case XRT_SORTER -> XRT_SORTER;
+			case SORTER_COMPRESSOR -> SORTER_COMPRESSOR;
 		};
 	}
 
