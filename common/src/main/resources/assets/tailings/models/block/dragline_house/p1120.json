@@ -40,5 +40,47 @@
   "padgreen": "wildcatter:block/mat/mat_paint_pad_green",
   "particle": "wildcatter:block/mat/mat_paint_ansi61"
  },
- "elements": []
+ "elements": [
+  {
+   "from": [
+    0.0,
+    0,
+    0.0
+   ],
+   "to": [
+    16,
+    3.2,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      12.8,
+      16.0,
+      16
+     ]
+    },
+    "west": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      12.8,
+      16.0,
+      16
+     ]
+    },
+    "up": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    }
+   }
+  }
+ ]
 }

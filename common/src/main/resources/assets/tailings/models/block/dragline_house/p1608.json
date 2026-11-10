@@ -50,11 +50,20 @@
    "to": [
     16,
     16,
-    16
+    16.0
    ],
    "faces": {
+    "south": {
+     "texture": "#hipaint",
+     "uv": [
+      8.0,
+      0.0,
+      16,
+      16.0
+     ]
+    },
     "west": {
-     "texture": "#grey",
+     "texture": "#hipaint",
      "uv": [
       0.0,
       0.0,

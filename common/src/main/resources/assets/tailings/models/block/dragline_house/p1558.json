@@ -40,5 +40,79 @@
   "padgreen": "wildcatter:block/mat/mat_paint_pad_green",
   "particle": "wildcatter:block/mat/mat_paint_ansi61"
  },
- "elements": []
+ "elements": [
+  {
+   "from": [
+    0,
+    0,
+    0
+   ],
+   "to": [
+    16,
+    16,
+    8.0
+   ],
+   "faces": {
+    "south": {
+     "texture": "#grey",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    0,
+    8.0
+   ],
+   "to": [
+    16.0,
+    16.0,
+    16.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    },
+    "south": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      16.0,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      0.0,
+      8.0,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#dark",
+     "uv": [
+      0.0,
+      8.0,
+      16.0,
+      16.0
+     ]
+    }
+   }
+  }
+ ]
 }

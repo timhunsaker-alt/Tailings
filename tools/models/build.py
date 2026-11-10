@@ -70,13 +70,18 @@ def colours(model):
 def export_sharing_empty(model, **args):
 	"""Exports a part whose empty pieces (no box of the drawing in their cell) all share one empty model, <part>/empty.json, in place
 	of a p<k>.json each; their blockstate variants name it and turn nothing. Wildcatter's mlib writes a model per cell, so its writer
-	is wrapped for this one export: the 45 m thickener (P7c) is 12,150 cells, most of them the air over its tank. Only a model that
-	sets share_empty = True is exported this way; every other model is written exactly as mlib writes it."""
+	is wrapped for this export: the 45 m thickener (P7c) is 12,150 cells, most of them the air over its tank. Every big part is
+	exported this way (shares_empty); a one-cell model, or one whose caller writes its blockstate, is written exactly as mlib writes it."""
 	folder = os.path.join(mlib.ASSETS, "models/block", model.name)
 	blockstate = os.path.join(mlib.ASSETS, "blockstates", model.name + ".json")
 	empty = set()
 	textures = {}
 	save = mlib._save
+	if os.path.isdir(folder):
+		# the piece models of an earlier export go first: a part with fewer pieces now (a hollow one) leaves none behind
+		for file in os.listdir(folder):
+			if file.startswith("p") and file[1:-5].isdigit() and file.endswith(".json"):
+				os.remove(os.path.join(folder, file))
 
 	def sharing(path, obj):
 		name = os.path.basename(path)
@@ -112,13 +117,20 @@ def export_sharing_empty(model, **args):
 	return count
 
 
+def shares_empty(model):
+	"""Every big part (more than one cell, its blockstate written by mlib) shares one empty model among its empty pieces (Tim,
+	2026-11-10: p7-pit-line.md #33); a model may still set share_empty = False to be written exactly as mlib writes it."""
+	args = getattr(model, "export_args", {})
+	return getattr(model, "share_empty", True) and len(model.cells) > 1 and args.get("blockstate", True) is not False
+
+
 def main(names):
 	previews = os.path.join(ROOT, "build/model-previews")
 	os.makedirs(previews, exist_ok=True)
 	for name in names or MODULES:
 		module = importlib.import_module(name)
 		for model in module.MODELS:
-			if getattr(model, "share_empty", False):
+			if shares_empty(model):
 				export_sharing_empty(model, **getattr(model, "export_args", {}))
 			else:
 				model.export(**getattr(model, "export_args", {}))

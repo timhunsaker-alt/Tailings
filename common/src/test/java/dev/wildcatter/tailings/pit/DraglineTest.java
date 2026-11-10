@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.wildcatter.tailings.plant.Machine;
 import org.junit.jupiter.api.Test;
 
 /** The walking dragline's numbers and its strip (docs/multiblocks/dragline.md, P6). */
@@ -99,6 +100,13 @@ class DraglineTest {
 	@Test
 	void itsPartsAreTheSpecsSizes() {
 		assertEquals(5 * 15, Dragline.BOOM_M, 1e-9, "five 15 m boom sections make the 75 m boom");
-		assertEquals(450 + 5_760 + 2 * 126 + 480 + 5 * 240 + 120, DraglineLayout.cells());
+		assertEquals(450 + 5_760 - 2_970 + 2 * 126 + 480 + 5 * 240 + 120, DraglineLayout.cells());
+		// the house is a shell: its 22 x 9 x 15 inside is left out (p6-dragline.md #3)
+		assertEquals(5_760 - 22 * 9 * 15, Machine.DRAGLINE_HOUSE.cells());
+		assertEquals(0, Machine.DRAGLINE_HOUSE.footprint().pieceAt(0, 0, 0, 0));
+		assertEquals(-1, Machine.DRAGLINE_HOUSE.footprint().pieceAt(1, 2, 4, 0));
+		assertEquals(-1, Machine.DRAGLINE_HOUSE.footprint().pieceAt(22, 10, 18, 0));
+		assertTrue(Machine.DRAGLINE_HOUSE.footprint().pieceAt(0, 2, 4, 0) > 0);
+		assertTrue(Machine.DRAGLINE_HOUSE.footprint().pieceAt(23, 11, 19, 0) > 0);
 	}
 }

@@ -9,8 +9,14 @@ import plantlib
 TEX = dict(plantlib.TEX)
 
 
-def model(name, w, h, d, particle="grey"):
-	return mlib.Model(name, mlib.footprint_box(w, h, d, 0, 0), dict(TEX), TEX[particle])
+def model(name, w, h, d, particle="grey", hollow=None):
+	"""hollow: a part that is a shell, (x1, y1, z1, x2, y2, z2) inclusive, the inside cells left out of its footprint in the box's
+	order, as Machine.hollow() leaves them out in the game (the dragline house). Nothing may be drawn there."""
+	cells = mlib.footprint_box(w, h, d, 0, 0)
+	if hollow:
+		x1, y1, z1, x2, y2, z2 = hollow
+		cells = [c for c in cells if not (x1 <= c[0] <= x2 and y1 <= c[1] <= y2 and z1 <= c[2] <= z2)]
+	return mlib.Model(name, cells, dict(TEX), TEX[particle])
 
 
 def disc(M, cx, cz, r, y0, y1, tex):

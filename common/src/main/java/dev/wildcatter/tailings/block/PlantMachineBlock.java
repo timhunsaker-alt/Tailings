@@ -1,6 +1,5 @@
 package dev.wildcatter.tailings.block;
 
-import dev.wildcatter.multiblock.Footprint;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.plant.Machine;
 import net.minecraft.core.BlockPos;
@@ -29,7 +28,7 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	private final Machine machine;
 
 	public PlantMachineBlock(Properties properties, Machine machine) {
-		super(properties, Footprint.box(machine.width(), machine.height(), machine.depth(), 0, 0), machine.id());
+		super(properties, machine.footprint(), machine.id());
 		this.machine = machine;
 	}
 

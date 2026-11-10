@@ -203,6 +203,7 @@ public enum Machine {
 	private final int depth;
 	private final int watts;
 	private final Supply supply;
+	private dev.wildcatter.multiblock.@org.jspecify.annotations.Nullable Footprint footprint;
 
 	Machine(String id, String name, int width, int height, int depth, int watts, Supply supply) {
 		this.id = id;
@@ -242,7 +243,39 @@ public enum Machine {
 		return supply;
 	}
 
+	/** The cells the part fills: its whole W x H x L box, less a hollow part's closed inside ({@link #hollow}). */
 	public int cells() {
-		return width * height * depth;
+		return footprint().pieces();
+	}
+
+	/**
+	 * A hollow part's inside, the cells its shell closes in on every side, as {x1, y1, z1, x2, y2, z2} inclusive in its own frame
+	 * (facing north, x east, y up, z south from its main cell); null for a part that fills its box. The dragline house's machinery
+	 * house is a shell (Tim, 2026-11-10, p6-dragline.md #3): none of its 2,970 inner cells draws anything, so leaving them out of the
+	 * part changes no look and saves 11,880 block states. tools/models/tlib.py leaves out the same cells.
+	 */
+	public int @org.jspecify.annotations.Nullable [] hollow() {
+		return this == DRAGLINE_HOUSE ? new int[] {1, 2, 4, 22, 10, 18} : null;
+	}
+
+	/** The part's cells as Wildcatter's big parts take them: the box's order, main cell first, a hollow part's inside left out. */
+	public dev.wildcatter.multiblock.Footprint footprint() {
+		if (footprint == null) {
+			dev.wildcatter.multiblock.Footprint box = dev.wildcatter.multiblock.Footprint.box(width, height, depth, 0, 0);
+			int[] in = hollow();
+			if (in == null) {
+				footprint = box;
+			} else {
+				java.util.List<dev.wildcatter.multiblock.Footprint.Cell> shell = new java.util.ArrayList<>();
+				for (int piece = 0; piece < box.pieces(); piece++) {
+					dev.wildcatter.multiblock.Footprint.Cell c = box.cell(piece);
+					if (c.dx() < in[0] || c.dx() > in[3] || c.dy() < in[1] || c.dy() > in[4] || c.dz() < in[2] || c.dz() > in[5]) {
+						shell.add(c);
+					}
+				}
+				footprint = dev.wildcatter.multiblock.Footprint.of(shell.toArray(dev.wildcatter.multiblock.Footprint.Cell[]::new));
+			}
+		}
+		return footprint;
 	}
 }

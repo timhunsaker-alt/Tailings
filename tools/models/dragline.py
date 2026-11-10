@@ -47,7 +47,8 @@ S.box((0.6, 2.3, 5.5), (2.4, 3.0, 8.5), "iron")                            # the
 S.collide((0.0, 0.0, 0.0), (3.0, 2.3, 14.0))
 
 # ---- the house ---------------------------------------------------------------------------------------------------------------------
-H = model("dragline_house", 24, 12, 20, "grey")
+# a shell: the machinery house's closed inside, 22 x 9 x 15 cells that draw nothing, is left out (Machine.hollow(), p6-dragline.md #3)
+H = model("dragline_house", 24, 12, 20, "grey", hollow=(1, 2, 4, 22, 10, 18))
 H.box((0.0, 0.0, 0.0), (24.0, 1.2, 20.0), "steel")                         # the revolving frame
 H.box((0.5, 1.2, 3.0), (23.5, 11.6, 19.5), "grey")                         # the machinery house: hoist, drag and swing sets
 H.box((0.3, 11.6, 2.8), (23.7, 12.0, 19.7), "galv")                        # its roof
