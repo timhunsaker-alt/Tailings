@@ -89,5 +89,5 @@ Decisions in [../questions/l1-ventilation.md](../questions/l1-ventilation.md) (1
   the fan, 11.3 at the end; 3.5 km: 10.3, short; with a booster, 11.7. Friction at 14 m³/s: about 71 Pa a 100 m.
 - **Tests:** NeoForge `vent_fresh` (200 m of duct, the interlock on: drives, stops NO VENTILATION with the fan off, drives again),
   `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off` (no fan, rules off: reads POOR AIR and drives on),
-  `vent_parts`.
+  `vent_parts`; the client film `vent` (`TAILINGS_ONLY=vent ./gradlew :fabric:runClientGameTest`).
 

@@ -442,5 +442,6 @@ entries; #1 and #2 need Tim).
 - **Art:** three Ludo pictures (3 credits: the duct fabric, the cassette and detector icons); the fans in Wildcatter's materials
   (`tools/models/vent.py`). No placeholders.
 - **Tests:** NeoForge `vent_fresh`, `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off`, `vent_parts`;
-  `AirflowTest` (with the rules' parsing).
+  `AirflowTest` (with the rules' parsing); the client film `vent` (the fan blowing 24.7 m³/s through the duct to the back-up as the
+  cassette pays duct out at the crown).
 
