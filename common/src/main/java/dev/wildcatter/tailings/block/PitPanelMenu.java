@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A small settings screen for the blasting machines (open-pit-p3-blasting.md): the drill's pattern, the emulsion truck's stemming and
- * the logger's delays. Each setting has a minus and a plus button; each panel a few action buttons; and a status line. Everything goes
+ * the logger's delays; and the pit switch house's outlets (P5a). Each setting has a minus and a plus button; each panel a few action buttons; and a status line. Everything goes
  * over a menu's data slots and button clicks, so it needs no packets of its own.
  */
 public class PitPanelMenu extends AbstractContainerMenu {
@@ -32,12 +32,19 @@ public class PitPanelMenu extends AbstractContainerMenu {
 				new Setting("Spacing m", Blasting.SPACING_MIN, Blasting.SPACING_MAX, 1, Blasting.SPACING),
 				new Setting("Bench m", Blasting.BENCH_MIN, Blasting.BENCH_MAX, 1, Blasting.BENCH),
 				new Setting("Subdrill m", Blasting.SUBDRILL_MIN, Blasting.SUBDRILL_MAX, 1, Blasting.SUBDRILL),
-				new Setting("Staggered", 0, 1, 1, 1)}, new String[] {"GO", "STOP", "Drill one"}),
+				new Setting("Staggered", 0, 1, 1, 1),
+				new Setting("Electric", 0, 1, 1, 0)}, new String[] {"GO", "STOP", "Drill one"}),
 		TRUCK("Emulsion Truck", new Setting[] {
 				new Setting("Stemming m", Blasting.STEMMING_MIN, Blasting.STEMMING_MAX, 1, Blasting.STEMMING)}, new String[] {"Charge all in reach", "Stop"}),
 		LOGGER("Blast Logger", new Setting[] {
 				new Setting("Row delay ms", 0, 500, 1, Blasting.ROW_DELAY_MS),
-				new Setting("Hole delay ms", 0, 200, 1, Blasting.HOLE_DELAY_MS)}, new String[] {"Clear"});
+				new Setting("Hole delay ms", 0, 200, 1, Blasting.HOLE_DELAY_MS)}, new String[] {"Clear"}),
+		/** The pit switch house (P5a): each outlet open (0) or closed (1), and a reset for trips. */
+		SWITCH_HOUSE("Pit Switch House", new Setting[] {
+				new Setting("Outlet 1", 0, 1, 1, 0),
+				new Setting("Outlet 2", 0, 1, 1, 0),
+				new Setting("Outlet 3", 0, 1, 1, 0),
+				new Setting("Outlet 4", 0, 1, 1, 0)}, new String[] {"Reset trips"});
 
 		private final String title;
 		private final Setting[] settings;

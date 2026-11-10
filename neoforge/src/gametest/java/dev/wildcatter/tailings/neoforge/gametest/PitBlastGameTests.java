@@ -60,7 +60,7 @@ final class PitBlastGameTests {
 			case "pit_blast" -> new int[] {-1, 5, -1, 8};
 			case "pit_blast_blowout" -> new int[] {-2, 4, -2, 6};
 			case "pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc" -> new int[] {-1, 4, -1, 6};
-			default -> new int[] {-1, 2, -1, 2};
+			default -> PitBigGameTests.reach(scene);
 		};
 	}
 

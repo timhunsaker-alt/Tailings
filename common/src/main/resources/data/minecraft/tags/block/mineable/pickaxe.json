@@ -63,6 +63,7 @@
     "tailings:tailings_thickener",
     "tailings:tailings_filter",
     "tailings:loadout_frame",
-    "tailings:loadout_bin"
+    "tailings:loadout_bin",
+    "tailings:pit_switch_house"
   ]
 }

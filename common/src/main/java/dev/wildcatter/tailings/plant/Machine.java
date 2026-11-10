@@ -58,7 +58,12 @@ public enum Machine {
 	/** The load-out's legs over a 10 m wide, 9 m clear drive-through lane, with the clamshell gate under its deck: the gate's 7.5 kW hydraulics. */
 	LOADOUT_FRAME("loadout_frame", "Load-Out Frame", 12, 10, 12, 7_500, Supply.INDUSTRIAL),
 	/** The load-out's 400 t steel bin of dry tails, on the frame. */
-	LOADOUT_BIN("loadout_bin", "Load-Out Bin", 10, 7, 10, 0, Supply.NONE);
+	LOADOUT_BIN("loadout_bin", "Load-Out Bin", 10, 7, 10, 0, Supply.NONE),
+	/**
+	 * The pit switch house (open-pit-p5-big-machines.md, P5a): a skid house on the pit's medium-voltage loop, 3 x 3 x 6, the medium
+	 * voltage in on its north face and four breaker outlets for trailing cables on its south. It is no motor: its machines' draw is theirs.
+	 */
+	PIT_SWITCH_HOUSE("pit_switch_house", "Pit Switch House", 3, 3, 6, 0, Supply.NONE);
 
 	public enum Supply {
 		NONE,

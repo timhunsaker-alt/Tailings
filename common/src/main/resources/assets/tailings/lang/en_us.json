@@ -315,5 +315,7 @@
   "block.tailings.loadout_bin": "Load-Out Bin",
   "block.tailings.dry_tails": "Dry Tails",
   "item.tailings.track_dozer": "Track Dozer",
-  "entity.tailings.track_dozer": "Track Dozer"
+  "entity.tailings.track_dozer": "Track Dozer",
+  "block.tailings.pit_switch_house": "Pit Switch House",
+  "item.tailings.trailing_cable": "Trailing Cable"
 }

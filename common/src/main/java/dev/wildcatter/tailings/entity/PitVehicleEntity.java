@@ -42,6 +42,11 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	private static final EntityDataAccessor<Float> DATA_LIFT = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.FLOAT);
 	private static final EntityDataAccessor<Boolean> DATA_ENGINE = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
+	/** Its trailing cable's switch house and outlet, for drawing the cable (P5a). */
+	private static final EntityDataAccessor<java.util.Optional<net.minecraft.core.BlockPos>> DATA_CABLE = SynchedEntityData.defineId(PitVehicleEntity.class,
+			EntityDataSerializers.OPTIONAL_BLOCK_POS);
+	private static final EntityDataAccessor<Integer> DATA_CABLE_OUTLET = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Boolean> DATA_ELECTRIC = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	protected static final double TICK = 1.0 / 20;
 
 	protected final PitLoad load;
@@ -59,6 +64,10 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	private boolean engineOn;
 	/** On the client: how far its wheels have rolled, in metres, now and a tick ago, for drawing them turning. */
 	private double rolled, rolledBefore;
+	/** Its trailing cable from a pit switch house, or null (open-pit-p5-big-machines.md, P5a). */
+	protected @Nullable CableLink cable;
+	/** What its electric drives draw this tick, watts. */
+	private double demand;
 
 	protected PitVehicleEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -87,8 +96,68 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		fuel = Math.max(0, Math.min(tank(), litres));
 	}
 
+	/** Dry: out of diesel, or, running on its cable, no power at its end of the cable. */
 	public boolean outOfFuel() {
-		return fuel <= 0;
+		return electric() ? cable == null || !cable.live() : fuel <= 0;
+	}
+
+	/** Why it will not run when {@link #outOfFuel}: out of fuel, or what its cable says. */
+	public String noPower() {
+		if (!electric()) {
+			return "out of fuel";
+		}
+		return cable == null ? "NO CABLE: couple a trailing cable from a pit switch house" : cable.why();
+	}
+
+	// ---- the trailing cable (P5a) -------------------------------------------------------------------------------------------------
+
+	/** It runs on its trailing cable now, not diesel. */
+	public boolean electric() {
+		return false;
+	}
+
+	/** It has a cable reel: a trailing cable may be coupled to it. */
+	public boolean takesCable() {
+		return false;
+	}
+
+	/** Its drives' peak draw, watts, which its outlet's breaker is set from. */
+	public double peakWatts() {
+		return spec().watts();
+	}
+
+	public @Nullable CableLink cable() {
+		return cable;
+	}
+
+	/** What its drives draw now, watts (0 on diesel). */
+	public double demand() {
+		return demand;
+	}
+
+	/** A trailing cable coupled to it, or taken off (null). */
+	public void setCable(@Nullable CableLink link) {
+		cable = link;
+		syncCable();
+	}
+
+	protected void syncCable() {
+		entityData.set(DATA_CABLE, cable == null ? java.util.Optional.empty() : java.util.Optional.of(cable.house()));
+		entityData.set(DATA_CABLE_OUTLET, cable == null ? 0 : cable.outlet());
+		entityData.set(DATA_ELECTRIC, electric());
+	}
+
+	/** On the client too: the switch house its cable runs from, and the outlet. */
+	public java.util.Optional<net.minecraft.core.BlockPos> cableHouse() {
+		return entityData.get(DATA_CABLE);
+	}
+
+	public int cableOutlet() {
+		return entityData.get(DATA_CABLE_OUTLET);
+	}
+
+	/** It reached the end of its cable: what it was doing stops (the drill's pattern). */
+	protected void cableEnd() {
 	}
 
 	/** Whether its engine ran this tick. */
@@ -236,6 +305,9 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		builder.define(DATA_LIFT, 0F);
 		builder.define(DATA_LOADED, false);
 		builder.define(DATA_ENGINE, false);
+		builder.define(DATA_CABLE, java.util.Optional.empty());
+		builder.define(DATA_CABLE_OUTLET, 0);
+		builder.define(DATA_ELECTRIC, false);
 	}
 
 	// ---- its frame: ahead and to its right ---------------------------------------------------------------------------------------
@@ -318,6 +390,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		if (ownTick(server)) {
 			return;
 		}
+		Vec3 start = position();
 		boolean driven = getFirstPassenger() instanceof ServerPlayer;
 		Drive drive = null;
 		if (driven) {
@@ -333,9 +406,9 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		boolean dry = outOfFuel();
 		if (jumpNow) {
 			if (dry) {
-				status = "out of fuel";
+				status = noPower();
 				if (getFirstPassenger() instanceof Player p) {
-					p.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": out of fuel"));
+					p.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": " + status));
 				}
 			} else {
 				jump(server, getFirstPassenger() instanceof Player p ? p : null);
@@ -373,7 +446,16 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			strike(server);
 		}
 		work(server);
+		if (cable != null) {
+			pullCable(server, start);
+		}
 		burn(driven, throttle, speedBefore);
+		if (cable != null) {
+			cable.answer(server, getUUID(), electric() ? demand : 0, peakWatts());
+		}
+		if (entityData.get(DATA_ELECTRIC) != electric()) {
+			entityData.set(DATA_ELECTRIC, electric());
+		}
 		if (refresh-- <= 0 && (isVehicle() || selfRunning() || Math.abs(speed) > 0.05 || busy())) {
 			refresh = ChunkRunner.REFRESH_TICKS;
 			ChunkRunner.refresh(server, blockPosition());
@@ -381,18 +463,53 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		}
 	}
 
-	/** Diesel by the engine's work (open-pit.md, P2a): off when nobody drives it, it runs no route and does no work. */
+	/**
+	 * Diesel by the engine's work (open-pit.md, P2a): off when nobody drives it, it runs no route and does no work. On its cable the
+	 * same work is what its drives draw from the switch house, and no diesel burns.
+	 */
 	private void burn(boolean driven, double throttle, double before) {
 		double extra = workFraction();
 		boolean moving = Math.abs(speed) > 0.05 || Math.abs(before) > 0.05 || throttle != 0;
 		engineOn = !outOfFuel() && (driven || engineIdles() || moving || extra > 0);
+		demand = 0;
 		if (!engineOn) {
 			return;
 		}
 		double watts = moving ? dev.wildcatter.tailings.pit.PitFuel.drivingWatts(spec(), massKg(), before, speed, slope, TICK)
 				: spec().watts() * dev.wildcatter.tailings.pit.PitFuel.IDLE;
 		watts = Math.min(spec().watts(), watts + extra * spec().watts());
+		if (electric()) {
+			demand = electricWatts(watts);
+			return;
+		}
 		fuel = Math.max(0, fuel - dev.wildcatter.tailings.pit.PitFuel.litres(watts, TICK));
+	}
+
+	/** What its drives draw from the cable for {@code engineWatts} of work: the same work by default (the rope shovel draws by its cycle). */
+	protected double electricWatts(double engineWatts) {
+		return engineWatts;
+	}
+
+	/** Its cable pays out or in as it moves; at its end it is put back and stops, CABLE END; torn out, its outlet trips. */
+	private void pullCable(ServerLevel server, Vec3 start) {
+		CableLink.Move move = cable.move(server, start, position());
+		if (move == CableLink.Move.END) {
+			setPos(start);
+			stop();
+			entityData.set(DATA_SPEED, 0F);
+			status = cable.why();
+			cableEnd();
+			if (getFirstPassenger() instanceof Player p) {
+				p.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": " + status));
+			}
+		} else if (move == CableLink.Move.TORN) {
+			var house = cable.house(server);
+			if (house != null) {
+				house.torn(cable.outlet(), "the cable was torn out");
+			}
+			setCable(null);
+			status = "its trailing cable was torn out";
+		}
 	}
 
 	/** What it hits while moving is hurt (config/tailings-train.properties, truck_damage). */
@@ -453,7 +570,15 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 	public Component readout() {
 		String route = routeInfo();
 		return Component.literal(getType().getDescription().getString() + ": " + status + "; " + load.tonnes() + "; "
-				+ String.format(java.util.Locale.ROOT, "%.0f km/h; fuel %.0f of %.0f L", Math.abs(speed) * 3.6, fuel, tank()) + (route.isEmpty() ? "" : "; " + route));
+				+ String.format(java.util.Locale.ROOT, "%.0f km/h; ", Math.abs(speed) * 3.6) + powerInfo() + (route.isEmpty() ? "" : "; " + route));
+	}
+
+	/** Its fuel, or its cable and what it draws. */
+	public String powerInfo() {
+		if (electric()) {
+			return cable == null ? "on its cable: NO CABLE" : String.format(java.util.Locale.ROOT, "on its cable, %.0f kW; ", demand / 1000) + cable.describe();
+		}
+		return String.format(java.util.Locale.ROOT, "fuel %.0f of %.0f L", fuel, tank()) + (cable == null ? "" : "; " + cable.describe());
 	}
 
 	/** Only a sneaking hit with an empty hand breaks it, into its item and its load. */
@@ -466,6 +591,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 				}
 			}
 			load.clear();
+			dropCable(level);
 			spawnAtLocation(level, new ItemStack(item()));
 			ejectPassengers();
 			discard();
@@ -474,12 +600,29 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		return false;
 	}
 
+	/** Its trailing cable comes off its outlet and back as items, a 400 m reel each. */
+	public void dropCable(ServerLevel level) {
+		if (cable == null) {
+			return;
+		}
+		var house = cable.house(level);
+		if (house != null) {
+			house.uncouple(cable.outlet());
+		}
+		int items = (int) Math.max(1, Math.round(cable.metres() / dev.wildcatter.tailings.pit.PitPower.CABLE_M));
+		spawnAtLocation(level, new ItemStack(dev.wildcatter.tailings.TailingsItems.TRAILING_CABLE, items));
+		setCable(null);
+	}
+
 	// ---- sound -------------------------------------------------------------------------------------------------------------------
 
 	@Override
 	public net.minecraft.sounds.@Nullable SoundEvent loop() {
 		if (!isVehicle() && !entityData.get(DATA_ENGINE) && Math.abs(entityData.get(DATA_SPEED)) < 0.05F && lift() == 0) {
 			return null;   // parked, engine off
+		}
+		if (entityData.get(DATA_ELECTRIC)) {
+			return dev.wildcatter.WildcatterSounds.MOTOR_HUM;   // on its cable: its drives' motors, no diesel
 		}
 		return Math.abs(entityData.get(DATA_SPEED)) > 0.3F ? dev.wildcatter.WildcatterSounds.DIESEL_LOAD : dev.wildcatter.WildcatterSounds.DIESEL_IDLE;
 	}
@@ -504,6 +647,8 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		status = input.getStringOr("status", "standing");
 		setLift((float) input.getDoubleOr("lift", 0));
 		fuel = input.getDoubleOr("fuel", tank() * dev.wildcatter.tailings.pit.PitFuel.NEW_FILL);
+		cable = CableLink.load(input);
+		syncCable();
 		refreshLoad();
 	}
 
@@ -515,5 +660,8 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		output.putString("status", status);
 		output.putDouble("lift", lift());
 		output.putDouble("fuel", fuel);
+		if (cable != null) {
+			cable.save(output);
+		}
 	}
 }

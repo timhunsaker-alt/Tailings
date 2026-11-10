@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "CWC",
+    "CCC"
+  ],
+  "key": {
+    "C": "wildcatter:cable_mv",
+    "W": "minecraft:black_wool"
+  },
+  "result": {
+    "id": "tailings:trailing_cable",
+    "count": 1
+  }
+}

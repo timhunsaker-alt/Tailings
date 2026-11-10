@@ -48,7 +48,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	@Override
 	public boolean shouldRender(PitVehicleEntity entity, Frustum frustum, double cameraX, double cameraY, double cameraZ, float partialTick) {
-		return frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
+		// its trailing cable runs far from it, to the switch house: drawn while the machine is tracked at all
+		return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
 	}
 
 	@Override
@@ -62,6 +63,50 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
+		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
+	}
+
+	private static final float[] NO_CABLE = new float[0];
+	/** The most metres of trailing cable drawn: four reels. */
+	private static final int MOST_METRES = 1600;
+	private static final float CABLE_THICK = 0.12f;
+
+	/**
+	 * Its trailing cable's points, from the entity: off the switch house's coupler, down to the ground, then a point every metre along the
+	 * straight line to the machine, lying on whatever ground is there, and up to its reel at its back (P5a; the path it has driven is
+	 * counted, not drawn).
+	 */
+	private static float[] cable(PitVehicleEntity entity, net.minecraft.core.BlockPos house, float partialTick) {
+		net.minecraft.world.level.Level level = entity.level();
+		net.minecraft.world.level.block.state.BlockState hs = level.getBlockState(house);
+		if (!(hs.getBlock() instanceof dev.wildcatter.tailings.block.PlantMachineBlock)) {
+			return NO_CABLE;
+		}
+		double ox = entity.getX(partialTick), oy = entity.getY(partialTick), oz = entity.getZ(partialTick);
+		net.minecraft.world.phys.Vec3 from = dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity.coupler(house, hs, entity.cableOutlet());
+		double yaw = Math.toRadians(entity.getYRot(partialTick));
+		double back = entity.spec().length() / 2 - 0.5;
+		// its reel at its back, low down: behind the centre along its heading
+		double rx = ox + Math.sin(yaw) * back, rz = oz - Math.cos(yaw) * back;
+		double dx = rx - from.x, dz = rz - from.z, run = Math.hypot(dx, dz);
+		int metres = (int) Math.min(MOST_METRES, Math.floor(run));
+		float[] out = new float[3 * (metres + 4)];
+		int n = 0;
+		out[n++] = (float) (from.x - ox);
+		out[n++] = (float) (from.y - oy);
+		out[n++] = (float) (from.z - oz);
+		double floor = from.y;
+		for (int m = 1; m <= metres; m++) {
+			double wx = from.x + dx / run * m, wz = from.z + dz / run * m;
+			floor = GantryRenderer.floorAt(level, wx, wz, floor);
+			out[n++] = (float) (wx - ox);
+			out[n++] = (float) (floor + 0.06 - oy);
+			out[n++] = (float) (wz - oz);
+		}
+		out[n++] = (float) (rx - ox);
+		out[n++] = 1.0f;
+		out[n++] = (float) (rz - oz);
+		return java.util.Arrays.copyOf(out, n);
 	}
 
 	@Override
@@ -85,6 +130,18 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		pose.popPose();
+		float[] p = state.cable;
+		if (p.length >= 6) {
+			net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
+					.getAtlasOrThrow(net.minecraft.data.AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/black_concrete"));
+			int light = state.lightCoords;
+			collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS),
+					(at, v) -> {
+						for (int i = 0; i + 5 < p.length; i += 3) {
+							GantryRenderer.rod(at, v, sprite, p[i], p[i + 1], p[i + 2], p[i + 3], p[i + 4], p[i + 5], CABLE_THICK, light);
+						}
+					});
+		}
 		super.submit(state, pose, collector, camera);
 	}
 
@@ -97,5 +154,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float yaw;
 		/** Metres its wheels have rolled. */
 		public float roll;
+		/** Its trailing cable's points from it, x y z in turn; empty with none. */
+		public float[] cable = NO_CABLE;
 	}
 }

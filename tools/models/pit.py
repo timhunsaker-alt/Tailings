@@ -10,6 +10,9 @@
 - loadout_frame, 12 x 10 x 12 (P4): the load-out's legs and bracing over a 10 m wide, 9 m clear lane, its deck, and the clamshell gate
   and chute hanging under the deck's centre (collision only on the legs, deck and chute, so a truck drives through);
 - loadout_bin, 10 x 7 x 10 (P4): the 400 t steel bin on the frame, its sloped bottom to the gate.
+- pit_switch_house, 3 x 3 x 6 (P5a): a skid-mounted steel house: the medium-voltage cable entry on its north end, four breaker
+  cubicles down its east side, each with its door, meter and arc-flash label, and on its south end four trailing-cable couplers,
+  each under its ground-check relay box; lifting eyes at its corners and tow eyes on its skids, as a dozer drags it round the pit.
 """
 import tlib
 from tlib import model, motor_box, stepped
@@ -169,4 +172,29 @@ LB.box((0.0, 6.9, 4.7), (10.0, 7.0, 5.3), "grating")                        # th
 LB.decal((4.0, 4.0, -0.01), (6.0, 5.0, 0.0), "nameplate", "north", "steel")
 LB.collide((0.0, 0.0, 0.0), (10.0, 7.0, 10.0))
 
-MODELS = [W, H, F, D, TT, TF, LF, LB]
+# ---- the pit switch house (P5a) ---------------------------------------------------------------------------------------------------
+SH = model("pit_switch_house", 3, 3, 6, "grey")
+SH.box((0.1, 0.0, -0.2), (0.5, 0.35, 6.2), "steel")                        # the two skids, turned up at the ends
+SH.box((2.5, 0.0, -0.2), (2.9, 0.35, 6.2), "steel")
+SH.box((0.0, 0.35, 0.0), (3.0, 0.5, 6.0), "checker")                       # the deck
+SH.box((0.05, 0.5, 0.05), (2.95, 2.75, 5.95), "grey")                      # the house
+SH.box((-0.05, 2.75, -0.05), (3.05, 2.95, 6.05), "galv")                   # its roof, a little over
+for z in (0.9, 2.1, 3.3, 4.5):
+	SH.box((2.95, 0.7, z), (3.0, 2.5, z + 1.0), "grey")                     # the breaker cubicles' doors on the east side
+	SH.decal((3.0, 1.9, z + 0.2), (3.01, 2.3, z + 0.8), "gauge", "east", "grey")
+	SH.decal((3.0, 1.2, z + 0.25), (3.01, 1.6, z + 0.75), "arcflash", "east", "grey")
+	SH.box((3.0, 1.0, z + 0.85), (3.08, 1.3, z + 0.92), "steel")            # the door handle
+SH.box((1.0, 0.7, -0.15), (2.0, 2.2, 0.05), "steel")                       # the incoming section's cable entry box, the north end
+SH.cylinder("z", (1.5, 1.2), 0.18, -0.4, -0.15, "rubber", 10)              # the medium-voltage cable gland
+SH.decal((1.1, 1.8, -0.16), (1.9, 2.1, -0.15), "danger", "north", "steel")
+for x in (0.45, 1.15, 1.85, 2.55):
+	SH.box((x - 0.25, 1.3, 5.95), (x + 0.25, 1.9, 6.05), "grey")            # an outlet's ground-check relay box
+	SH.cylinder("z", (x, 0.6), 0.16, 5.95, 6.3, "steel", 10)               # and its trailing-cable coupler
+	SH.cylinder("z", (x, 0.6), 0.12, 6.3, 6.4, "hipaint", 10)
+SH.decal((0.4, 2.2, 6.05), (2.6, 2.55, 6.06), "nameplate", "south", "grey")
+for x in (0.1, 2.75):
+	for z in (0.1, 5.75):
+		SH.box((x, 2.95, z), (x + 0.15, 3.0, z + 0.15), "steel")            # lifting eyes
+SH.collide((0.0, 0.0, 0.0), (3.0, 2.95, 6.0))
+
+MODELS = [W, H, F, D, TT, TF, LF, LB, SH]

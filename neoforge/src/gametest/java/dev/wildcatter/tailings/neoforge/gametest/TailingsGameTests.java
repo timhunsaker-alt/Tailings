@@ -210,10 +210,12 @@ public class TailingsGameTests {
 			helper.register(id("pit_dozer_berm"), wide("pit_dozer_berm", PitDryStackGameTests::dozerBerm));
 			helper.register(id("pit_dozer_hard"), wide("pit_dozer_hard", PitDryStackGameTests::dozerHard));
 			helper.register(id("pit_dozer_push"), wide("pit_dozer_push", PitDryStackGameTests::dozerPush));
+			helper.register(id("pit_switch_house"), wide("pit_switch_house", PitBigGameTests::switchHouse));
+			helper.register(id("pit_cable_end"), wide("pit_cable_end", PitBigGameTests::cableEnd));
 		}));
 		modBus.addListener(RegisterGameTestsEvent.class, event -> {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, PitBlastGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),

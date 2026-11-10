@@ -155,6 +155,31 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		return settings[6] == 1;
 	}
 
+	/** On its trailing cable instead of diesel (open-pit-p5-big-machines.md, P5a; decision P3-1): its panel's Electric setting. */
+	@Override
+	public boolean electric() {
+		return settings[7] == 1;
+	}
+
+	@Override
+	public boolean takesCable() {
+		return true;
+	}
+
+	@Override
+	public double peakWatts() {
+		return dev.wildcatter.tailings.pit.PitPower.DRILL_WATTS;
+	}
+
+	@Override
+	protected void cableEnd() {
+		if (running || phase != Phase.IDLE) {
+			running = false;
+			phase = Phase.IDLE;
+			setLift(0);
+		}
+	}
+
 	/** The block column under the mast's foot. */
 	public BlockPos holeColumn() {
 		Vec3 at = local(0, 0, -HOLE_BACK);
@@ -226,7 +251,7 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 			return;
 		}
 		if (outOfFuel()) {
-			say("OUT OF FUEL");
+			say(electric() ? noPower() : "OUT OF FUEL");
 			return;
 		}
 		switch (phase) {
@@ -485,6 +510,12 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 
 	@Override
 	public void set(int i, int value, Player player) {
+		if (i == 7) {
+			settings[7] = value;   // diesel or electric, at any time: its drives take either
+			syncCable();
+			say(value == 1 ? "on its trailing cable" + (cable == null ? ": NO CABLE yet" : "") : "on diesel");
+			return;
+		}
 		if (running) {
 			say("stop it before changing the pattern");
 			return;
@@ -509,7 +540,7 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 
 	@Override
 	public String status() {
-		return String.format(Locale.ROOT, "%s. Holes drilled %d; depth %d m; fuel %.0f of %.0f L", status, holesDrilled, Blasting.depth(bench(), subdrill()), fuel(), tank());
+		return String.format(Locale.ROOT, "%s. Holes drilled %d; depth %d m; %s", status, holesDrilled, Blasting.depth(bench(), subdrill()), powerInfo());
 	}
 
 	@Override

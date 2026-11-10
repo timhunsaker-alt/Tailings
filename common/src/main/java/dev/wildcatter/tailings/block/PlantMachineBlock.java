@@ -53,6 +53,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.MATRIX_FILL_POINT) {
 			return new MatrixFillPointBlockEntity(pos, state);
 		}
+		if (machine == Machine.PIT_SWITCH_HOUSE) {
+			return new PitSwitchHouseBlockEntity(pos, state);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? new DumpBlockEntity(pos, state) : new PlantBlockEntity(pos, state);
 	}
 
@@ -70,6 +73,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.MATRIX_FILL_POINT) {
 			return createTickerHelper(type, TailingsBlocks.MATRIX_FILL_POINT_ENTITY, MatrixFillPointBlockEntity::tick);
 		}
+		if (machine == Machine.PIT_SWITCH_HOUSE) {
+			return createTickerHelper(type, TailingsBlocks.PIT_SWITCH_HOUSE_ENTITY, PitSwitchHouseBlockEntity::tick);
+		}
 		return machine == Machine.DUMP_POCKET || machine == Machine.PIT_HOPPER ? createTickerHelper(type, TailingsBlocks.DUMP, DumpBlockEntity::tick)
 				: createTickerHelper(type, TailingsBlocks.PLANT, PlantBlockEntity::tick);
 	}
@@ -77,6 +83,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	@Override
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
+		if (stack.getItem() instanceof dev.wildcatter.tailings.item.TrailingCableItem) {
+			return InteractionResult.PASS;   // the reel takes an outlet of a switch house: the item's own use
+		}
 		if (level.getBlockEntity(main(pos, state)) instanceof DumpBlockEntity pocket && !pocket.pit() && pocket.oversize() > 0
 				&& stack.is(net.minecraft.tags.ItemTags.PICKAXES)) {
 			// a pickaxe breaks a piece of oversize through the grizzly's bars, as a rock breaker does
@@ -107,6 +116,18 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (level.getBlockEntity(main(pos, state)) instanceof MatrixFillPointBlockEntity fill) {
 			if (!level.isClientSide()) {
 				player.sendOverlayMessage(fill.inspect());
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (level.getBlockEntity(main(pos, state)) instanceof PitSwitchHouseBlockEntity house) {
+			// its panel: each outlet's breaker and a reset; sneak for the full readout
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					player.sendSystemMessage(house.inspect());
+				} else {
+					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, house),
+							net.minecraft.network.chat.Component.literal(Machine.PIT_SWITCH_HOUSE.displayName())));
+				}
 			}
 			return InteractionResult.SUCCESS;
 		}

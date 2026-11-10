@@ -95,6 +95,7 @@ public final class TailingsBlocks {
 	public static final Block TAILINGS_FILTER = plant(Machine.TAILINGS_FILTER, MapColor.TERRACOTTA_WHITE);
 	public static final Block LOADOUT_FRAME = plant(Machine.LOADOUT_FRAME, MapColor.COLOR_GRAY);
 	public static final Block LOADOUT_BIN = plant(Machine.LOADOUT_BIN, MapColor.METAL);
+	public static final Block PIT_SWITCH_HOUSE = plant(Machine.PIT_SWITCH_HOUSE, MapColor.COLOR_GRAY);
 	/** The tailings filter's cake as a placed block (open-pit-p4-dry-stack.md): 1 m³ at 1.8 t, falling like sand. */
 	public static final Block DRY_TAILS = block("dry_tails", props -> new net.minecraft.world.level.block.ColoredFallingBlock(new net.minecraft.util.ColorRGBA(0x9a8f7f),
 			props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).strength(0.6F).sound(SoundType.SAND)));
@@ -103,6 +104,7 @@ public final class TailingsBlocks {
 			.strength(0.5F, 1.0F).sound(SoundType.WOOD).noCollision().noOcclusion()));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.FuelBayBlockEntity> FUEL_BAY_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.FuelBayBlockEntity::new, Set.of(FUEL_BAY));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.HaulDispatchBlockEntity> HAUL_DISPATCH_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.HaulDispatchBlockEntity::new, Set.of(HAUL_DISPATCH));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity> PIT_SWITCH_HOUSE_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity::new, Set.of(PIT_SWITCH_HOUSE));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.MatrixFillPointBlockEntity> MATRIX_FILL_POINT_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.MatrixFillPointBlockEntity::new, Set.of(MATRIX_FILL_POINT));
 	/** A blasthole (open-pit-p3-blasting.md): stone-hard, each block remembering the rock it replaced; it drops that rock, not itself. */
 	public static final Block BLASTHOLE = block("blasthole", props -> new dev.wildcatter.tailings.block.BlastholeBlock(props.mapColor(MapColor.STONE).strength(1.5F, 6.0F)
@@ -211,6 +213,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("fuel_bay"), FUEL_BAY_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("haul_dispatch"), HAUL_DISPATCH_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("matrix_fill_point"), MATRIX_FILL_POINT_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("pit_switch_house"), PIT_SWITCH_HOUSE_ENTITY);
 		add("blasthole", BLASTHOLE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasthole"), BLASTHOLE_ENTITY);
 		add("blasting_machine", BLASTING_MACHINE);
@@ -256,6 +259,7 @@ public final class TailingsBlocks {
 			case TAILINGS_FILTER -> TAILINGS_FILTER;
 			case LOADOUT_FRAME -> LOADOUT_FRAME;
 			case LOADOUT_BIN -> LOADOUT_BIN;
+			case PIT_SWITCH_HOUSE -> PIT_SWITCH_HOUSE;
 		};
 	}
 

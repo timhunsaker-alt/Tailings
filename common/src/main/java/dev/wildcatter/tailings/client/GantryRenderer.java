@@ -113,7 +113,7 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 	}
 
 	/** The top of the floor under {@code x, z}, looking from a little above where the last metre's was: the bore climbs behind on the decline. */
-	private static double floorAt(Level level, double x, double z, double last) {
+	static double floorAt(Level level, double x, double z, double last) {
 		int top = (int) Math.floor(last) + 2;
 		for (int y = top; y > top - 6; y--) {
 			BlockPos pos = BlockPos.containing(x, y, z);
@@ -168,7 +168,7 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 	}
 
 	/** A square rod from one point to another. */
-	private static void rod(PoseStack.Pose pose, VertexConsumer v, TextureAtlasSprite s, float x0, float y0, float z0, float x1, float y1, float z1,
+	static void rod(PoseStack.Pose pose, VertexConsumer v, TextureAtlasSprite s, float x0, float y0, float z0, float x1, float y1, float z1,
 			float thick, int light) {
 		float dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
 		float len = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
