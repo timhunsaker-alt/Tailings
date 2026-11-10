@@ -425,8 +425,8 @@ tests `XrtSortingTest`; the client film `xrt`.
 - **The row's air line is instrument tubing (P7c):** Wildcatter's air tubing stands for a 600 mm air header (p7-pit-line.md, 36).
 - **The column cleaners are optional (P7c):** the concentrate thickener takes the row's rougher concentrate too and pays the same
   (p7-pit-line.md, 37).
-- **Empty piece models shared only for the 45 m thickener (P7c):** the older big parts still write a model for every empty cell; and a
-  full model run writes vent.py's duct texture into later models (p7-pit-line.md, 33).
+- **Empty piece models shared only for the 45 m thickener (P7c):** the older big parts still write a model for every empty cell
+  (p7-pit-line.md, 33).
 - **P7c parts reuse sounds and have placeholder recipes:** the cells and tank the agitator, the rest the motor hum.
 - **P7b parts reuse sounds:** the mills the ball mill's, the pebble crusher the cone's, the pump the motor hum.
 - **P7a recipes are placeholders,** as the plant's; the gyratory sounds the cone crusher and the breaker the jaw: no sounds of their own.

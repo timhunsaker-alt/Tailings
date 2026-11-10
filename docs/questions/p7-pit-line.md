@@ -270,7 +270,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   frame 1,024, the shovel house 943, the SAG 866: it would delete about 10,000 small files and change no look or behaviour.
 - **Found on the way:** `vent.py` adds its duct texture to the shared texture table when every module is built in one run, so a full
   run writes a `duct` entry into later modules' models that the committed files (each built alone) lack. Harmless (an unused texture);
-  the new module keeps its own table. A full regeneration should not be committed until that is fixed.
+  the new module keeps its own table. Fixed on main (6678e33): `vent.py` now copies the table, and a full regeneration matches git.
 - **Alternatives:** change `mlib` in Wildcatter (the brief said not to); a smaller thickener (the spec's 45 m is the real size).
 
 ### 34. How the 45 m thickener is drawn
