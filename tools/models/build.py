@@ -28,7 +28,7 @@ _spec = importlib.util.spec_from_file_location("wildcatter_build", os.path.join(
 wildcatter_build = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(wildcatter_build)
 
-MODULES = ["crushing", "flotation", "gravity", "recovery", "dump", "rectifier", "belt", "tbm", "pit", "trains", "shaft", "vent"]
+MODULES = ["crushing", "flotation", "gravity", "recovery", "dump", "rectifier", "belt", "tbm", "pit", "trains", "shaft", "vent", "drymill"]
 
 
 def own_texture(ref):

@@ -98,6 +98,11 @@ public interface Stage {
 			case HOIST_HOUSE -> Shaft.HOIST;
 			case MEASURING_FLASK -> Shaft.FLASK;
 			case HEADFRAME_BIN -> Shaft.BIN;
+			case SCAVENGER_SPIRAL_BANK -> DryMillStages.SCAVENGER_SPIRALS;
+			case FLUID_BED_DRYER -> DryMillStages.DRYER;
+			case RER_SEPARATOR -> DryMillStages.RER;
+			case HT_ROLL_SEPARATOR -> DryMillStages.HT;
+			case IRM_SEPARATOR -> DryMillStages.IRM;
 			default -> Idle.INSTANCE;
 		};
 	}

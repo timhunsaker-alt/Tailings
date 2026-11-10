@@ -74,7 +74,17 @@ public enum Machine {
 	/** The hoist house: a double-drum hoist, drums about 3 m across, on a 450 kW motor at the medium-voltage tier (L4, proposed). */
 	HOIST_HOUSE("hoist_house", "Hoist House", 10, 8, 12, dev.wildcatter.tailings.shaft.Hoisting.MOTOR_WATTS, Supply.MEDIUM),
 	/** The loading pocket's measuring flask beside the shaft bottom: it fills to one skip's 3 t and empties into the skip (L4). */
-	MEASURING_FLASK("measuring_flask", "Measuring Flask", 2, 3, 2, 0, Supply.NONE);
+	MEASURING_FLASK("measuring_flask", "Measuring Flask", 2, 3, 2, 0, Supply.NONE),
+	/** The dry mill (dry-mill.md, L6): the spiral bank's twin on its tails, another 45 % of the heavy minerals to HMC; a 37 kW feed pump (proposed). */
+	SCAVENGER_SPIRAL_BANK("scavenger_spiral_bank", "Scavenger Spiral Bank", 4, 5, 6, 37_000, Supply.INDUSTRIAL),
+	/** A gas-fired fluid-bed dryer for HMC at about 120 °C, 0.3 GJ a tonne; its 30 kW fluidising blower is the motor (L6, proposed). */
+	FLUID_BED_DRYER("fluid_bed_dryer", "Fluid-Bed Dryer", 3, 4, 6, 30_000, Supply.INDUSTRIAL),
+	/** A 1.5 m rare-earth roll magnet, 5.5 kW: takes the ilmenite (L6, proposed). */
+	RER_SEPARATOR("rer_separator", "Rare-Earth Roll Magnet", 2, 3, 3, 5_500, Supply.INDUSTRIAL),
+	/** A 1.5 m high-tension roll separator with its own high-voltage supply, 7.5 kW: takes the conductors, rutile and cassiterite (L6, proposed). */
+	HT_ROLL_SEPARATOR("ht_roll_separator", "High-Tension Roll Separator", 2, 3, 4, 7_500, Supply.INDUSTRIAL),
+	/** A 1.5 m induced-roll magnet at high intensity, 11 kW: takes the monazite; the zircon passes (L6, proposed). */
+	IRM_SEPARATOR("irm_separator", "Induced-Roll Magnet", 2, 3, 3, 11_000, Supply.INDUSTRIAL);
 
 	public enum Supply {
 		NONE,

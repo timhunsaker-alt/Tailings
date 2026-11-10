@@ -131,6 +131,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("vent")) {
 				vent(context, world, server);
 			}
+			if (only("dry_mill")) {
+				dryMill(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -398,6 +401,84 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-vent-paid-out");
 		film.stop();
 		heard("vent", "wildcatter:fan");
+	}
+
+	/**
+	 * L6, the dry mill (dry-mill.md): zircon and ilmenite fines over the spiral bank and the scavenger spirals; both concentrates to the
+	 * thickener and filter; the filter's HMC into the gas-fired dryer touching it, and on through the roll magnet, the high-tension roll
+	 * and the induced roll. The filter pays the spirals' half, the separators the scavengers' share.
+	 */
+	private void dryMill(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(-200, y + 1, -300);
+		PlantBlockEntity[][] parts = new PlantBlockEntity[1][];
+		Mineral zircon = Mineral.ZIRCON, ilmenite = Mineral.ILMENITE;
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -2; x <= 22; x++) {
+				for (int z = -2; z <= 38; z++) {
+					level.setBlock(o.offset(x, -1, z), Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_CLIENTS);
+					for (int h = 0; h < 7; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			double total = 600;
+			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
+			source.out().offer(Product.FINES_SLURRY, total, SlurryAssay.of(java.util.Map.of(zircon.mineralItemId(), 8 * zircon.nuggetAmount().doubleValue() / total,
+					ilmenite.mineralItemId(), 8 * ilmenite.nuggetAmount().doubleValue() / total)));
+			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
+			PlantBlockEntity spirals = plant(level, Machine.SPIRAL_BANK, o.offset(0, 0, 3));
+			pipe(level, o.offset(0, 0, 9), o.offset(0, 0, 10));
+			PlantBlockEntity scavenger = plant(level, Machine.SCAVENGER_SPIRAL_BANK, o.offset(0, 0, 11));
+			pipe(level, o.offset(3, 0, 9), o.offset(4, 0, 9), o.offset(5, 0, 9), o.offset(6, 0, 9), o.offset(3, 0, 17), o.offset(4, 0, 17));
+			for (int z = 10; z <= 16; z++) {
+				pipe(level, o.offset(4, 0, z));
+			}
+			PlantBlockEntity thickener = plant(level, Machine.THICKENER, o.offset(6, 0, 10));
+			pipe(level, o.offset(6, 0, 18));
+			PlantBlockEntity filter = plant(level, Machine.FILTER, o.offset(6, 0, 19));
+			PlantBlockEntity dryer = plant(level, Machine.FLUID_BED_DRYER, o.offset(9, 0, 19));
+			part(level, BuiltInRegistries.BLOCK.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), o.offset(13, 0, 20));
+			((dev.wildcatter.block.StorageTankBlockEntity) level.getBlockEntity(o.offset(13, 0, 20))).testFill(Product.PIPELINE_GAS, 5000);
+			pipe(level, o.offset(12, 0, 21));
+			PlantBlockEntity rer = plant(level, Machine.RER_SEPARATOR, o.offset(9, 0, 25));
+			PlantBlockEntity ht = plant(level, Machine.HT_ROLL_SEPARATOR, o.offset(9, 0, 28));
+			PlantBlockEntity irm = plant(level, Machine.IRM_SEPARATOR, o.offset(9, 0, 32));
+			for (PlantBlockEntity part : new PlantBlockEntity[] {spirals, scavenger, thickener, filter, dryer, rer, ht, irm}) {
+				part.forceRunning();
+			}
+			for (PlantBlockEntity part : new PlantBlockEntity[] {dryer, rer, ht, irm}) {
+				part.fastCycle(20);
+			}
+			parts[0] = new PlantBlockEntity[] {spirals, scavenger, thickener, filter, dryer, rer, ht, irm};
+		});
+		server.runCommand("tp @p " + (o.getX() + 24) + " " + (o.getY() + 11) + " " + (o.getZ() + 4) + " 135 30");
+		context.waitTicks(40);
+		Filming film = film(context, world, "dry_mill");
+		context.takeScreenshot("tailings-dry-mill-built");
+		for (int t = 0; t < 36; t++) {
+			context.waitTicks(20);
+			if (t == 14) {
+				server.runCommand("tp @p " + (o.getX() + 20) + " " + (o.getY() + 7) + " " + (o.getZ() + 40) + " 150 22");
+			}
+			if (t % 6 == 0) {
+				server.runOnServer(srv -> {
+					for (PlantBlockEntity part : parts[0]) {
+						System.out.println("[tailings-test] dry_mill: " + part.inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot("tailings-dry-mill-end");
+		film.stop();
+		int[] four = dev.wildcatter.tailings.block.stage.DryMillStages.OUTPUT_SLOTS;
+		java.util.function.BiFunction<PlantBlockEntity, Mineral, Integer> paid = (part, m) -> part.countIn(four, dev.wildcatter.tailings.block.Feeds.stack(m.nuggetId(), 1))
+				+ 9 * part.countIn(four, dev.wildcatter.tailings.block.Feeds.stack(m.phaseOneProductId(), 1));
+		int[] pay = server.computeOnServer(srv -> new int[] {paid.apply(parts[0][3], zircon), paid.apply(parts[0][3], ilmenite), paid.apply(parts[0][7], zircon), paid.apply(parts[0][5], ilmenite)});
+		System.out.println("[tailings-test] dry_mill paid (nuggets): filter " + pay[0] + " zircon, " + pay[1] + " ilmenite; induced roll " + pay[2] + " zircon; roll magnet " + pay[3] + " ilmenite");
+		require(pay[0] == 4 && pay[1] == 4, "the filter should pay the spirals' half: 4 nuggets of each");
+		require(pay[2] == 4 && pay[3] == 4, "the dry mill should pay the scavengers' share: 4 nuggets of each");
+		heard("dry_mill", "tailings:slurry_rush", "wildcatter:fan");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {

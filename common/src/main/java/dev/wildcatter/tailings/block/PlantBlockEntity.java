@@ -212,6 +212,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(7, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
 	private final FilterCake cake = new FilterCake();
+	/**
+	 * Heavy mineral concentrate (dry-mill.md, L6): a filter's scavenger share not yet bagged or sent to its dryer, a dryer's moist feed,
+	 * a separator's dry feed. Empty in every part of a plant without the dry mill.
+	 */
+	private final dev.wildcatter.tailings.plant.HeavyMinerals hmc = new dev.wildcatter.tailings.plant.HeavyMinerals();
+	/** A dryer's gas burnt so far, m³. */
+	private double gasM3;
 	private static final int LAST_REAGENT_SLOT = 6;
 	private final ReagentStock reagents = new ReagentStock();
 	private boolean selective;
@@ -343,6 +350,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
 	private void intake() {
 		ItemStack in = slots.get(0);
+		if (machine() == Machine.FLUID_BED_DRYER) {
+			if (hmcBag(in)) {
+				binHmc(in);
+			}
+			return;
+		}
 		if (machine() == Machine.LOADOUT_BIN) {
 			if (dryTails(in) && dryKg + dev.wildcatter.tailings.pit.PitMass.DRY_TAILS_KG <= dev.wildcatter.tailings.pit.DryStack.BIN_KG) {
 				in.shrink(1);
@@ -699,6 +712,18 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	public boolean offer(ItemStack stack) {
+		if (hmcBag(stack) && machine() == Machine.FLUID_BED_DRYER) {
+			if (!binHmc(stack)) {
+				say(dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.contents(stack).isEmpty() ? "a bag with no assay: nothing to dry" : "FULL: its bin holds " + (int) hmc.total() + " kg");
+				return false;
+			}
+			return true;
+		}
+		if (hmcBag(stack) && dev.wildcatter.tailings.plant.DryMill.separates(machine())) {
+			// dry-mill.md: only dried HMC separates; moist grains stick to the rolls
+			say("WET: dry the concentrate in a fluid-bed dryer first");
+			return false;
+		}
 		if (machine() == Machine.LOADOUT_BIN) {
 			// the load-out takes dry tails only (open-pit-p4-dry-stack.md)
 			if (!dryTails(stack)) {
@@ -786,12 +811,17 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	/** The parts that pay out by the nuggets rule, with two output stacks. */
 	private boolean pays() {
-		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT;
+		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT || dev.wildcatter.tailings.plant.DryMill.separates(machine());
+	}
+
+	/** The stacks it pays into: two, or a separator's four. */
+	private int[] outputs() {
+		return dev.wildcatter.tailings.plant.DryMill.separates(machine()) ? dev.wildcatter.tailings.block.stage.DryMillStages.OUTPUT_SLOTS : pays() ? new int[] {1, 2} : new int[] {1};
 	}
 
 	public boolean give(Player player) {
 		boolean gave = false;
-		for (int slot : pays() ? new int[] {1, 2} : new int[] {1}) {
+		for (int slot : outputs()) {
 			ItemStack stack = slots.get(slot);
 			if (!stack.isEmpty()) {
 				player.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
@@ -871,6 +901,31 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	public FilterCake cake() {
 		return cake;
+	}
+
+	public dev.wildcatter.tailings.plant.HeavyMinerals hmc() {
+		return hmc;
+	}
+
+	/** A dryer's burner took {@code m3} of gas. */
+	public void gasBurnt(double m3) {
+		gasM3 += m3;
+	}
+
+	private static boolean hmcBag(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == dev.wildcatter.tailings.TailingsItems.HEAVY_MINERAL_CONCENTRATE;
+	}
+
+	/** A dryer takes a bag of HMC into its bin while one fits; false if it does not. */
+	private boolean binHmc(ItemStack stack) {
+		dev.wildcatter.tailings.plant.HeavyMinerals bag = dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.contents(stack);
+		if (bag.isEmpty() || hmc.total() + bag.total() > dev.wildcatter.tailings.plant.DryMill.HOLD_KG) {
+			return false;
+		}
+		hmc.add(bag);
+		stack.shrink(1);
+		setChanged();
+		return true;
 	}
 
 	/** Puts {@code stack} into the first of {@code into} that takes it whole; false if none does. */
@@ -1080,6 +1135,12 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (waterReturned > 0) {
 			held.append(String.format("; %.0f L of water returned", waterReturned));
 		}
+		if (!hmc.isEmpty()) {
+			held.append(String.format("; %.0f kg of %s HMC (%s)", hmc.total(), dev.wildcatter.tailings.plant.DryMill.separates(machine()) ? "dry" : "moist", hmc.describe()));
+		}
+		if (gasM3 > 0) {
+			held.append(String.format("; %.2f m3 of gas burnt", gasM3));
+		}
 		if (machine() == Machine.CONDITIONER) {
 			held.append(selective ? "; SELECTIVE: holds the zinc down" : "; BULK");
 		}
@@ -1122,6 +1183,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		output.putBoolean("grown", grown);
 		ContainerHelper.saveAllItems(output, slots);
 		output.putString("cake", cake.save());
+		output.putString("hmc", hmc.save());
+		output.putDouble("gas_m3", gasM3);
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
 		output.putString("hold", hold.save());
@@ -1164,6 +1227,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		loading = false;
 		remote.load(input);
 		cake.load(input.getStringOr("cake", ""));
+		hmc.load(input.getStringOr("hmc", ""));
+		gasM3 = input.getDoubleOr("gas_m3", 0);
 		reagents.load(input.getStringOr("reagents", ""));
 		// a tank saved by an older build may hold spent reagent items
 		trimReagents();
@@ -1278,6 +1343,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			}
 			dryKg = 0;
 			cakeOut = 0;
+			// its heavy mineral concentrate, in whole bags: the rest is spilt
+			for (java.util.Map<dev.wildcatter.tailings.rock.Mineral, Integer> bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc); bag != null; bag = dev.wildcatter.tailings.plant.DryMill.bag(hmc)) {
+				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), dev.wildcatter.tailings.item.HeavyMineralConcentrateItem.of(dev.wildcatter.tailings.TailingsItems.HEAVY_MINERAL_CONCENTRATE, bag));
+			}
+			hmc.clear();
 		}
 	}
 
@@ -1289,7 +1359,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public int[] getSlotsForFace(Direction side) {
 		if (pays()) {
-			return side == Direction.UP ? new int[0] : new int[] {1, 2};
+			return side == Direction.UP ? new int[0] : outputs();
 		}
 		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5} : new int[] {1};
 	}
@@ -1301,6 +1371,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		if (slot == 0 && machine() == Machine.LOADOUT_BIN) {
 			return dryTails(stack);
+		}
+		if (slot == 0 && machine() == Machine.FLUID_BED_DRYER) {
+			return hmcBag(stack) && slots.get(0).isEmpty();
 		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);
@@ -1323,6 +1396,6 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-		return (slot == 1 || slot == 2 && pays()) && side != Direction.UP;
+		return (slot == 1 || slot == 2 && pays() || slot >= 3 && slot <= 4 && dev.wildcatter.tailings.plant.DryMill.separates(machine())) && side != Direction.UP;
 	}
 }

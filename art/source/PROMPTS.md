@@ -67,3 +67,10 @@ Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations each, the bet
 | vent_duct (a) | texture | Seamless flat texture, straight-on orthographic view, even lighting: bright yellow PVC-coated polyester fabric of a flexible mine ventilation duct, slightly glossy, with a faint woven texture, a stitched seam and light dust, plain, no text |
 | vent_duct_cassette (b) | item-icon | A single cassette of folded yellow lay-flat ventilation duct for a tunnel boring machine: a steel drum frame holding concertina-folded yellow fabric duct, game item icon, plain white background, no text |
 | gas_detector (a) | item-icon | A single handheld personal multi-gas detector for underground mining: a small rugged yellow and black plastic case with a dark display window and a clip, generic, no brand names, game item icon, plain white background, no text |
+
+## L6 dry mill (2026-11-10)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations, the first (a) kept (1 credit):
+
+| File | Prompt |
+|---|---|
+| heavy_mineral_concentrate (a) | A single small woven white polypropylene sack, top open, full of damp dark heavy mineral sand concentrate: black, dark grey and reddish-brown fine grains, game item icon, plain white background, no text |
