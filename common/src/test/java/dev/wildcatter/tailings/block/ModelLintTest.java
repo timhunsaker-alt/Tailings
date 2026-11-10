@@ -86,7 +86,8 @@ class ModelLintTest {
 				String name = file.getFileName().toString().replace(".json", "");
 				JsonArray pieces = read(file).getAsJsonArray("pieces");
 				JsonObject variants = read(ASSETS.resolve("blockstates/" + name + ".json")).getAsJsonObject("variants");
-				long northPieces = variants.keySet().stream().filter(k -> k.contains("facing=north")).count();
+				// an empty piece shared by a part's empty cells (tools/models/build.py, share_empty) has one variant for every facing: "piece=k"
+				long northPieces = variants.keySet().stream().filter(k -> k.contains("facing=north") || !k.contains("facing=")).count();
 				assertEquals(northPieces, pieces.size(), name + ": one shape list per piece");
 				for (JsonElement piece : pieces) {
 					for (JsonElement box : piece.getAsJsonArray()) {

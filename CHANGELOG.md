@@ -20,6 +20,19 @@ Built while Tim was away on the approved spec `docs/multiblocks/dragline.md`; de
   adds 400 m, or (sneaking) takes the cable off.
 
 
+### Open pit P7c — pit flotation and the tails (2026-11-10, decided while Tim was away)
+
+- **A row of tank cells at 1,000 t/h:** the `conditioning_tank_large` conditions the pit line's fines slurry; each `tank_cell` floats its
+  share of what floats (35, 15, 8, 5, 4, 3, 3, 2 % cell by cell, 75 % over eight) out of its east launder and passes the rest on out of
+  its south face. A shorter row pays only what its cells float; a ninth cell adds nothing.
+- **Column cleaners:** the `column_cell` cleans the row's concentrate for the existing concentrate thickener and pressure filter, which pay
+  it as they pay the small bank.
+- **Air:** the `flotation_blower_large` (400 kW, medium voltage) serves ten cells joined to it by air tubing; without it the cells read
+  NO AIR.
+- **The tails:** the `tailings_thickener_large` (45 m) sends 60 % underflow to a lined cell and its water back on a water pipe; TORQUE on
+  the PLC.
+- Nothing changes in existing worlds or the small plant. Decisions in `docs/questions/p7-pit-line.md`.
+
 ### Open pit P7b — the SAG mill line (2026-11-10, decided while Tim was away)
 
 - **An SABC circuit at 1,000 t/h:** the `sag_mill` (9.75 m, two 4.1 MW pinion motors), the `pebble_crusher`, the `ball_mill_large`

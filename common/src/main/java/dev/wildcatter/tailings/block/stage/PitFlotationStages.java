@@ -180,6 +180,7 @@ public final class PitFlotationStages {
 
 		@Override
 		public void tick(PlantBlockEntity part) {
+			air(part);   // its AIR point and readout follow the line even while it has no feed
 			Flotation.draw(part, Product.CONDITIONED_SLURRY, PitFlotation.ROW_HOLD, PitFlotation.ROW_KG_PER_TICK);
 			Flotation.draw(part, Product.TAILS_SLURRY, PitFlotation.ROW_HOLD, PitFlotation.ROW_KG_PER_TICK);
 			double waiting = part.back().held(Product.CONDITIONED_SLURRY) + part.back().held(Product.TAILS_SLURRY);
@@ -255,6 +256,7 @@ public final class PitFlotationStages {
 
 		@Override
 		public void tick(PlantBlockEntity part) {
+			air(part);
 			Flotation.draw(part, Product.CONCENTRATE_SLURRY, PitFlotation.COLUMN_HOLD, PitFlotation.COLUMN_KG_PER_TICK);
 			double waiting = part.back().held(Product.CONCENTRATE_SLURRY);
 			if (waiting < 1e-6) {

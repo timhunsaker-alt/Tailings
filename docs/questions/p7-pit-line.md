@@ -4,7 +4,7 @@ Tim (2026-11-09): "make decisions best recommendation and complete the rest of t
 Built on branch `p7-pit-line` (cut from `p5-big-machines`) from the draft specs
 [primary-gyratory-stockpile.md](../multiblocks/primary-gyratory-stockpile.md) (P7a), [sag-mill-line.md](../multiblocks/sag-mill-line.md)
 (P7b) and [pit-flotation.md](../multiblocks/pit-flotation.md) (P7c), whose own choices are in `specs-tailings.md` (P7-1 to P7-10). Format
-as in `README.md` here. **#11, #14, #21 and #27 most need your eye.** Nothing here changes an existing world (#1).
+as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33, #36, #37 and #40.** Nothing here changes an existing world (#1).
 
 ## P7a: the primary gyratory, the coarse-ore stockpile and its reclaim
 
@@ -253,3 +253,117 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye.** Nothing he
   cells, about 50 MB of piece models at one per cell, which wants a change to the model tool first; and the row's recovery split must pay
   through the existing filter without changing what the small bank pays.
 - **Alternatives:** a half-built P7c (ruled out by Tim).
+- **Since:** P7c was built on branch `p7c-pit-flotation` (cut from `p5-big-machines`); #33-#44 below.
+
+## P7c, as built (2026-11-10, branch `p7c-pit-flotation`)
+
+### 33. The model tool: empty cells share one model (needs you)
+- **Chosen:** Tailings' driver (`tools/models/build.py`, not Wildcatter's `mlib`) exports a model that sets `share_empty = True` with
+  Wildcatter's writer wrapped: a piece with nothing drawn in its cell gets no `p<k>.json`; one `<part>/empty.json` stands for all of
+  them, its blockstate names it once per piece (`piece=k`, every facing, no turn) and the blockstate is written without indentation.
+  Only the `tailings_thickener_large` sets it: 10,005 of its 12,150 pieces are empty, so it is 2,146 piece models (about 3.8 MB) and a
+  1.4 MB blockstate, not about 50 MB. Every other model is written exactly as before: all 20 existing modules were regenerated before and
+  after the change and the output compared, byte for byte identical.
+- **Why:** the plan's step 1; doing it in Tailings' driver leaves Wildcatter's tool and its parts alone, and opt-in keeps every
+  existing asset unchanged.
+- **Question:** turn it on for the existing big parts too? The dragline house has 3,551 empty pieces, the headframe 1,715, the load-out
+  frame 1,024, the shovel house 943, the SAG 866: it would delete about 10,000 small files and change no look or behaviour.
+- **Found on the way:** `vent.py` adds its duct texture to the shared texture table when every module is built in one run, so a full
+  run writes a `duct` entry into later modules' models that the committed files (each built alone) lack. Harmless (an unused texture);
+  the new module keeps its own table. A full regeneration should not be committed until that is fixed.
+- **Alternatives:** change `mlib` in Wildcatter (the brief said not to); a smaller thickener (the spec's 45 m is the real size).
+
+### 34. How the 45 m thickener is drawn
+- **Chosen:** the concrete wall (96 plates), the overflow launder inside its rim, the slurry's surface drawn a row at a time (one box a
+  cell, so no cell holds overlapping boxes), the feedwell, the centre drive, the half bridge from the east wall, the feed pipe on its
+  rack from the north face to the feedwell, the underflow nozzle south and the overflow water east. The bed, the rakes and the floor
+  are under the surface and not drawn. You can walk on the slurry (its collision is the surface), as on the P4 thickener.
+- **Why:** what shows from outside, in as few pieces as draw it.
+- **Alternatives:** rake arms turning (a rotor of 22 m; Wildcatter's rotors are a block across).
+
+### 35. The row's split, cell by cell
+- **Chosen:** each tank cell floats its share of the block's floating mineral, 35, 15, 8, 5, 4, 3, 3, 2 %, as the fraction of what
+  reaches it (35 % of 100, then 15 of 65, and so on). What a cell passes on travels in the tails under a marked name, `tailings:rowN/<id>`
+  after N cells, so the next cell knows its share from the slurry itself however the pipes run: a row of four pays 63 %, a ninth cell
+  floats nothing ("nothing left in them that a cell floats"), two rows side by side each pay 75 %, and the bank or scavengers of the
+  small plant do not float the marked names again. Gangue and the selective names pass untouched. The large thickener takes the marks
+  off, so the lined cell holds plain names. As at the bank, sphalerite floated from feed that also holds galena is lost (bulk) and the
+  zinc concentrate keeps its own name. The concentrate carries plain names, so the existing filter pays it by its unchanged rule.
+- **Why:** the plan's split, the rung kept (the shares add to `RecoveryRoute.FLOTATION`'s 75 %, a unit test), and no cell needs to
+  know its place in a row of pipes.
+- **Alternatives:** each cell finding its place by following the pipe north (breaks with a split stream or a header); a fixed 75 % at
+  the last cell (a short row would pay nothing).
+
+### 36. The air: Wildcatter's air tubing as the air line (needs you)
+- **Chosen:** a tank cell or column cell has air when a running `flotation_blower_large` touches it or is joined to it by Wildcatter's
+  air tubing. One blower serves ten cells (the row's eight and two columns, proposed); the eleventh and on read NO AIR until another
+  blower is on the line. No blower reads NOT BUILT; a stopped one NO AIR. The line is looked at once a second.
+- **Why:** a row of 7 m cells with pipe between cannot all touch one blower; real rows have an air header along them. The air tubing is
+  Wildcatter's only air line.
+- **Question:** the tubing is drawn as instrument tubing, not a 600 mm air header. Keep it, or add an air header to Wildcatter (or a
+  Tailings duct, as the vent duct)?
+- **Alternatives:** the blower touching each cell (impossible in a row); cells passing air to the cells they touch (they do not touch).
+
+### 37. The column cleaners (needs you)
+- **Chosen:** the cells' launders give a rougher concentrate at 20 % solids (proposed); a column cell takes it (north face, up to 30 t/h
+  of solids, proposed) and gives it at the bank's 30 % out of its south face, every kg of mineral; its tails out of its east face are
+  the water it gave up, with no mineral, to be piped back to cell 1 as the plan says. Concentrate already at 30 % passes through. The
+  columns need air.
+- **Why:** the game pays at the filter (#4 of the plan): a cleaner that sent mineral back to cell 1 would pay over the rung (the loop
+  floats it again) or under it. Water only keeps the 75 % exact.
+- **Question:** the columns are not required: the concentrate thickener takes rougher concentrate too and pays the same, only with
+  half as much slurry again to thicken. Should the thickener refuse concentrate that has not been cleaned?
+- **Alternatives:** cleaners that reject a share of mineral with a recirculating load (pays about 73 % at 90 % column recovery).
+
+### 38. The row's rates
+- **Chosen:** the large tank, each cell and the large thickener are rated 20 % over the line's 1,000 t/h of fines slurry at 35 %
+  (47.6 kg a tick), as the large cyclones are; each holds 10 s at its inlet and outlet. Every cell takes the whole row's flow, as a real
+  cell in series does. Eight 160 m³ cells hold about 29 minutes of the line.
+- **Why:** the spec's sizes; 20 % over keeps a row from becoming the line's choke with the columns' water in it.
+- **Alternatives:** exactly the line's rate (the columns' water returning would throttle it).
+
+### 39. The large conditioning tank
+- **Chosen:** as the small tank: reagents by hopper (lime, xanthate, MIBC; copper sulfate with sphalerite), dosed per tonne at the same
+  g/t, so it takes twenty times as many reagent items an hour. It has no selective mode: the pit line pays the bulk 3x rung only.
+- **Why:** the spec (selective flotation is the small plant's 4b-4e, left out of the pit line).
+- **Alternatives:** a selective switch (a later wave with a pit-scale activation tank).
+
+### 40. The large thickener, its tails and Wildcatter's lined cell (needs you)
+- **Chosen:** the P4 tailings thickener's stage, made a function of its rate and holds (the P4 thickener calls it with its old numbers
+  and works as before; `pit_thickener` passes), called at the line's rate: tails in at its north face, 60 % underflow at its south
+  face, the overflow water back on a water pipe at its east face. TORQUE (4-20 mA) is its rake's: a fifth of its rating turning in
+  its bed, rising to the full rating as the underflow backs up, 4 mA stopped.
+- **Question:** Wildcatter's decant tower takes 20 kg of slurry a tick (about 72 t/h); the line's underflow is about 1,670 t/h, so a
+  pit line needs over 20 lined cells to keep its thickener from backing up. Raise the tower's rate in Wildcatter (or let a cell have
+  several spigots)? The tower also counts slurry as 40 % solids where the underflow is 60 % (as with P4 today).
+- **Why:** the plan said to reuse P4's stage; the tower's rate is Wildcatter's.
+- **Alternatives:** a tailings pipeline part with its own sink (the spec's Left out: pumping stations).
+
+### 41. The PLC points
+- **Chosen:** every new part has the plant's motor points (RUN, RUNNING, STALLED, AUTO, AMPS, FILL). A tank cell and a column add AIR
+  (20 mA with air, 4 mA without); the large thickener adds TORQUE. The blower has the motor points only (its RUN, RUNNING, AMPS). The
+  new parts have no LEVEL, FLOW and DENSITY gauges.
+- **Why:** the spec's list.
+- **Alternatives:** AIR as a flow in m³/min (the game has no air flow to read).
+
+### 42. Motors and tiers
+- **Chosen:** the blower's 400 kW at the medium-voltage tier; the tank (90 kW), each cell (160 kW), each column (15 kW) and the
+  thickener (55 kW) at the industrial tier. Tiers from Wildcatter, never a number. A row of eight is 1.28 MW.
+- **Why:** #8's rule: over about 250 kW on medium voltage.
+- **Alternatives:** none.
+
+### 43. Art, sound and recipes
+- **Chosen:** five models in Wildcatter's materials (`tools/models/pitflotation.py`); no texture drawn, no Ludo credits. The tank and
+  cells sound the agitator, the column, blower and thickener the motor hum. Placeholder recipes: conditioning tanks round an iron block;
+  a flotation bank in iron; a cleaner bank between iron blocks; air blowers round an iron block; tailings thickeners round an iron block.
+- **Why:** as every plant wave.
+- **Alternatives:** none.
+
+### 44. Tests and the film
+- **Chosen:** NeoForge scenes `p7_tank_row` (eight cells: each cell's share to 1 g, three nuggets of a little over four at the filter,
+  a quarter in the tails), `p7_row_short` (four cells, 63 %, two nuggets), `p7_no_air`, `p7_tails` (underflow into a lined cell with
+  plain names, water back to a mill, TORQUE) and `p7c_parts`; unit tests `PitFlotationTest`. The Fabric client film `p7_flotation`
+  shows the tank, the row floating, the two columns, the concentrate thickener and filter, the 45 m thickener and its lined cell. The
+  full film from truck to concentrate (the plan's last line) is `p7_line` followed by `p7_flotation`: one scene of both would hold over
+  200 m of plant in the client at once.
+- **Alternatives:** one long film (too slow to load in the test client).

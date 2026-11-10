@@ -155,6 +155,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("p7_line")) {
 				p7Line(context, world, server);
 			}
+			if (only("p7_flotation")) {
+				p7Flotation(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -2725,5 +2728,177 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(got[2] > 10_000 && got[3] > 10_000, "the reclaim feeders should draw the pile past the weigher");
 		require(got[4] > 10_000, "the SAG line should classify its undersize");
 		heard("p7_line", "tailings:cone_crusher", "tailings:ball_mill");
+	}
+
+	/**
+	 * The pit line's flotation (pit-flotation.md, P7c): fines slurry through the large conditioning tank into a row of eight tank cells,
+	 * their concentrate through two column cleaners to the concentrate thickener and filter, the row's tails into the 45 m thickener and
+	 * its underflow over the rim of a lined cell; the large blower's air line over the cells' tops.
+	 */
+	private void p7Flotation(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(1500, y, 2600);
+		Object[] v = new Object[8];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			net.minecraft.world.level.ChunkPos c0 = net.minecraft.world.level.ChunkPos.containing(o.offset(-40, 0, -30));
+			net.minecraft.world.level.ChunkPos c1 = net.minecraft.world.level.ChunkPos.containing(o.offset(60, 0, 145));
+			for (int cx = c0.x(); cx <= c1.x(); cx++) {
+				for (int cz = c0.z(); cz <= c1.z(); cz++) {
+					level.setChunkForced(cx, cz, true);
+				}
+			}
+			fillBox(level, o, Blocks.AIR, -25, 35, 0, 20, -5, 135);
+			Block tubing = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "air_tubing"));
+			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
+			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
+			PlantBlockEntity tank = plant(level, Machine.CONDITIONING_TANK_LARGE, o.offset(0, 0, 3));
+			pipe(level, o.offset(3, 0, 11));
+			PlantBlockEntity[] cells = new PlantBlockEntity[8];
+			for (int k = 0; k < 8; k++) {
+				int z = 12 + 8 * k;
+				cells[k] = plant(level, Machine.TANK_CELL, o.offset(0, 0, z));
+				pipe(level, o.offset(3, 0, z + 7));
+				for (int dz = 0; dz < 8; dz++) {
+					if (z + dz <= 74) {
+						pipe(level, o.offset(7, 0, z + dz));   // the concentrate header along their east launders
+					}
+					level.setBlock(o.offset(3, 7, z + dz), tubing.defaultBlockState(), Block.UPDATE_ALL);   // the air line over their tops
+				}
+			}
+			// the blower beside cell 1, its air up into the line
+			PlantBlockEntity blower = plant(level, Machine.FLOTATION_BLOWER_LARGE, o.offset(9, 0, 12));
+			for (int x = 4; x <= 10; x++) {
+				level.setBlock(o.offset(x, 7, 13), tubing.defaultBlockState(), Block.UPDATE_ALL);
+			}
+			for (int dy = 4; dy <= 6; dy++) {
+				level.setBlock(o.offset(10, dy, 13), tubing.defaultBlockState(), Block.UPDATE_ALL);
+			}
+			// two column cleaners off the header, their air off the line, their cleaned concentrate to the concentrate thickener and filter
+			PlantBlockEntity[] columns = {plant(level, Machine.COLUMN_CELL, o.offset(8, 0, 40)), plant(level, Machine.COLUMN_CELL, o.offset(8, 0, 46))};
+			pipe(level, o.offset(8, 0, 39), o.offset(8, 0, 45));
+			for (int x = 4; x <= 7; x++) {
+				level.setBlock(o.offset(x, 7, 41), tubing.defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(o.offset(x, 7, 47), tubing.defaultBlockState(), Block.UPDATE_ALL);
+			}
+			pipe(level, o.offset(11, 0, 44), o.offset(12, 0, 44), o.offset(13, 0, 44), o.offset(14, 0, 44), o.offset(15, 0, 44));
+			pipe(level, o.offset(11, 0, 50), o.offset(11, 1, 50), o.offset(12, 1, 50), o.offset(13, 1, 50), o.offset(13, 1, 49), o.offset(13, 1, 48), o.offset(13, 1, 47),
+					o.offset(13, 1, 46), o.offset(13, 1, 45), o.offset(13, 1, 44));
+			PlantBlockEntity concThickener = plant(level, Machine.THICKENER, o.offset(15, 0, 45));
+			pipe(level, o.offset(18, 0, 53));
+			PlantBlockEntity filter = plant(level, Machine.FILTER, o.offset(17, 0, 54));
+			// the row's tails into the 45 m thickener, its underflow over the rim of a lined cell to the south
+			PlantBlockEntity thickener = plant(level, Machine.TAILINGS_THICKENER_LARGE, o.offset(-19, 0, 76));
+			Block liner = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "cell_liner"));
+			for (int x = -6; x <= 12; x++) {
+				for (int z = 124; z <= 134; z++) {
+					level.setBlock(o.offset(x, 0, z), liner.defaultBlockState(), Block.UPDATE_ALL);
+					if (x == -6 || x == 12 || z == 124 || z == 134) {
+						level.setBlock(o.offset(x, 1, z), liner.defaultBlockState(), Block.UPDATE_ALL);
+						level.setBlock(o.offset(x, 2, z), liner.defaultBlockState(), Block.UPDATE_ALL);
+					}
+				}
+			}
+			level.setBlock(o.offset(3, 1, 129), BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "decant_tower")).defaultBlockState(), Block.UPDATE_ALL);
+			pipe(level, o.offset(3, 0, 121), o.offset(3, 1, 121), o.offset(3, 2, 121), o.offset(3, 3, 121));
+			for (int z = 122; z <= 129; z++) {
+				pipe(level, o.offset(3, 3, z));
+			}
+			pipe(level, o.offset(3, 2, 129));
+			Block water = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "pipe"));
+			for (int x = 26; x <= 30; x++) {
+				level.setBlock(o.offset(x, 0, 98), water.defaultBlockState(), Block.UPDATE_ALL);   // the overflow water's line back to the plant
+			}
+			for (PlantBlockEntity part : cells) {
+				part.forceRunning();
+			}
+			for (PlantBlockEntity part : new PlantBlockEntity[] {tank, blower, columns[0], columns[1], concThickener, filter, thickener}) {
+				part.forceRunning();
+			}
+			for (String reagent : new String[] {"lime", "xanthate", "mibc"}) {
+				net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(BuiltInRegistries.ITEM.getValue(dev.wildcatter.tailings.Tailings.id(reagent)), 64);
+				while (!stack.isEmpty() && tank.offer(stack)) {
+					// a stack of each into the hopper
+				}
+			}
+			v[0] = source;
+			v[1] = tank;
+			v[2] = cells;
+			v[3] = columns;
+			v[4] = concThickener;
+			v[5] = filter;
+			v[6] = thickener;
+			v[7] = blower;
+		});
+		String copper = dev.wildcatter.tailings.rock.Mineral.COPPER.mineralItemId();
+		Runnable feed = () -> server.runOnServer(srv -> {
+			PlantBlockEntity source = (PlantBlockEntity) v[0];
+			double short_ = 3000 - source.out().held(dev.wildcatter.fluid.Product.FINES_SLURRY);
+			if (short_ > 0) {
+				source.out().offer(dev.wildcatter.fluid.Product.FINES_SLURRY, short_, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of(copper, 0.004)));
+			}
+			for (PlantBlockEntity column : (PlantBlockEntity[]) v[3]) {
+				column.out().give(dev.wildcatter.fluid.Product.TAILS_SLURRY, Double.MAX_VALUE);   // their water, back to cell 1 in a real plant
+			}
+		});
+		feed.run();
+		server.runCommand("effect give @p minecraft:night_vision 600 0 true");
+		server.runCommand("tp @p " + (o.getX() + 22) + " " + (o.getY() + 17) + " " + (o.getZ() + 2) + " 48 28");
+		context.waitTicks(60);
+		Filming film = film(context, world, "p7_flotation");
+		String[] shots = {"tailings-p7c-row", "tailings-p7c-cells", "tailings-p7c-columns", "tailings-p7c-thickener", "tailings-p7c-lined-cell"};
+		for (int t = 0; t < 90; t++) {
+			context.waitTicks(20);
+			feed.run();
+			if (t == 16) {
+				context.takeScreenshot(shots[0]);
+				server.runCommand("tp @p " + (o.getX() + 14) + " " + (o.getY() + 12) + " " + (o.getZ() + 22) + " 125 32");
+			}
+			if (t == 34) {
+				context.takeScreenshot(shots[1]);
+				server.runCommand("tp @p " + (o.getX() + 24) + " " + (o.getY() + 9) + " " + (o.getZ() + 34) + " 58 12");
+			}
+			if (t == 52) {
+				context.takeScreenshot(shots[2]);
+				server.runCommand("tp @p " + (o.getX() + 34) + " " + (o.getY() + 30) + " " + (o.getZ() + 70) + " 47 36");
+			}
+			if (t == 72) {
+				context.takeScreenshot(shots[3]);
+				server.runCommand("tp @p " + (o.getX() + 18) + " " + (o.getY() + 12) + " " + (o.getZ() + 118) + " 54 33");
+			}
+			if (t % 10 == 0) {
+				server.runOnServer(srv -> {
+					System.out.println("[tailings-test] p7_flotation: " + ((PlantBlockEntity) v[1]).inspect().getString());
+					for (PlantBlockEntity cell : (PlantBlockEntity[]) v[2]) {
+						System.out.println("[tailings-test] p7_flotation: " + cell.inspect().getString());
+					}
+					for (PlantBlockEntity column : (PlantBlockEntity[]) v[3]) {
+						System.out.println("[tailings-test] p7_flotation: " + column.inspect().getString());
+					}
+					for (int i = 4; i <= 7; i++) {
+						System.out.println("[tailings-test] p7_flotation: " + ((PlantBlockEntity) v[i]).inspect().getString());
+					}
+				});
+			}
+		}
+		context.takeScreenshot(shots[4]);
+		film.stop();
+		double[] got = server.computeOnServer(srv -> {
+			double floated = 0;
+			int floating = 0;
+			for (PlantBlockEntity cell : (PlantBlockEntity[]) v[2]) {
+				floated += cell.pit().totalKg();
+				floating += cell.pit().totalKg() > 0 ? 1 : 0;
+			}
+			var tower = (dev.wildcatter.block.DecantTowerBlockEntity) srv.overworld().getBlockEntity(o.offset(3, 1, 129));
+			PlantBlockEntity filter = (PlantBlockEntity) v[5];
+			int nuggets = filter.countIn(new int[] {1, 2}, dev.wildcatter.tailings.block.Feeds.stack(dev.wildcatter.tailings.rock.Mineral.COPPER.nuggetId(), 1))
+					+ 9 * filter.countIn(new int[] {1, 2}, dev.wildcatter.tailings.block.Feeds.stack(dev.wildcatter.tailings.rock.Mineral.COPPER.phaseOneProductId(), 1));
+			return new double[] {floated, floating, nuggets, tower == null ? 0 : tower.settledKg()};
+		});
+		System.out.printf("[tailings-test] p7_flotation end: %.0f kg floated, %.0f cells floating, %.0f nuggets paid, %.0f kg settled in the lined cell%n", got[0], got[1], got[2], got[3]);
+		require(got[1] == 8, "all eight cells should float");
+		require(got[2] > 0, "the filter should pay the row's concentrate");
+		require(got[3] > 0, "the large thickener's underflow should settle in the lined cell");
+		heard("p7_flotation", "tailings:agitator");
 	}
 }

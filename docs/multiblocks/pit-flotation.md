@@ -1,7 +1,7 @@
 # P7c: pit-scale flotation and tails (tank cells, column cleaners, the large thickeners)
 
-**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **P7c**, **not built**: its plan is in
-ROADMAP ("P7c, the plan") and `../questions/p7-pit-line.md` #32. The choices are listed in
+**DRAFT — decided on recommendation while Tim was away (2026-11-09); not approved.** Wave **P7c**, **built 2026-11-10** on branch
+`p7c-pit-flotation` (ROADMAP, P7c; what this spec left open is decided in `../questions/p7-pit-line.md` #33-#44). The choices are listed in
 [../questions/specs-tailings.md](../questions/specs-tailings.md) (P7 section).
 
 The pit-sized line's last stage. The SAG line ([sag-mill-line.md](sag-mill-line.md)) makes **1,000 t/h** of fines slurry, twenty times

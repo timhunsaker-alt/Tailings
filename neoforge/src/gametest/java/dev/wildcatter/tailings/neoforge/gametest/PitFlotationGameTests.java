@@ -117,7 +117,7 @@ final class PitFlotationGameTests {
 	 */
 	static Row row(GameTestHelper helper, int n, double copper, boolean air) {
 		int y = 4;
-		TailingsGameTests.fines(helper, new BlockPos(0, y, 0), 1000, Map.of(COPPER, copper / 1000, "minecraft:quartz", 0.3));
+		TailingsGameTests.fines(helper, new BlockPos(0, y, 0), 1000, Map.of(COPPER, copper / 1000));
 		TailingsGameTests.pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
 		PlantBlockEntity tank = plant(helper, Machine.CONDITIONING_TANK_LARGE, new BlockPos(0, y, 3));
 		TailingsGameTests.pipe(helper, new BlockPos(3, y, 11));
@@ -229,7 +229,7 @@ final class PitFlotationGameTests {
 	private static void tails(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(22, y, -11));
-		source.out().offer(Product.TAILS_SLURRY, 2000, SlurryAssay.of(Map.of(PitFlotation.marked(8, COPPER), 0.002, "minecraft:quartz", 0.3)));
+		source.out().offer(Product.TAILS_SLURRY, 2000, SlurryAssay.of(Map.of(PitFlotation.marked(8, COPPER), 0.002)));
 		TailingsGameTests.pipe(helper, new BlockPos(22, y, 2));
 		PlantBlockEntity thickener = plant(helper, Machine.TAILINGS_THICKENER_LARGE, new BlockPos(0, y, 3));
 		thickener.forceRunning();

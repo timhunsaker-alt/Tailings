@@ -756,6 +756,30 @@ Spec: [multiblocks/sag-mill-line.md](multiblocks/sag-mill-line.md) (draft, decid
 - **Power:** 18.7 MW of mill motors; with P7a about 20 MW: a Wildcatter load needing a plant of that size.
 - **Models and sound:** `tools/models/sagline.py`; the mills sound the ball mill, the pebble crusher the cone, the pump the motor hum.
 
+## The pit line (P7c): flotation and the tails
+
+Spec: [multiblocks/pit-flotation.md](multiblocks/pit-flotation.md) (draft, decided on recommendation); decisions in
+[questions/p7-pit-line.md](questions/p7-pit-line.md) #33-#44. The stages are `block.stage.PitFlotationStages`; the numbers and the split
+`plant.PitFlotation`.
+
+- **Parts:** the `conditioning_tank_large` (8 x 9 x 8, 90 kW), the `tank_cell` (7 x 7 x 7, one 160 m³ cell, 160 kW), the `column_cell`
+  (4 x 14 x 4, 15 kW), the `flotation_blower_large` (4 x 4 x 6, 400 kW at the medium-voltage tier) and the `tailings_thickener_large`
+  (45 x 6 x 45, 55 kW). The rest at the industrial tier.
+- **The tank:** fines slurry in at its north face, reagents by hopper dosed per tonne as the small tank (no selective mode),
+  conditioned slurry out at its south face. Rated 20 % over the line's 1,000 t/h, as every part here.
+- **The row:** each cell takes conditioned slurry, or the tails of the cell before it, at its north face; it floats its share of the
+  block's floating mineral, 35, 15, 8, 5, 4, 3, 3, 2 % cell by cell (75 % in all, the flotation rung), out of its east face as rougher
+  concentrate at 20 % solids, and sends the rest out of its south face. What passes a cell is marked in the assay
+  (`tailings:rowN/<id>`), so the next cell floats its own share and a ninth floats nothing; the marks come off at the large thickener.
+- **Air:** a cell or column needs a running large blower touching it or on Wildcatter's air tubing joined to it; one blower serves ten.
+  NOT BUILT with none, NO AIR with it stopped or past its ten. AIR on the PLC.
+- **The columns:** rougher concentrate in at the north face, cleaned to the bank's 30 % out of the south face to the existing
+  `concentrate_thickener` and `pressure_filter`, which pay it by their rule; their tails (the water) out of the east face, for cell 1.
+- **The large thickener:** the P4 tailings thickener's stage at the line's rate: tails in at the north, 60 % underflow at the south (to
+  Wildcatter's lined cell), the overflow water back on a water pipe at the east. TORQUE on the PLC, rising as its underflow backs up.
+- **Models:** `tools/models/pitflotation.py`; the thickener's 10,005 empty pieces share one empty model (`build.py`, `share_empty`).
+- **Sound:** the tank and cells the agitator, the column, blower and thickener the motor hum.
+
 ## Config
 
 Two files. Neither is created for you.
@@ -832,6 +856,11 @@ Blocks with no recipe are placed by the drill, or they exist for creative use on
 | `ball_mill_large` | Iron blocks round a ball mill (placeholder) | 9 x 9 x 16, 2 x 5.25 MW; grinds the underflow (P7b) |
 | `cyclone_feed_pump` | Steel round a cauldron, industrial cable (placeholder) | 4 x 4 x 5, 600 kW; the cyclone feed (P7b) |
 | `cyclone_cluster_large` | Cyclone clusters round an iron block (placeholder) | 6 x 6 x 6, twelve 660 mm cyclones at 150 µm (P7b) |
+| `conditioning_tank_large` | Conditioning tanks round an iron block, industrial cable (placeholder) | 8 x 9 x 8, 90 kW; reagents per tonne (P7c) |
+| `tank_cell` | Iron round a flotation bank, industrial cable (placeholder) | 7 x 7 x 7, 160 kW; one cell of the row, its share of 75 % (P7c) |
+| `column_cell` | A cleaner bank between iron blocks (placeholder) | 4 x 14 x 4, 15 kW; cleans the rougher concentrate to 30 % (P7c) |
+| `flotation_blower_large` | Air blowers round an iron block, industrial cable (placeholder) | 4 x 4 x 6, 400 kW at the medium-voltage tier; ten cells' air (P7c) |
+| `tailings_thickener_large` | Tailings thickeners round an iron block (placeholder) | 45 x 6 x 45, 55 kW; 60 % underflow, water back (P7c) |
 | `stockpile_rock` | None. The stockpile head makes it | Crushed rock, 2,025 kg; falls, settles and rolls in over a reclaim feeder (P7a) |
 | `vent_fan`, `booster_fan` | Steel, copper, iron bars, industrial cable (placeholder) | The drive's forcing fan (75 kW) and an in-line booster (30 kW) (L1) |
 | `vent_duct` | 6 yellow wool, 2 string → 8 (placeholder) | 1.4 m ventilation duct, laid like pipe (L1) |

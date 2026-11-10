@@ -43,11 +43,23 @@ def octo(M, axis, c1, c2, r, start, end, tex):
 		M.box((x - r * 0.65, y - r * 0.65, start), (x + r * 0.65, y + r * 0.65, end), tex)
 
 
+def surface(M, cx, cz, r, y0, y1, tex, step=0.25):
+	"""A round liquid surface or froth inside a tank, as strips across it `step` deep, each as wide as the circle at its middle (the
+	rim's launder hides the little it overhangs): no corners left open, as the octagon leaves them."""
+	z = cz - r
+	while z < cz + r - 1e-9:
+		z2 = min(z + step, cz + r)
+		d = abs((z + z2) / 2 - cz)
+		h = math.sqrt(max(0.0, r * r - d * d))
+		M.box((cx - h, y0, z), (cx + h, y1, z2), tex)
+		z = z2
+
+
 # ---- the large conditioning tank --------------------------------------------------------------------------------------------------
 CK = model("conditioning_tank_large", 8, 9, 8)
 CK.box((0.0, 0.0, 0.0), (8.0, 0.3, 8.0), "concrete")
 CK.ring("y", (4.0, 4.0), 3.9, 0.3, 8.0, 0.1, "grey", sides=32)                # the 8 m tank
-disc(CK, 4.0, 4.0, 3.85, 7.6, 7.65, "dark")                                  # the slurry
+surface(CK, 4.0, 4.0, 3.85, 7.6, 7.65, "dark")                                  # the slurry
 CK.box((0.2, 8.0, 3.6), (7.8, 8.2, 4.4), "grating")                          # the bridge
 CK.handrail([(0.2, 3.6), (7.8, 3.6)], 8.2, "hipaint", height=0.7)
 CK.handrail([(0.2, 4.4), (7.8, 4.4)], 8.2, "hipaint", height=0.7)
@@ -64,7 +76,7 @@ CK.collide((0.1, 0.0, 0.1), (7.9, 8.2, 7.9))
 TC = model("tank_cell", 7, 7, 7)
 TC.box((0.0, 0.0, 0.0), (7.0, 0.3, 7.0), "concrete")
 TC.ring("y", (3.5, 3.5), 3.2, 0.3, 5.9, 0.1, "grey", sides=28)               # the 160 m3 tank
-disc(TC, 3.5, 3.5, 3.15, 5.6, 5.65, "dark")                                  # its froth
+surface(TC, 3.5, 3.5, 3.15, 5.6, 5.65, "dark")                                  # its froth
 TC.ring("y", (3.5, 3.5), 3.35, 5.4, 6.0, 0.18, "galv", sides=28)             # the froth launder round its lip
 TC.box((6.62, 0.3, 3.2), (6.95, 5.4, 3.8), "galv")                           # the launder's downcomer: concentrate out, the east
 TC.pipe([(6.8, 0.6, 3.5), (7.0, 0.6, 3.5)], 8, "rubber")
@@ -87,7 +99,7 @@ for x, z in ((0.25, 0.25), (3.45, 0.25), (0.25, 3.45), (3.45, 3.45)):
 	CL.box((x, 0.3, z), (x + 0.3, 1.6, z + 0.3), "iron")                     # its legs
 CL.ring("y", (2.0, 2.0), 1.3, 0.9, 1.6, 0.1, "grey", sides=16)               # its cone
 CL.ring("y", (2.0, 2.0), 1.9, 1.6, 13.0, 0.08, "grey", sides=20)             # the 4 m column
-disc(CL, 2.0, 2.0, 1.85, 12.7, 12.75, "dark")                                # the froth
+surface(CL, 2.0, 2.0, 1.85, 12.7, 12.75, "dark")                                # the froth
 CL.ring("y", (2.0, 2.0), 1.95, 12.5, 13.2, 0.15, "galv", sides=20)           # the froth launder
 CL.ring("y", (2.0, 2.0), 1.1, 13.0, 13.06, 0.05, "steel", sides=16)          # the wash-water ring over the froth
 CL.box((0.15, 2.4, 1.95), (3.85, 2.5, 2.05), "steel")                        # the spargers

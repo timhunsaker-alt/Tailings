@@ -266,25 +266,22 @@ branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which 
   weigher's 10 % fallback; pebbles round the pebble crusher (15 % slower bypassed); a 54 % cyclone feed closing the water balance.
   NeoForge scenes `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests in `PitLineTest`. The
   client film `p7_line` (the truck tipping, the gyratory, the pile and its reclaim, the SAG line).
-- **P7c — NOT BUILT, the plan** ([multiblocks/pit-flotation.md](multiblocks/pit-flotation.md); p7-pit-line.md #32). Until it is built
-  the line's fines slurry goes to the 50 t/h plant's flotation, which takes a twentieth of it; the line backs up to what it feeds.
-  1. **The model tool first:** the `tailings_thickener_large` is 45 x 6 x 45, 12,150 cells; the tool writes a piece model for every cell
-     (about 50 MB). Change `mlib` (or Tailings' driver) so empty cells share one empty piece model, then build the five models.
-  2. **Machines:** `CONDITIONING_TANK_LARGE` (8 x 9 x 8, 90 kW, reagents by hopper dosed per tonne as the small tank), `TANK_CELL`
-     (7 x 7 x 7, 160 kW each), `COLUMN_CELL` (4 x 14 x 4, 15 kW), `FLOTATION_BLOWER_LARGE` (4 x 4 x 6, 400 kW, medium voltage),
-     `TAILINGS_THICKENER_LARGE` (45 x 6 x 45, 55 kW); their stages in a `PitFlotationStages`.
-  3. **The row:** each tank cell takes conditioned slurry in at its north face and passes its tails out of its south face to the next by
-     pipe, floating its share of what floats (`RecoveryRoute.FLOTATION`, 75 % over the row: 35, 15, 8, 5, 4, 3, 3, 2 % of the block's
-     mineral, cell by cell, as a fraction of what reaches it), its concentrate out of its east launder as concentrate slurry. A cell
-     needs the large blower's air (NO AIR). A shorter row pays only what its cells float; a ninth adds nothing.
-  4. **Cleaners and concentrate:** the column cells take the row's concentrate, give it back cleaned and send their tails to cell 1;
-     the concentrate goes to the existing `concentrate_thickener` and `pressure_filter`, which pay the nuggets by their unchanged rule,
-     so the pit line pays the same 3x rung as the small bank and the small plant pays exactly as before.
-  5. **The tails:** the last cell's tails to the large thickener: underflow at 60 % to Wildcatter's lined cell, overflow water back on a
-     water pipe, as the P4 tailings thickener does (reuse its stage with the large size). PLC: each cell's RUN, RUNNING, AIR; the
-     blower's points; the thickener's TORQUE.
-  6. **Tests:** `p7_tank_row` (75 %, split as above), `p7_row_short` (four cells, 63 %), `p7_no_air`, `p7_tails`; a unit test of the
-     split; then the full film from truck to concentrate.
+- **P7c — DONE (2026-11-10, branch `p7c-pit-flotation`):** [multiblocks/pit-flotation.md](multiblocks/pit-flotation.md); decisions
+  p7-pit-line.md #33-#44 (#33, #36, #37 and #40 need Tim). The model tool first: a part may share one empty model among its empty cells
+  (Tailings' driver, opt-in; every existing model regenerates byte-identical), so the 45 m thickener is 2,146 piece models, not 12,150.
+  The `conditioning_tank_large` (8 x 9 x 8, 90 kW, reagents per tonne as the small tank), the `tank_cell` (7 x 7 x 7, 160 kW), the
+  `column_cell` (4 x 14 x 4, 15 kW), the `flotation_blower_large` (4 x 4 x 6, 400 kW at the medium-voltage tier) and the
+  `tailings_thickener_large` (45 x 6 x 45, 55 kW); stages `PitFlotationStages`, numbers `PitFlotation`. Each cell takes conditioned
+  slurry or the cell before's tails at its north face, floats 35, 15, 8, 5, 4, 3, 3, 2 % of the block's floating mineral cell by cell
+  (75 % in all, `RecoveryRoute.FLOTATION`) out of its east launder, the rest marked and on out of its south face; a short row pays what
+  its cells float, a ninth nothing. Air off the large blower by Wildcatter's air tubing, ten cells a blower (NO AIR, NOT BUILT). The
+  columns clean the rougher concentrate from 20 % to 30 % and send their water back; the existing `concentrate_thickener` and
+  `pressure_filter` pay it unchanged. The last cell's tails to the large thickener (P4's stage at the line's rate): 60 % underflow to
+  Wildcatter's lined cell, water back on a water pipe. PLC: AIR on each cell and column, TORQUE on the thickener, the motor points on
+  all. NeoForge scenes `p7_tank_row`, `p7_row_short`, `p7_no_air`, `p7_tails`, `p7c_parts`; unit tests `PitFlotationTest`; the client
+  film `p7_flotation`. With P7a-c the pit line runs from truck to concentrate.
+  - **Left out (the spec's):** froth level control and a kinetic model per cell; regrind of the rougher concentrate; pit-scale leach,
+    by-products and selective flotation; the tailings pipeline's pumping stations; a gravity stage; dry stacking at pit scale.
 
 ## Plant gaps (2026-11-09, closed while Tim was away)
 
@@ -423,7 +420,14 @@ tests `XrtSortingTest`; the client film `xrt`.
   (p7-pit-line.md, 21). No scene starts a mill on a real 8 MW supply.
 - **The pit line runs on the unrated steel pipe (P7b):** 1 m³/s through one pipe; a large-bore line is proposed for Wildcatter
   (p7-pit-line.md, 27).
-- **No pit flotation (P7c not built):** the line's fines slurry has only the 50 t/h plant's flotation to go to (p7-pit-line.md, 29, 32).
+- **The lined cell takes 72 t/h (P7c):** Wildcatter's decant tower takes 20 kg a tick; the pit line's underflow is about 1,670 t/h, so it
+  needs over 20 lined cells or its thickener backs up (p7-pit-line.md, 40).
+- **The row's air line is instrument tubing (P7c):** Wildcatter's air tubing stands for a 600 mm air header (p7-pit-line.md, 36).
+- **The column cleaners are optional (P7c):** the concentrate thickener takes the row's rougher concentrate too and pays the same
+  (p7-pit-line.md, 37).
+- **Empty piece models shared only for the 45 m thickener (P7c):** the older big parts still write a model for every empty cell; and a
+  full model run writes vent.py's duct texture into later models (p7-pit-line.md, 33).
+- **P7c parts reuse sounds and have placeholder recipes:** the cells and tank the agitator, the rest the motor hum.
 - **P7b parts reuse sounds:** the mills the ball mill's, the pebble crusher the cone's, the pump the motor hum.
 - **P7a recipes are placeholders,** as the plant's; the gyratory sounds the cone crusher and the breaker the jaw: no sounds of their own.
 - **No dust, liner wear or tramp metal (P7a, the spec's Left out):** and no stacker-reclaimer, no in-pit crushing.
