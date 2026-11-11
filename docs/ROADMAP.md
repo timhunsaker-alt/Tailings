@@ -415,6 +415,8 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
 - **Ore blocks only (#3):** raw iron, copper and gold and every Wildcatter ore's mined drop are no plant feed; scene `raw_ore_refused`.
 
 ## Later, not scheduled
+- **Time scale (Tim, 2026-11-10):** Wildcatter's world setting `timeScale` (1:1 to 50:1, spec `wildcatter/docs/time-scale.md`). Tailings
+  reads Wildcatter's value: the paste cure scales with it, and Tailings' rules appear on the same World Rules screen.
 
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
