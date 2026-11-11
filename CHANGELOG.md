@@ -4,6 +4,11 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Wildcatter 0.6.0 (2026-11-11)
+
+- **Requires Wildcatter 0.6.0,** released 2026-11-11: P3's blasts load the ammonia plant's emulsion matrix, and Wildcatter's circuit manager no longer
+  loads chunks. Open pit P3 (blasting) and P5-P7 (the big machines) join `main` with it.
+
 ### Tim's answers on P5-P7: the hollow dragline house and the reclaim draw-down (2026-11-10)
 
 - **Dragline House:** its machinery house is a hollow shell: 2,790 cells, not 5,760; it looks the same.
