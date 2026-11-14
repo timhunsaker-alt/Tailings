@@ -66,7 +66,7 @@ final class PitBlastGameTests {
 
 	// ---- building ---------------------------------------------------------------------------------------------------------------
 
-	private static void fill(GameTestHelper helper, Block block, int x0, int x1, int y0, int y1, int z0, int z1) {
+	static void fill(GameTestHelper helper, Block block, int x0, int x1, int y0, int y1, int z0, int z1) {
 		ServerLevel level = helper.getLevel();
 		BlockState state = block.defaultBlockState();
 		for (int x = x0; x <= x1; x++) {
@@ -111,12 +111,12 @@ final class PitBlastGameTests {
 		}
 	}
 
-	private static BlastingMachineBlockEntity machine(GameTestHelper helper, int x, int y, int z) {
+	static BlastingMachineBlockEntity machine(GameTestHelper helper, int x, int y, int z) {
 		helper.setBlock(new BlockPos(x, y, z), TailingsBlocks.BLASTING_MACHINE);
 		return helper.getBlockEntity(new BlockPos(x, y, z), BlastingMachineBlockEntity.class);
 	}
 
-	private static ItemStack logged(GameTestHelper helper, List<BlastholeBlockEntity> holes) {
+	static ItemStack logged(GameTestHelper helper, List<BlastholeBlockEntity> holes) {
 		ItemStack logger = new ItemStack(TailingsItems.BLAST_LOGGER);
 		for (BlastholeBlockEntity hole : holes) {
 			BlastLoggerItem.log(helper.getLevel(), logger, hole.getBlockPos());

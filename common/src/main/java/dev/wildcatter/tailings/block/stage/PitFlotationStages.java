@@ -236,6 +236,7 @@ public final class PitFlotationStages {
 			} else {
 				part.say(String.format("floating as cell %d of the row (%s): %d %% of the block's mineral", cell, cell <= 5 ? "rougher" : "scavenger",
 						PitFlotation.SHARES_PERCENT[cell - 1]));
+				dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.FLOTATION_RUNNING);
 			}
 			part.setChanged();
 		}

@@ -214,6 +214,7 @@ final class Flotation {
 			part.out().offer(Product.CONCENTRATE_SLURRY, split.concentrate(), split.concentrateAssay());
 			part.out().offer(Product.TAILS_SLURRY, split.tails(), split.tailsAssay());
 			part.say("floating");
+			dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.FLOTATION_RUNNING);
 			part.setChanged();
 		}
 	};

@@ -292,6 +292,7 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 		holes.clear();
 		shotTicks = 0;
 		setChanged();
+		dev.wildcatter.tailings.quest.Milestones.fire(server, getBlockPos(), dev.wildcatter.tailings.quest.Milestones.BLAST_FIRED);
 		say(done.summary() + (done.misfires() > 0 ? "; MISFIRES: WAIT 30 s; " + String.join("; ", done.notes()) : ""));
 	}
 

@@ -4,6 +4,14 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### The quest book chapter, on Wildcatter 0.8.0 (2026-11-14)
+
+- **Requires Wildcatter 0.8.0,** released 2026-11-14 with its quest book.
+- **Quest book:** Tailings adds a chapter, "Mine and mill", to Wildcatter's quest book: eleven quests from the stamp mill to the
+  walking dragline, each after the Wildcatter quests it is built from. A crusher crushing, a flotation bank or tank cell floating, a
+  fired shot and a working dragline tick off their quests for players within 64 blocks.
+- **Zircon:** Wildcatter's chlorinator takes Tailings' zircon concentrate by hopper, 56.25 kg of zircon an item.
+
 ### Wildcatter 0.7.0 (2026-11-14)
 
 - **Requires Wildcatter 0.7.0,** released 2026-11-14 (Phases 15-20 and the time scale). Nothing Tailings uses moved.

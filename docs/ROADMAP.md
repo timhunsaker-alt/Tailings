@@ -363,8 +363,8 @@ Existing plants pay as before. Since Tim's answers (2026-11-10) the world rule `
 bank's share through the dry mill too, where a dryer touches the filter. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`,
 `dry_mill_all_hmc`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client
 film `dry_mill`.
-- **Waits on Wildcatter:** its chlorinator taking Tailings' `zircon_concentrate` (Tim said yes, L6-3; questions #14). Wildcatter has
-  no tag or API for it; what it needs is in questions/answers-2026-11-10.md, "Wildcatter needs".
+- **Done on Wildcatter 0.8.0 (2026-11-14):** its chlorinator takes Tailings' `zircon_concentrate` (Tim said yes, L6-3; questions #14),
+  by `#wildcatter:zircon_feed` at 56.25 kg an item (questions/quests.md #2; scene `quest_zircon_feed`).
 - **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
   ilmenite, the TiO2 grade; a titanium pigment plant (Wildcatter Ideas); monazite's dust and radioactivity; misplacement and middlings.
 
@@ -409,7 +409,7 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
 - **DMS floats on a belt (#7):** scene `dms_floats_belt`, client film `dms_floats_belt`. The ferrosilicon placeholder stays until
   Wildcatter 0.7.0.
 - **XRT reverse (#8):** scene `xrt_reverse`.
-- **All HMC through the dry mill (#9):** scene `dry_mill_all_hmc`. The chlorinator compat waits on Wildcatter (see "Wildcatter needs").
+- **All HMC through the dry mill (#9):** scene `dry_mill_all_hmc`. The chlorinator compat is built on Wildcatter 0.8.0 (questions/quests.md #2).
 - **gaps2 #2, #3 (#14):** the press's CYCLE is a one-second bit; the paste mixer's gauges read its paste hopper. Scenes
   `gaps_press_cycle_bit`, `gaps_press_points`, `gaps_paste_gauges`.
 - **Ore blocks only (#3):** raw iron, copper and gold and every Wildcatter ore's mined drop are no plant feed; scene `raw_ore_refused`.

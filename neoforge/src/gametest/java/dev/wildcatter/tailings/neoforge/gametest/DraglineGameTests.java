@@ -37,7 +37,7 @@ final class DraglineGameTests {
 	static final Map<String, Integer> PADDING = Map.of("dragline_built", 160, "dragline_cycle", 160, "dragline_strip", 160, "dragline_walk", 160,
 			"dragline_hard", 160, "dragline_plc", 160);
 
-	private static final int BENCH = 10;
+	static final int BENCH = 10;
 	private static final double CX = 20.5, CZ = 30.5;
 
 	private DraglineGameTests() {
@@ -48,7 +48,7 @@ final class DraglineGameTests {
 			case "dragline_built" -> new int[] {-1, 3, -1, 7};
 			case "dragline_walk" -> new int[] {-1, 6, -1, 7};
 			case "dragline_cycle", "dragline_strip", "dragline_hard", "dragline_plc" -> new int[] {-1, 6, -1, 5};
-			default -> new int[] {-1, 2, -1, 2};
+			default -> QuestGameTests.reach(scene);
 		};
 	}
 
@@ -66,12 +66,12 @@ final class DraglineGameTests {
 	}
 
 	/** A stone bench, its top at y 9, over {@code x1} by {@code z1}. */
-	private static void bench(GameTestHelper helper, int x1, int z1) {
+	static void bench(GameTestHelper helper, int x1, int z1) {
 		floor(helper, 0, x1, 1, BENCH - 1, 0, z1);
 	}
 
 	/** The strip: {@code top} layers of {@code over} down from the bench's top, over {@code seam} layers of bauxite. */
-	private static void strip(GameTestHelper helper, int width, int length, int top, Block over, int seam) {
+	static void strip(GameTestHelper helper, int width, int length, int top, Block over, int seam) {
 		for (int x = 33; x < 33 + width; x++) {
 			for (int z = 30; z < 30 + length; z++) {
 				for (int k = 0; k < top; k++) {
@@ -89,12 +89,12 @@ final class DraglineGameTests {
 	}
 
 	/** A switch house behind it on the bench, fed by the test's ideal supply. */
-	private static PitSwitchHouseBlockEntity house(GameTestHelper helper) {
+	static PitSwitchHouseBlockEntity house(GameTestHelper helper) {
 		return PitBigGameTests.house(helper, new BlockPos(4, BENCH, 60));
 	}
 
 	/** The dragline lifted and on outlet 1 of {@code house}, its job set, running its cycles {@code fast} times faster. */
-	private static DraglineEntity dragline(GameTestHelper helper, PitSwitchHouseBlockEntity house, int width, int length, int seam, int fast) {
+	static DraglineEntity dragline(GameTestHelper helper, PitSwitchHouseBlockEntity house, int width, int length, int seam, int fast) {
 		DraglineEntity d = TailingsEntities.DRAGLINE.create(helper.getLevel(), EntitySpawnReason.COMMAND);
 		BlockPos origin = helper.absolutePos(BlockPos.ZERO), at = helper.absolutePos(new BlockPos(0, BENCH, 0));
 		d.setPos(origin.getX() + CX, at.getY(), origin.getZ() + CZ);

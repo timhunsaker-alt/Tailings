@@ -2,6 +2,28 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## The quest chapter, on Wildcatter 0.8.0 (2026-11-14)
+Wildcatter 0.8.0's quest book takes a chapter from each mod (Wildcatter `docs/quests.md`). Plan:
+`/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, "Tailings chapter"; decisions in `docs/questions/quests.md` (8,
+decided on recommendation).
+- **Requires Wildcatter 0.8.0.**
+- **The chapter** `data/tailings/wildcatter_quests/open_pit.json`, "Mine and mill" (order 110, after Getting started), 11 quests:
+  stamp mill and hand screen; the crusher line; grind and float; leach the tails; zircon for the chlorinator; ferrosilicon and dense
+  media; the gyratory; the cabled pit; drill and blast; the rope shovel; the walking dragline. Each needs the Wildcatter quests whose
+  products it is built from (Iron, Start a motor, MV switchgear, Sulfuric acid, Chlor-alkali, Coke ovens, Cables, Ammonia). Five small
+  hand-made rewards; none past the plastic gate.
+- **Milestones** (`quest.Milestones`, through Wildcatter's `QuestEvents.milestone`): `tailings:crusher_running` (a jaw or cone
+  crushing), `tailings:flotation_running` (the flotation bank or a pit tank cell floating), `tailings:blast_fired` (a shot done, at the
+  blasting machine), `tailings:dragline_running` (the dragline working a cycle or walking on power).
+- **The zircon compat:** `tailings:zircon_concentrate` is in `#wildcatter:zircon_feed` at 56.25 kg of zircon an item, so Wildcatter's
+  chlorinator takes it by hopper (Tim's answer 9; it waited on Wildcatter, which 0.8.0 has).
+- **Scenes:** NeoForge `quests_valid` (every chapter passes Wildcatter's `QuestRules.problems` with Tailings loaded: 10 chapters, 68
+  quests), `quest_crusher_milestone`, `quest_flotation_milestone`, `quest_blast_milestone`, `quest_dragline_milestone`,
+  `quest_zircon_feed`.
+  **The full server suite passes, 229 required tests** (223 before, 6 new), in one run; `build` passes.
+- **Known gaps:** the gyratory, ferrosilicon, leach, zircon, cabled pit and rope shovel quests are item tasks only (no milestone); the
+  book's text is English only, as Wildcatter's chapters are.
+
 ## Tim's answers 10 and 13 on P5-P7, and main merged in (2026-11-10, branch `p5-big-machines`)
 Main merged in (gaps2, Tim's answers, the per-world rules); answers 10 and 13 built. Decisions in `docs/questions/p6-dragline.md` #3
 and `p7-pit-line.md` #11 and #33.

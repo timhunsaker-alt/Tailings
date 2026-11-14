@@ -1,0 +1,277 @@
+{
+  "title": "Mine and mill",
+  "icon": "tailings:stamp_mill",
+  "order": 110,
+  "after": [
+    "wildcatter:getting_started"
+  ],
+  "quests": [
+    {
+      "id": "stamp_mill",
+      "title": "Stamp mill and hand screen",
+      "icon": "tailings:stamp_mill",
+      "text": "A plain-mined ore block gives a quarter of its metal. Crank ore through a stamp mill and sort it on a hand screen, then a shaking table or magnetic separator, and you get half.",
+      "requires": [
+        "wildcatter:iron"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:stamp_mill",
+          "count": 1
+        },
+        {
+          "item": "tailings:hand_screen",
+          "count": 1
+        }
+      ],
+      "rewards": [
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "id": "crusher_line",
+      "title": "The crusher line",
+      "icon": "tailings:jaw_crusher",
+      "text": "On 480 V three-phase: a grizzly over a jaw crusher, a double-deck screen, and a cone crusher for the screen's oversize, joined by belt conveyors with a conveyor drive on each run. Feed it ore blocks from an ore bin.",
+      "requires": [
+        "stamp_mill",
+        "wildcatter:motor"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:jaw_crusher",
+          "count": 1
+        },
+        {
+          "item": "tailings:cone_crusher",
+          "count": 1
+        },
+        {
+          "milestone": "tailings:crusher_running",
+          "text": "Run a crusher"
+        }
+      ],
+      "rewards": [
+        {
+          "item": "tailings:belt_conveyor",
+          "count": 12
+        }
+      ]
+    },
+    {
+      "id": "flotation",
+      "title": "Grind and float",
+      "icon": "tailings:flotation_bank",
+      "text": "The screen's sand goes to a ball mill and cyclones; the mill's motor runs at medium voltage. Fines slurry on steel pipe to a conditioning tank with lime, xanthate and frother, then a flotation bank with an air blower touching it. A thickener and pressure filter pay three quarters of the metal.",
+      "requires": [
+        "crusher_line",
+        "wildcatter:switchgear"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:ball_mill",
+          "count": 1
+        },
+        {
+          "item": "tailings:flotation_bank",
+          "count": 1
+        },
+        {
+          "milestone": "tailings:flotation_running",
+          "text": "Run a flotation bank"
+        }
+      ],
+      "rewards": [
+        {
+          "item": "tailings:lime",
+          "count": 8
+        },
+        {
+          "item": "tailings:mibc",
+          "count": 8
+        }
+      ]
+    },
+    {
+      "id": "leach",
+      "title": "Leach the tails",
+      "icon": "tailings:leach_tank",
+      "text": "Flotation tails and sulfuric acid in a leach tank, washed in a CCD thickener, the pregnant liquor plated in an electrowinning bank. With scavenger cells, a regrind mill and cleaners the plant gets nearly all the metal.",
+      "requires": [
+        "flotation",
+        "wildcatter:acid_plant"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:leach_tank",
+          "count": 1
+        },
+        {
+          "item": "tailings:ccd_thickener",
+          "count": 1
+        },
+        {
+          "item": "tailings:electrowinning_bank",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "zircon",
+      "title": "Zircon for the chlorinator",
+      "icon": "tailings:zircon_concentrate",
+      "text": "Spirals take the heavy minerals out of the fines. The dry mill splits them: a gas-fired dryer, then roll magnets, high-tension rolls and the induced-roll magnet, which leaves zircon. Zircon concentrate goes by hopper into Wildcatter's chlorinator.",
+      "requires": [
+        "flotation",
+        "wildcatter:chlor_alkali"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:irm_separator",
+          "count": 1
+        },
+        {
+          "item": "tailings:zircon_concentrate",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "ferrosilicon",
+      "title": "Ferrosilicon and dense media",
+      "icon": "tailings:ferrosilicon",
+      "text": "Iron, sand and metallurgical coke make ferrosilicon, the dense medium. In a DMS cyclone module heavy ore sinks and light rock floats off before it is ground; medium recovery wins the ferrosilicon back.",
+      "requires": [
+        "crusher_line",
+        "wildcatter:coke",
+        "wildcatter:cables"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:ferrosilicon",
+          "count": 4
+        },
+        {
+          "item": "tailings:dms_cyclone_module",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "gyratory",
+      "title": "The gyratory",
+      "icon": "tailings:gyratory_crusher",
+      "text": "Haul trucks tip into the gyratory's dump pocket; the crusher takes 2,400 t/h onto a heavy belt to the coarse-ore stockpile, and reclaim feeders draw it to the SAG mill. Its motor runs at medium voltage, and it is built with cable.",
+      "requires": [
+        "crusher_line",
+        "wildcatter:cables"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:gyratory_crusher",
+          "count": 1
+        },
+        {
+          "item": "tailings:heavy_conveyor_drive",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "cabled_pit",
+      "title": "The cabled pit",
+      "icon": "tailings:pit_switch_house",
+      "text": "A pit switch house takes medium voltage in and hands it out on trailing cables. Click a reel on the house, then on a pit machine, to couple it; each reel adds 400 m.",
+      "requires": [
+        "wildcatter:cables",
+        "wildcatter:switchgear"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:pit_switch_house",
+          "count": 1
+        },
+        {
+          "item": "tailings:trailing_cable",
+          "count": 1
+        }
+      ],
+      "rewards": [
+        {
+          "item": "tailings:survey_stake",
+          "count": 16
+        }
+      ]
+    },
+    {
+      "id": "blasting",
+      "title": "Drill and blast",
+      "icon": "tailings:blasting_machine",
+      "text": "Drill a pattern with the blasthole drill. Fill the emulsion truck at a matrix fill point from a tank of the ammonia plant's emulsion matrix; prime each hole with a detonator and cast booster, charge and stem it, log the holes, and fire from the blasting machine with its key.",
+      "requires": [
+        "wildcatter:ammonia"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:blasthole_drill",
+          "count": 1
+        },
+        {
+          "item": "tailings:emulsion_truck",
+          "count": 1
+        },
+        {
+          "item": "tailings:blasting_machine",
+          "count": 1
+        },
+        {
+          "milestone": "tailings:blast_fired",
+          "text": "Fire a shot"
+        }
+      ],
+      "rewards": [
+        {
+          "item": "tailings:blast_logger",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "rope_shovel",
+      "title": "The rope shovel",
+      "icon": "tailings:shovel_dipper",
+      "text": "Build its crawlers, house, gantry, boom, dipper handle and dipper, couple a trailing cable and press RUN. It digs blasted rock and loads ultra haul trucks.",
+      "requires": [
+        "cabled_pit"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:shovel_crawlers",
+          "count": 1
+        },
+        {
+          "item": "tailings:shovel_dipper",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "dragline",
+      "title": "The walking dragline",
+      "icon": "tailings:dragline_bucket",
+      "text": "Its tub, house, two shoes, mast, five boom sections and bucket, on a trailing cable. Set the strip on the tub's panel and press RUN: it drags the overburden off the seam and casts it aside, and walks on as it goes.",
+      "requires": [
+        "cabled_pit"
+      ],
+      "tasks": [
+        {
+          "milestone": "tailings:dragline_running",
+          "text": "Run the walking dragline"
+        }
+      ]
+    }
+  ]
+}

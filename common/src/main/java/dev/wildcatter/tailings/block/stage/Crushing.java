@@ -243,6 +243,7 @@ final class Crushing {
 				taken.forEach((rock, size, kg) -> made.add(rock, to.apply(size), kg));
 				sink.put(made);
 				part.say("crushing " + main(taken));
+				dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.CRUSHER_RUNNING);
 				part.setChanged();
 			}
 		};

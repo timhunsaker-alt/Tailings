@@ -243,6 +243,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 			status = noPower();   // the cycle holds where it is until its power comes back
 			return;
 		}
+		if (walkTick >= 0 || cycleTick >= 0) {
+			dev.wildcatter.tailings.quest.Milestones.fire(level, blockPosition(), dev.wildcatter.tailings.quest.Milestones.DRAGLINE_RUNNING);
+		}
 		if (walkTick >= 0) {
 			stepWalk(level);
 		} else if (cycleTick >= 0) {
