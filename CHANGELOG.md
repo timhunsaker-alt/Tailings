@@ -4,6 +4,10 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Wildcatter 0.7.0 (2026-11-14)
+
+- **Requires Wildcatter 0.7.0,** released 2026-11-14 (Phases 15-20 and the time scale). Nothing Tailings uses moved.
+
 ### Wildcatter 0.6.0 (2026-11-11)
 
 - **Requires Wildcatter 0.6.0,** released 2026-11-11: P3's blasts load the ammonia plant's emulsion matrix, and Wildcatter's circuit manager no longer
