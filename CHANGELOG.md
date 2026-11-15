@@ -4,6 +4,11 @@ All notable changes are the merged pull requests on `main`. The mod version is s
 
 ## [Unreleased]
 
+### Milestones for the rest of the pit (2026-11-14)
+
+- **Quest book:** the gyratory crushing, the rope shovel digging, a leach tank leaching and a pit switch house energising a trailing
+  cable each tick off their quest for players within 64 blocks; those four quests no longer ask you to carry their parts.
+
 ### The quest book chapter, on Wildcatter 0.8.0 (2026-11-14)
 
 - **Requires Wildcatter 0.8.0,** released 2026-11-14 with its quest book.

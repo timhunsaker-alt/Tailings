@@ -179,6 +179,7 @@ final class FullRecovery {
 			Slurry.Taken taken = Flotation.use(part, Product.TAILS_SLURRY, max);
 			part.out().offer(Product.LEACH_SLURRY, taken.kg(), taken.assay());
 			part.say("leaching");
+			dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.LEACH_RUNNING);
 			part.setChanged();
 		}
 	};

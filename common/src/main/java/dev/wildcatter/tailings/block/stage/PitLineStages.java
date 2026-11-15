@@ -199,6 +199,7 @@ public final class PitLineStages {
 			taken.forEach((rock, size, kg) -> crushed.add(rock, SizeClass.CRUSHED, kg));
 			surge.receive(crushed);
 			part.say("crushing " + Crushing.main(taken) + String.format(", %d of %d t in its pocket", pocket.pocket() * PitMass.ROCK_KG / 1000, pocket.capacity() * PitMass.ROCK_KG / 1000));
+			dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.GYRATORY_RUNNING);
 			part.setChanged();
 		}
 	};

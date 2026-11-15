@@ -2,6 +2,19 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Milestones for the rest of the pit (2026-11-14)
+Tim's answers on the quest book (plan `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, section 4); decisions in
+`docs/questions/quests.md` (1-8 marked with his answers, 9-11 new, decided on recommendation). Still on Wildcatter 0.8.0's API; the
+move to 0.8.1 and the dist jars come with Wildcatter 0.8.1's release.
+- **Four new milestones** (`quest.Milestones`): `tailings:gyratory_running` (the gyratory crushing into its surge pocket),
+  `tailings:shovel_running` (the rope shovel hoisting its dipper through the face on power), `tailings:leach_running` (the leach tank
+  leaching tails with acid), `tailings:pit_energised` (a pit switch house outlet live on a trailing cable).
+- **The chapter:** the gyratory, leach, cabled pit and rope shovel quests ask for their milestone alone, as the dragline quest does.
+- **Scenes:** NeoForge `quest_gyratory_milestone`, `quest_shovel_milestone`, `quest_leach_milestone`,
+  `quest_pit_energised_milestone`; `quests_valid` checks the chapter's eight keys.
+  **The full server suite passes, 233 required tests** (229 before, 4 new), in one run; `build` passes.
+- **Known gaps:** the stamp mill, zircon and ferrosilicon quests are item tasks only (no milestone); the book's text is English only.
+
 ## The quest chapter, on Wildcatter 0.8.0 (2026-11-14)
 Wildcatter 0.8.0's quest book takes a chapter from each mod (Wildcatter `docs/quests.md`). Plan:
 `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, "Tailings chapter"; decisions in `docs/questions/quests.md` (8,
@@ -21,8 +34,8 @@ decided on recommendation).
   quests), `quest_crusher_milestone`, `quest_flotation_milestone`, `quest_blast_milestone`, `quest_dragline_milestone`,
   `quest_zircon_feed`.
   **The full server suite passes, 229 required tests** (223 before, 6 new), in one run; `build` passes.
-- **Known gaps:** the gyratory, ferrosilicon, leach, zircon, cabled pit and rope shovel quests are item tasks only (no milestone); the
-  book's text is English only, as Wildcatter's chapters are.
+- **Known gaps:** the gyratory, ferrosilicon, leach, zircon, cabled pit and rope shovel quests are item tasks only (no milestone; the
+  gyratory, leach, cabled pit and rope shovel have one since, above); the book's text is English only, as Wildcatter's chapters are.
 
 ## Tim's answers 10 and 13 on P5-P7, and main merged in (2026-11-10, branch `p5-big-machines`)
 Main merged in (gaps2, Tim's answers, the per-world rules); answers 10 and 13 built. Decisions in `docs/questions/p6-dragline.md` #3

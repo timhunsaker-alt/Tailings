@@ -1,17 +1,25 @@
 package dev.wildcatter.tailings.neoforge.gametest;
 
+import dev.wildcatter.block.StorageTankBlockEntity;
 import dev.wildcatter.block.ZirconFeed;
+import dev.wildcatter.fluid.Product;
+import dev.wildcatter.fluid.SlurryAssay;
 import dev.wildcatter.quest.QuestBook;
 import dev.wildcatter.quest.QuestData;
 import dev.wildcatter.quest.QuestRules;
 import dev.wildcatter.quest.QuestTracker;
 import dev.wildcatter.tailings.TailingsBlocks;
+import dev.wildcatter.tailings.TailingsItems;
 import dev.wildcatter.tailings.block.BlastholeBlockEntity;
 import dev.wildcatter.tailings.block.BlastingMachineBlockEntity;
 import dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
+import dev.wildcatter.tailings.block.RopeShovelBlockEntity;
 import dev.wildcatter.tailings.block.BeltConveyorBlock;
+import dev.wildcatter.tailings.entity.BlastholeDrillEntity;
 import dev.wildcatter.tailings.entity.DraglineEntity;
+import dev.wildcatter.tailings.entity.RopeShovelEntity;
+import dev.wildcatter.tailings.item.TrailingCableItem;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.plant.Reagent;
 import dev.wildcatter.tailings.quest.Milestones;
@@ -21,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
@@ -39,18 +48,23 @@ import net.minecraft.world.level.block.Blocks;
  * <ul>
  * <li>{@code quests_valid}: every chapter the server has, Tailings' with Wildcatter's, passes Wildcatter's check, and Tailings' chapter and
  * its quests are there;</li>
- * <li>{@code quest_crusher_milestone}, {@code quest_flotation_milestone}, {@code quest_blast_milestone}, {@code quest_dragline_milestone}:
+ * <li>{@code quest_crusher_milestone}, {@code quest_flotation_milestone}, {@code quest_blast_milestone}, {@code quest_dragline_milestone},
+ * {@code quest_gyratory_milestone}, {@code quest_shovel_milestone}, {@code quest_leach_milestone}, {@code quest_pit_energised_milestone}:
  * each machine, working, gives its milestone to a player standing near it;</li>
  * <li>{@code quest_zircon_feed}: Wildcatter's chlorinator takes Tailings' zircon concentrate as 56.25 kg of zircon each.</li>
  * </ul>
  */
 final class QuestGameTests {
 	static final String[] SCENES = {"quests_valid", "quest_crusher_milestone", "quest_flotation_milestone", "quest_blast_milestone",
-			"quest_dragline_milestone", "quest_zircon_feed"};
+			"quest_dragline_milestone", "quest_zircon_feed", "quest_gyratory_milestone", "quest_shovel_milestone", "quest_leach_milestone",
+			"quest_pit_energised_milestone"};
 	/** Scenes over a wide area: their chunks are loaded by {@link #reach}. */
-	static final Set<String> WIDE = Set.of("quest_blast_milestone", "quest_dragline_milestone");
-	private static final Map<String, Integer> TICKS = Map.of("quest_blast_milestone", 1200, "quest_dragline_milestone", 1200);
-	private static final Map<String, Integer> PADDING = Map.of("quest_blast_milestone", 100, "quest_dragline_milestone", 160);
+	static final Set<String> WIDE = Set.of("quest_blast_milestone", "quest_dragline_milestone", "quest_gyratory_milestone", "quest_shovel_milestone",
+			"quest_pit_energised_milestone");
+	private static final Map<String, Integer> TICKS = Map.of("quest_blast_milestone", 1200, "quest_dragline_milestone", 1200, "quest_gyratory_milestone", 800,
+			"quest_shovel_milestone", 1600, "quest_pit_energised_milestone", 1200);
+	private static final Map<String, Integer> PADDING = Map.of("quest_blast_milestone", 100, "quest_dragline_milestone", 160, "quest_gyratory_milestone", 50,
+			"quest_shovel_milestone", 120, "quest_pit_energised_milestone", 50);
 
 	private QuestGameTests() {
 	}
@@ -62,6 +76,10 @@ final class QuestGameTests {
 		out.accept("quest_blast_milestone", QuestGameTests::blast);
 		out.accept("quest_dragline_milestone", QuestGameTests::dragline);
 		out.accept("quest_zircon_feed", QuestGameTests::zirconFeed);
+		out.accept("quest_gyratory_milestone", QuestGameTests::gyratory);
+		out.accept("quest_shovel_milestone", QuestGameTests::shovel);
+		out.accept("quest_leach_milestone", QuestGameTests::leach);
+		out.accept("quest_pit_energised_milestone", QuestGameTests::pitEnergised);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -76,6 +94,9 @@ final class QuestGameTests {
 		return switch (scene) {
 			case "quest_blast_milestone" -> new int[] {-1, 4, -1, 6};
 			case "quest_dragline_milestone" -> new int[] {-1, 6, -1, 5};
+			case "quest_gyratory_milestone" -> new int[] {-1, 3, -1, 3};
+			case "quest_shovel_milestone" -> new int[] {-1, 5, -1, 6};
+			case "quest_pit_energised_milestone" -> new int[] {-1, 4, -1, 4};
 			default -> new int[] {-1, 2, -1, 2};
 		};
 	}
@@ -109,7 +130,7 @@ final class QuestGameTests {
 
 	// ---- scenes ------------------------------------------------------------------------------------------------------------------
 
-	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its four milestones. */
+	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its eight milestones. */
 	private static void questsValid(GameTestHelper helper) {
 		MinecraftServer server = helper.getLevel().getServer();
 		List<String> problems = QuestRules.problems(server);
@@ -131,8 +152,9 @@ final class QuestGameTests {
 			}
 		}
 		Set<String> fired = Set.of(Milestones.CRUSHER_RUNNING.toString(), Milestones.FLOTATION_RUNNING.toString(), Milestones.BLAST_FIRED.toString(),
-				Milestones.DRAGLINE_RUNNING.toString());
-		check(helper, keys.equals(fired), "the chapter's milestones should be the four Tailings fires: " + keys);
+				Milestones.DRAGLINE_RUNNING.toString(), Milestones.GYRATORY_RUNNING.toString(), Milestones.SHOVEL_RUNNING.toString(),
+				Milestones.LEACH_RUNNING.toString(), Milestones.PIT_ENERGISED.toString());
+		check(helper, keys.equals(fired), "the chapter's milestones should be the eight Tailings fires: " + keys);
 		log("quests_valid", "ok: " + book.chapters().size() + " chapters, " + book.quests().size() + " quests pass; Tailings' chapter has "
 				+ chapter.quests().size() + " quests");
 		helper.succeed();
@@ -243,5 +265,105 @@ final class QuestGameTests {
 		check(helper, !ZirconFeed.is(nugget), "a zircon nugget is not chlorinator feed (nine craft into zircon)");
 		log("quest_zircon_feed", "ok: " + kg + " kg");
 		helper.succeed();
+	}
+
+	/** The gyratory crushing granite from its dump pocket into the surge pocket gives a player on the ground {@code tailings:gyratory_running}. */
+	private static void gyratory(GameTestHelper helper) {
+		PitLineGameTests.Primary p = PitLineGameTests.primary(helper);
+		ServerPlayer player = player(helper, 20, 2, 20);
+		check(helper, p.pocket().offer(Map.of("minecraft:granite", 4)), "the pocket should take four bank blocks of granite");
+		check(helper, !reached(helper, player, Milestones.GYRATORY_RUNNING), "nothing is reached before the gyratory runs");
+		p.crusher().forceRunning();
+		helper.succeedWhen(() -> {
+			check(helper, reached(helper, player, Milestones.GYRATORY_RUNNING), "the crushing gyratory should give gyratory_running (" + p.crusher().status() + ")");
+			log("quest_gyratory_milestone", "ok: " + p.crusher().status());
+			leave(helper, player);
+		});
+	}
+
+	/** The rope shovel, lifted on its trailing cable, digging the muck face in AUTO gives a player on the floor {@code tailings:shovel_running}. */
+	private static void shovel(GameTestHelper helper) {
+		PitHaulGameTests.floor(helper, 0, 75, 1, 1, 0, 90);
+		BlockPos at = new BlockPos(20, 2, 40);
+		RopeShovelBlockEntity crawlers = PitBigGameTests.ropeShovel(helper, at, null);
+		PitSwitchHouseBlockEntity house = PitBigGameTests.house(helper, new BlockPos(62, 2, 75));
+		ItemStack reel = new ItemStack(TailingsItems.TRAILING_CABLE);
+		TrailingCableItem.pickUp(reel, house);
+		long[] from = TrailingCableItem.from(reel);
+		String why = crawlers.couple(helper.getLevel(), BlockPos.of(from[0]), (int) from[1]);
+		check(helper, why == null, "the crawlers should take the cable: " + why);
+		UUID name = crawlers.machine();
+		ServerPlayer player = player(helper, 45, 2, 60);
+		RopeShovelEntity[] shovel = new RopeShovelEntity[1];
+		helper.startSequence()
+				.thenIdle(3)
+				.thenExecute(() -> {
+					check(helper, house.close(0) == null, "its outlet should close on the standing machine's cable");
+					String said = crawlers.run(helper.getLevel());
+					check(helper, said.startsWith("lifted"), "RUN should lift it: " + said);
+					check(helper, helper.getLevel().getEntity(name) instanceof RopeShovelEntity, "one machine, by the crawlers' name");
+					shovel[0] = (RopeShovelEntity) helper.getLevel().getEntity(name);
+					check(helper, !reached(helper, player, Milestones.SHOVEL_RUNNING), "nothing is reached before it digs: " + shovel[0].status());
+					PitBigGameTests.muck(helper, 22, 31, 2, 14, 35, 38);
+					shovel[0].fastPasses(4);
+					shovel[0].setAutoHere();
+				})
+				.thenWaitUntil(() -> check(helper, reached(helper, player, Milestones.SHOVEL_RUNNING), "the digging shovel should give shovel_running: " + shovel[0].status()))
+				.thenExecute(() -> {
+					log("quest_shovel_milestone", "ok: " + shovel[0].status());
+					shovel[0].setAuto(helper.getLevel(), List.of());
+					shovel[0].discard();
+					leave(helper, player);
+				})
+				.thenSucceed();
+	}
+
+	/** A leach tank taking flotation tails and sulfuric acid from a stock tank gives a player beside it {@code tailings:leach_running}. */
+	private static void leach(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity source = TailingsGameTests.plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
+		source.out().offer(Product.TAILS_SLURRY, 200, SlurryAssay.of(Map.of("minecraft:copper_ingot", Mineral.INGOT_KG / 200)));
+		TailingsGameTests.pipe(helper, new BlockPos(0, y, 13));
+		PlantBlockEntity leach = TailingsGameTests.plant(helper, Machine.LEACH_TANK, new BlockPos(0, y, 14));
+		var acid = TailingsGameTests.part(helper, BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), new BlockPos(6, y, 15),
+				StorageTankBlockEntity.class);
+		acid.testFill(Product.SULFURIC_ACID, 5000);
+		TailingsGameTests.pipe(helper, new BlockPos(5, y, 16));
+		ServerPlayer player = player(helper, 10, y, 20);
+		check(helper, !reached(helper, player, Milestones.LEACH_RUNNING), "nothing is reached before the tank leaches");
+		leach.forceRunning();
+		helper.succeedWhen(() -> {
+			check(helper, leach.status().contains("leaching") && reached(helper, player, Milestones.LEACH_RUNNING), "the leaching tank should give leach_running ("
+					+ leach.status() + ")");
+			log("quest_leach_milestone", "ok: " + leach.status());
+			leave(helper, player);
+		});
+	}
+
+	/**
+	 * A switch house with an electric drill on outlet 1's trailing cable gives a player near it {@code tailings:pit_energised} once the outlet
+	 * closes and the cable is live, not before.
+	 */
+	private static void pitEnergised(GameTestHelper helper) {
+		PitHaulGameTests.floor(helper, 0, 40, 1, 1, 0, 40);
+		PitSwitchHouseBlockEntity house = PitBigGameTests.house(helper, new BlockPos(4, 2, 4));
+		BlastholeDrillEntity drill = PitBigGameTests.electricDrill(helper, 20.5, 2, 26.5, 0);
+		String why = PitBigGameTests.couple(helper, house, drill);
+		check(helper, why == null, "the drill should couple: " + why);
+		ServerPlayer player = player(helper, 12, 2, 20);
+		helper.startSequence()
+				.thenIdle(40)
+				.thenExecute(() -> {
+					check(helper, !reached(helper, player, Milestones.PIT_ENERGISED), "a coupled cable on an open outlet is not energised: " + house.state(0));
+					check(helper, house.close(0) == null, "outlet 1 should close on the drill's cable");
+				})
+				.thenWaitUntil(() -> check(helper, house.live(0) && reached(helper, player, Milestones.PIT_ENERGISED), "the live cable should give pit_energised: "
+						+ drill.powerInfo()))
+				.thenExecute(() -> {
+					log("quest_pit_energised_milestone", "ok: outlet 1 " + house.state(0) + ", " + Math.round(house.volts(0)) + " V at the drill");
+					drill.discard();
+					leave(helper, player);
+				})
+				.thenSucceed();
 	}
 }

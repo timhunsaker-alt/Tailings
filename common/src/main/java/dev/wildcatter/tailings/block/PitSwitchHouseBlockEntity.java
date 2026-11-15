@@ -365,6 +365,9 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 				default -> {
 				}
 			}
+			if (house.live(i)) {
+				dev.wildcatter.tailings.quest.Milestones.fire(level, pos, dev.wildcatter.tailings.quest.Milestones.PIT_ENERGISED);
+			}
 		}
 	}
 

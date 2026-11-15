@@ -106,16 +106,8 @@
       ],
       "tasks": [
         {
-          "item": "tailings:leach_tank",
-          "count": 1
-        },
-        {
-          "item": "tailings:ccd_thickener",
-          "count": 1
-        },
-        {
-          "item": "tailings:electrowinning_bank",
-          "count": 1
+          "milestone": "tailings:leach_running",
+          "text": "Run a leach tank"
         }
       ]
     },
@@ -171,12 +163,8 @@
       ],
       "tasks": [
         {
-          "item": "tailings:gyratory_crusher",
-          "count": 1
-        },
-        {
-          "item": "tailings:heavy_conveyor_drive",
-          "count": 1
+          "milestone": "tailings:gyratory_running",
+          "text": "Run the gyratory"
         }
       ]
     },
@@ -184,19 +172,15 @@
       "id": "cabled_pit",
       "title": "The cabled pit",
       "icon": "tailings:pit_switch_house",
-      "text": "A pit switch house takes medium voltage in and hands it out on trailing cables. Click a reel on the house, then on a pit machine, to couple it; each reel adds 400 m.",
+      "text": "A pit switch house takes medium voltage in and hands it out on trailing cables. Click a reel on the house, then on a pit machine, to couple it, and close its outlet on the house's panel; each reel adds 400 m.",
       "requires": [
         "wildcatter:cables",
         "wildcatter:switchgear"
       ],
       "tasks": [
         {
-          "item": "tailings:pit_switch_house",
-          "count": 1
-        },
-        {
-          "item": "tailings:trailing_cable",
-          "count": 1
+          "milestone": "tailings:pit_energised",
+          "text": "Energise a trailing cable"
         }
       ],
       "rewards": [
@@ -249,12 +233,8 @@
       ],
       "tasks": [
         {
-          "item": "tailings:shovel_crawlers",
-          "count": 1
-        },
-        {
-          "item": "tailings:shovel_dipper",
-          "count": 1
+          "milestone": "tailings:shovel_running",
+          "text": "Dig with the rope shovel"
         }
       ]
     },

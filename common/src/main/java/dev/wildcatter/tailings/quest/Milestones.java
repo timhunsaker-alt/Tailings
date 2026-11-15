@@ -20,6 +20,14 @@ public final class Milestones {
 	public static final Identifier BLAST_FIRED = Tailings.id("blast_fired");
 	/** The walking dragline working its cycle or walking, on power. */
 	public static final Identifier DRAGLINE_RUNNING = Tailings.id("dragline_running");
+	/** The gyratory crushing bank blocks from its dump pocket into the surge pocket. */
+	public static final Identifier GYRATORY_RUNNING = Tailings.id("gyratory_running");
+	/** The rope shovel hoisting its dipper through the face, on power. */
+	public static final Identifier SHOVEL_RUNNING = Tailings.id("shovel_running");
+	/** The leach tank leaching tails with sulfuric acid. */
+	public static final Identifier LEACH_RUNNING = Tailings.id("leach_running");
+	/** A pit switch house with a trailing cable live: its outlet closed, the house fed, the cable's far end at its volts. */
+	public static final Identifier PIT_ENERGISED = Tailings.id("pit_energised");
 
 	private Milestones() {
 	}

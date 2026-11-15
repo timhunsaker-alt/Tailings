@@ -77,6 +77,15 @@ public class RopeShovelEntity extends PitShovelEntity implements PitPanelMenu.Pa
 		return digging() ? PitPower.ROPE_HOIST_WATTS : PitPower.ROPE_REST_WATTS;
 	}
 
+	/** Its cycle; while it hoists the dipper through the face on power it fires {@code tailings:shovel_running} for the quest book. */
+	@Override
+	protected void work(ServerLevel level) {
+		super.work(level);
+		if (digging() && !outOfFuel()) {
+			dev.wildcatter.tailings.quest.Milestones.fire(level, blockPosition(), dev.wildcatter.tailings.quest.Milestones.SHOVEL_RUNNING);
+		}
+	}
+
 	/** Lifted from its parts: freshly, with its cable on. */
 	public void lifted() {
 		status = "lifted off its parts: " + (cable == null ? "NO CABLE" : cable.describe());
