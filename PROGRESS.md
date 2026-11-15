@@ -4,8 +4,8 @@ Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment wi
 
 ## Milestones for the rest of the pit (2026-11-14)
 Tim's answers on the quest book (plan `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, section 4); decisions in
-`docs/questions/quests.md` (1-8 marked with his answers, 9-11 new, decided on recommendation). Still on Wildcatter 0.8.0's API; the
-move to 0.8.1 and the dist jars come with Wildcatter 0.8.1's release.
+`docs/questions/quests.md` (1-8 marked with his answers, 9-11 new, decided on recommendation). Requires Wildcatter 0.8.1; the dist jars are
+rebuilt on it.
 - **Four new milestones** (`quest.Milestones`): `tailings:gyratory_running` (the gyratory crushing into its surge pocket),
   `tailings:shovel_running` (the rope shovel hoisting its dipper through the face on power), `tailings:leach_running` (the leach tank
   leaching tails with acid), `tailings:pit_energised` (a pit switch house outlet live on a trailing cable).
@@ -19,7 +19,7 @@ move to 0.8.1 and the dist jars come with Wildcatter 0.8.1's release.
 Wildcatter 0.8.0's quest book takes a chapter from each mod (Wildcatter `docs/quests.md`). Plan:
 `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, "Tailings chapter"; decisions in `docs/questions/quests.md` (8,
 decided on recommendation).
-- **Requires Wildcatter 0.8.0.**
+- **Requires Wildcatter 0.8.1 (was 0.8.0).**
 - **The chapter** `data/tailings/wildcatter_quests/open_pit.json`, "Mine and mill" (order 110, after Getting started), 11 quests:
   stamp mill and hand screen; the crusher line; grind and float; leach the tails; zircon for the chlorinator; ferrosilicon and dense
   media; the gyratory; the cabled pit; drill and blast; the rope shovel; the walking dragline. Each needs the Wildcatter quests whose
