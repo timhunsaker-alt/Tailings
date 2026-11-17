@@ -73,6 +73,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Playthrough(context).run();
 			return;
 		}
+		// the trailer's shots: their own real world, only when named
+		if ("trailer".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Trailer(context).run();
+			return;
+		}
 		context.runOnClient(client -> client.getSoundManager().addListener((sound, accessor, range) -> HEARD.computeIfAbsent(sound.getIdentifier().toString(), id -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(System.identityHashCode(sound))));
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			TestServerContext server = world.getServer();
