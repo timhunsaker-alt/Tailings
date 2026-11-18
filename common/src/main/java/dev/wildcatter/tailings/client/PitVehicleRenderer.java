@@ -65,7 +65,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(80.0, 40.0, 80.0));   // its boom reaches 72 m out and 45 m up
 		}
 		if (entity instanceof HaulTruckEntity t && !t.shownPour().globs().isEmpty()) {
-			return frustum.isVisible(entity.getBoundingBox().inflate(16.0));   // its load runs out behind it as it pours
+			return frustum.isVisible(entity.getBoundingBox().inflate(24.0));   // its load runs out behind it as it pours
 		}
 		return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
 	}
@@ -80,7 +80,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.loaded = entity.loaded();
 		state.fill = entity instanceof HaulTruckEntity t ? t.fill() : state.loaded ? 1F : 0F;
 		// from where the truck is drawn, which is where the pose stands
-		state.pour = entity instanceof HaulTruckEntity t ? PourRenderer.lumps(t, partialTick, state.x, state.y, state.z) : NO_LUMPS;
+		state.pour = entity instanceof HaulTruckEntity t ? PourRenderer.mesh(t, partialTick, state.x, state.y, state.z) : PourRenderer.NONE;
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
@@ -159,7 +159,6 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	}
 
 	private static final float[] NO_CABLE = new float[0];
-	private static final PourRenderer.Lump[] NO_LUMPS = new PourRenderer.Lump[0];
 	/** The most metres of trailing cable drawn: four reels. */
 	private static final int MOST_METRES = 1600;
 	private static final float CABLE_THICK = 0.12f;
@@ -267,7 +266,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		/** How full a truck's body looks, 0 to 1, as its load pours out. */
 		public float fill;
 		/** A truck's load on its way out, to draw (open-pit.md, Pouring). */
-		public PourRenderer.Lump[] pour = NO_LUMPS;
+		public PourRenderer.Quad[] pour = PourRenderer.NONE;
 		public float lift;
 		public float yaw;
 		/** Metres its wheels have rolled. */

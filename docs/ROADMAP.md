@@ -419,7 +419,8 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
 Tim's note from the trailer review (2026-11-17): a truck's dump should spread like a thick liquid and then set. Tim chose "flowing
 muck, then sets". Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md), Pouring; branch `flow-dump`. A haul truck's load (100 t
 and ultra) pours out of its tail from 35 % to 65 % of the body's lift, drops off the lip, runs over the ground and the pile at
-1.8 m/s, lies wet at its cell and sets, block by block, into the pile an instant tip would leave (`Loose.next`, the cells on their
+2.4 m/s as one thick wet sheet, and sets rim first, block by block, into the pile an instant tip would leave, let go far enough
+behind the tail that none of it lies under the body (`Loose.next`, the cells on their
 way held as taken): the same blocks, the same mass, 37°. Into a hopper or the gyratory's pocket the load is counted at the start
 and drawn pouring in. Saved with the truck; removed mid-pour, it sets at once. Drawn on the client from times the server sends; the
 body's load thins as it pours. NeoForge scenes `pit_pour_ground`, `pit_pour_pile`, `pit_pour_hopper`, `pit_pour_cut_short`; the client

@@ -21,12 +21,14 @@ import net.minecraft.world.phys.Vec3;
 public final class Pour {
 	/** The body's lift at which the load starts to slide out, and by which it is all out (real bodies shed it from about a third up). */
 	public static final float FROM = 0.35F, TO = 0.65F;
-	/** How fast the load runs over the ground, blocks a tick: about 1.8 m/s, a thick flow, wet concrete rather than water. */
-	public static final double SPEED = 0.09;
+	/** How fast the load runs over the ground, blocks a tick: about 2.4 m/s, a thick flow, wet concrete rather than water. */
+	public static final double SPEED = 0.12;
 	/** The longest a block runs, ticks. */
-	public static final int MOST_RUN = 100;
-	/** Ticks a block lies wet at its cell, thickening, before it sets. */
+	public static final int MOST_RUN = 70;
+	/** Ticks the film over a block thins before it sets. */
 	public static final int SET = 16;
+	/** Ticks over which a pour's blocks set, rim first (3 s). */
+	public static final int SETTING = 60;
 
 	/**
 	 * One block of the pour: where it rests (or, into a hopper, where it lands), the block it sets as, its piece of the load, and its

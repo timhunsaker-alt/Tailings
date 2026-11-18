@@ -5,38 +5,61 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.wildcatter.tailings.entity.HaulTruckEntity;
 import dev.wildcatter.tailings.pit.Pour;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Draws a haul truck's load pouring out (docs/multiblocks/open-pit.md, Pouring): each block of the load a lump of its own texture,
- * dark and wet, that slides off the tail, drops, runs over the ground and the pile to its cell, lies there thickening and drying,
- * and is gone when the server sets the real block in its place. Nothing here is in the world: it is drawn from the times the
- * server sent.
+ * Draws a haul truck's load pouring out (docs/multiblocks/open-pit.md, Pouring) as one thick wet sheet: a stream off the tail lip,
+ * and a smooth surface over every column the load lies on or runs over, its height shared between neighbours and slumping to the
+ * ground at its edges, dark and glossy in the load's own texture. Over a cell about to set the sheet thins to the cell's top, and
+ * when the server sets the real block the column is dry. Nothing here is in the world: it is drawn from the times the server sent.
  */
 public final class PourRenderer {
-	/**
-	 * One lump to draw: its middle's foot from the truck, its half width, height and half length, its heading, shade and sprite; a
-	 * mound while it moves, a flat sheet once it lies at its cell.
-	 */
-	public record Lump(float x, float y, float z, float hw, float h, float hl, float yaw, float shade, TextureAtlasSprite sprite, boolean sheet) {
+	/** A quad of the sheet: four vertices of x, y, z (from the truck), u, v, nx, ny, nz and shade, and the atlas it is drawn from. */
+	public record Quad(float[] v, net.minecraft.resources.Identifier atlas) {
 	}
 
-	private static final Lump[] NONE = new Lump[0];
+	public static final Quad[] NONE = new Quad[0];
+	/** How thick the wet sheet stands over a cell still running, and over a cell it has run past. */
+	private static final double FRONT = 0.55, FILM = 0.2;
+	/** The film over a cell that has not started to set. */
+	private static final double OVER = 0.2;
+	private static final double STREAM = 0.4;
+	/** How many times wider than thick the stream is. */
+	private static final double WIDE = 3.2;
 
 	private PourRenderer() {
 	}
 
-	/** The lumps of a truck's pour at this frame, from where the truck is drawn ({@code ox, oy, oz}). */
-	public static Lump[] lumps(HaulTruckEntity truck, float partialTick, double ox, double oy, double oz) {
+	/** One column of the sheet: its surface, its sprite, and how far it has dried (0 wet, 1 set). */
+	private static final class Col {
+		double surf = Double.NEGATIVE_INFINITY;
+		TextureAtlasSprite sprite;
+		double dry;
+
+		void wet(double s, TextureAtlasSprite sp, double d) {
+			if (s > surf) {
+				surf = s;
+				sprite = sp;
+				dry = d;
+			}
+		}
+	}
+
+	/** The sheet and stream of a truck's pour at this frame, from where the truck is drawn ({@code ox, oy, oz}). */
+	public static Quad[] mesh(HaulTruckEntity truck, float partialTick, double ox, double oy, double oz) {
 		Pour.Shown shown = truck.shownPour();
 		if (shown.globs().isEmpty()) {
 			return NONE;
@@ -44,82 +67,243 @@ public final class PourRenderer {
 		Level level = truck.level();
 		double now = level.getGameTime() + partialTick;
 		Vec3 lip = shown.lip(), land = shown.land();
-		List<Lump> out = new ArrayList<>();
-		int i = 0;
+		Map<Long, Col> cols = new HashMap<>();
+		Map<Long, Double> tops = new HashMap<>();
+		int highest = (int) Math.floor(land.y);
 		for (Pour.Glob g : shown.globs()) {
-			i++;
+			highest = Math.max(highest, g.y() + 1);
+		}
+		final int from = highest + 3;
+		java.util.function.BiFunction<Integer, Integer, Double> top = (x, z) -> tops.computeIfAbsent(key(x, z), k -> ground(level, x, z, from));
+		List<double[]> streams = new ArrayList<>();
+		TextureAtlasSprite streamSprite = null;
+		for (Pour.Glob g : shown.globs()) {
 			double dt = now - g.launch();
 			if (dt < 0) {
 				continue;
 			}
-			BlockState state = Block.stateById(g.state());
-			TextureAtlasSprite sprite = Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
-			// a little to either side, by its number, so the lumps do not all run on one line
-			double jx = ((i * 37 % 11) - 5) * 0.06, jz = ((i * 53 % 13) - 6) * 0.05;
+			TextureAtlasSprite sprite = sprite(Block.stateById(g.state()));
 			double landY = g.into() ? g.y() + 1.0 : land.y;
-			double lx = g.into() ? lip.x + jx : land.x + jx, lz = g.into() ? lip.z + jz : land.z + jz;
+			double lx = g.into() ? g.x() + 0.5 : land.x, lz = g.into() ? g.z() + 0.5 : land.z;
+			if (dt < g.fall() + 2) {
+				streams.add(new double[] {lx, landY, lz});
+				streamSprite = sprite;
+			}
 			if (dt < g.fall()) {
-				// off the tail and down, faster as it falls, stretched as it goes
-				double s = dt / g.fall();
-				double x = lip.x + (lx - lip.x) * s, z = lip.z + (lz - lip.z) * s, y = lip.y + (landY - lip.y) * s * s;
-				out.add(new Lump((float) (x - ox), (float) (y - oy - 0.3), (float) (z - oz), 0.42F, 0.75F + 0.3F * (float) s, 0.42F, 0, 0.6F, sprite, false));
 				continue;
 			}
 			if (g.into()) {
-				// into the pocket: it spreads and sinks into what is there
-				double s = (dt - g.fall()) / 6.0;
+				// a pool where it lands in the pocket, sinking in
+				double s = (dt - g.fall()) / 10.0;
 				if (s < 1) {
-					out.add(new Lump((float) (lx - ox), (float) (landY - oy), (float) (lz - oz), 0.5F + 0.3F * (float) s, 0.4F * (float) (1 - s), 0.5F + 0.3F * (float) s, 0,
-							0.6F, sprite, false));
+					int x = (int) Math.floor(lx), z = (int) Math.floor(lz);
+					cols.computeIfAbsent(key(x, z), k -> new Col()).wet(top.apply(x, z) + 0.35 * (1 - s), sprite, 0);
 				}
 				continue;
 			}
 			double cx = g.x() + 0.5, cz = g.z() + 0.5;
 			double arrive = g.launch() + g.fall() + g.run();
 			if (now < arrive) {
-				// running over the ground and the pile, a long low lump
+				// running out over the ground and the pile: a thick front and a film behind it
 				double s = (dt - g.fall()) / Math.max(1, g.run());
-				double x = lx + (cx - lx) * s, z = lz + (cz - lz) * s;
-				double ground = GantryRenderer.floorAt(level, x, z, Math.max(landY, g.y()) + 1.0);
-				double y = s < 0.75 ? ground : ground + (g.y() - ground) * (s - 0.75) / 0.25;
-				float yaw = (float) Math.atan2(cx - lx, cz - lz);
-				out.add(new Lump((float) (x - ox), (float) (y - oy), (float) (z - oz), 0.55F, 0.45F, 0.75F, yaw, 0.58F, sprite, false));
+				double run = Math.hypot(cx - lx, cz - lz);
+				for (double d = 0; d <= run * s + 1e-6; d += 0.5) {
+					double f = run < 1e-6 ? 0 : d / run;
+					int x = (int) Math.floor(lx + (cx - lx) * f), z = (int) Math.floor(lz + (cz - lz) * f);
+					boolean front = d + 0.5 > run * s;
+					cols.computeIfAbsent(key(x, z), k -> new Col()).wet(top.apply(x, z) + (front ? FRONT : FILM), sprite, 0);
+				}
 				continue;
 			}
-			BlockPos cell = new BlockPos(g.x(), g.y(), g.z());
-			if (now >= g.set() && (now > g.set() + 4 || !level.getBlockState(cell).isAir())) {
+			if (now >= g.set() && (now > g.set() + 4 || !level.getBlockState(new BlockPos(g.x(), g.y(), g.z())).isAir())) {
 				continue;   // set: the real block is there
 			}
-			// at its cell: a wet sheet that thickens and dries, setting from the last SET ticks
+			// lying at its cell, under a film that thins to the cell's top as it sets
 			double p = Math.max(0, Math.min(1, (now - (g.set() - Pour.SET)) / Pour.SET));
-			float h = (float) (0.35 + 0.65 * p);
-			float shade = (float) (0.58 + 0.42 * p * p);
-			// a little wider than its cell while wet, so the sheet runs on into its neighbours; its cell's size as it sets
-			float hw = (float) (0.57 - 0.07 * p);
-			out.add(new Lump((float) (cx - ox), (float) (g.y() - oy), (float) (cz - oz), hw, h, hw, 0, shade, sprite, true));
+			cols.computeIfAbsent(key(g.x(), g.z()), k -> new Col()).wet(g.y() + 1.0 + OVER * (1 - p), sprite, p);
+		}
+		List<Quad> out = new ArrayList<>();
+		Vec3 eye = Minecraft.getInstance().gameRenderer.mainCamera().position();
+		sheet(cols, top, out, ox, oy, oz, eye);
+		if (!streams.isEmpty() && streamSprite != null) {
+			double[] to = streams.get(streams.size() - 1);
+			stream(out, streamSprite, truck.getYRot(partialTick), lip.x - ox, lip.y - oy, lip.z - oz, to[0] - ox, to[1] - oy, to[2] - oz, eye == null ? null : eye.subtract(ox, oy, oz));
 		}
 		return out.toArray(NONE);
 	}
 
-	static void submit(Lump[] lumps, PoseStack pose, SubmitNodeCollector collector, int light) {
-		if (lumps.length == 0) {
+	private static long key(int x, int z) {
+		return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+	}
+
+	private static TextureAtlasSprite sprite(BlockState state) {
+		return Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state).sprite();
+	}
+
+	/** The top of what stands in a column, from {@code from} down. */
+	private static double ground(Level level, int x, int z, int from) {
+		BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+		for (int y = from; y > from - 24; y--) {
+			at.set(x, y, z);
+			VoxelShape shape = level.getBlockState(at).getCollisionShape(level, at);
+			if (!shape.isEmpty()) {
+				return y + shape.max(Direction.Axis.Y);
+			}
+		}
+		return from - 24;
+	}
+
+	/**
+	 * The sheet over the wet columns: each column four quads, its middle at its surface, its corners and edge middles shared with its
+	 * neighbours; where a neighbour is dry the sheet comes down to that neighbour's ground (or stays level against a higher one), so
+	 * the front is a slumped, rounded edge. Normals from the heights either side, so it shades smoothly.
+	 */
+	private static void sheet(Map<Long, Col> cols, java.util.function.BiFunction<Integer, Integer, Double> top, List<Quad> out, double ox, double oy, double oz,
+			Vec3 eye) {
+		if (cols.isEmpty()) {
 			return;
 		}
-		// each sprite drawn from its own atlas
+		Map<Long, Double> lattice = new HashMap<>();
+		// a half-cell lattice: (2x, 2z) is a column's corner, (2x + 1, 2z + 1) its middle
+		java.util.function.BiFunction<Integer, Integer, Double> h = (i, j) -> lattice.computeIfAbsent(key(i, j), k -> height(cols, top, i, j));
+		for (Map.Entry<Long, Col> e : cols.entrySet()) {
+			int x = (int) (e.getKey() >> 32), z = (int) (long) e.getKey();
+			Col c = e.getValue();
+			int[][] quads = {{0, 0, 1, 0, 1, 1, 0, 1}, {1, 0, 2, 0, 2, 1, 1, 1}, {1, 1, 2, 1, 2, 2, 1, 2}, {0, 1, 1, 1, 1, 2, 0, 2}};
+			for (int[] q : quads) {
+				float[] v = new float[4 * 9];
+				int[] order = {3, 2, 1, 0};
+				for (int n = 0; n < 4; n++) {
+					int k = order[n];
+					int i = 2 * x + q[k * 2], j = 2 * z + q[k * 2 + 1];
+					double y = h.apply(i, j);
+					double dx = h.apply(i + 1, j) - h.apply(i - 1, j), dz = h.apply(i, j + 1) - h.apply(i, j - 1);
+					double nx = -dx, ny = 1.0, nz = -dz, len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+					nx /= len;
+					ny /= len;
+					nz /= len;
+					double wx = i / 2.0, wz = j / 2.0;
+					int b = n * 9;
+					v[b] = (float) (wx - ox);
+					v[b + 1] = (float) (y - oy);
+					v[b + 2] = (float) (wz - oz);
+					v[b + 3] = c.sprite.getU((float) (q[k * 2] / 2.0));
+					v[b + 4] = c.sprite.getV((float) (q[k * 2 + 1] / 2.0));
+					v[b + 5] = (float) nx;
+					v[b + 6] = (float) ny;
+					v[b + 7] = (float) nz;
+					v[b + 8] = (float) shade(c.dry, nx, ny, nz, wx, y, wz, eye);
+				}
+				out.add(new Quad(v, c.sprite.atlasLocation()));
+			}
+		}
+	}
+
+	/** A lattice point's height: a column's middle is its surface; a corner or edge middle is shared by the columns around it. */
+	private static double height(Map<Long, Col> cols, java.util.function.BiFunction<Integer, Integer, Double> top, int i, int j) {
+		boolean midX = (i & 1) == 1, midZ = (j & 1) == 1;
+		int[] xs = midX ? new int[] {(i - 1) >> 1} : new int[] {(i >> 1) - 1, i >> 1};
+		int[] zs = midZ ? new int[] {(j - 1) >> 1} : new int[] {(j >> 1) - 1, j >> 1};
+		double wetSum = 0, wetMax = Double.NEGATIVE_INFINITY;
+		int wet = 0;
+		double dryLow = Double.POSITIVE_INFINITY;
+		for (int x : xs) {
+			for (int z : zs) {
+				Col c = cols.get(key(x, z));
+				if (c != null) {
+					wetSum += c.surf;
+					wetMax = Math.max(wetMax, c.surf);
+					wet++;
+				} else {
+					dryLow = Math.min(dryLow, top.apply(x, z) + 0.02);
+				}
+			}
+		}
+		if (wet == 0) {
+			return dryLow;
+		}
+		double mean = wetSum / wet;
+		if (wet == xs.length * zs.length) {
+			return mean;
+		}
+		// at the edge of the sheet: down to the dry ground beside it, or level with the sheet against a higher dry column
+		return dryLow < mean ? dryLow : mean;
+	}
+
+	/** Wet load is dark and glossy: a dark base, a highlight where the surface mirrors the sky toward the eye; drier as it sets. */
+	private static double shade(double dry, double nx, double ny, double nz, double x, double y, double z, Vec3 eye) {
+		double base = 0.5 + 0.4 * dry;
+		if (eye == null) {
+			return base;
+		}
+		double vx = eye.x - x, vy = eye.y - y, vz = eye.z - z, vl = Math.sqrt(vx * vx + vy * vy + vz * vz);
+		double lx = 0.3, ly = 1.0, lz = 0.25, ll = Math.sqrt(lx * lx + ly * ly + lz * lz);
+		double hx = vx / vl + lx / ll, hy = vy / vl + ly / ll, hz = vz / vl + lz / ll, hl = Math.sqrt(hx * hx + hy * hy + hz * hz);
+		double spec = Math.pow(Math.max(0, (nx * hx + ny * hy + nz * hz) / hl), 18) * 0.5 * (1 - dry);
+		return Math.min(1, base + spec);
+	}
+
+	/**
+	 * The stream off the lip: a flat, rounded ribbon of the load as wide as most of the body, from the lip down to where it lands,
+	 * narrowing as it falls.
+	 */
+	private static void stream(List<Quad> out, TextureAtlasSprite sp, float yaw, double x0, double y0, double z0, double x1, double y1, double z1, Vec3 eye) {
+		int sides = 12, rings = 6;
+		double turn = Math.toRadians(yaw);
+		double rx = -Math.cos(turn), rz = -Math.sin(turn), ax = -Math.sin(turn), az = Math.cos(turn);   // across the truck, and along it
+		for (int r = 0; r < rings; r++) {
+			double t0 = (double) r / rings, t1 = (double) (r + 1) / rings;
+			double r0 = STREAM * (1.1 - 0.35 * t0), r1 = STREAM * (1.1 - 0.35 * t1);
+			// it falls in a curve: out from the lip, then down
+			double[] a = {x0 + (x1 - x0) * Math.sqrt(t0), y0 + (y1 - y0) * t0 * t0, z0 + (z1 - z0) * Math.sqrt(t0)};
+			double[] b = {x0 + (x1 - x0) * Math.sqrt(t1), y0 + (y1 - y0) * t1 * t1, z0 + (z1 - z0) * Math.sqrt(t1)};
+			for (int s = 0; s < sides; s++) {
+				double p0 = 2 * Math.PI * s / sides, p1 = 2 * Math.PI * (s + 1) / sides;
+				float[] v = new float[4 * 9];
+				double[][] pts = {{p0, 0}, {p1, 0}, {p1, 1}, {p0, 1}};
+				for (int n = 0; n < 4; n++) {
+					double ang = pts[n][0];
+					boolean lower = pts[n][1] > 0;
+					double[] c = lower ? b : a;
+					double rad = lower ? r1 : r0;
+					// an ellipse: wide across the tail, thin along it
+					double wide = rad * WIDE, thin = rad;
+					double ox2 = rx * Math.cos(ang) * wide + ax * Math.sin(ang) * thin, oz2 = rz * Math.cos(ang) * wide + az * Math.sin(ang) * thin;
+					double nx = rx * Math.cos(ang) * thin + ax * Math.sin(ang) * wide, nz = rz * Math.cos(ang) * thin + az * Math.sin(ang) * wide;
+					double nl = Math.max(1e-6, Math.hypot(nx, nz));
+					nx /= nl;
+					nz /= nl;
+					int k = n * 9;
+					v[k] = (float) (c[0] + ox2);
+					v[k + 1] = (float) c[1];
+					v[k + 2] = (float) (c[2] + oz2);
+					v[k + 3] = sp.getU((float) (s / (double) sides));
+					v[k + 4] = sp.getV((float) (lower ? t1 : t0));
+					v[k + 5] = (float) nx;
+					v[k + 6] = 0;
+					v[k + 7] = (float) nz;
+					v[k + 8] = (float) (0.55 + 0.25 * Math.max(0, nx * 0.3 + nz * 0.25));
+				}
+				out.add(new Quad(v, sp.atlasLocation()));
+			}
+		}
+	}
+
+	static void submit(Quad[] quads, PoseStack pose, SubmitNodeCollector collector, int light) {
+		if (quads.length == 0) {
+			return;
+		}
 		java.util.Set<net.minecraft.resources.Identifier> atlases = new java.util.LinkedHashSet<>();
-		for (Lump l : lumps) {
-			atlases.add(l.sprite().atlasLocation());
+		for (Quad q : quads) {
+			atlases.add(q.atlas());
 		}
 		for (net.minecraft.resources.Identifier atlas : atlases) {
+			// no culling: the sheet is seen from above and the stream from every side
 			collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(atlas), (at, v) -> {
-				for (Lump l : lumps) {
-					if (l.sprite().atlasLocation().equals(atlas)) {
-						if (l.sheet()) {
-							box(at, v, l, l.hw(), l.h(), l.hl(), 0, light);
-						} else {
-							// a mound: a broad low base and a narrower crown
-							box(at, v, l, l.hw(), l.h() * 0.62F, l.hl(), 0, light);
-							box(at, v, l, l.hw() * 0.72F, l.h() * 0.38F, l.hl() * 0.78F, l.h() * 0.62F, light);
+				for (Quad q : quads) {
+					if (q.atlas().equals(atlas)) {
+						for (int n = 0; n < 4; n++) {
+							vertex(at, v, q.v(), n * 9, light);
 						}
 					}
 				}
@@ -127,38 +311,10 @@ public final class PourRenderer {
 		}
 	}
 
-	/** A box turned to the lump's heading, {@code up} above its foot. */
-	private static void box(PoseStack.Pose pose, VertexConsumer v, Lump l, float hw, float h, float hl, float up, int light) {
-		float c = (float) Math.cos(l.yaw()), s = (float) Math.sin(l.yaw());
-		// across is (c, -s), along is (s, c)
-		float[][] corners = new float[8][];
-		for (int k = 0; k < 8; k++) {
-			float a = (k & 1) == 0 ? -hw : hw, b = (k & 2) == 0 ? -hl : hl, y = (k & 4) == 0 ? up : up + h;
-			corners[k] = new float[] {l.x() + a * c + b * s, l.y() + y, l.z() - a * s + b * c};
-		}
-		int shade = Math.round(255 * l.shade());
+	private static void vertex(PoseStack.Pose pose, VertexConsumer v, float[] q, int b, int light) {
+		int shade = Math.max(0, Math.min(255, Math.round(255 * q[b + 8])));
 		int color = 0xFF000000 | shade << 16 | shade << 8 | shade;
-		TextureAtlasSprite sp = l.sprite();
-		float u = Math.min(1F, 2 * hw), w = Math.min(1F, 2 * hl), t = Math.min(1F, h);
-		face(pose, v, sp, corners[4], corners[5], corners[7], corners[6], 0, 1, 0, u, w, color, light);    // top
-		face(pose, v, sp, corners[2], corners[3], corners[1], corners[0], 0, -1, 0, u, w, color, light);   // bottom
-		face(pose, v, sp, corners[0], corners[1], corners[5], corners[4], -s, 0, -c, u, t, color, light);  // back
-		face(pose, v, sp, corners[3], corners[2], corners[6], corners[7], s, 0, c, u, t, color, light);    // front
-		face(pose, v, sp, corners[2], corners[0], corners[4], corners[6], -c, 0, s, w, t, color, light);   // one side
-		face(pose, v, sp, corners[1], corners[3], corners[7], corners[5], c, 0, -s, w, t, color, light);   // the other
-	}
-
-	private static void face(PoseStack.Pose pose, VertexConsumer v, TextureAtlasSprite sp, float[] a, float[] b, float[] c, float[] d, float nx, float ny, float nz,
-			float u, float w, int color, int light) {
-		// wound to face out: the entity render types cull back faces
-		vertex(pose, v, sp, d, 0, 0, nx, ny, nz, color, light);
-		vertex(pose, v, sp, c, u, 0, nx, ny, nz, color, light);
-		vertex(pose, v, sp, b, u, w, nx, ny, nz, color, light);
-		vertex(pose, v, sp, a, 0, w, nx, ny, nz, color, light);
-	}
-
-	private static void vertex(PoseStack.Pose pose, VertexConsumer v, TextureAtlasSprite sp, float[] p, float u, float w, float nx, float ny, float nz, int color, int light) {
-		v.addVertex(pose, p[0], p[1], p[2]).setColor(color).setUv(sp.getU(u), sp.getV(w)).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
-				.setNormal(pose, nx, ny, nz);
+		v.addVertex(pose, q[b], q[b + 1], q[b + 2]).setColor(color).setUv(q[b + 3], q[b + 4]).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light)
+				.setNormal(pose, q[b + 5], q[b + 6], q[b + 7]);
 	}
 }

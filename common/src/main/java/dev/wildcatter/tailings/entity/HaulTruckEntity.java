@@ -99,9 +99,20 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return local(0, h[1] - 0.2 - 0.4 * lift(), -(h[0] + 0.5));
 	}
 
-	/** Where a tip on the ground is let go, as the settle rule sees it: 1.5 m behind the tail, 1 m up. */
+	/** Where its load as it stands now would be let go on the ground ({@link #tipStart(int)}). */
 	public BlockPos tipStart() {
-		return BlockPos.containing(local(0, 1, -spec().length() / 2 - 1.5));
+		return tipStart(Loose.blocks(load));
+	}
+
+	/**
+	 * Where a tip of {@code blocks} blocks is let go on the ground, as the settle rule sees it, 1 m up: far enough behind the tail that
+	 * none of the pile lies under the body. A pile at 3 in 4 holds about pi r^3 / 4 blocks, so its foot reaches about
+	 * (4 n / pi)^(1/3) out from where it is let go; it is let go that far and a little more, and 1.5 m, behind the tail
+	 * (Tim, 2026-11-18; open-pit.md, Pouring).
+	 */
+	public BlockPos tipStart(int blocks) {
+		double reach = Math.cbrt(4.0 * Math.max(1, blocks) / Math.PI);
+		return BlockPos.containing(local(0, 1, -spec().length() / 2 - 1.5 - 1.15 * reach));
 	}
 
 	@Override
@@ -330,10 +341,22 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			}
 			say(driver, "tipped into the hopper");
 			long kg = before - load.total();
-			// drawn as one lump a bank block, falling into the pocket under the tail
+			// drawn as a stream into the pocket under the tail, one share of it a bank block
 			int n = (int) Math.max(4, Math.min(160, Math.round(kg / (double) dev.wildcatter.tailings.pit.PitMass.ROCK_KG)));
-			BlockPos into = floorUnder(level, BlockPos.containing(lip.x, lip.y, lip.z), 14);
-			land = new Vec3(lip.x, into.getY() + 1.0, lip.z);
+			// into the pocket itself: the first column behind the lip whose floor is the hopper's
+			BlockPos into = null;
+			for (double back = 0; back <= 4 && into == null; back += 0.5) {
+				Vec3 at = local(0, lip.y - getY(), -(hinge()[0] + 0.5 + back));
+				BlockPos floor = floorUnder(level, BlockPos.containing(at), 14);
+				BlockState there = level.getBlockState(floor);
+				if (there.getBlock() instanceof PlantMachineBlock part && (part.machine() == Machine.PIT_HOPPER || part.machine() == Machine.GYRATORY_POCKET)) {
+					into = floor;
+				}
+			}
+			if (into == null) {
+				into = floorUnder(level, BlockPos.containing(lip.x, lip.y, lip.z), 14);
+			}
+			land = new Vec3(into.getX() + 0.5, into.getY() + 1.0, into.getZ() + 0.5);
 			int fall = Pour.fall(lip.y - land.y);
 			BlockState rock = dev.wildcatter.tailings.TailingsBlocks.MUCK.defaultBlockState();
 			for (int i = 0; i < n; i++) {
@@ -343,8 +366,9 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			}
 		} else {
 			BlockPos start = tipStart();
-			BlockPos ground = floorUnder(level, start, 24);
-			land = new Vec3(start.getX() + 0.5, ground.getY() + 1.0, start.getZ() + 0.5);
+			// it lands just behind the tail and runs out from there
+			BlockPos below = BlockPos.containing(local(0, 1, -spec().length() / 2 - 1.0));
+			land = new Vec3(below.getX() + 0.5, floorUnder(level, below, 24).getY() + 1.0, below.getZ() + 0.5);
 			java.util.Set<BlockPos> held = new java.util.HashSet<>();
 			java.util.List<Loose.Piece> pieces = new java.util.ArrayList<>();
 			java.util.List<BlockPos> cells = new java.util.ArrayList<>();
@@ -361,16 +385,31 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			refreshLoad();
 			int n = pieces.size();
 			int fall = Pour.fall(lip.y - land.y);
-			long lastSet = 0;
+			long[] launch = new long[n], arrive = new long[n];
+			int[] run = new int[n];
 			for (int i = 0; i < n; i++) {
 				BlockPos at = cells.get(i);
+				launch[i] = now + (long) i * window / Math.max(1, n);
+				run[i] = Pour.run(Math.hypot(at.getX() + 0.5 - land.x, at.getZ() + 0.5 - land.z) + Math.max(0, land.y - at.getY()) * 0.5);
+				arrive[i] = launch[i] + fall + run[i];
+			}
+			// it sets from the edges in, a layer at a time: the lowest first, and in a layer the farthest from where it was let go
+			// first; so every block sets on one that has set below it, and the sheet thins from its rim to the middle of the pile
+			Integer[] order = new Integer[n];
+			for (int i = 0; i < n; i++) {
+				order[i] = i;
+			}
+			double sx = start.getX() + 0.5, sz = start.getZ() + 0.5;
+			java.util.Arrays.sort(order, java.util.Comparator.<Integer>comparingInt(i -> cells.get(i).getY())
+					.thenComparing(i -> -Math.hypot(cells.get(i).getX() + 0.5 - sx, cells.get(i).getZ() + 0.5 - sz)));
+			double gap = (double) Pour.SETTING / Math.max(1, n);
+			double last = 0;
+			for (int k = 0; k < n; k++) {
+				int i = order[k];
 				Loose.Piece piece = pieces.get(i);
-				long launch = now + (long) i * window / Math.max(1, n);
-				int run = Pour.run(Math.hypot(at.getX() + 0.5 - land.x, at.getZ() + 0.5 - land.z) + Math.max(0, land.y - at.getY()) * 0.5);
-				// it sets after the block before it, so it always sets on ground that stands
-				long set = Math.max(launch + fall + run + Pour.SET, lastSet);
-				lastSet = set;
-				pour.add(new Pour.Flow(at, piece.state(), piece.quarters(), piece.taken(), launch, fall, run, set, false));
+				double set = Math.max(arrive[i] + Pour.SET, k == 0 ? 0 : last + gap);
+				last = set;
+				pour.add(new Pour.Flow(cells.get(i), piece.state(), piece.quarters(), piece.taken(), launch[i], fall, run[i], (long) Math.ceil(set), false));
 			}
 			say(driver, "tipped " + n + " blocks" + (load.empty() ? "" : ", some left in the body"));
 		}
@@ -414,7 +453,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 				leaving = true;
 			}
 			if (f.launch() + f.fall() == now) {
-				Vec3 land = f.into() ? new Vec3(drawn.lip().x, f.at().getY() + 1.0, drawn.lip().z) : drawn.land();
+				Vec3 land = f.into() ? new Vec3(f.at().getX() + 0.5, f.at().getY() + 1.0, f.at().getZ() + 0.5) : drawn.land();
 				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, f.state()), land.x, land.y + 0.2,
 						land.z, 6, 0.6, 0.15, 0.6, 0.1);
 			}

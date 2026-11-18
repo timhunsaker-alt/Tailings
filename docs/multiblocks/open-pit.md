@@ -112,19 +112,23 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   soil as its own blocks, rock and ore as muck in quarters, each resting where the settle rule puts it, with the cells still on
   their way **held as taken** so the next block piles on them. So the pile is the instant tip's pile, at 37°, the same blocks and
   the same mass. What finds no room stays in the body, as before.
-- **The flow:** each block leaves the lip in turn, drops to the ground behind the tail (about 0.3 s from a 2 m lip), then runs to
-  its cell at **1.8 m/s** *(proposed: wet concrete, not water)*, over the ground and over whatever has set, the longest run 5 s.
-  At its cell it lies as a wet sheet, dark, then over its last **0.8 s** thickens and dries to the block. It is drawn on the client
-  only (a lump of its own block's texture, darker while wet); the world holds nothing until it sets.
-- **Setting order:** blocks set in the order the rule placed them, each no earlier than the one before. Under the 37° rule a block
-  higher up the pile rests on ones below it, so setting front-first would leave blocks standing on liquid; in this order every
-  block sets on ground that already stands, and the pile grows out from the tail as an end-tipped dump does. Muck, sand and gravel
-  fall when the ground goes from under them, so this matters.
+- **Clear of the truck (Tim, 2026-11-18):** the load is let go far enough behind the tail that none of the pile lies under the
+  body: a pile at 3 in 4 of n blocks reaches about (4n/π)^(1/3) from its middle, so it is let go 1.15 times that, and 1.5 m, behind
+  the tail. The load drops off the lip just behind the tail and runs out to it.
+- **The flow:** the load leaves the lip as a wide ribbon, drops to the ground behind the tail (about 0.3 s from a 2 m lip), then each
+  block runs to its cell at **2.4 m/s** *(proposed: wet concrete, not water)*, over the ground and over whatever has set, the longest
+  run 3.5 s. It is drawn on the client only, as **one thick wet sheet**: a surface over every column the load lies on or runs over,
+  its height shared between neighbouring columns, slumping down to the ground at its rim, dark and glossy in the load's own texture.
+  The world holds nothing until a block sets.
+- **Setting, rim first:** once its block has arrived, the pile sets from the edges in over about **3 s**: a layer at a time from the
+  bottom, and in each layer the cells farthest from the pile's middle first. Over each cell the sheet thins to the cell's top over
+  its last 0.8 s and the real block takes its place, so the last frame is the settled pile. Every block sets on one that has set
+  below it (muck, sand and gravel fall when the ground goes from under them, so a block may not set over liquid).
 - **If something takes a cell** while its block is on its way, that block settles again from there; with no room at all, it goes
   back into the body.
 - **Into a hopper or a gyratory's pocket:** the hopper counts the load when the pour starts, as before (whole bank blocks in, the
   part under a block kept). Refused (soil, FULL) nothing leaves the body. Taken, it is drawn falling from the lip into the pocket
-  over the same seconds, one lump a bank block (4 to 160).
+  over the same seconds, the ribbon falling into the pocket.
 - **The body:** the load in the body thins as it pours. **Dispatch** counts the whole load that left the body, when the pour
   starts.
 - **Sound and dust:** `muck_tip` as the pour starts and every 2.5 s while it runs; dust off the lip and where it lands; a quiet

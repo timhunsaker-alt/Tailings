@@ -165,9 +165,13 @@ final class PitPourGameTests {
 					long spread = lastSet[0] - firstSet[0];
 					System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_pour_ground: started at lift %.2f; first set %d ticks in, last %d (%d ticks of setting)%n",
 							liftAtStart[0], firstSet[0] - started[0], lastSet[0] - started[0], spread);
-					helper.assertTrue(spread >= 60 && lastSet[0] - started[0] <= 240, Component.literal("set over a few seconds: " + spread + " ticks, done "
+					helper.assertTrue(spread >= 40 && lastSet[0] - started[0] <= 320, Component.literal("set over a few seconds: " + spread + " ticks, done "
 							+ (lastSet[0] - started[0]) + " after the start"));
 					standing(helper, 2, 28, 0, 28, 60, "poured");
+					// none of either pile under its truck's body (x 12.4 to 18.6, z from its tail to its front)
+					int under = count(helper, Blocks.SAND, 12, 19, 60, 66, 14, 23) + count(helper, TailingsBlocks.MUCK, 12, 19, 60, 66, 14, 23)
+							+ count(helper, Blocks.SAND, 12, 19, 60, 66, 46, 55) + count(helper, TailingsBlocks.MUCK, 12, 19, 60, 66, 46, 55);
+					helper.assertTrue(under == 0, Component.literal("no block of the pile under a truck's body: " + under));
 				})
 				.thenWaitUntil(() -> helper.assertTrue(truck.lift() == 0 && !truck.busy(), Component.literal("the body should come back down")))
 				.thenSucceed();
@@ -179,7 +183,7 @@ final class PitPourGameTests {
 		HaulTruckEntity truck = truck(helper, TailingsEntities.HAUL_TRUCK, 15.5, 60, 22.5, 0);
 		ServerLevel level = helper.getLevel();
 		for (int i = 0; i < 60; i++) {
-			Loose.muck(level, truck.tipStart(), Map.of("minecraft:andesite", 3));
+			Loose.muck(level, truck.tipStart(27), Map.of("minecraft:andesite", 3));   // where its 27 blocks will go
 		}
 		int before = count(helper, TailingsBlocks.MUCK, 0, 30, 60, 75, 0, 30);
 		int peak = 60;
@@ -278,7 +282,7 @@ final class PitPourGameTests {
 	 * way, and the piles stand at 1 in 1. The ultra pours the same way.
 	 */
 	static void cutShort(GameTestHelper helper) {
-		floor(helper, 0, 62, 58, 59, 0, 62);
+		floor(helper, 0, 62, 58, 59, 0, 70);
 		ServerLevel level = helper.getLevel();
 		HaulTruckEntity broken = truck(helper, TailingsEntities.HAUL_TRUCK, 15.5, 60, 22.5, 0);
 		broken.load().add("minecraft:cobblestone", 54_000);
@@ -288,7 +292,7 @@ final class PitPourGameTests {
 		saved.load().add("minecraft:cobblestone", 54_000);
 		saved.refreshLoad();
 		saved.pressJump(level);
-		UltraHaulTruckEntity ultra = truck(helper, TailingsEntities.ULTRA_HAUL_TRUCK, 30.5, 60, 52.5, 0);
+		UltraHaulTruckEntity ultra = truck(helper, TailingsEntities.ULTRA_HAUL_TRUCK, 30.5, 60, 58.5, 0);
 		ultra.load().add("minecraft:gravel", 95_000);   // 50 blocks of gravel
 		ultra.load().add("minecraft:granite", 108_000);   // 40 bank blocks, 160 quarters, 54 muck blocks (53 full, one of 1)
 		ultra.refreshLoad();
@@ -336,11 +340,13 @@ final class PitPourGameTests {
 				})
 				.thenWaitUntil(() -> helper.assertTrue(ultra.pouring() == 0 && ultra.lift() >= Pour.TO, Component.literal("the ultra's pour should finish: " + ultra.pouring())))
 				.thenExecute(() -> {
-					int gravel = count(helper, Blocks.GRAVEL, 0, 62, 60, 80, 32, 62), muck = count(helper, TailingsBlocks.MUCK, 0, 62, 60, 80, 32, 62);
-					helper.assertTrue(gravel == 50 && muck == 54 && quarters(helper, 0, 62, 60, 80, 32, 62).equals(Map.of("minecraft:granite", 160)),
-							Component.literal("the ultra's pour: 50 gravel and 54 muck of 160 quarters, got " + gravel + ", " + muck + ", " + quarters(helper, 0, 62, 60, 80, 32, 62)));
+					int gravel = count(helper, Blocks.GRAVEL, 0, 62, 60, 80, 32, 70), muck = count(helper, TailingsBlocks.MUCK, 0, 62, 60, 80, 32, 70);
+					helper.assertTrue(gravel == 50 && muck == 54 && quarters(helper, 0, 62, 60, 80, 32, 70).equals(Map.of("minecraft:granite", 160)),
+							Component.literal("the ultra's pour: 50 gravel and 54 muck of 160 quarters, got " + gravel + ", " + muck + ", " + quarters(helper, 0, 62, 60, 80, 32, 70)));
 					helper.assertTrue(ultra.load().empty(), Component.literal("the ultra comes away empty"));
-					standing(helper, 1, 61, 32, 61, 60, "the ultra's pour");
+					standing(helper, 1, 61, 32, 69, 60, "the ultra's pour");
+					int under = count(helper, Blocks.GRAVEL, 25, 35, 60, 70, 51, 66) + count(helper, TailingsBlocks.MUCK, 25, 35, 60, 70, 51, 66);
+					helper.assertTrue(under == 0, Component.literal("none of the ultra's pile under its body: " + under));
 				})
 				.thenSucceed();
 	}

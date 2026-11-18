@@ -330,8 +330,8 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
   the tail (`pit.Pour`; open-pit.md, Pouring): into a pit hopper under its tail (`DumpBlockEntity.tip` when the pour starts: whole
   bank blocks, all or none; soil refused; FULL), or onto the ground 1.5 m behind it, block by block by `Loose.next` (soil as its own
   blocks, rock as muck at 4 quarters a bank block), each block's resting cell found by the settle rule when the pour starts with the
-  cells still on their way held. Each block drops off the lip, runs to its cell at 1.8 m/s and sets there in the rule's order; the
-  client draws the running load from times in the truck's synced data (`client.PourRenderer`), and the body's load thins. The pour
+  cells still on their way held. The pile is let go far enough behind the tail to stay clear of the body. Each block drops off
+  the lip and runs to its cell at 2.4 m/s; the pile sets rim first, a layer at a time from the bottom; the client draws the load as one wet sheet from times in the truck's synced data (`client.PourRenderer`), and the body's load thins. The pour
   is saved with the truck; a truck removed mid-pour sets what is on its way at once. `tip(level)` tips all at once (tests). On the ground a load goes out to the nearest whole block (soil) or quarter (rock) and the rest spills; the
   hopper keeps what is under a whole block of each ore and makes it up with the next load, so the truck comes away empty.
 - **The loader** (`WheelLoaderEntity`): jump with the bucket empty digs up to 20.4 t from the face in front of the bucket (5 wide,
