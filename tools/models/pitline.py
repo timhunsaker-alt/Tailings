@@ -219,12 +219,15 @@ MODELS = [GY, GP, RB, SP, PF, HD, SH, RF, BW, HB]
 
 def after():
 	path = os.path.join(mlib.ASSETS, "blockstates", "heavy_belt_conveyor.json")
-	# on a grade (BeltGrade) the belt renderer draws the whole metre, so the block model is empty but for its particle
+	# on a grade (BeltGrade) or over open ground the belt renderer draws the whole metre, so the block model is empty but for its particle
 	variants = {}
+	# over open ground (raised) it is drawn by the renderer too, with no legs of its own: its trestles carry it
 	for sloped in ("false", "true"):
-		model = "tailings:block/heavy_belt_conveyor/" + ("sloped" if sloped == "true" else "p0")
-		variants["axis=z,sloped=" + sloped] = {"model": model}
-		variants["axis=x,sloped=" + sloped] = {"model": model, "y": 90}
+		for raised in ("false", "true"):
+			model = "tailings:block/heavy_belt_conveyor/" + ("p0" if sloped == "false" and raised == "false" else "sloped")
+			key = ",raised=" + raised + ",sloped=" + sloped
+			variants["axis=z" + key] = {"model": model}
+			variants["axis=x" + key] = {"model": model, "y": 90}
 	with open(path, "w") as f:
 		json.dump({"variants": variants}, f, indent=1)
 	with open(os.path.join(mlib.ASSETS, "models", "block", "heavy_belt_conveyor", "sloped.json"), "w") as f:

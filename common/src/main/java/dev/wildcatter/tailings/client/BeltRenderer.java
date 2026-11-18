@@ -47,8 +47,10 @@ public class BeltRenderer implements BlockEntityRenderer<BeltBlockEntity, BeltRe
 		boolean heavy;
 		Direction.Axis axis = Direction.Axis.Z;
 		final float[] grade = new float[3];
+		/** Over open ground: no legs of its own, carried by the trestles. */
+		boolean raised;
 		int drop;
-		/** Whether this metre carries a trestle down to the ground: every third block along the run. */
+		/** Whether this metre carries a trestle down to the ground: every third block along the run, and each end of it. */
 		boolean trestle;
 	}
 
@@ -110,9 +112,11 @@ public class BeltRenderer implements BlockEntityRenderer<BeltBlockEntity, BeltRe
 		state.axis = block.getBlock() instanceof BeltConveyorBlock ? block.getValue(BeltConveyorBlock.AXIS) : Direction.Axis.Z;
 		System.arraycopy(belt.grade(), 0, state.grade, 0, 3);
 		Level level = belt.getLevel();
-		state.drop = level == null ? 0 : belt.drop(level.getGameTime(), () -> drop(level, belt.getBlockPos()));
+		state.raised = block.getBlock() instanceof BeltConveyorBlock && block.getValue(BeltConveyorBlock.RAISED);
 		BlockPos at = belt.getBlockPos();
-		state.trestle = Math.floorMod(state.axis == Direction.Axis.X ? at.getX() : at.getZ(), TRESTLE_EVERY) == 0;
+		int look = level == null ? 0 : belt.drop(level.getGameTime(), () -> drop(level, at) * 2 + (end(level, at, block) ? 1 : 0));
+		state.drop = look >> 1;
+		state.trestle = Math.floorMod(state.axis == Direction.Axis.X ? at.getX() : at.getZ(), TRESTLE_EVERY) == 0 || (look & 1) != 0;
 	}
 
 	/** Open blocks under a belt, down to what its legs stand on: anything solid, or another belt. */
@@ -121,11 +125,30 @@ public class BeltRenderer implements BlockEntityRenderer<BeltBlockEntity, BeltRe
 		for (int n = 0; n < MOST_DROP; n++) {
 			at.move(Direction.DOWN);
 			BlockState below = level.getBlockState(at);
-			if (below.getBlock() instanceof BeltConveyorBlock || !below.getCollisionShape(level, at).isEmpty() || !below.getFluidState().isEmpty()) {
+			if (!BeltConveyorBlock.open(level, at, below)) {
 				return n;
 			}
 		}
-		return 0;
+		return MOST_DROP;
+	}
+
+	/** Whether this block is an end of its run: no belt of its kind and axis next to it one way (level, or a block up or down). */
+	private static boolean end(Level level, BlockPos pos, BlockState state) {
+		if (!(state.getBlock() instanceof BeltConveyorBlock)) {
+			return false;
+		}
+		Direction.Axis axis = state.getValue(BeltConveyorBlock.AXIS);
+		for (Direction way : new Direction[] {Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE), Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)}) {
+			boolean next = false;
+			for (int dy = -1; dy <= 1 && !next; dy++) {
+				BlockState there = level.getBlockState(pos.relative(way).above(dy));
+				next = there.is(state.getBlock()) && there.getValue(BeltConveyorBlock.AXIS) == axis;
+			}
+			if (!next) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Drawn as far as the chunks are: a long incline seen from across the plant is still a belt. */
@@ -136,7 +159,7 @@ public class BeltRenderer implements BlockEntityRenderer<BeltBlockEntity, BeltRe
 
 	@Override
 	public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-		if (state.sloped || state.drop > 0 && state.trestle) {
+		if (state.sloped || state.raised) {
 			collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (pose, v) -> frame(pose, v, state));
 		}
 		if (state.rock.isEmpty() || state.fill <= 0 || state.toward == null) {
@@ -169,30 +192,34 @@ public class BeltRenderer implements BlockEntityRenderer<BeltBlockEntity, BeltRe
 		return (float) BeltGrade.surface(state.grade[0], state.grade[1], state.grade[2], Math.max(0, Math.min(1, u)));
 	}
 
-	/** The belt, its frame and legs on a grade, each part in two straight halves (the grade may bend at the block's middle). */
+	/** The belt, its frame and legs on a grade or over open ground, each part in two straight halves (the grade may bend at the block's middle). */
 	private static void frame(PoseStack.Pose pose, VertexConsumer v, State state) {
 		boolean alongX = state.axis == Direction.Axis.X;
-		if (state.drop > 0 && state.trestle) {
-			// the trestle's cross ties, one every three metres down
+		boolean trestle = state.raised && state.drop > 0 && state.trestle;
+		if (trestle) {
+			// the trestle: a cross-member under the stringers, the frame sitting on it, and a tie every three metres down
 			Part first = (state.heavy ? HEAVY : BELT).get(0);
+			Part stringer = (state.heavy ? HEAVY : BELT).get(4);
 			float lo = state.heavy ? 0 : 0.1f, hi = state.heavy ? 1 : 0.9f;
-			for (int k = 0; k * 3 < state.drop; k++) {
-				float y = -k * 3 - 0.1f;
+			float a = first.u0() - 0.02f, b = first.u1() + 0.02f;
+			float ya = surface(state, a) + stringer.d0(), yb = surface(state, b) + stringer.d0();
+			slab(pose, v, material(GALV), alongX, a, b, lo, hi, ya - 0.08f, yb - 0.08f, ya, yb, state.lightCoords);
+			for (int k = 1; k * 3 < state.drop; k++) {
+				float y = -k * 3 + 1;
 				slab(pose, v, material(GALV), alongX, first.u0() + 0.01f, first.u1() - 0.01f, lo, hi, y - 0.06f, y - 0.06f, y, y, state.lightCoords);
 			}
 		}
 		for (Part p : state.heavy ? HEAVY : BELT) {
 			TextureAtlasSprite tex = material(p.tex());
-			if (p.leg() && state.drop > 0 && state.trestle && p.u0() < 0.5f) {
-				// over open ground a trestle every few metres goes on down to it, so a raised belt stands on something
-				slab(pose, v, tex, alongX, p.u0(), p.u1(), p.v0(), p.v1(), -state.drop, -state.drop, 0, 0, state.lightCoords);
-			}
-			if (!state.sloped) {
-				continue;
-			}
 			if (p.leg()) {
 				float top = surface(state, (p.u0() + p.u1()) / 2) + p.d1();
-				slab(pose, v, tex, alongX, p.u0(), p.u1(), p.v0(), p.v1(), 0, 0, top, top, state.lightCoords);
+				if (trestle && p.u0() < 0.5f) {
+					// over open ground a trestle every third metre goes from the ground up to the cross-member
+					slab(pose, v, tex, alongX, p.u0(), p.u1(), p.v0(), p.v1(), -state.drop, -state.drop, top, top, state.lightCoords);
+				} else if (!state.raised && state.sloped) {
+					// on the ground a sloped metre stands on its own legs, from its floor up to the frame
+					slab(pose, v, tex, alongX, p.u0(), p.u1(), p.v0(), p.v1(), 0, 0, top, top, state.lightCoords);
+				}
 				continue;
 			}
 			float[] cuts = p.u0() < 0.5f && p.u1() > 0.5f ? new float[] {p.u0(), 0.5f, p.u1()} : new float[] {p.u0(), p.u1()};

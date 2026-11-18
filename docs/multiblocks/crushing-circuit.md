@@ -207,9 +207,11 @@ A run laid a block up or down every few blocks is drawn as **one straight inclin
 - **Each block** holds its belt's height at its start, middle and end (`plant.BeltGrade`, in its block entity). Neighbours share the
   height where they meet, so the belt is continuous. The surface stays between 0.25 and 1.25 blocks above the block's floor.
 - **Drawing.** A flat block keeps its baked model. A block on a grade (`sloped=true`) has an empty block model, and the belt renderer
-  draws its belt, troughed edges, return belt, stringers, idler and legs as straight pieces between those heights; the legs reach from
-  the block's floor up to the frame. The rock it carries rides up or down the belt. Under any belt standing over open ground, a trestle
-  every third metre (its legs and a cross tie every 3 m) goes on down to the ground, at most 24 blocks.
+  draws its belt, troughed edges, return belt, stringers, idler and legs as straight pieces between those heights; on the ground its legs reach from
+  the block's floor up to the frame. The rock it carries rides up or down the belt.
+- **Over open ground** (nothing solid right under it, `raised=true`), sloped or flat, a block has no legs of its own: the renderer
+  draws it, and a trestle every third metre, and at each end of the run, carries it from the ground (at most 24 blocks down) up to a
+  cross-member under the stringers, with a tie every 3 m. A belt on the ground keeps its legs as before.
 - **Its shape** is four slices along the block, each up to the belt over it, so a player walks up the incline and the outline follows it.
 - **Changes.** Placing a belt grades its run again (at once when a player places it, else on the next tick); breaking one grades the runs either side at once. A run cut in two
   ends flat at the gap; put back, it is one grade again. A belt saved before grades were drawn is graded when its drive next

@@ -1,16 +1,30 @@
 {
  "variants": {
-  "axis=z,sloped=false": {
+  "axis=z,raised=false,sloped=false": {
    "model": "tailings:block/heavy_belt_conveyor/p0"
   },
-  "axis=x,sloped=false": {
+  "axis=x,raised=false,sloped=false": {
    "model": "tailings:block/heavy_belt_conveyor/p0",
    "y": 90
   },
-  "axis=z,sloped=true": {
+  "axis=z,raised=true,sloped=false": {
    "model": "tailings:block/heavy_belt_conveyor/sloped"
   },
-  "axis=x,sloped=true": {
+  "axis=x,raised=true,sloped=false": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped",
+   "y": 90
+  },
+  "axis=z,raised=false,sloped=true": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped"
+  },
+  "axis=x,raised=false,sloped=true": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped",
+   "y": 90
+  },
+  "axis=z,raised=true,sloped=true": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped"
+  },
+  "axis=x,raised=true,sloped=true": {
    "model": "tailings:block/heavy_belt_conveyor/sloped",
    "y": 90
   }

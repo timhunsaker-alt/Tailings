@@ -40,6 +40,11 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 	 * empty. A flat block keeps its baked model.
 	 */
 	public static final BooleanProperty SLOPED = BooleanProperty.create("sloped");
+	/**
+	 * Over open ground (nothing solid right under it): its block model is empty and the belt renderer draws it with no legs of its
+	 * own, carried by a trestle every third metre down to the ground. A belt on the ground keeps its legs.
+	 */
+	public static final BooleanProperty RAISED = BooleanProperty.create("raised");
 	/** The frame and belt: 0.8 m wide, its belt 0.75 m up. */
 	private static final VoxelShape X = Shapes.or(Block.box(0, 0, 1.6, 16, 12, 14.4));
 	private static final VoxelShape Z = Shapes.or(Block.box(1.6, 0, 0, 14.4, 12, 16));
@@ -49,18 +54,32 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 	public BeltConveyorBlock(Properties properties) {
 		// its shape follows its run's grade, held by its block entity: never cached by state
 		super(properties.noOcclusion().dynamicShape());
-		registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.Z).setValue(SLOPED, false));
+		registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.Z).setValue(SLOPED, false).setValue(RAISED, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(AXIS, SLOPED);
+		builder.add(AXIS, SLOPED, RAISED);
 	}
 
 	/** It runs the way the player faces. */
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		return defaultBlockState().setValue(AXIS, context.getHorizontalDirection().getAxis());
+		BlockPos below = context.getClickedPos().below();
+		return defaultBlockState().setValue(AXIS, context.getHorizontalDirection().getAxis())
+				.setValue(RAISED, open(context.getLevel(), below, context.getLevel().getBlockState(below)));
+	}
+
+	/** Whether a belt over {@code below} stands over open ground: nothing there it could stand on. */
+	public static boolean open(BlockGetter level, BlockPos at, BlockState below) {
+		return !(below.getBlock() instanceof BeltConveyorBlock) && below.getCollisionShape(level, at).isEmpty() && below.getFluidState().isEmpty();
+	}
+
+	/** The block under it placed or taken away: it stands on it, or goes over to its trestles. */
+	@Override
+	protected BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader level, net.minecraft.world.level.ScheduledTickAccess ticks, BlockPos pos, Direction side,
+			BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+		return side == Direction.DOWN ? state.setValue(RAISED, open(level, neighborPos, neighbor)) : state;
 	}
 
 	/** The drive that drives a run of this belt. */
@@ -179,8 +198,9 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 				belt.setGrade(profile[i]);
 				belt.graded();
 			}
-			if (state.getValue(SLOPED) != sloped) {
-				level.setBlock(p, state.setValue(SLOPED, sloped), Block.UPDATE_CLIENTS);
+			boolean raised = open(level, p.below(), level.getBlockState(p.below()));
+			if (state.getValue(SLOPED) != sloped || state.getValue(RAISED) != raised) {
+				level.setBlock(p, state.setValue(SLOPED, sloped).setValue(RAISED, raised), Block.UPDATE_CLIENTS);
 			}
 		}
 	}
