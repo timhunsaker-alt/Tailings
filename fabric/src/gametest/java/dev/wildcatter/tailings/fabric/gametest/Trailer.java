@@ -142,7 +142,7 @@ final class Trailer {
 	// ---- the camera ----
 
 	/** Where the camera stands and the point it looks at. */
-	private record Cam(double x, double y, double z, double tx, double ty, double tz) {
+	record Cam(double x, double y, double z, double tx, double ty, double tz) {
 		Cam lerp(Cam o, double t) {
 			return new Cam(x + (o.x - x) * t, y + (o.y - y) * t, z + (o.z - z) * t, tx + (o.tx - tx) * t, ty + (o.ty - ty) * t, tz + (o.tz - tz) * t);
 		}
@@ -203,13 +203,13 @@ final class Trailer {
 
 	// ---- the ground ----
 
-	private static boolean loose(BlockState s) {
+	static boolean loose(BlockState s) {
 		return s.isAir() || s.is(BlockTags.LOGS) || s.is(BlockTags.LEAVES) || (s.canBeReplaced() && s.getFluidState().isEmpty()) || s.is(Blocks.SNOW)
 				|| s.is(Blocks.BAMBOO) || s.is(Blocks.CACTUS) || s.is(Blocks.SUGAR_CANE) || s.is(Blocks.PUMPKIN) || s.is(Blocks.MELON) || s.is(BlockTags.FLOWERS);
 	}
 
 	/** The first free block over the natural ground at a column: trees and plants not counted. */
-	private static int surface(ServerLevel level, int x, int z) {
+	static int surface(ServerLevel level, int x, int z) {
 		int y = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
 		BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos(x, y - 1, z);
 		while (p.getY() > level.getMinY() && loose(level.getBlockState(p))) {
@@ -218,14 +218,14 @@ final class Trailer {
 		return p.getY() + 1;
 	}
 
-	private static boolean wet(ServerLevel level, int x, int z) {
+	static boolean wet(ServerLevel level, int x, int z) {
 		return !level.getBlockState(new BlockPos(x, surface(level, x, z) - 1, z)).getFluidState().isEmpty();
 	}
 
 	/**
 	 * A dry, fairly even site near (x, z) for a w by d pad, searched outward in rings: its corner at the ground's middle height.
 	 */
-	private static BlockPos site(ServerLevel level, int x, int z, int w, int d) {
+	static BlockPos site(ServerLevel level, int x, int z, int w, int d) {
 		BlockPos best = null;
 		double bestScore = Double.MAX_VALUE;
 		for (int ring = 0; ring <= 6 && (best == null || bestScore > 4); ring++) {
@@ -269,7 +269,7 @@ final class Trailer {
 		return best;
 	}
 
-	private static void forceChunks(ServerLevel level, int x0, int z0, int x1, int z1) {
+	static void forceChunks(ServerLevel level, int x0, int z0, int x1, int z1) {
 		for (int cx = Math.floorDiv(x0, 16); cx <= Math.floorDiv(x1, 16); cx++) {
 			for (int cz = Math.floorDiv(z0, 16); cz <= Math.floorDiv(z1, 16); cz++) {
 				level.setChunkForced(cx, cz, true);
@@ -281,7 +281,7 @@ final class Trailer {
 	 * Levels the rectangle to ground at {@code g} (the first air), grass over dirt over stone, cleared {@code clear} above; a ring
 	 * {@code blend} wide around it eases back to the natural ground.
 	 */
-	private static void pad(ServerLevel level, int x0, int z0, int x1, int z1, int g, int blend, int clear) {
+	static void pad(ServerLevel level, int x0, int z0, int x1, int z1, int g, int blend, int clear) {
 		forceChunks(level, x0 - blend, z0 - blend, x1 + blend, z1 + blend);
 		for (int x = x0 - blend; x <= x1 + blend; x++) {
 			for (int z = z0 - blend; z <= z1 + blend; z++) {
@@ -299,7 +299,7 @@ final class Trailer {
 	}
 
 	/** Ground up to h (grass on top) from {@code from}, air from h to {@code to}. */
-	private static void column(ServerLevel level, int x, int z, int h, int from, int to) {
+	static void column(ServerLevel level, int x, int z, int h, int from, int to) {
 		BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
 		for (int yy = from; yy < h; yy++) {
 			BlockState s = yy == h - 1 ? Blocks.GRASS_BLOCK.defaultBlockState() : yy >= h - 4 ? Blocks.DIRT.defaultBlockState() : Blocks.STONE.defaultBlockState();
@@ -313,16 +313,16 @@ final class Trailer {
 	}
 
 	/** A rock hill: ground to {@code g + height(x, z)} where that is above g, stone under a skin of dirt and grass. */
-	private interface Height {
+	interface Height {
 		int at(int x, int z);
 	}
 
-	private static void hill(ServerLevel level, int x0, int z0, int x1, int z1, int g, Height height) {
+	static void hill(ServerLevel level, int x0, int z0, int x1, int z1, int g, Height height) {
 		hill(level, x0, z0, x1, z1, g, height, false);
 	}
 
 	/** As above; {@code quarry}: bare stone with gravel on its treads, a worked bench rather than a grassy hill. */
-	private static void hill(ServerLevel level, int x0, int z0, int x1, int z1, int g, Height height, boolean quarry) {
+	static void hill(ServerLevel level, int x0, int z0, int x1, int z1, int g, Height height, boolean quarry) {
 		BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= z1; z++) {
@@ -345,29 +345,29 @@ final class Trailer {
 
 	// ---- the mod's parts ----
 
-	private static void part(ServerLevel level, Block block, BlockPos at) {
+	static void part(ServerLevel level, Block block, BlockPos at) {
 		BlockState state = block.defaultBlockState().setValue(BigPartBlock.FACING, Direction.NORTH);
 		level.setBlock(at, state, Block.UPDATE_ALL);
 		BigParts.grow(level, at, level.getBlockState(at));
 	}
 
-	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
+	static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
 		part(level, TailingsBlocks.plantBlock(machine), at);
 		return (PlantBlockEntity) level.getBlockEntity(at);
 	}
 
-	private static void pipe(ServerLevel level, BlockPos... at) {
+	static void pipe(ServerLevel level, BlockPos... at) {
 		Block steel = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "gas_line"));
 		for (BlockPos pos : at) {
 			level.setBlock(pos, steel.defaultBlockState(), Block.UPDATE_ALL);
 		}
 	}
 
-	private static BlockState heavyBelt(Direction.Axis axis) {
+	static BlockState heavyBelt(Direction.Axis axis) {
 		return TailingsBlocks.HEAVY_BELT_CONVEYOR.defaultBlockState().setValue(BeltConveyorBlock.AXIS, axis);
 	}
 
-	private static void fillBox(ServerLevel level, BlockPos o, Block block, int x0, int x1, int y0, int y1, int z0, int z1) {
+	static void fillBox(ServerLevel level, BlockPos o, Block block, int x0, int x1, int y0, int y1, int z0, int z1) {
 		for (int x = x0; x <= x1; x++) {
 			for (int z = z0; z <= z1; z++) {
 				for (int yy = y0; yy <= y1; yy++) {
@@ -381,7 +381,7 @@ final class Trailer {
 	 * The TBM as the drive scene builds it, its cutterhead at c heading north into the rock, its gantries and track behind, a car at
 	 * the loading row; started. Returns the cab's position.
 	 */
-	private static BlockPos tbm(ServerLevel level, BlockPos c, int ticksPerAdvance) {
+	static BlockPos tbm(ServerLevel level, BlockPos c, int ticksPerAdvance) {
 		BlockPos beam = c.offset(3, 3, 3);
 		part(level, TailingsBlocks.CUTTERHEAD, c);
 		part(level, TailingsBlocks.SEGMENT_ERECTOR, c.offset(0, 0, 1));
@@ -412,7 +412,7 @@ final class Trailer {
 		return beam;
 	}
 
-	private static void feedTbm(ServerLevel level, BlockPos c) {
+	static void feedTbm(ServerLevel level, BlockPos c) {
 		for (TbmEntity machine : level.getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(90))) {
 			machine.setItem(DrillBlockEntity.SLOT_SEGMENTS, new ItemStack(TailingsBlocks.LINING, 64));
 			machine.setItem(DrillBlockEntity.SLOT_RAIL, new ItemStack(TailingsBlocks.MINE_RAIL, 64));
@@ -421,7 +421,7 @@ final class Trailer {
 	}
 
 	/** The front of the running TBM: the least z of its machine entities, or c's z before it lifts. */
-	private static double tbmFront(ServerLevel level, BlockPos c) {
+	static double tbmFront(ServerLevel level, BlockPos c) {
 		double z = c.getZ();
 		for (TbmEntity machine : level.getEntitiesOfClass(TbmEntity.class, new AABB(c).inflate(90))) {
 			z = Math.min(z, machine.getZ());
@@ -457,7 +457,7 @@ final class Trailer {
 	}
 
 	/** The section's open side: rock and lining east of the bore, cleared so the machine shows. */
-	private static void cutAway(ServerLevel level, BlockPos c) {
+	static void cutAway(ServerLevel level, BlockPos c) {
 		for (int z = -60; z <= 12; z++) {
 			for (int x = 7; x < 10; x++) {
 				for (int yy = -2; yy < 10; yy++) {

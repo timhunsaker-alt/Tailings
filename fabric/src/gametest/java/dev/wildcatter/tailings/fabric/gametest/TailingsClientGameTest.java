@@ -73,6 +73,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Playthrough(context).run();
 			return;
 		}
+		// the PLC trailer's shots: their own real world, only when named
+		if ("plcTrailer".equals(System.getenv("TAILINGS_ONLY"))) {
+			new PlcTrailer(context).run();
+			return;
+		}
 		// the trailer's shots: their own real world, only when named
 		if ("trailer".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Trailer(context).run();
