@@ -417,6 +417,10 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
 ## Later, not scheduled
 - **Time scale (Tim, 2026-11-10):** Wildcatter's world setting `timeScale` (1:1 to 50:1, spec `wildcatter/docs/time-scale.md`). Tailings
   reads Wildcatter's value: the paste cure scales with it, and Tailings' rules appear on the same World Rules screen.
+- **Flowing dumps (Tim, 2026-11-17, from the trailer review):** when a haul truck tips, onto a pile or into a hopper, the load
+  should pour out slowly and spread like a thick liquid, then set as loose ground at its angle of repose, instead of appearing
+  as settled blocks at once. A starting point: a short-lived flowing muck (a fluid or falling-block entity that runs downhill
+  over a few seconds) that turns into the existing settled muck by the `mine.Settle` 37-degree rule. Needs its own spec first.
 
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
