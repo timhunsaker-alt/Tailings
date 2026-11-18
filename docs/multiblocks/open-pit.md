@@ -96,9 +96,47 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   measured 43° in the unit test, so the run-of-4 rule replaced it; 2,000 blocks tipped at one point stand at 36°
   (`SettleTest`).
 - **Into water or lava** it falls through and displaces the fluid. A dump can fill a flooded pit (real in-pit backfill).
-- **Load:** a tipped 360 t load is about 200 blocks of dry tails. Settling is worked out on the server and placed at once,
-  with a short falling animation for the client. No falling-block entities *(proposed, for the server's sake)*.
+- **Load:** a tipped 360 t load is about 200 blocks of dry tails. Settling is worked out on the server. No falling-block
+  entities *(proposed, for the server's sake)*. A haul truck's load pours out and sets over a few seconds (Pouring, below); a
+  blast, a dozer's push and a dragline's cast are placed at once.
 - The rule lives in plain Java (`mine/Settle`), with unit tests.
+
+### Pouring (Tim, 2026-11-17, from the trailer review: "flowing muck, then sets")
+- **Real:** a haul truck's body sheds its load from about a third of the way up: the load slides out of the tail as a mass, drops
+  off the lip and runs down the face of the dump or over the ground, slow and thick, then stops. On a dump the face advances as
+  each load runs over the last one to the edge.
+- **When:** the load starts to pour as the body passes **35 %** of its lift and is all out by **65 %**, an even share of the
+  blocks each tick: about **4 s** for the 100 t truck (body up in 13 s) and **6 s** for the ultra (20 s). If any is still in the
+  body at the top, the body waits there until it is out.
+- **Where each block goes:** when the pour starts, the whole load is worked out block by block exactly as an instant tip would:
+  soil as its own blocks, rock and ore as muck in quarters, each resting where the settle rule puts it, with the cells still on
+  their way **held as taken** so the next block piles on them. So the pile is the instant tip's pile, at 37°, the same blocks and
+  the same mass. What finds no room stays in the body, as before.
+- **The flow:** each block leaves the lip in turn, drops to the ground behind the tail (about 0.3 s from a 2 m lip), then runs to
+  its cell at **1.8 m/s** *(proposed: wet concrete, not water)*, over the ground and over whatever has set, the longest run 5 s.
+  At its cell it lies as a wet sheet, dark, then over its last **0.8 s** thickens and dries to the block. It is drawn on the client
+  only (a lump of its own block's texture, darker while wet); the world holds nothing until it sets.
+- **Setting order:** blocks set in the order the rule placed them, each no earlier than the one before. Under the 37° rule a block
+  higher up the pile rests on ones below it, so setting front-first would leave blocks standing on liquid; in this order every
+  block sets on ground that already stands, and the pile grows out from the tail as an end-tipped dump does. Muck, sand and gravel
+  fall when the ground goes from under them, so this matters.
+- **If something takes a cell** while its block is on its way, that block settles again from there; with no room at all, it goes
+  back into the body.
+- **Into a hopper or a gyratory's pocket:** the hopper counts the load when the pour starts, as before (whole bank blocks in, the
+  part under a block kept). Refused (soil, FULL) nothing leaves the body. Taken, it is drawn falling from the lip into the pocket
+  over the same seconds, one lump a bank block (4 to 160).
+- **The body:** the load in the body thins as it pours. **Dispatch** counts the whole load that left the body, when the pour
+  starts.
+- **Sound and dust:** `muck_tip` as the pour starts and every 2.5 s while it runs; dust off the lip and where it lands; a quiet
+  block-place sound as blocks set.
+- **Robust:** the pour is saved with the truck: what was on its way, its cells and times. A truck unloaded with its chunk, or
+  with the server stopping, carries on when it loads again (anything whose time has passed sets on its first tick back). A truck
+  removed for good mid-pour (broken, wrecked, gone to another dimension) sets everything still on its way at once; what then
+  finds no room drops as items. Nothing is left flowing and nothing is lost.
+- **Tests:** `pit_pour_ground` (a pour on flat ground sets to the same blocks and mass as an instant tip, at no more than 1 in 1
+  and over a few seconds), `pit_pour_pile` (onto a standing pile), `pit_pour_hopper` (into the hopper, and a refused pour keeps its
+  load), `pit_pour_cut_short` (the truck removed mid-pour, and saved and loaded again mid-pour: no mass lost, nothing left on its
+  way). The client scene `pit_pour` films a loaded truck tipping onto flat ground and onto a pile.
 
 ## Machines
 
@@ -116,7 +154,7 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
 - **Speed follows power**, as the trains do: v = P η / (m g (sin θ + rolling)), η 0.8 at the wheels *(proposed)*, with a
   retarder holding a loaded truck to 15 km/h down a 10 % grade *(proposed)*.
 - **The body** holds any mix of rock, ore, muck contents and dry tails, counted by item and tonne. It tips to dump: the load
-  goes out behind the truck by the settle rule, or into a dump pocket's hopper.
+  pours out behind the truck and sets by the settle rule, or pours into a dump pocket's hopper (Pouring, above).
 - **Driving:** right-click to sit in the cab and drive with the movement keys. A truck hurts a player or mob it hits, by the
   trains' config (`config/tailings-train.properties`, a new `truck_damage` line). Sneak-attack with an empty hand to break it
   into its item and its load.

@@ -64,6 +64,9 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		if (entity instanceof dev.wildcatter.tailings.entity.DraglineEntity) {
 			return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(80.0, 40.0, 80.0));   // its boom reaches 72 m out and 45 m up
 		}
+		if (entity instanceof HaulTruckEntity t && !t.shownPour().globs().isEmpty()) {
+			return frustum.isVisible(entity.getBoundingBox().inflate(16.0));   // its load runs out behind it as it pours
+		}
 		return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
 	}
 
@@ -75,6 +78,9 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.kind = entity instanceof dev.wildcatter.tailings.entity.DraglineEntity ? 8 : entity instanceof dev.wildcatter.tailings.entity.RopeShovelEntity ? 7 : entity instanceof dev.wildcatter.tailings.entity.HydraulicShovelEntity ? 6 : entity instanceof dev.wildcatter.tailings.entity.UltraHaulTruckEntity ? 5 : entity instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity ? 2 : entity instanceof dev.wildcatter.tailings.entity.EmulsionTruckEntity ? 3
 				: entity instanceof dev.wildcatter.tailings.entity.TrackDozerEntity ? 4 : state.truck ? 0 : 1;
 		state.loaded = entity.loaded();
+		state.fill = entity instanceof HaulTruckEntity t ? t.fill() : state.loaded ? 1F : 0F;
+		// from where the truck is drawn, which is where the pose stands
+		state.pour = entity instanceof HaulTruckEntity t ? PourRenderer.lumps(t, partialTick, state.x, state.y, state.z) : NO_LUMPS;
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
@@ -153,6 +159,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	}
 
 	private static final float[] NO_CABLE = new float[0];
+	private static final PourRenderer.Lump[] NO_LUMPS = new PourRenderer.Lump[0];
 	/** The most metres of trailing cable drawn: four reels. */
 	private static final int MOST_METRES = 1600;
 	private static final float CABLE_THICK = 0.12f;
@@ -224,6 +231,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		};
 		collector.submitModel(model, state, pose, texture, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		pose.popPose();
+		PourRenderer.submit(state.pour, pose, collector, state.lightCoords);
 		float[] r = state.ropes;
 		if (r.length >= 6) {
 			net.minecraft.client.renderer.texture.TextureAtlasSprite steel = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
@@ -256,6 +264,10 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		/** 0 the haul truck, 1 the wheel loader, 2 the blasthole drill, 3 the emulsion truck, 4 the track dozer, 5 the ultra truck, 6 the hydraulic shovel, 7 the rope shovel, 8 the dragline. */
 		public int kind;
 		public boolean loaded;
+		/** How full a truck's body looks, 0 to 1, as its load pours out. */
+		public float fill;
+		/** A truck's load on its way out, to draw (open-pit.md, Pouring). */
+		public PourRenderer.Lump[] pour = NO_LUMPS;
 		public float lift;
 		public float yaw;
 		/** Metres its wheels have rolled. */

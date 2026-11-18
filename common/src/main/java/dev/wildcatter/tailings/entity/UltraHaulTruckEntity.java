@@ -62,6 +62,11 @@ public class UltraHaulTruckEntity extends HaulTruckEntity {
 	}
 
 	@Override
+	protected double[] hinge() {
+		return new double[] {6.31, 3.0};
+	}
+
+	@Override
 	public Vec3 bodyCentre() {
 		return local(0, 0, -1.9);   // its body runs from behind the cab to the tail
 	}

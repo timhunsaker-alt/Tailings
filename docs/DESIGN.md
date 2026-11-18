@@ -316,7 +316,8 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
 
 - **Loose ground:** `mine.Settle` is the settle rule in plain Java (unit-tested in `SettleTest`): a let-go block falls, then rolls
   toward a side where resting would leave a step of 2 or more, or 4 up in a run of 4 columns. Piles stand at 37 degrees (36 in the
-  test). `pit.Loose` places muck, soil and tipped loads in the world by it, at once, with no falling entities.
+  test). `pit.Loose` places muck, soil and tipped loads in the world by it, with no falling entities: at once for a blast, a dozer and
+  a dragline, block by block as it pours for a haul truck (below).
 - **Masses** (`pit.PitMass`): rock and ore 2.7 t a block; dirt and sand 1.6 t, gravel 1.9, clay 2.0, mud 1.8. A grass block digs as
   dirt. Soil is dirt, coarse and rooted dirt, sand, red sand, gravel, clay and mud: it goes to dumps, never to the plant.
 - **Muck** (`block.MuckBlock`, `MuckBlockEntity`): holds quarters of a bank block of each item it was; a full block holds 3. It
@@ -325,9 +326,13 @@ Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md).
   (`ServerPlayer.getLastClientInput`), so the vehicle moves on the server and the client follows it. Forward and back drive or brake
   by the engine's power, left and right turn on its radius while it moves, jump works its body or bucket, sneak gets out. It steps
   up 1 block. Its box is its real length and width, turned with it; it will not turn into a wall.
-- **The truck** (`HaulTruckEntity`): standing, jump raises the body over 13 s. At the top its load goes into a pit hopper under its
-  tail (`DumpBlockEntity.tip`: whole bank blocks, all or none; soil refused; FULL) or out 1.5 m behind it by `Loose.tip` (soil as its
-  own blocks, rock as muck at 4 quarters a bank block). On the ground a load goes out to the nearest whole block (soil) or quarter (rock) and the rest spills; the
+- **The truck** (`HaulTruckEntity`): standing, jump raises the body over 13 s. From 35 % to 65 % of the lift its load pours out of
+  the tail (`pit.Pour`; open-pit.md, Pouring): into a pit hopper under its tail (`DumpBlockEntity.tip` when the pour starts: whole
+  bank blocks, all or none; soil refused; FULL), or onto the ground 1.5 m behind it, block by block by `Loose.next` (soil as its own
+  blocks, rock as muck at 4 quarters a bank block), each block's resting cell found by the settle rule when the pour starts with the
+  cells still on their way held. Each block drops off the lip, runs to its cell at 1.8 m/s and sets there in the rule's order; the
+  client draws the running load from times in the truck's synced data (`client.PourRenderer`), and the body's load thins. The pour
+  is saved with the truck; a truck removed mid-pour sets what is on its way at once. `tip(level)` tips all at once (tests). On the ground a load goes out to the nearest whole block (soil) or quarter (rock) and the rest spills; the
   hopper keeps what is under a whole block of each ore and makes it up with the next load, so the truck comes away empty.
 - **The loader** (`WheelLoaderEntity`): jump with the bucket empty digs up to 20.4 t from the face in front of the bucket (5 wide,
   6 high from its own floor, 3 deep, top down), soft ground or muck; a pass is 25 s. Jump with the bucket full dumps it into the

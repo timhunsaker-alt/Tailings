@@ -168,6 +168,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("p7_flotation")) {
 				p7Flotation(context, world, server);
 			}
+			if (only("pit_pour")) {
+				new PourScene(context, server, y).run();
+			}
 			if (only("dms_floats_belt")) {
 				dmsFloatsBelt(context, world, server);
 			}

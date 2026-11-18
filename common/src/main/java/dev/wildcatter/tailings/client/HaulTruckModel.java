@@ -428,6 +428,10 @@ public class HaulTruckModel extends EntityModel<PitVehicleRenderer.PitState> {
 		}
 		ModelPart body = root().getChild(BODY);
 		body.xRot = -state.lift * 0.84F;   // the body tips to 48 degrees (proposed)
-		body.getChild("load").visible = state.loaded;
+		// the load thins as it pours out of the tail, its bottom on the body's floor
+		ModelPart load = body.getChild("load");
+		load.visible = state.fill > 0.02F;
+		load.yScale = Math.max(0.02F, Math.min(1F, state.fill));
+		load.y = -16F * (1F - load.yScale);
 	}
 }

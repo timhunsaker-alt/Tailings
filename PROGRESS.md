@@ -2,6 +2,21 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Flowing dumps (2026-11-18)
+Tim's trailer-review note (2026-11-17), his choice "flowing muck, then sets"; spec open-pit.md, Pouring; branch `flow-dump`.
+- **The pour:** a haul truck's load (100 t and ultra) leaves the tail from 35 % to 65 % of the body's lift (about 4 s and 6 s), drops
+  off the lip, runs at 1.8 m/s over the ground and the pile, lies wet at its cell and sets. The cells are the settle rule's, found
+  when the pour starts with the cells on their way held (`Loose.next`, `Loose.rest`), so the pile is the instant tip's: same blocks,
+  same mass, 37°. Blocks set in the rule's order, so none sets on liquid. Into a hopper or the gyratory's pocket the load is counted
+  at the start (refused, none leaves the body) and drawn pouring in. Dispatch counts the whole load.
+- **Drawn on the client** (`client.PourRenderer`): a lump of each block's own texture, dark while wet; the body's load thins.
+  Dust off the lip and at the landing, `muck_tip` every 2.5 s of the pour.
+- **Robust:** the pour is saved with the truck (unloaded, it carries on; past its time, it sets on its first tick back); removed
+  for good, it sets at once. The dozer, dragline, blasts and a wrecked truck still place at once.
+- **Scenes:** NeoForge `pit_pour_ground`, `pit_pour_pile`, `pit_pour_hopper`, `pit_pour_cut_short` (new); `pit_berm` and
+  `pit_loadout_haul` now wait for the pour to set. Client film `pit_pour` (TAILINGS_ONLY=pit_pour).
+  **The full server suite passes, 237 required tests** (233 before, 4 new), in one run; `build` passes.
+
 ## Milestones for the rest of the pit (2026-11-14)
 Tim's answers on the quest book (plan `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, section 4); decisions in
 `docs/questions/quests.md` (1-8 marked with his answers, 9-11 new, decided on recommendation). Requires Wildcatter 0.8.1; the dist jars are

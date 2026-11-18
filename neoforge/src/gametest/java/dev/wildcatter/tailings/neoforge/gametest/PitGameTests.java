@@ -136,7 +136,7 @@ final class PitGameTests {
 		helper.succeed();
 	}
 
-	/** Jump raises the body over 13 s, the load goes out at the top, and the body comes down. */
+	/** Jump raises the body over 13 s, the load pours out from a third of the way up (open-pit.md, Pouring), and the body comes down. */
 	static void truckBody(GameTestHelper helper) {
 		floor(helper, 0, 30, 58, 59, 0, 30);
 		HaulTruckEntity truck = vehicle(helper, TailingsEntities.HAUL_TRUCK, 15.5, 60, 18.5, 0);
@@ -145,7 +145,7 @@ final class PitGameTests {
 		truck.pressJump(helper.getLevel());
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(truck.lift() > 0.5F && truck.busy(), Component.literal("the body should be going up")))
-				.thenWaitUntil(() -> helper.assertTrue(truck.load().empty(), Component.literal("the load should go at the top (" + truck.status() + ")")))
+				.thenWaitUntil(() -> helper.assertTrue(truck.load().empty(), Component.literal("the load should pour out as the body rises (" + truck.status() + ")")))
 				.thenWaitUntil(() -> helper.assertTrue(truck.lift() == 0 && !truck.busy(), Component.literal("the body should come back down")))
 				.thenExecute(() -> helper.assertTrue(count(helper, Blocks.GRAVEL, 0, 30, 60, 75, 0, 30) == 10, Component.literal("19 t of gravel is 10 blocks")))
 				.thenSucceed();

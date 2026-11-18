@@ -414,14 +414,20 @@ Built on branch `answers` from [questions/answers-2026-11-10.md](questions/answe
   `gaps_press_cycle_bit`, `gaps_press_points`, `gaps_paste_gauges`.
 - **Ore blocks only (#3):** raw iron, copper and gold and every Wildcatter ore's mined drop are no plant feed; scene `raw_ore_refused`.
 
+## Flowing dumps (2026-11-18)
+
+Tim's note from the trailer review (2026-11-17): a truck's dump should spread like a thick liquid and then set. Tim chose "flowing
+muck, then sets". Spec: [multiblocks/open-pit.md](multiblocks/open-pit.md), Pouring; branch `flow-dump`. A haul truck's load (100 t
+and ultra) pours out of its tail from 35 % to 65 % of the body's lift, drops off the lip, runs over the ground and the pile at
+1.8 m/s, lies wet at its cell and sets, block by block, into the pile an instant tip would leave (`Loose.next`, the cells on their
+way held as taken): the same blocks, the same mass, 37°. Into a hopper or the gyratory's pocket the load is counted at the start
+and drawn pouring in. Saved with the truck; removed mid-pour, it sets at once. Drawn on the client from times the server sends; the
+body's load thins as it pours. NeoForge scenes `pit_pour_ground`, `pit_pour_pile`, `pit_pour_hopper`, `pit_pour_cut_short`; the client
+film `pit_pour`. The dozer's push, the dragline's cast, a blast and a wrecked truck still place their blocks at once.
+
 ## Later, not scheduled
 - **Time scale (Tim, 2026-11-10):** Wildcatter's world setting `timeScale` (1:1 to 50:1, spec `wildcatter/docs/time-scale.md`). Tailings
   reads Wildcatter's value: the paste cure scales with it, and Tailings' rules appear on the same World Rules screen.
-- **Flowing dumps (Tim, 2026-11-17, from the trailer review):** when a haul truck tips, onto a pile or into a hopper, the load
-  should pour out slowly and spread like a thick liquid, then set as loose ground at its angle of repose, instead of appearing
-  as settled blocks at once. A starting point: a short-lived flowing muck (a fluid or falling-block entity that runs downhill
-  over a few seconds) that turns into the existing settled muck by the `mine.Settle` 37-degree rule. Needs its own spec first.
-
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation: built as L7 (above). X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.

@@ -220,6 +220,7 @@ final class PitDryStackGameTests {
 				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, truck) > 85, Component.literal("out of the far side: " + where(helper, truck))))
 				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, truck) < 45, Component.literal("round the loop and back through the lane: " + where(helper, truck))))
 				.thenWaitUntil(() -> helper.assertTrue(office.readPulses(Dispatch.LOADS) == 1, Component.literal("it tips at the dump point, and dispatch counts the load: " + where(helper, truck))))
+				.thenWaitUntil(() -> helper.assertTrue(truck.pouring() == 0, Component.literal("its load pours out and sets: " + truck.pouring() + " on their way")))
 				.thenExecute(() -> helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 10, 30, 59, 66, -12, 2) >= 35, Component.literal("about 50 blocks of dry tails at the dump point: "
 						+ count(helper, TailingsBlocks.DRY_TAILS, 10, 30, 59, 66, -12, 2))))
 				.thenSucceed();
@@ -259,6 +260,7 @@ final class PitDryStackGameTests {
 		HaulTruckEntity truck = loadedTruck(helper, dumpRoute(helper));
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(truck.load().empty(), Component.literal("it should back to the berm and tip: " + where(helper, truck))))
+				.thenWaitUntil(() -> helper.assertTrue(truck.pouring() == 0, Component.literal("its load pours out and sets: " + truck.pouring() + " on their way")))
 				.thenExecute(() -> {
 					double tail = relZ(helper, truck) + 5;
 					helper.assertTrue(tail > 56.4 && tail < 58.6, Component.literal("its tail 1 m short of the berm at z 59: " + tail));

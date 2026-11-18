@@ -24,6 +24,11 @@ public final class Loose {
 	}
 
 	static Settle.Ground ground(ServerLevel level) {
+		return ground(level, java.util.Set.of());
+	}
+
+	/** The ground, with {@code held} cells counted as taken: where a pour's blocks are still on their way (docs/multiblocks/open-pit.md, Pouring). */
+	static Settle.Ground ground(ServerLevel level, java.util.Set<BlockPos> held) {
 		return new Settle.Ground() {
 			private final BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
 
@@ -32,7 +37,11 @@ public final class Loose {
 				if (y < level.getMinY() || y > level.getMaxY()) {
 					return false;
 				}
-				BlockState state = level.getBlockState(at.set(x, y, z));
+				at.set(x, y, z);
+				if (!held.isEmpty() && held.contains(at)) {
+					return false;
+				}
+				BlockState state = level.getBlockState(at);
 				return FallingBlock.isFree(state) && !state.hasBlockEntity();
 			}
 
@@ -44,8 +53,7 @@ public final class Loose {
 	}
 
 	/** The first free cell at or above {@code start}, up to 8 up; null if there is none. */
-	private static @Nullable BlockPos opening(ServerLevel level, BlockPos start) {
-		Settle.Ground ground = ground(level);
+	private static @Nullable BlockPos opening(Settle.Ground ground, BlockPos start) {
 		for (int up = 0; up <= 8; up++) {
 			if (ground.free(start.getX(), start.getY() + up, start.getZ())) {
 				return start.above(up);
@@ -105,73 +113,111 @@ public final class Loose {
 	}
 
 	private static @Nullable BlockPos rest(ServerLevel level, BlockPos start) {
-		BlockPos open = opening(level, start);
+		return rest(level, start, java.util.Set.of());
+	}
+
+	/** Where a block let go at {@code start} rests by the settle rule, the {@code held} cells counted as taken; null with no room. */
+	public static @Nullable BlockPos rest(ServerLevel level, BlockPos start, java.util.Set<BlockPos> held) {
+		Settle.Ground ground = ground(level, held);
+		BlockPos open = opening(ground, start);
 		if (open == null) {
 			return null;
 		}
-		Settle.Cell cell = Settle.rest(ground(level), open.getX(), open.getY(), open.getZ(), new java.util.Random(level.getRandom().nextLong()));
+		Settle.Cell cell = Settle.rest(ground, open.getX(), open.getY(), open.getZ(), new java.util.Random(level.getRandom().nextLong()));
 		return cell == null ? null : new BlockPos(cell.x(), cell.y(), cell.z());
 	}
 
 	/**
-	 * Tips {@code load} out at {@code start}: soil lands as its own blocks, rock and ore as muck, four quarters of muck for each bank
-	 * block (the same swell as a blast). What is under a whole block or quarter, or finds no room, stays in the load. Returns the
-	 * blocks placed.
+	 * One block of a tipped load: a soil (or dry tails) block, or a muck block of up to {@link PitMass#MUCK_QUARTERS} quarters, with
+	 * what was taken from the load for it, item by item, so it can go back if it finds no room.
+	 */
+	public record Piece(BlockState state, Map<String, Integer> quarters, Map<String, Long> taken) {
+		/** Puts what it took back in {@code load}. */
+		public void putBack(PitLoad load) {
+			taken.forEach(load::add);
+		}
+
+		/** Places it at {@code at}. */
+		public void place(ServerLevel level, BlockPos at) {
+			level.setBlock(at, state, Block.UPDATE_ALL);
+			if (!quarters.isEmpty() && level.getBlockEntity(at) instanceof MuckBlockEntity muck) {
+				muck.set(quarters);
+			}
+		}
+	}
+
+	/**
+	 * Takes the next block's worth out of {@code load}, in the load's order: soil lands as its own blocks, rock and ore as muck, four
+	 * quarters of muck for each bank block (the same swell as a blast), a muck block taking quarters across items until it is full.
+	 * What rounds to under a whole block of soil, or under a quarter, spills, so the body comes away empty (2026-11-09,
+	 * docs/questions). Null when nothing is left that makes a block.
+	 */
+	public static @Nullable Piece next(PitLoad load) {
+		Map<String, Integer> filling = new LinkedHashMap<>();
+		Map<String, Long> taken = new LinkedHashMap<>();
+		int inFilling = 0;
+		for (String id : java.util.List.copyOf(load.contents().keySet())) {
+			long kg = load.kg(id);
+			int blockKg = PitMass.kg(id);
+			if (PitMass.ownBlock(id)) {
+				if (inFilling > 0) {
+					continue;   // a muck block being filled takes only rock and ore
+				}
+				// to the nearest whole block: what is left over spills
+				if (Math.round((double) kg / blockKg) < 1) {
+					load.take(id, Long.MAX_VALUE);
+					continue;
+				}
+				long take = Math.min(kg, blockKg);
+				load.take(id, take);
+				return new Piece(stateOf(id), Map.of(), Map.of(id, take));
+			}
+			// to the nearest quarter of a bank block; the rest spills (2026-11-09)
+			while (inFilling < PitMass.MUCK_QUARTERS && load.kg(id) > 0 && Math.round(load.kg(id) * 4.0 / blockKg) >= 1) {
+				long take = Math.min(load.kg(id), blockKg / 4);
+				load.take(id, take);
+				taken.merge(id, take, Long::sum);
+				filling.merge(id, 1, Integer::sum);
+				inFilling++;
+			}
+			if (inFilling == PitMass.MUCK_QUARTERS) {
+				break;   // what is left of this item goes in the next block
+			}
+			load.take(id, Long.MAX_VALUE);   // under a quarter left: it spills
+		}
+		return inFilling == 0 ? null : new Piece(TailingsBlocks.MUCK.defaultBlockState(), filling, taken);
+	}
+
+	/** How many blocks {@code load} would tip to, all finding room. */
+	public static int blocks(PitLoad load) {
+		PitLoad copy = new PitLoad(Long.MAX_VALUE);
+		load.contents().forEach(copy::add);
+		int n = 0;
+		while (next(copy) != null) {
+			n++;
+		}
+		return n;
+	}
+
+	/**
+	 * Tips {@code load} out at {@code start}, all at once: soil lands as its own blocks, rock and ore as muck ({@link #next}). What is
+	 * under a whole block or quarter spills; what finds no room stays in the load. Returns the blocks placed.
 	 */
 	public static int tip(ServerLevel level, BlockPos start, PitLoad load) {
 		int placed = 0;
-		Map<String, Integer> filling = new LinkedHashMap<>();
-		int inFilling = 0;
-		for (Map.Entry<String, Long> e : Map.copyOf(load.contents()).entrySet()) {
-			String id = e.getKey();
-			long kg = e.getValue();
-			if (PitMass.ownBlock(id)) {
-				BlockState state = stateOf(id);
-				// to the nearest whole block: what is left over spills, and the body comes away empty (2026-11-09, docs/questions)
-				int whole = (int) Math.round((double) kg / PitMass.kg(id));
-				boolean all = true;
-				for (int i = 0; i < whole; i++) {
-					if (block(level, start, state) == null) {
-						all = false;
-						break;
-					}
-					load.take(id, PitMass.kg(id));
-					placed++;
-				}
-				if (all) {
-					load.take(id, Long.MAX_VALUE);
-				}
-				continue;
+		for (Piece piece = next(load); piece != null; piece = next(load)) {
+			BlockPos rest = rest(level, start);
+			if (rest == null) {
+				piece.putBack(load);
+				return placed;
 			}
-			// to the nearest quarter of a bank block; the rest spills (2026-11-09)
-			int quarters = (int) Math.round(kg * 4.0 / PitMass.kg(id));
-			for (int q = 0; q < quarters; q++) {
-				filling.merge(id, 1, Integer::sum);
-				inFilling++;
-				load.take(id, PitMass.kg(id) / 4);
-				if (inFilling == PitMass.MUCK_QUARTERS) {
-					if (muck(level, start, filling) == null) {
-						filling.forEach((back, n) -> load.add(back, (long) n * PitMass.kg(back) / 4));
-						return placed;
-					}
-					placed++;
-					filling.clear();
-					inFilling = 0;
-				}
-			}
-			load.take(id, Long.MAX_VALUE);
-		}
-		if (inFilling > 0) {
-			if (muck(level, start, filling) == null) {
-				filling.forEach((back, n) -> load.add(back, (long) n * PitMass.kg(back) / 4));
-			} else {
-				placed++;
-			}
+			piece.place(level, rest);
+			placed++;
 		}
 		return placed;
 	}
 
-	private static BlockState stateOf(String id) {
+	static BlockState stateOf(String id) {
 		Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(id));
 		return block == null || block == Blocks.AIR ? Blocks.DIRT.defaultBlockState() : block.defaultBlockState();
 	}
