@@ -99,7 +99,7 @@ A part's motor box needs its west cell free. So the screen stands clear of the j
 | `cone_crusher` | 3 x 4 x 3 | An HP200-class cone: **132 kW at 480 V**, closed-side setting 13 mm. It takes the screen's oversize by belt and returns its product to the screen by belt |
 | `ball_mill` | 4 x 4 x 6 | A 3.2 m x 4.5 m overflow ball mill: **600 kW at 4.16 kV**. Sand in at its feed end by belt, water off a water pipe, and the cyclone underflow from the cluster it touches. Mill discharge slurry out on pipe |
 | `cyclone_cluster` | 2 x 4 x 2 | Four 250 mm hydrocyclones with a 150 µm cut point *(proposed count)*, on a pump box with a **45 kW, 480 V** slurry pump. Mill discharge in on pipe, overflow (fines slurry) out on pipe, underflow back into the mill it touches |
-| `belt_conveyor` | 1 x 1 x 1 per block, a run of any length | A 600 mm troughed belt at 2 m/s on idlers. Laid block by block like a pipe run, along one axis or up a grade of at most 1 in 3 *(proposed; real belts climb about 18°)* |
+| `belt_conveyor` | 1 x 1 x 1 per block, a run of any length | A 600 mm troughed belt at 2 m/s on idlers. Laid block by block like a pipe run, along one axis or up a grade (a block up or down a step), drawn as one straight belt from 1 in 1 to 1 in 4 (see "A belt on a grade") |
 | `conveyor_drive` | 1 x 1 x 2 | The head pulley and drive of one run: **7.5 kW at 480 V for each 30 m of run, rounded up** *(proposed)*. A run with no drive, or with too little drive for its length, does not move |
 
 **New pipe products (in the Wildcatter proposal):**
@@ -191,6 +191,31 @@ Elevation of the jaw and grizzly, looking west:
   crushed rock *(proposed)* and all of the cone's gravel that is not sand; what the belt has no room for goes round to the cone. A
   hopper or chest at a run's head end takes rock as whole items (2.7 t of one rock and size an item), so gravel ends as `gravel_*` items.
 - **Metal in kg:** the vanilla metals are in kg in the assay, an ingot 100 kg *(proposed, Wildcatter's iron ingot)*.
+
+## A belt on a grade (Tim, 2026-11-18)
+A run laid a block up or down every few blocks is drawn as **one straight inclined belt**, not a staircase of flat metres. Both belts
+(600 mm and heavy) do it. What a run carries and how fast is unchanged: `run()`, the drive and the load do not look at the grade.
+- **The grade comes from the steps.** A step is where the run goes a block up or down. Steps the same way at most 4 blocks apart are one
+  grade: every 1, 2, 3 or 4 blocks is a 1-in-1 (45°), 1-in-2, 1-in-3 or 1-in-4 (14°) grade. Real belts climb up to about 18°, so the
+  1-in-3 and 1-in-4 are the usual ones; the 1-in-1 is allowed for short lifts.
+- **The line.** The belt passes through the middle of each step, half a block above the lower flat (a flat belt's surface is 0.75 m up),
+  and runs straight from step to step. At each end the grade runs on half its spacing into the flat (a lone step, one block each way:
+  a 1-in-2 ramp), and meets the flat at the flat's height. It never reaches past the run's end, or past halfway to a step of another
+  grade.
+- **Uneven steps** (2, 3, 2 ...) still give one continuous belt, with a slight bend at a step. A peak or a valley, a grade that turns
+  the other way, keeps a bend. Nothing is steeper than 1 in 1, since a run rises at most a block a step.
+- **Each block** holds its belt's height at its start, middle and end (`plant.BeltGrade`, in its block entity). Neighbours share the
+  height where they meet, so the belt is continuous. The surface stays between 0.25 and 1.25 blocks above the block's floor.
+- **Drawing.** A flat block keeps its baked model. A block on a grade (`sloped=true`) has an empty block model, and the belt renderer
+  draws its belt, troughed edges, return belt, stringers, idler and legs as straight pieces between those heights; the legs reach from
+  the block's floor up to the frame. The rock it carries rides up or down the belt. Under any belt standing over open ground, a trestle
+  every third metre (its legs and a cross tie every 3 m) goes on down to the ground, at most 24 blocks.
+- **Its shape** is four slices along the block, each up to the belt over it, so a player walks up the incline and the outline follows it.
+- **Changes.** Placing a belt grades its run again (at once when a player places it, else on the next tick); breaking one grades the runs either side at once. A run cut in two
+  ends flat at the gap; put back, it is one grade again. A belt saved before grades were drawn is graded when its drive next
+  scans its run.
+- **Game tests:** `belt_grade_up`, `belt_grade_down` (1-in-1 to 1-in-4 runs of both belts: each block meets the next, the grade is the
+  steps' spacing, the ends are flat, the shape follows) and `belt_grade_reforms`; the client scene `belt_grade` takes stills.
 
 ## Left out (ROADMAP)
 - Real size distributions inside a size class (P80 only).

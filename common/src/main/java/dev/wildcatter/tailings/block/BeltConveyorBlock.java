@@ -1,5 +1,6 @@
 package dev.wildcatter.tailings.block;
 
+import dev.wildcatter.tailings.plant.BeltGrade;
 import dev.wildcatter.tailings.plant.Machine;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,18 +8,25 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One metre of a belt conveyor run (docs/multiblocks/crushing-circuit.md): a 600 mm troughed belt on idlers, laid block by block
@@ -27,6 +35,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class BeltConveyorBlock extends Block implements EntityBlock {
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.HORIZONTAL_AXIS;
+	/**
+	 * On a grade ({@link BeltGrade}): its block entity holds the belt's heights, the belt renderer draws it, and the block model is
+	 * empty. A flat block keeps its baked model.
+	 */
+	public static final BooleanProperty SLOPED = BooleanProperty.create("sloped");
 	/** The frame and belt: 0.8 m wide, its belt 0.75 m up. */
 	private static final VoxelShape X = Shapes.or(Block.box(0, 0, 1.6, 16, 12, 14.4));
 	private static final VoxelShape Z = Shapes.or(Block.box(1.6, 0, 0, 14.4, 12, 16));
@@ -34,13 +47,14 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 	public static final int MAX_RUN = 512;
 
 	public BeltConveyorBlock(Properties properties) {
-		super(properties.noOcclusion());
-		registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.Z));
+		// its shape follows its run's grade, held by its block entity: never cached by state
+		super(properties.noOcclusion().dynamicShape());
+		registerDefaultState(stateDefinition.any().setValue(AXIS, Direction.Axis.Z).setValue(SLOPED, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(AXIS);
+		builder.add(AXIS, SLOPED);
 	}
 
 	/** It runs the way the player faces. */
@@ -56,7 +70,119 @@ public class BeltConveyorBlock extends Block implements EntityBlock {
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return state.getValue(AXIS) == Direction.Axis.X ? X : Z;
+		VoxelShape sloped = slopedShape(state, level, pos);
+		return sloped != null ? sloped : state.getValue(AXIS) == Direction.Axis.X ? X : Z;
+	}
+
+	/** Across the run, the shape's sides, in blocks; and the top of the shape above the belt's surface. */
+	protected double[] shapeAcross() {
+		return new double[] {0.1, 0.9, 0};
+	}
+
+	/**
+	 * On a grade, a shape that follows the belt: four slices along the run, each up to the belt's surface over it, so a player walks
+	 * up the incline and the outline follows it. Null when flat or not yet known.
+	 */
+	protected @Nullable VoxelShape slopedShape(BlockState state, BlockGetter level, BlockPos pos) {
+		if (!state.getValue(SLOPED) || !(level.getBlockEntity(pos) instanceof BeltBlockEntity belt)) {
+			return null;
+		}
+		VoxelShape made = belt.shape();
+		if (made != null) {
+			return made;
+		}
+		float[] g = belt.grade();
+		double[] across = shapeAcross();
+		boolean alongX = state.getValue(AXIS) == Direction.Axis.X;
+		made = Shapes.empty();
+		for (int k = 0; k < 4; k++) {
+			double u0 = k / 4.0, u1 = (k + 1) / 4.0;
+			double top = Math.max(0.0625, BeltGrade.surface(g[0], g[1], g[2], (u0 + u1) / 2) + across[2]);
+			made = Shapes.or(made, alongX ? Shapes.box(u0, 0, across[0], u1, top, across[1]) : Shapes.box(across[0], 0, u0, across[1], top, u1));
+		}
+		made = made.optimize();
+		belt.shape(made);
+		return made;
+	}
+
+	/** A belt placed: its run is graded again next tick, when its block entity is there. */
+	@Override
+	protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+		super.onPlace(state, level, pos, oldState, movedByPiston);
+		if (!oldState.is(state.getBlock()) && !level.isClientSide()) {
+			level.scheduleTick(pos, this, 1);
+		}
+	}
+
+	/** Placed by a player: graded at once (its block entity is there by now). */
+	@Override
+	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack stack) {
+		super.setPlacedBy(level, pos, state, by, stack);
+		if (!level.isClientSide()) {
+			regrade(level, pos);
+		}
+	}
+
+	@Override
+	protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+		regrade(level, pos);
+	}
+
+	/** A belt taken out: the runs either side of it are graded again. */
+	@Override
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+		super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+		if (level.getBlockState(pos).is(state.getBlock())) {
+			return;
+		}
+		Direction.Axis axis = state.getValue(AXIS);
+		for (Direction way : new Direction[] {Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE), Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)}) {
+			for (int dy = -1; dy <= 1; dy++) {
+				BlockPos near = pos.relative(way).above(dy);
+				BlockState there = level.getBlockState(near);
+				if (there.is(state.getBlock()) && there.getValue(AXIS) == axis) {
+					regrade(level, near);
+				}
+			}
+		}
+	}
+
+	/** Grades {@code run} again if any of it was saved before belts were graded (a drive's scan asks). */
+	public static void gradeIfOld(Level level, List<BlockPos> run) {
+		for (BlockPos p : run) {
+			if (level.getBlockEntity(p) instanceof BeltBlockEntity belt && belt.ungraded()) {
+				regrade(level, p);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Works out where each block of {@code at}'s run sits on its grade ({@link BeltGrade}) and sets it: the heights into each block
+	 * entity, {@link #SLOPED} into each state.
+	 */
+	public static void regrade(Level level, BlockPos at) {
+		List<BlockPos> run = run(level, at);
+		if (run.isEmpty()) {
+			return;
+		}
+		int[] levels = new int[run.size()];
+		for (int i = 0; i < levels.length; i++) {
+			levels[i] = run.get(i).getY();
+		}
+		double[][] profile = BeltGrade.profile(levels);
+		for (int i = 0; i < levels.length; i++) {
+			BlockPos p = run.get(i);
+			BlockState state = level.getBlockState(p);
+			boolean sloped = BeltGrade.sloped(profile[i]);
+			if (level.getBlockEntity(p) instanceof BeltBlockEntity belt) {
+				belt.setGrade(profile[i]);
+				belt.graded();
+			}
+			if (state.getValue(SLOPED) != sloped) {
+				level.setBlock(p, state.setValue(SLOPED, sloped), Block.UPDATE_CLIENTS);
+			}
+		}
 	}
 
 	/**

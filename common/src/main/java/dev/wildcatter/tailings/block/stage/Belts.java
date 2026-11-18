@@ -288,6 +288,7 @@ final class Belts {
 					continue;
 				}
 				List<BlockPos> run = BeltConveyorBlock.run(level, next);
+				BeltConveyorBlock.gradeIfOld(level, run);
 				Set<BlockPos> drives = new LinkedHashSet<>();
 				for (BlockPos belt : run) {
 					for (Direction d : Direction.values()) {

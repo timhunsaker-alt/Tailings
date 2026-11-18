@@ -29,6 +29,12 @@ public class HeavyBeltBlock extends BeltConveyorBlock {
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return state.getValue(AXIS) == Direction.Axis.X ? X : Z;
+		VoxelShape sloped = slopedShape(state, level, pos);
+		return sloped != null ? sloped : state.getValue(AXIS) == Direction.Axis.X ? X : Z;
+	}
+
+	@Override
+	protected double[] shapeAcross() {
+		return new double[] {0, 1, 1 / 16.0};
 	}
 }

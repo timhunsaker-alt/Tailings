@@ -1,10 +1,17 @@
 {
  "variants": {
-  "axis=z": {
+  "axis=z,sloped=false": {
    "model": "tailings:block/heavy_belt_conveyor/p0"
   },
-  "axis=x": {
+  "axis=x,sloped=false": {
    "model": "tailings:block/heavy_belt_conveyor/p0",
+   "y": 90
+  },
+  "axis=z,sloped=true": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped"
+  },
+  "axis=x,sloped=true": {
+   "model": "tailings:block/heavy_belt_conveyor/sloped",
    "y": 90
   }
  }

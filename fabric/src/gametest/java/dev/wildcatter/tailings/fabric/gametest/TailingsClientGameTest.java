@@ -171,6 +171,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("dms_floats_belt")) {
 				dmsFloatsBelt(context, world, server);
 			}
+			if (only("belt_grade")) {
+				beltGrade(context, world, server);
+			}
 		}
 		if (only("hand")) {
 			hand(context);
@@ -878,6 +881,121 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
 		part(level, TailingsBlocks.plantBlock(machine), at);
 		return (PlantBlockEntity) level.getBlockEntity(at);
+	}
+
+	/** Where belt_grade's stills go: BELT_GRADE_OUT, or the run folder's belt-grade. */
+	private static final java.nio.file.Path BELT_GRADE_OUT = java.nio.file.Path.of(System.getenv().getOrDefault("BELT_GRADE_OUT", "belt-grade")).toAbsolutePath();
+
+	/** Lays a run along +z at column x from {@code o}: {@code flat} level blocks, a step up every {@code every} blocks {@code steps} times, {@code flat} more. */
+	private static List<BlockPos> gradeRun(ServerLevel level, BlockPos o, Block kind, int x, int every, int steps, int flat) {
+		List<BlockPos> laid = new java.util.ArrayList<>();
+		int by = 0;
+		for (int z = 0; z < flat * 2 + every * steps; z++) {
+			if (z >= flat && z < flat + every * steps && (z - flat) % every == 0) {
+				by++;
+			}
+			BlockPos at = o.offset(x, by, z);
+			level.setBlock(at, kind.defaultBlockState().setValue(BeltConveyorBlock.AXIS, Direction.Axis.Z), Block.UPDATE_ALL);
+			laid.add(at);
+		}
+		return laid;
+	}
+
+	private static void look(TestServerContext server, BlockPos o, double x, double y, double z, double tx, double ty, double tz) {
+		double dx = tx - x, dy = ty - y - 1.62, dz = tz - z;
+		double yaw = Math.toDegrees(Math.atan2(-dx, dz));
+		double pitch = -Math.toDegrees(Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)));
+		server.runCommand(String.format(java.util.Locale.ROOT, "tp @p %.3f %.3f %.3f %.2f %.2f", o.getX() + x, o.getY() + y, o.getZ() + z, yaw, pitch));
+	}
+
+	private static void gradeStill(ClientGameTestContext context, String name) {
+		context.waitTicks(30);
+		try {
+			context.waitFor(client -> client.levelRenderer.hasRenderedAllSections(), 400);
+		} catch (RuntimeException | AssertionError ex) {
+			System.out.println("[tailings-test] belt_grade: sections still compiling");
+		}
+		context.waitTicks(10);
+		java.nio.file.Path at = context.takeScreenshot(net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptions.of(name).withSize(1920, 1080).withDestinationDir(BELT_GRADE_OUT).disableCounterPrefix());
+		System.out.println("[tailings-test] belt_grade still " + at);
+	}
+
+	/**
+	 * Belts on a grade (crushing-circuit.md, "A belt on a grade"): a 1-in-1 and a 1-in-3 run of the 600 mm belt going up, a 1-in-2
+	 * and a 1-in-4 beside them, and a long 1-in-3 heavy incline climbing 10 m over open ground as the plant's does, each carrying
+	 * rock. Stills in daylight with the HUD hidden, close enough to see each is one straight belt.
+	 */
+	private void beltGrade(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos o = new BlockPos(700, y + 1, 700);
+		List<List<BlockPos>> runs = new java.util.ArrayList<>();
+		// the player there first, so the chunks tick and the belts' scheduled grading runs
+		server.runCommand("tp @p " + (o.getX() + 20) + " " + (o.getY() + 12) + " " + (o.getZ() + 10));
+		context.waitTicks(40);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -20; x <= 64; x++) {
+				for (int z = -24; z <= 64; z++) {
+					for (int h = -4; h < 0; h++) {
+						level.setBlock(o.offset(x, h, z), (h == -1 ? Blocks.GRASS_BLOCK : Blocks.DIRT).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+					for (int h = 0; h < 24; h++) {
+						level.setBlock(o.offset(x, h, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			runs.add(gradeRun(level, o, TailingsBlocks.BELT_CONVEYOR, 0, 1, 6, 3));
+			runs.add(gradeRun(level, o, TailingsBlocks.BELT_CONVEYOR, 12, 3, 5, 3));
+			runs.add(gradeRun(level, o, TailingsBlocks.BELT_CONVEYOR, 20, 2, 5, 3));
+			runs.add(gradeRun(level, o, TailingsBlocks.BELT_CONVEYOR, 26, 4, 4, 3));
+			runs.add(gradeRun(level, o, TailingsBlocks.HEAVY_BELT_CONVEYOR, 44, 3, 10, 3));
+		});
+		context.waitTicks(10);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (List<BlockPos> run : runs) {
+				for (BlockPos p : run) {
+					if (level.getBlockEntity(p) instanceof dev.wildcatter.tailings.block.BeltBlockEntity belt) {
+						belt.set(null, Rock.ANDESITE.name(), 0.75f, Direction.SOUTH, true);
+					}
+				}
+			}
+		});
+		int sloped = server.computeOnServer(srv -> {
+			int n = 0;
+			for (List<BlockPos> run : runs) {
+				for (BlockPos p : run) {
+					n += srv.overworld().getBlockState(p).getValue(BeltConveyorBlock.SLOPED) ? 1 : 0;
+				}
+			}
+			return n;
+		});
+		System.out.println("[tailings-test] belt_grade: " + sloped + " sloped blocks");
+		require(sloped > 60, "the runs should be graded, got " + sloped + " sloped blocks");
+		server.runCommand("weather clear");
+		context.runOnClient(client -> {
+			if (!client.gui.hud.isHidden()) {
+				client.gui.hud.toggle();
+			}
+		});
+		look(server, o, -6.5, 3.5, 6, 0.5, 3.5, 6);
+		gradeStill(context, "belt-grade-1in1-side");
+		look(server, o, -4.5, 9, -3, 0.5, 3, 7);
+		gradeStill(context, "belt-grade-1in1-along");
+		look(server, o, 5, 3.5, 10.5, 12.5, 3, 10.5);
+		gradeStill(context, "belt-grade-1in3-side");
+		look(server, o, 8, 7, -4, 12.5, 3, 9);
+		gradeStill(context, "belt-grade-1in3-along");
+		look(server, o, 14, 8, -10, 24, 2, 14);
+		gradeStill(context, "belt-grade-overview");
+		look(server, o, 28, 8, 4, 44.5, 6, 20);
+		gradeStill(context, "belt-grade-incline");
+		look(server, o, 38, 2.5, 14, 44.5, 5, 17);
+		gradeStill(context, "belt-grade-incline-close");
+		context.runOnClient(client -> {
+			if (client.gui.hud.isHidden()) {
+				client.gui.hud.toggle();
+			}
+		});
 	}
 
 	private static BlockState belt(Direction.Axis axis) {
