@@ -38,8 +38,16 @@ class BatteryTest {
 
 	@Test
 	void aFlatBatteryChargesInAboutTwoAndAHalfHours() {
-		assertEquals(2.6, Battery.hoursToCharge(), 0.05);
+		assertEquals(2.6, Battery.hoursToCharge(Battery.chargerWatts(480, 30)), 0.05);
 		assertEquals(5.0, Battery.chargeWh(20_000, 1), 1e-9, "18 kW into the battery: 5 Wh a second");
+	}
+
+	/** Tim, 2026-11-19 (l2-l3-trains.md 9): 80 % of the receptacle, from its rating. */
+	@Test
+	void theChargerDrawsEightyPercentOfItsReceptacle() {
+		assertEquals(19_950, Battery.chargerWatts(480, 30), 10, "about 20 kW on a 480 V 30 A receptacle");
+		assertEquals(17_730, Battery.chargerWatts(400, 32), 10, "17.7 kW on a 400 V 32 A");
+		assertEquals(2.9, Battery.hoursToCharge(Battery.chargerWatts(400, 32)), 0.05, "a little slower on IEC");
 	}
 
 	@Test

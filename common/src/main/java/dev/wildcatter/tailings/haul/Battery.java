@@ -21,8 +21,17 @@ public final class Battery {
 	/** A new battery, crafted or on a new locomotive, holds this share of its usable charge (proposed; as a new pit machine's 10 % diesel). */
 	public static final double NEW_SHARE = 0.1;
 
-	/** The charger: 20 kW continuous, 80 % of a three-phase 30 A circuit at 480 V (proposed). */
-	public static final double CHARGER_WATTS = 20_000;
+	/**
+	 * The charger draws 80 % of its receptacle's rating continuously, the continuous-load rule (Tim, 2026-11-19; l2-l3-trains.md 9): of a
+	 * three-phase receptacle, 0.8 x root 3 x its line-to-line volts x its amps, taken as watts. The receptacle's rating comes from the
+	 * world's electrical standard, through Wildcatter's plug types: about 20 kW on a 480 V 30 A, 17.7 kW on a 400 V 32 A.
+	 */
+	public static final double CONTINUOUS_SHARE = 0.8;
+
+	/** What the charger draws from a three-phase receptacle of {@code volts} line to line and {@code amps}. */
+	public static double chargerWatts(double volts, double amps) {
+		return CONTINUOUS_SHARE * Math.sqrt(3) * volts * amps;
+	}
 	/** Its rectifier's power factor (proposed). */
 	public static final double CHARGER_POWER_FACTOR = 0.95;
 	/** Of what it draws, this goes into the battery: 10 % is lost in the charger and the battery (proposed). */
@@ -51,9 +60,9 @@ public final class Battery {
 		return drawWh(kg * Haul.GRAVITY * (metres + Haul.ROLLING * run), 1);
 	}
 
-	/** Hours a charger takes to fill a flat battery. */
-	public static double hoursToCharge() {
-		return USABLE_WH / (CHARGER_WATTS * CHARGE_EFFICIENCY);
+	/** Hours a charger drawing {@code watts} takes to fill a flat battery. */
+	public static double hoursToCharge(double watts) {
+		return USABLE_WH / (watts * CHARGE_EFFICIENCY);
 	}
 
 	/** The share of its usable charge {@code wh} is, 0 to 1. */

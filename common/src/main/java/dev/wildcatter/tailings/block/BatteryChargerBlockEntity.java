@@ -60,6 +60,8 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 	/** Where its plug meets a receptacle: the cell and the face, or null. */
 	private @Nullable BlockPos plugCell;
 	private @Nullable Direction plugFace;
+	/** The receptacle it is plugged into: what it may draw comes from its rating. */
+	private @Nullable PlugType plugType;
 	private @Nullable String wrongReceptacle;
 
 	public BatteryChargerBlockEntity(BlockPos pos, BlockState state) {
@@ -85,6 +87,11 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 		return line.watts();
 	}
 
+	/** What it draws while it charges, from the receptacle it is plugged into; 0 unplugged. */
+	public double ratedWatts() {
+		return plugType == null ? 0 : Battery.chargerWatts(plugType.volts(), plugType.amps());
+	}
+
 	public double intoBattery() {
 		return intoBattery;
 	}
@@ -103,7 +110,7 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 		findPlug();
 		MineVehicleEntity loco = heldWh >= 0 ? null : locomotiveInReach(server);
 		boolean wants = heldWh >= 0 ? heldWh < Battery.USABLE_WH - 1e-6 : loco != null && loco.batteryWh() < Battery.USABLE_WH - 1e-6;
-		double demand = wants && plugCell != null ? Battery.CHARGER_WATTS : 0;
+		double demand = wants && plugCell != null && plugType != null ? Battery.chargerWatts(plugType.volts(), plugType.amps()) : 0;
 		if (Math.abs(demand - line.demand()) > 1) {
 			line.setDemand(demand);
 			CircuitManager.markDirty(server);
@@ -161,6 +168,7 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 	private void findPlug() {
 		plugCell = null;
 		plugFace = null;
+		plugType = null;
 		wrongReceptacle = null;
 		if (level == null) {
 			return;
@@ -172,6 +180,7 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 					if (fits(receptacle.type())) {
 						plugCell = cell;
 						plugFace = face;
+						plugType = receptacle.type();
 						return;
 					}
 					wrongReceptacle = receptacle.type().label();

@@ -298,13 +298,20 @@ final class TrainsGameTests {
 		((GensetControlPanelBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(panel))).setWantRun(true);
 	}
 
+	/** 80 % of the world's three-phase 30 A receptacle, from Wildcatter's plug types. */
+	private static double rated(boolean na) {
+		dev.wildcatter.energy.PlugType plug = na ? dev.wildcatter.energy.PlugType.NEMA_L22_30 : dev.wildcatter.energy.PlugType.IEC_60309_RED_32;
+		return Battery.chargerWatts(plug.volts(), plug.amps());
+	}
+
 	private static Block wildcatter(String id) {
 		return BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", id));
 	}
 
 	/**
-	 * The charger on the world's three-phase 30 A receptacle (battery_charge): dead, it charges nothing; fed from a set, it draws its
-	 * 20 kW and puts 18 kW into the battery it holds; then it charges a battery locomotive standing beside it.
+	 * The charger on the world's three-phase 30 A receptacle (battery_charge): dead, it charges nothing; fed from a set, it draws 80 % of
+	 * its receptacle (about 20 kW at 480 V, 17.7 kW at 400 V; Tim, 2026-11-19) and puts 90 % of that into the battery it holds; then it
+	 * charges a battery locomotive standing beside it.
 	 */
 	private static void batteryCharge(GameTestHelper helper) {
 		BlockPos panel = new BlockPos(8, 2, 3);
@@ -324,12 +331,12 @@ final class TrainsGameTests {
 					helper.setBlock(panel.east(2), wildcatter("cable_industrial"));
 					start(helper, panel);
 				})
-				.thenWaitUntil(() -> helper.assertTrue(Math.abs(charger.lineWatts() - Battery.CHARGER_WATTS) < Battery.CHARGER_WATTS * 0.05,
-						Component.literal("fed, it should draw its 20 kW: " + charger.inspect().getString())))
+				.thenWaitUntil(() -> helper.assertTrue(Math.abs(charger.lineWatts() - rated(na)) < rated(na) * 0.05 && Math.abs(charger.ratedWatts() - rated(na)) < 1,
+						Component.literal("fed, it should draw 80 % of its receptacle, " + Math.round(rated(na)) + " W: " + charger.inspect().getString())))
 				.thenExecute(() -> mark[0] = charger.heldWh())
 				.thenExecuteAfter(100, () -> {
 					double rate = (charger.heldWh() - mark[0]) * 3600 / 5;
-					helper.assertTrue(Math.abs(rate - 18_000) < 1_000, Component.literal("18 kW into the battery, got " + Math.round(rate) + " W"));
+					helper.assertTrue(Math.abs(rate - rated(na) * Battery.CHARGE_EFFICIENCY) < 1_000, Component.literal(Math.round(rated(na) * 0.9) + " W into the battery, got " + Math.round(rate) + " W"));
 					helper.assertTrue(charger.readPoint(BatteryChargerBlockEntity.CHARGING), Component.literal("CHARGING on"));
 					double ma = charger.readMa(BatteryChargerBlockEntity.CHARGE);
 					helper.assertTrue(ma > 4 && ma < 4.1, Component.literal("a nearly flat battery reads just over 4 mA, got " + ma));
