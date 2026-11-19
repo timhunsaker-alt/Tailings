@@ -59,8 +59,10 @@ All motors at the world's standard industrial low voltage. Water off a water pip
 ## The medium
 - **Ferrosilicon** (`ferrosilicon` item, 15 % Si milled grade). It is **lost at about 0.3 kg a tonne** of feed *(proposed; real
   losses 0.1-0.5 kg/t)*, made up by hopper on the medium recovery part. NO MEDIUM stops the module.
-- **Where it comes from:** Wildcatter's planned ferroalloy plant (VISION: Tailings does not refine ferroalloys). Until it exists, a
-  placeholder recipe *(Decision L7-2)*.
+- **Where it comes from:** Wildcatter's ferroalloy plant (VISION: Tailings does not refine ferroalloys): its 1 t bulk bag of
+  ferrosilicon 75 (`#c:ferroalloys/ferrosilicon`), diluted with iron. Since 2026-11-19 (Tim's answer of 2026-11-10, built on Wildcatter
+  0.8.1) the bag, an iron block and four iron ingots (about 1.3 t of iron) craft **64 bags** (1.6 t) of 15 % Si; a crafting table cannot
+  hand back the 200 bags a whole bag would really make, so the rest of the bag's silicon is not counted (questions/wave-a.md).
 
 ## How it runs
 - It runs while it has gravel, water, medium and room on both product belts. Rate up to **60 t/h** *(proposed, more than the plant's
@@ -94,8 +96,8 @@ Decisions in [../questions/l7-dms.md](../questions/l7-dms.md) (16 entries; #4, #
   `DRAIN_RINSE_SCREEN`, `MEDIUM_RECOVERY` on the plant's motors and PLC points, `TailingsItems.FERROSILICON`; `tools/models/dms.py`.
 - **As the spec, except:** a piece's density by the real mixing rule, not mass-weighted (#3); the light industrial ores float at any
   setting (#4); the sinks come round through the cone and the DMS again, about 3 % of an ore block's mineral lost (#5); the floats
-  screen is the one on the module's north side, the sinks screen the one on its south (#7); a 25 kg ferrosilicon bag, 4 from an iron
-  ingot, a sand and a metallurgical coke (#8); no starting charge of medium (#9); the density set by a sneaking click, not a screen
+  screen is the one on the module's north side, the sinks screen the one on its south (#7); a 25 kg ferrosilicon bag, 64 from Wildcatter's FeSi 75
+  bag and iron since 2026-11-19 (#8; until then 4 from an iron ingot, a sand and a metallurgical coke); no starting charge of medium (#9); the density set by a sneaking click, not a screen
   (#10); floats by hopper or hand, not by belt (#11).
 - **Measured (DenseMediumTest, the scenes):** granite 2.65, copper ore 3.15, galena ore 3.14, sphalerite ore 3.72, tin ore 2.88; 2 t
   of granite and 1 t of copper ore at 2.75: 1.98 t floats (one gravel block and 80 kg waiting), 980 kg of the copper and 40 kg of the

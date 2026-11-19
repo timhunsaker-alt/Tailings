@@ -979,8 +979,8 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 - **Paste fill items (L5):** `cement` (a 50 kg bag: one quicklime and one clay ball, shapeless, a placeholder until a cement kiln).
 - **Dry mill items (L6):** `heavy_mineral_concentrate`, a 100 kg bag of moist HMC with its assay as item data (no recipe; the filter
   makes it).
-- **DMS items (L7):** `ferrosilicon`, a 25 kg bag of milled 15 % Si ferrosilicon: 4 from an iron ingot, a sand and a metallurgical
-  coke, shapeless, a placeholder until Wildcatter's ferroalloy plant.
+- **DMS items (L7):** `ferrosilicon`, a 25 kg bag of milled 15 % Si ferrosilicon: 64 from Wildcatter's 1 t bulk bag of ferrosilicon
+  75, an iron block and four iron ingots, shapeless (since 2026-11-19; the placeholder from iron, sand and coke is gone).
 - **Shaft items:** `skip` (iron, iron bars and a hopper, placeholder): clicked on a headframe, it hangs on the next free rope (L4).
 
 Block items exist for every block above, including the ones with no crafting recipe, except `skip` and `paste_fill`.

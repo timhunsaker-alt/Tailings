@@ -1,12 +1,16 @@
 {
   "type": "minecraft:crafting_shapeless",
+  "category": "misc",
   "ingredients": [
+    "#c:ferroalloys/ferrosilicon",
+    "minecraft:iron_block",
     "minecraft:iron_ingot",
-    "minecraft:sand",
-    "wildcatter:metallurgical_coke"
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot"
   ],
   "result": {
     "id": "tailings:ferrosilicon",
-    "count": 4
+    "count": 64
   }
 }

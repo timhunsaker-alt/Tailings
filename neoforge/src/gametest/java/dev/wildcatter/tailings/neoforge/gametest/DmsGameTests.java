@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * part is its spec size with its PLC points.
  */
 final class DmsGameTests {
-	static final String[] SCENES = {"dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_parts", "dms_floats_belt"};
+	static final String[] SCENES = {"dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_parts", "dms_floats_belt", "dms_fesi_recipe"};
 	static final Set<String> LONG = Set.of("dms_split", "dms_density", "dms_medium", "dms_gravel_face", "dms_floats_belt");
 	/** The scenes run the DMS parts this many times as fast (as the dry mill's scenes do), so a few tonnes pass in seconds. */
 	private static final int FAST = 20;
@@ -44,6 +44,7 @@ final class DmsGameTests {
 		out.accept("dms_gravel_face", DmsGameTests::gravelFace);
 		out.accept("dms_parts", DmsGameTests::parts);
 		out.accept("dms_floats_belt", DmsGameTests::floatsBelt);
+		out.accept("dms_fesi_recipe", DmsGameTests::fesiRecipe);
 	}
 
 	private static BlockState belt(Direction.Axis axis) {
@@ -275,5 +276,26 @@ final class DmsGameTests {
 		alone.forceRunning();
 		alone.receive(gravel(Rock.GRANITE, 100));
 		helper.succeedWhen(() -> helper.assertTrue(alone.status().startsWith("NOT BUILT"), Component.literal("alone it should read NOT BUILT, got " + alone.status())));
+	}
+
+	/**
+	 * The medium is made from Wildcatter's ferrosilicon 75 bag diluted with iron (Tim, 2026-11-10 and 2026-11-19; l7-dms.md 8): the bag,
+	 * an iron block and four ingots make 64 bags of 15 % Si; the old placeholder (iron, sand and coke) is gone.
+	 */
+	private static void fesiRecipe(net.minecraft.gametest.framework.GameTestHelper helper) {
+		var found = helper.getLevel().getServer().getRecipeManager().byKey(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.RECIPE,
+				dev.wildcatter.tailings.Tailings.id("ferrosilicon")));
+		helper.assertTrue(found.isPresent(), net.minecraft.network.chat.Component.literal("a recipe for the medium"));
+		var recipe = (net.minecraft.world.item.crafting.ShapelessRecipe) found.get().value();
+		var bag = new net.minecraft.world.item.ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.fromNamespaceAndPath("wildcatter", "ferrosilicon_bag")));
+		helper.assertTrue(!bag.isEmpty(), net.minecraft.network.chat.Component.literal("Wildcatter's ferrosilicon bag is there"));
+		var input = net.minecraft.world.item.crafting.CraftingInput.of(3, 2, java.util.List.of(bag, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_BLOCK),
+				new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT), new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT),
+				new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT), new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_INGOT)));
+		helper.assertTrue(recipe.matches(input, helper.getLevel()), net.minecraft.network.chat.Component.literal("the bag and the iron make the medium"));
+		var out = recipe.assemble(input);
+		helper.assertTrue(out.is(dev.wildcatter.tailings.TailingsItems.FERROSILICON) && out.getCount() == 64,
+				net.minecraft.network.chat.Component.literal("64 bags of 25 kg, got " + out));
+		helper.succeed();
 	}
 }
