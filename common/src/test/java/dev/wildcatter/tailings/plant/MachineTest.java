@@ -101,7 +101,11 @@ class MachineTest {
 			Map.entry(Machine.TANK_CELL, new int[] {7, 7, 7}),
 			Map.entry(Machine.COLUMN_CELL, new int[] {4, 14, 4}),
 			Map.entry(Machine.FLOTATION_BLOWER_LARGE, new int[] {4, 4, 6}),
-			Map.entry(Machine.TAILINGS_THICKENER_LARGE, new int[] {45, 6, 45}));
+			Map.entry(Machine.TAILINGS_THICKENER_LARGE, new int[] {45, 6, 45}),
+			Map.entry(Machine.DRILL_CRAWLERS, new int[] {7, 2, 10}),
+			Map.entry(Machine.DRILL_DECK, new int[] {7, 4, 15}),
+			Map.entry(Machine.DRILL_MAST, new int[] {3, 20, 3}),
+			Map.entry(Machine.DRILL_DUST_COLLECTOR, new int[] {2, 3, 3}));
 
 	@Test
 	void everyPartIsItsSpecSize() {

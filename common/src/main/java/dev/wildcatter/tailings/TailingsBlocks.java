@@ -165,6 +165,12 @@ public final class TailingsBlocks {
 	public static final Block DRAGLINE_BOOM = plant(Machine.DRAGLINE_BOOM, MapColor.COLOR_ORANGE);
 	public static final Block DRAGLINE_BUCKET = plant(Machine.DRAGLINE_BUCKET, MapColor.METAL);
 	public static final BlockEntityType<dev.wildcatter.tailings.block.DraglineBlockEntity> DRAGLINE_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.DraglineBlockEntity::new, Set.of(DRAGLINE_TUB));
+	/** The large electric rotary blasthole drill's four parts (open-pit-p3-blasting.md, As built: four parts). */
+	public static final Block DRILL_CRAWLERS = plant(Machine.DRILL_CRAWLERS, MapColor.COLOR_GRAY);
+	public static final Block DRILL_DECK = plant(Machine.DRILL_DECK, MapColor.COLOR_YELLOW);
+	public static final Block DRILL_MAST = plant(Machine.DRILL_MAST, MapColor.COLOR_YELLOW);
+	public static final Block DRILL_DUST_COLLECTOR = plant(Machine.DRILL_DUST_COLLECTOR, MapColor.COLOR_GRAY);
+	public static final BlockEntityType<dev.wildcatter.tailings.block.BlastholeDrillBlockEntity> BLASTHOLE_DRILL_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BlastholeDrillBlockEntity::new, Set.of(DRILL_CRAWLERS));
 	/** A skip's looks (shaft-and-hoist.md, L4), drawn by its entity: the block itself has no item and is never placed. */
 	public static final Block SKIP = block("skip", props -> new dev.wildcatter.tailings.block.SkipPartBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.5F, 8.0F)
 			.sound(SoundType.METAL).noOcclusion().noLootTable()));
@@ -207,6 +213,7 @@ public final class TailingsBlocks {
 					PASTE_FILTER, PASTE_MIXER, PASTE_PUMP, SCAVENGER_SPIRAL_BANK, FLUID_BED_DRYER, RER_SEPARATOR, HT_ROLL_SEPARATOR, IRM_SEPARATOR,
 					DESLIME_SCREEN, DMS_MODULE, DRAIN_RINSE_SCREEN, MEDIUM_RECOVERY, XRT_SORTER, SORTER_COMPRESSOR,
 					DRAGLINE_HOUSE, DRAGLINE_SHOE, DRAGLINE_MAST, DRAGLINE_BOOM, DRAGLINE_BUCKET,
+					DRILL_DECK, DRILL_MAST, DRILL_DUST_COLLECTOR,
 					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER,
 					SAG_MILL, PEBBLE_CRUSHER, BALL_MILL_LARGE, CYCLONE_FEED_PUMP, CYCLONE_CLUSTER_LARGE,
 					CONDITIONING_TANK_LARGE, TANK_CELL, COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE));
@@ -312,6 +319,7 @@ public final class TailingsBlocks {
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("pit_switch_house"), PIT_SWITCH_HOUSE_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("shovel_crawlers"), ROPE_SHOVEL_ENTITY);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("dragline_tub"), DRAGLINE_ENTITY);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("drill_crawlers"), BLASTHOLE_DRILL_ENTITY);
 		add("blasthole", BLASTHOLE);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("blasthole"), BLASTHOLE_ENTITY);
 		add("blasting_machine", BLASTING_MACHINE);
@@ -394,6 +402,10 @@ public final class TailingsBlocks {
 			case DRAGLINE_MAST -> DRAGLINE_MAST;
 			case DRAGLINE_BOOM -> DRAGLINE_BOOM;
 			case DRAGLINE_BUCKET -> DRAGLINE_BUCKET;
+			case DRILL_CRAWLERS -> DRILL_CRAWLERS;
+			case DRILL_DECK -> DRILL_DECK;
+			case DRILL_MAST -> DRILL_MAST;
+			case DRILL_DUST_COLLECTOR -> DRILL_DUST_COLLECTOR;
 			case GYRATORY_CRUSHER -> GYRATORY_CRUSHER;
 			case GYRATORY_POCKET -> GYRATORY_POCKET;
 			case ROCK_BREAKER -> ROCK_BREAKER;

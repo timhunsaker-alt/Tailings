@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "DMS",
+    "STS",
+    "SSS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "D": "minecraft:iron_door",
+    "M": "wildcatter:drive_mv_cells",
+    "T": "wildcatter:drive_mv_transformer"
+  },
+  "result": {
+    "id": "tailings:drill_deck",
+    "count": 1
+  }
+}
