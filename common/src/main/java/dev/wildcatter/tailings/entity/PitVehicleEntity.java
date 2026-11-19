@@ -47,9 +47,15 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			EntityDataSerializers.OPTIONAL_BLOCK_POS);
 	private static final EntityDataAccessor<Integer> DATA_CABLE_OUTLET = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Boolean> DATA_ELECTRIC = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.BOOLEAN);
+	/** Its pour on the client: what to draw of it (open-pit.md, Pouring). */
+	private static final EntityDataAccessor<String> DATA_POUR = SynchedEntityData.defineId(PitVehicleEntity.class, EntityDataSerializers.STRING);
 	protected static final double TICK = 1.0 / 20;
 
 	protected final PitLoad load;
+	/** Its loose material on its way into the world, and the streams it draws into a pocket or a truck (open-pit.md, Pouring). */
+	protected final dev.wildcatter.tailings.pit.Pouring pouring = new dev.wildcatter.tailings.pit.Pouring();
+	private String shownFrom = "";
+	private dev.wildcatter.tailings.pit.Pour.Shown shown = dev.wildcatter.tailings.pit.Pour.Shown.NONE;
 	private double speed;
 	/** The grade under it, averaged over the last 10 m it moved: plus is uphill in the way it faces. */
 	private double slope;
@@ -275,6 +281,97 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		return load;
 	}
 
+	/** Its pour as the client draws it. */
+	public dev.wildcatter.tailings.pit.Pour.Shown shownPour() {
+		String sent = entityData.get(DATA_POUR);
+		if (!sent.equals(shownFrom)) {
+			shownFrom = sent;
+			shown = dev.wildcatter.tailings.pit.Pour.shown(sent);
+		}
+		return shown;
+	}
+
+	/** Blocks (and drawn lumps) of its pour still on their way (tests). */
+	public int pouring() {
+		return pouring.size();
+	}
+
+	/** Pours {@code load} onto the ground by the pour service; returns the blocks it will set. */
+	protected int pour(ServerLevel level, PitLoad from, dev.wildcatter.tailings.pit.Pouring.Spec spec) {
+		int n = pouring.pour(level, from, spec);
+		syncPour();
+		return n;
+	}
+
+	/**
+	 * Draws its bucket's load pouring down into {@code truck}'s body (open-pit.md, Pouring): drawn only, the body has already been
+	 * loaded with {@code kg} of {@code firstId}.
+	 */
+	protected void streamInto(ServerLevel level, HaulTruckEntity truck, String firstId, long kg) {
+		if (kg <= 0) {
+			return;
+		}
+		Vec3 c = truck.bodyCentre();
+		double top = truck.getY() + truck.loadingHeight();
+		int shares = (int) Math.max(3, Math.min(12, kg / dev.wildcatter.tailings.pit.PitMass.ROCK_KG));
+		pouring.stream(level, dev.wildcatter.tailings.pit.Pour.BODY, truck.blockPosition(), dev.wildcatter.tailings.pit.Loose.landsAs(firstId), kg, shares,
+				new Vec3(c.x, top + 2.2, c.z), new Vec3(c.x, top - 0.4, c.z), 14, (float) Math.min(4.0, truck.spec().width() * 0.5));
+		syncPour();
+	}
+
+	/** The ground's top under a point: the first block down that is not free ground, plus one. */
+	public static double groundUnder(ServerLevel level, Vec3 at, int most) {
+		net.minecraft.core.BlockPos.MutableBlockPos p = net.minecraft.core.BlockPos.containing(at).mutable();
+		for (int i = 0; i < most && p.getY() > level.getMinY(); i++) {
+			p.move(0, -1, 0);
+			net.minecraft.world.level.block.state.BlockState state = level.getBlockState(p);
+			if (!net.minecraft.world.level.block.FallingBlock.isFree(state) || state.hasBlockEntity()) {
+				return p.getY() + 1.0;
+			}
+		}
+		return p.getY() + 1.0;
+	}
+
+	/** Each tick, after it has worked: its pour moves on and sets; {@link #afterPour} sees whether any is leaving. */
+	private void pourTick(ServerLevel level) {
+		if (!pouring.empty()) {
+			afterPour(level, pouring.tick(level, load));
+		}
+		syncPour();
+	}
+
+	protected void syncPour() {
+		if (pouring.takeChanged()) {
+			entityData.set(DATA_POUR, pouring.show());
+			refreshLoad();
+		}
+	}
+
+	/** After its pour's tick (a truck's rumble and how full its body looks). */
+	protected void afterPour(ServerLevel level, boolean leaving) {
+	}
+
+	/** Everything still on its way sets now (wrecked, or a test's instant tip); what finds no room goes into {@code back}. */
+	protected void finishPour(ServerLevel level, PitLoad back) {
+		pouring.finish(level, back);
+		syncPour();
+	}
+
+	/** Removed for good (broken, killed, gone to another dimension) mid-pour, what is on its way sets at once; unloaded, it is saved. */
+	@Override
+	public void remove(RemovalReason reason) {
+		if (!reason.shouldSave() && !pouring.empty() && level() instanceof ServerLevel server) {
+			PitLoad back = new PitLoad(Long.MAX_VALUE);
+			finishPour(server, back);
+			for (Map.Entry<String, Integer> e : back.wholeBlocks().entrySet()) {
+				for (int left = e.getValue(); left > 0; left -= 64) {
+					spawnAtLocation(server, Feeds.stack(e.getKey(), Math.min(64, left)));
+				}
+			}
+		}
+		super.remove(reason);
+	}
+
 	public double speed() {
 		return speed;
 	}
@@ -334,6 +431,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		builder.define(DATA_CABLE, java.util.Optional.empty());
 		builder.define(DATA_CABLE_OUTLET, 0);
 		builder.define(DATA_ELECTRIC, false);
+		builder.define(DATA_POUR, "");
 	}
 
 	// ---- its frame: ahead and to its right ---------------------------------------------------------------------------------------
@@ -472,6 +570,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 			strike(server);
 		}
 		work(server);
+		pourTick(server);
 		if (cable != null) {
 			pullCable(server, start);
 		}
@@ -482,7 +581,7 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		if (entityData.get(DATA_ELECTRIC) != electric()) {
 			entityData.set(DATA_ELECTRIC, electric());
 		}
-		if (refresh-- <= 0 && (isVehicle() || selfRunning() || Math.abs(speed) > 0.05 || busy())) {
+		if (refresh-- <= 0 && (isVehicle() || selfRunning() || Math.abs(speed) > 0.05 || busy() || !pouring.empty())) {
 			refresh = ChunkRunner.REFRESH_TICKS;
 			ChunkRunner.refresh(server, blockPosition());
 			ChunkRunner.refresh(server, net.minecraft.core.BlockPos.containing(local(0, 0, spec().length())));
@@ -680,6 +779,8 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		setLift((float) input.getDoubleOr("lift", 0));
 		fuel = input.getDoubleOr("fuel", tank() * dev.wildcatter.tailings.pit.PitFuel.NEW_FILL);
 		cable = CableLink.load(input);
+		pouring.load(input.getStringOr("pour", ""));   // what was on its way sets on its first tick back, if its time has come
+		entityData.set(DATA_POUR, pouring.show());
 		syncCable();
 		refreshLoad();
 	}
@@ -692,6 +793,9 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		output.putString("status", status);
 		output.putDouble("lift", lift());
 		output.putDouble("fuel", fuel);
+		if (!pouring.empty()) {
+			output.putString("pour", pouring.save());
+		}
 		if (cable != null) {
 			cable.save(output);
 		}

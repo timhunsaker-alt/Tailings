@@ -6,6 +6,7 @@ import dev.wildcatter.tailings.block.MuckBlockEntity;
 import dev.wildcatter.tailings.pit.Crest;
 import dev.wildcatter.tailings.pit.DryStack;
 import dev.wildcatter.tailings.pit.Loose;
+import dev.wildcatter.tailings.pit.Pour;
 import dev.wildcatter.tailings.pit.PitDrive;
 import dev.wildcatter.tailings.pit.PitFuel;
 import dev.wildcatter.tailings.pit.PitLoad;
@@ -205,8 +206,9 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		dozing = false;
 		int trackY = (int) Math.floor(getY() + 0.01);
 		if (speed() < -0.05 && blade == Blade.CARRY && !load.empty()) {
-			// reversing, it leaves the load in front where it stood
-			Loose.tip(level, BlockPos.containing(local(0, 0.5, spec().length() / 2 + 1.0)), load);
+			// reversing, it leaves the load in front where it stood: it slumps off the blade, clear of the tracks
+			int n = Loose.blocks(load);
+			spill(level, load, BlockPos.containing(local(0, 0.5, spec().length() / 2 + 1.0 + Pour.reach(n))), 0, 12, Math.min(40, 3 * n));
 			emptied();
 			say(driver, "load left in front");
 			return;
@@ -219,7 +221,7 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		Vec3 nose = local(0, 0, spec().length() / 2 + 1.0);
 		if (!ground.solid((int) Math.floor(nose.x), trackY - 1, (int) Math.floor(nose.z)) && !ground.solid((int) Math.floor(nose.x), trackY - 2, (int) Math.floor(nose.z))) {
 			if (!load.empty() && blade != Blade.RAISED) {
-				Loose.tip(level, BlockPos.containing(nose.x, trackY + 0.5, nose.z), load);
+				spill(level, load, BlockPos.containing(nose.x, trackY + 0.5, nose.z), 0, 16, Math.min(40, 3 * Loose.blocks(load)));
 				emptied();
 				say(driver, "at the crest: pushed the load over");
 			} else if (!status.startsWith("at the crest")) {
@@ -274,6 +276,17 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		}
 	}
 
+	/**
+	 * Lets {@code what} go off the blade by the pour service (open-pit.md, Pouring): a short, small pour, as a dozer spills while it
+	 * pushes. {@code end} is -1 or 1 off that end of the blade, 0 off its whole width.
+	 */
+	private void spill(ServerLevel level, PitLoad what, BlockPos start, int end, int window, int setting) {
+		Vec3 lip = local(end * (spec().width() / 2 - 0.3), 1.2, spec().length() / 2 + 0.3);
+		Vec3 below = end == 0 ? local(0, 1, spec().length() / 2 + 1.0) : new Vec3(start.getX() + 0.5, start.getY() + 0.5, start.getZ() + 0.5);
+		Vec3 land = new Vec3(below.x, groundUnder(level, below, 24), below.z);
+		pour(level, what, new dev.wildcatter.tailings.pit.Pouring.Spec(start, lip, land, window, Math.max(4, setting), end == 0 ? (float) (BLADE_HALF * 2 + 1) : 1.2F));
+	}
+
 	/** Takes a loose block in the blade's way into the load, or spills it off the blade's end when the blade is full. */
 	private boolean take(ServerLevel level, BlockPos pos, BlockState state) {
 		PitLoad one = new PitLoad(Long.MAX_VALUE);
@@ -294,7 +307,14 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		} else {
 			// past 18 the extra spills off the blade's ends, as two windrows
 			spillSide = -spillSide;
-			Loose.tip(level, BlockPos.containing(local(spillSide * (spec().width() / 2 + 2.0), 0.5, spec().length() / 2 + 1.0)), one);
+			BlockPos at = BlockPos.containing(local(spillSide * (spec().width() / 2 + 2.0), 0.5, spec().length() / 2 + 1.0));
+			if (blade == Blade.CUT) {
+				// cutting, the windrow beside the cut stands at once: poured, it would set after the blade has gone by and settle into the
+				// fresh cut behind it
+				Loose.tip(level, at, one);
+			} else {
+				spill(level, one, at, spillSide, 4, 6);
+			}
 		}
 		return true;
 	}

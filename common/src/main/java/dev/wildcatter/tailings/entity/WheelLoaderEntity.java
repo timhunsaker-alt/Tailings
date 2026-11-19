@@ -315,10 +315,12 @@ public class WheelLoaderEntity extends PitVehicleEntity {
 				return;
 			}
 			long before = truck.load().total();
+			String first = load.contents().isEmpty() ? "minecraft:cobblestone" : load.contents().keySet().iterator().next();
 			load.pourInto(truck.load());
 			truck.refreshLoad();
 			refreshLoad();
 			setLift(0);
+			streamInto(level, truck, first, truck.load().total() - before);   // drawn only: the body is loaded
 			say(driver, String.format(java.util.Locale.ROOT, "loaded %.1f t; the truck holds %s", (truck.load().total() - before) / 1000.0, truck.load().tonnes()));
 			level.playSound(null, truck.getX(), truck.getY(), truck.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1.1F);
 		}

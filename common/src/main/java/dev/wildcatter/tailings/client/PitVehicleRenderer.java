@@ -64,7 +64,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		if (entity instanceof dev.wildcatter.tailings.entity.DraglineEntity) {
 			return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(80.0, 40.0, 80.0));   // its boom reaches 72 m out and 45 m up
 		}
-		if (entity instanceof HaulTruckEntity t && !t.shownPour().globs().isEmpty()) {
+		if (!entity.shownPour().globs().isEmpty()) {
 			return frustum.isVisible(entity.getBoundingBox().inflate(24.0));   // its load runs out behind it as it pours
 		}
 		return entity.cableHouse().isPresent() || frustum.isVisible(entity.getBoundingBox().inflate(4.0));   // the drill's box runs to its mast top
@@ -80,7 +80,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.loaded = entity.loaded();
 		state.fill = entity instanceof HaulTruckEntity t ? t.fill() : state.loaded ? 1F : 0F;
 		// from where the truck is drawn, which is where the pose stands
-		state.pour = entity instanceof HaulTruckEntity t ? PourRenderer.mesh(t, partialTick, state.x, state.y, state.z) : PourRenderer.NONE;
+		state.pour = PourRenderer.mesh(entity, partialTick, state.x, state.y, state.z);
 		state.lift = entity.lift();
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);

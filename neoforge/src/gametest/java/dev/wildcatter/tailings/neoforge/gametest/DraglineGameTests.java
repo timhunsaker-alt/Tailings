@@ -195,6 +195,7 @@ final class DraglineGameTests {
 				.thenIdle(3)
 				.thenExecute(() -> helper.assertTrue(house.close(0) == null, Component.literal("its outlet should close")))
 				.thenWaitUntil(() -> helper.assertTrue(d.cycles() >= 1, Component.literal("one cycle: " + d.status())))
+				.thenWaitUntil(() -> helper.assertTrue(d.pouring() == 0, Component.literal("its cast pours out and sets: " + d.pouring())))
 				.thenExecute(() -> {
 					d.stop(helper.getLevel(), false);
 					int dug = before - count(helper, Blocks.SAND, 33, 62, 5, 9, 30, 39);

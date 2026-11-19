@@ -212,6 +212,11 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	// ---- its draw -----------------------------------------------------------------------------------------------------------------
 
 	/** What it is doing now, for its draw. */
+	/** Where its next cast goes, or null (tests and films). */
+	public @Nullable BlockPos dumpAt() {
+		return dumpAt;
+	}
+
 	public Dragline.Phase phase() {
 		if (walkTick >= 0) {
 			return Dragline.Phase.WALK;
@@ -529,7 +534,11 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 			return;
 		}
 		int quarters = bucketQuarters;
-		Loose.tip(level, dumpAt, load);
+		// the bucket opens 4 m over the spoil: a heavy, short pour, falling from height (open-pit.md, Pouring)
+		Vec3 lip = new Vec3(dumpAt.getX() + 0.5, dumpAt.getY() + 3.5, dumpAt.getZ() + 0.5);
+		Vec3 land = new Vec3(lip.x, groundUnder(level, lip, 40), lip.z);
+		// out of the bucket while it hangs there: 1 s, or its dump if that is shorter
+		pour(level, load, new dev.wildcatter.tailings.pit.Pouring.Spec(dumpAt, lip, land, Math.max(3, Math.min(20, Dragline.DUMP_TICKS / divisor)), 30, 3.5F));
 		refreshLoad();
 		if (load.empty()) {
 			cycles++;

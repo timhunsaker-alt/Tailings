@@ -195,6 +195,9 @@ public class TailingsGameTests {
 			helper.register(id("pit_pour_pile"), loaded(PitPourGameTests::pile));
 			helper.register(id("pit_pour_hopper"), loaded(PitPourGameTests::hopper));
 			helper.register(id("pit_pour_cut_short"), wide("pit_pour_cut_short", PitPourGameTests::cutShort));
+			helper.register(id("pit_pour_dozer"), loaded(PitPourGameTests::dozer));
+			helper.register(id("pit_pour_dragline"), wide("pit_pour_dragline", PitPourGameTests::dragline));
+			helper.register(id("pit_pour_loader"), loaded(PitPourGameTests::loader));
 			helper.register(id("pit_survey"), wide("pit_survey", PitHaulGameTests::survey));
 			helper.register(id("pit_loader_auto"), wide("pit_loader_auto", PitHaulGameTests::loaderAuto));
 			helper.register(id("pit_fuel_burn"), wide("pit_fuel_burn", PitHaulGameTests::fuelBurn));

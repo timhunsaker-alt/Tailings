@@ -457,10 +457,12 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 			return;
 		}
 		long before = truck.load().total();
+		String first = load.contents().isEmpty() ? "minecraft:cobblestone" : load.contents().keySet().iterator().next();
 		load.pourInto(truck.load());
 		truck.refreshLoad();
 		refreshLoad();
 		long moved = truck.load().total() - before;
+		streamInto(level, truck, first, moved);   // drawn only: the body is loaded
 		if (moved > 0) {
 			passes++;
 			passesThisTruck++;

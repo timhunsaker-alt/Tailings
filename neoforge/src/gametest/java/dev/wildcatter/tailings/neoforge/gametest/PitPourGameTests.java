@@ -33,9 +33,10 @@ import net.minecraft.world.level.storage.TagValueOutput;
  * by block into the pile an instant tip leaves, onto the ground, onto a pile and into a hopper; cut short, it loses nothing.
  */
 final class PitPourGameTests {
-	static final String[] SCENES = {"pit_pour_ground", "pit_pour_pile", "pit_pour_hopper", "pit_pour_cut_short"};
+	static final String[] SCENES = {"pit_pour_ground", "pit_pour_pile", "pit_pour_hopper", "pit_pour_cut_short", "pit_pour_dozer", "pit_pour_dragline", "pit_pour_loader"};
 
 	private static final Input BACK = new Input(false, true, false, false, false, false, false);
+	private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
 
 	private PitPourGameTests() {
 	}
@@ -350,4 +351,141 @@ final class PitPourGameTests {
 				})
 				.thenSucceed();
 	}
+
+	private static <T extends dev.wildcatter.tailings.entity.PitVehicleEntity> T machine(GameTestHelper helper, EntityType<T> type, double x, int y, double z, float yaw) {
+		T v = type.create(helper.getLevel(), EntitySpawnReason.COMMAND);
+		BlockPos origin = helper.absolutePos(BlockPos.ZERO);
+		v.setPos(origin.getX() + x, helper.absolutePos(new BlockPos(0, y, 0)).getY(), origin.getZ() + z);
+		v.setYRot(yaw);
+		helper.getLevel().addFreshEntity(v);
+		return v;
+	}
+
+	/**
+	 * The dozer (open-pit.md, Pouring): reversing with 18 blocks of sand on its blade, it leaves them in front as a short pour off the
+	 * blade that sets clear of its tracks, all 18 at no more than 1 in 1; a second dozer broken up mid-spill loses none of its 18.
+	 */
+	static void dozer(GameTestHelper helper) {
+		floor(helper, 0, 40, 58, 59, 0, 40);
+		dev.wildcatter.tailings.entity.TrackDozerEntity dozer = machine(helper, TailingsEntities.TRACK_DOZER, 10.5, 60, 10.5, 0);
+		dozer.setBlade(dev.wildcatter.tailings.entity.TrackDozerEntity.Blade.CARRY);
+		dozer.loadBlade("minecraft:sand", 18);
+		dozer.setFuel(dozer.tank());
+		dev.wildcatter.tailings.entity.TrackDozerEntity other = machine(helper, TailingsEntities.TRACK_DOZER, 30.5, 60, 10.5, 0);
+		other.setBlade(dev.wildcatter.tailings.entity.TrackDozerEntity.Blade.CARRY);
+		other.loadBlade("minecraft:sand", 18);
+		other.setFuel(other.tank());
+		dozer.testDrive(BACK);
+		other.testDrive(BACK);
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(dozer.pouring() > 0 && other.pouring() > 0, Component.literal("reversing, both blades spill: " + dozer.status())))
+				.thenExecute(() -> {
+					dozer.testDrive(Input.EMPTY);
+					other.testDrive(Input.EMPTY);
+					helper.assertTrue(count(helper, Blocks.SAND, 0, 40, 60, 70, 0, 40) == 0, Component.literal("nothing set the moment it spills"));
+					other.discard();   // broken up mid-spill
+					helper.assertTrue(count(helper, Blocks.SAND, 21, 40, 60, 70, 0, 40) == 18, Component.literal("broken mid-spill, all 18 set at once: "
+							+ count(helper, Blocks.SAND, 21, 40, 60, 70, 0, 40)));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(dozer.pouring() == 0, Component.literal("the spill sets: " + dozer.pouring() + " on their way")))
+				.thenExecute(() -> {
+					int sand = count(helper, Blocks.SAND, 0, 20, 60, 70, 0, 40);
+					helper.assertTrue(sand == 18 && dozer.load().empty(), Component.literal("all 18 left in front: " + sand + ", blade " + dozer.load().save()));
+					standing(helper, 1, 19, 1, 39, 60, "the dozer's spill");
+					net.minecraft.world.phys.AABB box = dozer.getBoundingBox();
+					int under = 0;
+					for (BlockPos p : BlockPos.betweenClosed(BlockPos.containing(box.minX, box.minY, box.minZ), BlockPos.containing(box.maxX - 1e-6, box.maxY - 1e-6, box.maxZ - 1e-6))) {
+						if (helper.getLevel().getBlockState(p).is(Blocks.SAND)) {
+							under++;
+						}
+					}
+					helper.assertTrue(under == 0, Component.literal("none of it under the dozer: " + under));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * The dragline (open-pit.md, Pouring): its bucket opens over the spoil and the 25 bank blocks pour from height and set, none
+	 * floating; broken up mid-pour, it sets them at once, and none is lost.
+	 */
+	static void dragline(GameTestHelper helper) {
+		DraglineGameTests.bench(helper, 90, 70);
+		DraglineGameTests.strip(helper, 30, 10, 5, Blocks.SAND, 2);
+		dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity house = DraglineGameTests.house(helper);
+		dev.wildcatter.tailings.entity.DraglineEntity d = DraglineGameTests.dragline(helper, house, 30, 10, 5, 4);
+		int before = count(helper, Blocks.SAND, 33, 62, 5, 9, 30, 39);
+		int bench = DraglineGameTests.BENCH;
+		int all = count(helper, Blocks.SAND, -10, 110, -30, bench + 20, -10, 80);
+		helper.startSequence()
+				.thenIdle(3)
+				.thenExecute(() -> helper.assertTrue(house.close(0) == null, Component.literal("its outlet should close")))
+				.thenWaitUntil(() -> helper.assertTrue(d.pouring() > 0, Component.literal("the bucket should open over the spoil: " + d.status())))
+				.thenExecute(() -> {
+					int dug = before - count(helper, Blocks.SAND, 33, 62, 5, 9, 30, 39);
+					helper.assertTrue(dug == 25 && count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70) == 0,
+							Component.literal("25 dug, none set yet: " + dug + ", " + count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70)));
+				})
+				.thenIdle(8)
+				.thenExecute(() -> {
+					d.stop(helper.getLevel(), false);
+					int set = count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70);
+					helper.assertTrue(set < 25 && d.pouring() > 0, Component.literal("mid-pour: " + set + " set, " + d.pouring() + " on their way"));
+					System.out.println("[tailings-test] pit_pour_dragline: casting at " + d.dumpAt() + " (the scene from " + helper.absolutePos(BlockPos.ZERO) + ")");
+					d.discard();   // broken up mid-pour
+					int cast = count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70);
+					int floating = 0;
+					for (int x = 63; x <= 90; x++) {
+						for (int y = bench; y <= bench + 20; y++) {
+							for (int z = 0; z <= 70; z++) {
+								if (helper.getBlockState(new BlockPos(x, y, z)).is(Blocks.SAND) && helper.getBlockState(new BlockPos(x, y - 1, z)).isAir()) {
+									floating++;
+								}
+							}
+						}
+					}
+					int now = count(helper, Blocks.SAND, -10, 110, -30, bench + 20, -10, 80);
+					int items = helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(helper.absolutePos(BlockPos.ZERO)).inflate(120)).size();
+					helper.assertTrue(now == all && items == 0, Component.literal("no sand lost: " + now + " of " + all + ", " + items + " dropped as items"));
+					helper.assertTrue(cast >= 24 && floating == 0, Component.literal("set on the spoil, none floating: " + cast + ", " + floating));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * The wheel loader into a truck (open-pit.md, Pouring): each bucket is drawn pouring down into the body; the body's accounting is
+	 * as it was (the truck fills), and nothing of the stream is left in the world.
+	 */
+	static void loader(GameTestHelper helper) {
+		floor(helper, 0, 20, 57, 58, 0, 34);
+		for (int x = 0; x <= 6; x++) {
+			for (int z = 20; z <= 28; z++) {
+				for (int y = 59; y <= 64; y++) {
+					helper.setBlock(x, y, z, Blocks.SAND);
+				}
+			}
+		}
+		dev.wildcatter.tailings.entity.WheelLoaderEntity loader = machine(helper, TailingsEntities.WHEEL_LOADER, 3.5, 59, 12.3, 0);
+		HaulTruckEntity truck = truck(helper, TailingsEntities.HAUL_TRUCK, 10.0, 59, 16.0, 0);
+		loader.fastPasses(25);
+		int sandBefore = count(helper, Blocks.SAND, 0, 20, 59, 70, 0, 34);
+		int[] drawn = {0};
+		helper.onEachTick(() -> {
+			drawn[0] = Math.max(drawn[0], loader.shownPour().globs().size());
+			if (!loader.busy() && truck.load().room() > 0) {
+				loader.pressJump(helper.getLevel());
+			}
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(truck.load().room() == 0, Component.literal("the truck should fill: " + truck.load().tonnes())))
+				.thenWaitUntil(() -> helper.assertTrue(loader.pouring() == 0, Component.literal("its last stream ends: " + loader.pouring())))
+				.thenExecute(() -> {
+					helper.assertTrue(drawn[0] >= 3, Component.literal("each bucket is drawn pouring into the body: " + drawn[0]));
+					long sandIn = truck.load().kg("minecraft:sand");
+					int dug = sandBefore - count(helper, Blocks.SAND, 0, 20, 59, 70, 0, 34);
+					helper.assertTrue(dug * 1_600L >= sandIn && sandIn > 85_000, Component.literal("the body holds what was dug, and the stream placed nothing: dug " + dug
+							+ " blocks, " + sandIn + " kg in the body"));
+				})
+				.thenSucceed();
+	}
+
 }

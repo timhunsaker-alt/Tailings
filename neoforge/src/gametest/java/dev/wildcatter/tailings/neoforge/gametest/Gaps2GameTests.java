@@ -314,7 +314,9 @@ final class Gaps2GameTests {
 	 */
 	private static void catchUp(GameTestHelper helper) {
 		fill(helper, 0, 1, 0, 6, 1, 6, Blocks.STONE.defaultBlockState());
-		BlockPos a = new BlockPos(2, 2, 2), b = new BlockPos(3, 2, 2);
+		BlockPos a = new BlockPos(2, 2, 2);
+		// its neighbour on the side that stays in a's chunk, wherever the scene is placed
+		BlockPos b = (helper.absolutePos(a).getX() & 15) == 15 ? a.west() : a.east();
 		helper.setBlock(a, TailingsBlocks.PASTE_FILL);
 		helper.setBlock(b, TailingsBlocks.PASTE_FILL);
 		var level = helper.getLevel();

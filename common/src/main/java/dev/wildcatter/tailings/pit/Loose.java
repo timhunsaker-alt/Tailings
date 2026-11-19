@@ -217,6 +217,11 @@ public final class Loose {
 		return placed;
 	}
 
+	/** What a tipped item lands as: muck for rock and ore, its own block for soil (and dry tails). */
+	public static BlockState landsAs(String id) {
+		return PitMass.ownBlock(id) ? stateOf(id) : TailingsBlocks.MUCK.defaultBlockState();
+	}
+
 	static BlockState stateOf(String id) {
 		Block block = BuiltInRegistries.BLOCK.getValue(Identifier.parse(id));
 		return block == null || block == Blocks.AIR ? Blocks.DIRT.defaultBlockState() : block.defaultBlockState();

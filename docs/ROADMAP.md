@@ -424,7 +424,9 @@ behind the tail that none of it lies under the body (`Loose.next`, the cells on 
 way held as taken): the same blocks, the same mass, 37°. Into a hopper or the gyratory's pocket the load is counted at the start
 and drawn pouring in. Saved with the truck; removed mid-pour, it sets at once. Drawn on the client from times the server sends; the
 body's load thins as it pours. NeoForge scenes `pit_pour_ground`, `pit_pour_pile`, `pit_pour_hopper`, `pit_pour_cut_short`; the client
-film `pit_pour`. The dozer's push, the dragline's cast, a blast and a wrecked truck still place their blocks at once.
+film `pit_pour`. Since 2026-11-18 (branch `flow-all`) every earthmoving machine pours through one service, `pit.Pouring`: the
+dozer's spills (but its CUT windrow), the dragline's cast, and a loader's or shovel's bucket drawn pouring into a truck's body. A
+blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_pour_dozer`, `pit_pour_dragline`, `pit_pour_loader`.
 
 ## Later, not scheduled
 - **Time scale (Tim, 2026-11-10):** Wildcatter's world setting `timeScale` (1:1 to 50:1, spec `wildcatter/docs/time-scale.md`). Tailings

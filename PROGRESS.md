@@ -2,6 +2,15 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Every machine pours (2026-11-18)
+Tim: all earthmoving equipment uses the truck's pour. One service, `pit.Pouring`, hosted by every pit machine (`PitVehicleEntity`:
+synced, saved, finished at once if removed for good); the truck now uses it too. The dozer's reverse spill, crest push and CARRY
+overflow pour in short, small pours (its CUT windrow stays instant); the dragline's bucket pours from 4 m over the spoil in 1 s;
+the wheel loader and shovels, which only dump into trucks, draw each bucket pouring into the body. A wrecked truck, blasts and the
+plant's chutes stay instant. Scenes `pit_pour_dozer`, `pit_pour_dragline`, `pit_pour_loader`; `dragline_cycle` and
+`pit_dozer_push` wait for the pour to set. Client shots `dozer`, `dragline`, `loader` in `pit_pour` (POUR_SHOTS picks shots).
+  **The full server suite passes, 243 required tests** (3 new), in one run; `build` passes.
+
 ## Flowing dumps (2026-11-18)
 Tim's trailer-review note (2026-11-17), his choice "flowing muck, then sets"; spec open-pit.md, Pouring; branch `flow-dump`.
 - **The pour:** a haul truck's load (100 t and ultra) leaves the tail from 35 % to 65 % of the body's lift (about 4 s and 6 s), drops

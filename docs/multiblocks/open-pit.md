@@ -137,7 +137,22 @@ One rule for every loose block Tailings places: muck spilled by a blast, a tippe
   with the server stopping, carries on when it loads again (anything whose time has passed sets on its first tick back). A truck
   removed for good mid-pour (broken, wrecked, gone to another dimension) sets everything still on its way at once; what then
   finds no room drops as items. Nothing is left flowing and nothing is lost.
-- **Tests:** `pit_pour_ground` (a pour on flat ground sets to the same blocks and mass as an instant tip, at no more than 1 in 1
+- **Every machine (Tim, 2026-11-18):** one pour service (`pit.Pouring`) that any machine starts with where the load leaves it,
+  where it lands, where the settle rule lets it go, how fast it leaves and how long the pile takes to set; the machine ticks it,
+  saves it with itself, and finishes it at once if removed for good. Pours one after another hold each other's cells and set in
+  order, so a run of small spills builds the pile an instant tip would. At each machine's rate:
+  - **Track dozer:** small, short pours: the load left in front when it reverses (0.6 s, let go clear of its tracks), the load
+    pushed over a crest (0.8 s, down the face), and in CARRY a full blade's overflow off its end, a block at a time (0.2 s). In
+    CUT the overflow's windrow beside the cut is still placed at once: poured, it would set after the blade had gone by and settle
+    into the fresh cut.
+  - **Dragline:** the bucket opens 4 m over the spoil: 25 bank blocks fall in 1 s (or its dump, if shorter) and set over 1.5 s.
+  - **Wheel loader and shovels:** they only ever dump into a truck. Each bucket is drawn pouring down into the body (drawn only;
+    the body is loaded as before).
+  - **A wrecked truck** still drops its load at once: the truck is gone the same tick, and a pour lives with its machine.
+  - **Not machines with a pour:** the tailings filter's cake chute and the stockpile chute drop one block at a time at the belt's
+    rate, which is already gradual; a muck or stockpile block settling again, and a blast, stay as they are.
+- **Tests:** `pit_pour_dozer`, `pit_pour_dragline` and `pit_pour_loader` (same blocks and mass, settled, nothing under the
+  machine, broken up mid-pour loses nothing); `pit_pour_ground` (a pour on flat ground sets to the same blocks and mass as an instant tip, at no more than 1 in 1
   and over a few seconds), `pit_pour_pile` (onto a standing pile), `pit_pour_hopper` (into the hopper, and a refused pour keeps its
   load), `pit_pour_cut_short` (the truck removed mid-pour, and saved and loaded again mid-pour: no mass lost, nothing left on its
   way). The client scene `pit_pour` films a loaded truck tipping onto flat ground and onto a pile.

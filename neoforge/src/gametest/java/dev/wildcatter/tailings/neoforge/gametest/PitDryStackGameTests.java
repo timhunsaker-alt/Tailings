@@ -431,6 +431,7 @@ final class PitDryStackGameTests {
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(dozer.bladeBlocks() >= 18, Component.literal("the blade should take the heap: " + dozer.bladeBlocks() + "; " + where(helper, dozer))))
 				.thenWaitUntil(() -> helper.assertTrue(dozer.status().contains("pushed the load over"), Component.literal("it should push the load over the crest: " + where(helper, dozer))))
+				.thenWaitUntil(() -> helper.assertTrue(dozer.pouring() == 0, Component.literal("what it pushed over pours down and sets: " + dozer.pouring())))
 				.thenExecute(() -> {
 					helper.assertTrue(dozer.bladeBlocks() == 0, Component.literal("the blade is empty"));
 					helper.assertTrue(count(helper, Blocks.SAND, 0, 20, 53, 58, 31, 45) >= 15, Component.literal("the sand ran down the face: " + count(helper, Blocks.SAND, 0, 20, 53, 58, 31, 45)));

@@ -2,7 +2,7 @@ package dev.wildcatter.tailings.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.wildcatter.tailings.entity.HaulTruckEntity;
+import dev.wildcatter.tailings.entity.PitVehicleEntity;
 import dev.wildcatter.tailings.pit.Pour;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,7 +21,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * Draws a haul truck's load pouring out (docs/multiblocks/open-pit.md, Pouring) as one thick wet sheet: a stream off the tail lip,
+ * Draws a machine's load pouring out (docs/multiblocks/open-pit.md, Pouring) as one thick wet sheet: a stream off its source (a
+ * truck's tail lip, a dozer's blade, a dragline's bucket),
  * and a smooth surface over every column the load lies on or runs over, its height shared between neighbours and slumping to the
  * ground at its edges, dark and glossy in the load's own texture. Over a cell about to set the sheet thins to the cell's top, and
  * when the server sets the real block the column is dry. Nothing here is in the world: it is drawn from the times the server sent.
@@ -37,8 +38,6 @@ public final class PourRenderer {
 	/** The film over a cell that has not started to set. */
 	private static final double OVER = 0.2;
 	private static final double STREAM = 0.4;
-	/** How many times wider than thick the stream is. */
-	private static final double WIDE = 3.2;
 
 	private PourRenderer() {
 	}
@@ -58,41 +57,39 @@ public final class PourRenderer {
 		}
 	}
 
-	/** The sheet and stream of a truck's pour at this frame, from where the truck is drawn ({@code ox, oy, oz}). */
-	public static Quad[] mesh(HaulTruckEntity truck, float partialTick, double ox, double oy, double oz) {
+	/** The sheet and streams of a machine's pour at this frame, from where the machine is drawn ({@code ox, oy, oz}). */
+	public static Quad[] mesh(PitVehicleEntity truck, float partialTick, double ox, double oy, double oz) {
 		Pour.Shown shown = truck.shownPour();
 		if (shown.globs().isEmpty()) {
 			return NONE;
 		}
 		Level level = truck.level();
 		double now = level.getGameTime() + partialTick;
-		Vec3 lip = shown.lip(), land = shown.land();
 		Map<Long, Col> cols = new HashMap<>();
 		Map<Long, Double> tops = new HashMap<>();
-		int highest = (int) Math.floor(land.y);
+		int highest = Integer.MIN_VALUE;
 		for (Pour.Glob g : shown.globs()) {
-			highest = Math.max(highest, g.y() + 1);
+			highest = Math.max(highest, Math.max(g.y() + 1, (int) Math.floor(g.land().y)));
 		}
 		final int from = highest + 3;
 		java.util.function.BiFunction<Integer, Integer, Double> top = (x, z) -> tops.computeIfAbsent(key(x, z), k -> ground(level, x, z, from));
-		List<double[]> streams = new ArrayList<>();
-		TextureAtlasSprite streamSprite = null;
+		// one stream from each source that has load falling from it now
+		Map<String, Object[]> streams = new java.util.LinkedHashMap<>();
 		for (Pour.Glob g : shown.globs()) {
 			double dt = now - g.launch();
 			if (dt < 0) {
 				continue;
 			}
 			TextureAtlasSprite sprite = sprite(Block.stateById(g.state()));
-			double landY = g.into() ? g.y() + 1.0 : land.y;
-			double lx = g.into() ? g.x() + 0.5 : land.x, lz = g.into() ? g.z() + 0.5 : land.z;
+			Vec3 lip = g.lip(), land = g.land();
+			double landY = land.y, lx = land.x, lz = land.z;
 			if (dt < g.fall() + 2) {
-				streams.add(new double[] {lx, landY, lz});
-				streamSprite = sprite;
+				streams.put(lip + "|" + land, new Object[] {lip, land, g.wide(), sprite});
 			}
-			if (dt < g.fall()) {
-				continue;
+			if (dt < g.fall() || g.kind() == Pour.BODY) {
+				continue;   // falling, or onto a truck's load, which the truck draws
 			}
-			if (g.into()) {
+			if (g.kind() == Pour.POCKET) {
 				// a pool where it lands in the pocket, sinking in
 				double s = (dt - g.fall()) / 10.0;
 				if (s < 1) {
@@ -125,9 +122,9 @@ public final class PourRenderer {
 		List<Quad> out = new ArrayList<>();
 		Vec3 eye = Minecraft.getInstance().gameRenderer.mainCamera().position();
 		sheet(cols, top, out, ox, oy, oz, eye);
-		if (!streams.isEmpty() && streamSprite != null) {
-			double[] to = streams.get(streams.size() - 1);
-			stream(out, streamSprite, truck.getYRot(partialTick), lip.x - ox, lip.y - oy, lip.z - oz, to[0] - ox, to[1] - oy, to[2] - oz, eye == null ? null : eye.subtract(ox, oy, oz));
+		for (Object[] st : streams.values()) {
+			Vec3 lip = (Vec3) st[0], to = (Vec3) st[1];
+			stream(out, (TextureAtlasSprite) st[3], (float) st[2], truck.getYRot(partialTick), lip.x - ox, lip.y - oy, lip.z - oz, to.x - ox, to.y - oy, to.z - oz);
 		}
 		return out.toArray(NONE);
 	}
@@ -247,10 +244,13 @@ public final class PourRenderer {
 	 * The stream off the lip: a flat, rounded ribbon of the load as wide as most of the body, from the lip down to where it lands,
 	 * narrowing as it falls.
 	 */
-	private static void stream(List<Quad> out, TextureAtlasSprite sp, float yaw, double x0, double y0, double z0, double x1, double y1, double z1, Vec3 eye) {
+	private static void stream(List<Quad> out, TextureAtlasSprite sp, float across, float yaw, double x0, double y0, double z0, double x1, double y1, double z1) {
 		int sides = 12, rings = 6;
+		// across the way it falls, or across the machine when it falls straight down
+		double hx = x1 - x0, hz = z1 - z0, hl = Math.hypot(hx, hz);
 		double turn = Math.toRadians(yaw);
-		double rx = -Math.cos(turn), rz = -Math.sin(turn), ax = -Math.sin(turn), az = Math.cos(turn);   // across the truck, and along it
+		double ax = hl > 0.3 ? hx / hl : -Math.sin(turn), az = hl > 0.3 ? hz / hl : Math.cos(turn);
+		double rx = -az, rz = ax;
 		for (int r = 0; r < rings; r++) {
 			double t0 = (double) r / rings, t1 = (double) (r + 1) / rings;
 			double r0 = STREAM * (1.1 - 0.35 * t0), r1 = STREAM * (1.1 - 0.35 * t1);
@@ -267,7 +267,7 @@ public final class PourRenderer {
 					double[] c = lower ? b : a;
 					double rad = lower ? r1 : r0;
 					// an ellipse: wide across the tail, thin along it
-					double wide = rad * WIDE, thin = rad;
+					double wide = Math.max(rad, across / 2.0 * rad / STREAM), thin = rad;
 					double ox2 = rx * Math.cos(ang) * wide + ax * Math.sin(ang) * thin, oz2 = rz * Math.cos(ang) * wide + az * Math.sin(ang) * thin;
 					double nx = rx * Math.cos(ang) * thin + ax * Math.sin(ang) * wide, nz = rz * Math.cos(ang) * thin + az * Math.sin(ang) * wide;
 					double nl = Math.max(1e-6, Math.hypot(nx, nz));

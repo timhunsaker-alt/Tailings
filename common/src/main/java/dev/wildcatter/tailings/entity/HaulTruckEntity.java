@@ -38,23 +38,15 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	private int savedAt, savedWay;
 	private String savedPhase = "DRIVE";
 
-	/** The pour on the client: what to draw of it (open-pit.md, Pouring). */
-	private static final net.minecraft.network.syncher.EntityDataAccessor<String> DATA_POUR = net.minecraft.network.syncher.SynchedEntityData.defineId(
-			HaulTruckEntity.class, net.minecraft.network.syncher.EntityDataSerializers.STRING);
 	/** How full the body looks while it pours, 0 to 1; below 0 when not pouring (then it looks full while it holds anything). */
 	private static final net.minecraft.network.syncher.EntityDataAccessor<Float> DATA_FILL = net.minecraft.network.syncher.SynchedEntityData.defineId(
 			HaulTruckEntity.class, net.minecraft.network.syncher.EntityDataSerializers.FLOAT);
 
-	/** The load on its way out: each block, in the order it sets. */
-	private final java.util.List<Pour.Flow> pour = new java.util.ArrayList<>();
 	/** This lift's pour has started. */
 	private boolean poured;
 	/** What the body held when the pour started, for how full it looks. */
 	private long pourKg;
 	private long nextRumble;
-	/** The client's last read of {@link #DATA_POUR}. */
-	private String shownFrom = "";
-	private Pour.Shown shown = Pour.Shown.NONE;
 
 	public HaulTruckEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -63,29 +55,13 @@ public class HaulTruckEntity extends PitVehicleEntity {
 	@Override
 	protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
 		super.defineSynchedData(builder);
-		builder.define(DATA_POUR, "");
 		builder.define(DATA_FILL, -1F);
-	}
-
-	/** The pour as the client draws it. */
-	public Pour.Shown shownPour() {
-		String sent = entityData.get(DATA_POUR);
-		if (!sent.equals(shownFrom)) {
-			shownFrom = sent;
-			shown = Pour.shown(sent);
-		}
-		return shown;
 	}
 
 	/** How full the body looks, 0 to 1. */
 	public float fill() {
 		float f = entityData.get(DATA_FILL);
 		return f >= 0 ? f : loaded() ? 1F : 0F;
-	}
-
-	/** Blocks of its load still on their way out (tests). */
-	public int pouring() {
-		return pour.size();
 	}
 
 	/** Where its body's tail lip is: back and up from its centre on the ground, at the body's hinge. */
@@ -208,7 +184,7 @@ public class HaulTruckEntity extends PitVehicleEntity {
 
 	@Override
 	public boolean busy() {
-		return raising != 0 || lift() > 0 || !pour.isEmpty();
+		return raising != 0 || lift() > 0 || !pouring.empty();
 	}
 
 	/** Its body goes up, or down, in this many ticks. */
@@ -275,39 +251,24 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		if (raising != 0) {
 			raise(level);
 		}
-		if (!pour.isEmpty()) {
-			pourTick(level);
-		}
 	}
 
 	/** The body goes up or down a tick's worth; the load starts to pour a third of the way up. */
 	private void raise(ServerLevel level) {
 		float lift = Math.max(0, Math.min(1, lift() + raising / (float) raiseTicks()));
-		if (raising > 0 && lift >= 1 && released(level) < pour.size()) {
+		if (raising > 0 && lift >= 1 && pouring.released(level.getGameTime()) < pouring.size()) {
 			lift = 1;   // held up until the last of the load has slid out
 		}
 		setLift(lift);
 		if (raising > 0 && !poured && lift >= Pour.FROM) {
 			startPour(level);
 		}
-		if (raising > 0 && lift >= 1 && released(level) >= pour.size()) {
+		if (raising > 0 && lift >= 1 && pouring.released(level.getGameTime()) >= pouring.size()) {
 			raising = -1;
 		} else if (raising < 0 && lift <= 0) {
 			raising = 0;
 			poured = false;
 		}
-	}
-
-	/** How many blocks of the pour have left the body. */
-	private int released(ServerLevel level) {
-		long now = level.getGameTime();
-		int n = 0;
-		for (Pour.Flow f : pour) {
-			if (f.launch() <= now) {
-				n++;
-			}
-		}
-		return n;
 	}
 
 	/** Tips its whole load at once: the pour started and finished in the same tick. Public for tests and set-piece scenes. */
@@ -327,11 +288,10 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		finishPour(level, load);   // anything left of an earlier pour sets first
 		Player driver = getFirstPassenger() instanceof Player p ? p : null;
 		long before = load.total();
-		long now = level.getGameTime();
 		int window = Math.max(1, Math.round((Pour.TO - Pour.FROM) * raiseTicks()));
 		Vec3 lip = lip();
+		float wide = (float) (spec().width() * 0.4);
 		DumpBlockEntity hopper = hopperBehind(level);
-		Vec3 land;
 		if (hopper != null) {
 			String refused = hopper.tip(load);
 			refreshLoad();
@@ -341,8 +301,6 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			}
 			say(driver, "tipped into the hopper");
 			long kg = before - load.total();
-			// drawn as a stream into the pocket under the tail, one share of it a bank block
-			int n = (int) Math.max(4, Math.min(160, Math.round(kg / (double) dev.wildcatter.tailings.pit.PitMass.ROCK_KG)));
 			// into the pocket itself: the first column behind the lip whose floor is the hopper's
 			BlockPos into = null;
 			for (double back = 0; back <= 4 && into == null; back += 0.5) {
@@ -356,68 +314,22 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			if (into == null) {
 				into = floorUnder(level, BlockPos.containing(lip.x, lip.y, lip.z), 14);
 			}
-			land = new Vec3(into.getX() + 0.5, into.getY() + 1.0, into.getZ() + 0.5);
-			int fall = Pour.fall(lip.y - land.y);
-			BlockState rock = dev.wildcatter.tailings.TailingsBlocks.MUCK.defaultBlockState();
-			for (int i = 0; i < n; i++) {
-				long launch = now + (long) i * window / n;
-				long share = kg / n + (i < kg % n ? 1 : 0);
-				pour.add(new Pour.Flow(into, rock, java.util.Map.of(), java.util.Map.of("pour", share), launch, fall, 0, launch + fall, true));
-			}
+			int shares = (int) Math.max(4, Math.min(160, Math.round(kg / (double) dev.wildcatter.tailings.pit.PitMass.ROCK_KG)));
+			pouring.stream(level, Pour.POCKET, into, dev.wildcatter.tailings.TailingsBlocks.MUCK.defaultBlockState(), kg, shares, lip,
+					new Vec3(into.getX() + 0.5, into.getY() + 1.0, into.getZ() + 0.5), window, wide);
 		} else {
 			BlockPos start = tipStart();
 			// it lands just behind the tail and runs out from there
-			BlockPos below = BlockPos.containing(local(0, 1, -spec().length() / 2 - 1.0));
-			land = new Vec3(below.getX() + 0.5, floorUnder(level, below, 24).getY() + 1.0, below.getZ() + 0.5);
-			java.util.Set<BlockPos> held = new java.util.HashSet<>();
-			java.util.List<Loose.Piece> pieces = new java.util.ArrayList<>();
-			java.util.List<BlockPos> cells = new java.util.ArrayList<>();
-			for (Loose.Piece piece = Loose.next(load); piece != null; piece = Loose.next(load)) {
-				BlockPos rest = Loose.rest(level, start, held);
-				if (rest == null) {
-					piece.putBack(load);
-					break;
-				}
-				held.add(rest);
-				pieces.add(piece);
-				cells.add(rest);
-			}
+			Vec3 behind = local(0, 1, -spec().length() / 2 - 1.0);
+			Vec3 land = new Vec3(Math.floor(behind.x) + 0.5, groundUnder(level, behind, 24), Math.floor(behind.z) + 0.5);
+			int n = pouring.pour(level, load, new dev.wildcatter.tailings.pit.Pouring.Spec(start, lip, land, window, Pour.SETTING, wide));
 			refreshLoad();
-			int n = pieces.size();
-			int fall = Pour.fall(lip.y - land.y);
-			long[] launch = new long[n], arrive = new long[n];
-			int[] run = new int[n];
-			for (int i = 0; i < n; i++) {
-				BlockPos at = cells.get(i);
-				launch[i] = now + (long) i * window / Math.max(1, n);
-				run[i] = Pour.run(Math.hypot(at.getX() + 0.5 - land.x, at.getZ() + 0.5 - land.z) + Math.max(0, land.y - at.getY()) * 0.5);
-				arrive[i] = launch[i] + fall + run[i];
-			}
-			// it sets from the edges in, a layer at a time: the lowest first, and in a layer the farthest from where it was let go
-			// first; so every block sets on one that has set below it, and the sheet thins from its rim to the middle of the pile
-			Integer[] order = new Integer[n];
-			for (int i = 0; i < n; i++) {
-				order[i] = i;
-			}
-			double sx = start.getX() + 0.5, sz = start.getZ() + 0.5;
-			java.util.Arrays.sort(order, java.util.Comparator.<Integer>comparingInt(i -> cells.get(i).getY())
-					.thenComparing(i -> -Math.hypot(cells.get(i).getX() + 0.5 - sx, cells.get(i).getZ() + 0.5 - sz)));
-			double gap = (double) Pour.SETTING / Math.max(1, n);
-			double last = 0;
-			for (int k = 0; k < n; k++) {
-				int i = order[k];
-				Loose.Piece piece = pieces.get(i);
-				double set = Math.max(arrive[i] + Pour.SET, k == 0 ? 0 : last + gap);
-				last = set;
-				pour.add(new Pour.Flow(cells.get(i), piece.state(), piece.quarters(), piece.taken(), launch[i], fall, run[i], (long) Math.ceil(set), false));
-			}
 			say(driver, "tipped " + n + " blocks" + (load.empty() ? "" : ", some left in the body"));
 		}
 		pourKg = Math.max(1, before);
 		level.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 3F, 0.8F);
-		nextRumble = now + 50;
-		String sent = Pour.show(lip, land, pour);
-		entityData.set(DATA_POUR, sent.length() < 30_000 ? sent : Pour.show(lip, land, pour.subList(0, Math.min(pour.size(), 500))));
+		nextRumble = level.getGameTime() + 50;
+		syncPour();
 		entityData.set(DATA_FILL, 1F);
 		long tipped = before - load.total();
 		if (tipped > 0 && route.active()) {
@@ -438,103 +350,21 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return at.immutable();
 	}
 
-	/** Each tick of a pour: blocks leave the tail, land, and set where they rest, in order. */
-	private void pourTick(ServerLevel level) {
-		long now = level.getGameTime();
-		Pour.Shown drawn = shownPour();
-		long inBody = load.total();
-		boolean leaving = false;
-		for (Pour.Flow f : pour) {
-			if (f.launch() > now) {
-				inBody += f.kg();
-				continue;
-			}
-			if (f.launch() == now) {
-				leaving = true;
-			}
-			if (f.launch() + f.fall() == now) {
-				Vec3 land = f.into() ? new Vec3(f.at().getX() + 0.5, f.at().getY() + 1.0, f.at().getZ() + 0.5) : drawn.land();
-				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, f.state()), land.x, land.y + 0.2,
-						land.z, 6, 0.6, 0.15, 0.6, 0.1);
-			}
-		}
-		if (leaving) {
-			Vec3 lip = drawn.lip();
-			level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.FALLING_DUST, pour.get(0).state()), lip.x, lip.y,
-					lip.z, 3, 1.0, 0.1, 0.3, 0.0);
-			if (now >= nextRumble) {
-				nextRumble = now + 50;
-				level.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 0.7F);
-			}
-		}
-		int setNow = 0;
-		while (!pour.isEmpty() && pour.get(0).set() <= now) {
-			Pour.Flow f = pour.remove(0);
-			if (!f.into()) {
-				set(level, f, load);
-				if (setNow++ % 3 == 0) {
-					level.playSound(null, f.at(), f.state().getSoundType().getPlaceSound(), net.minecraft.sounds.SoundSource.BLOCKS, 0.6F, 0.7F);
-				}
-			}
-		}
-		if (pour.isEmpty()) {
-			entityData.set(DATA_POUR, "");
-			entityData.set(DATA_FILL, -1F);
-			refreshLoad();
-		} else {
-			entityData.set(DATA_FILL, Math.min(1F, (float) inBody / pourKg));
-		}
-	}
-
-	/**
-	 * One block of the pour sets at its cell. If the cell was taken while it was on its way, it settles again from there; with no
-	 * room at all, it goes back into {@code back}.
-	 */
-	private void set(ServerLevel level, Pour.Flow f, PitLoad back) {
-		BlockPos at = f.at();
-		java.util.Set<BlockPos> held = new java.util.HashSet<>();
-		for (Pour.Flow o : pour) {
-			if (!o.into()) {
-				held.add(o.at());
-			}
-		}
-		BlockState there = level.getBlockState(at);
-		if (!net.minecraft.world.level.block.FallingBlock.isFree(there) || there.hasBlockEntity() || net.minecraft.world.level.block.FallingBlock.isFree(level.getBlockState(at.below()))) {
-			at = Loose.rest(level, at, held);
-		}
-		if (at == null) {
-			f.piece().putBack(back);
-			return;
-		}
-		f.piece().place(level, at);
-	}
-
-	/** Every block still on its way sets now, in order: the truck was removed, wrecked, or tipped all at once. */
-	private void finishPour(ServerLevel level, PitLoad back) {
-		while (!pour.isEmpty()) {
-			Pour.Flow f = pour.remove(0);
-			if (!f.into()) {
-				set(level, f, back);
-			}
-		}
-		entityData.set(DATA_POUR, "");
-		entityData.set(DATA_FILL, -1F);
-		refreshLoad();
-	}
-
-	/** Removed for good (broken, killed, gone to another dimension) mid-pour, its load still on its way sets at once; unloaded, it is saved. */
 	@Override
-	public void remove(RemovalReason reason) {
-		if (!reason.shouldSave() && !pour.isEmpty() && level() instanceof ServerLevel server) {
-			PitLoad back = new PitLoad(Long.MAX_VALUE);
-			finishPour(server, back);
-			for (java.util.Map.Entry<String, Integer> e : back.wholeBlocks().entrySet()) {
-				for (int left = e.getValue(); left > 0; left -= 64) {
-					spawnAtLocation(server, dev.wildcatter.tailings.block.Feeds.stack(e.getKey(), Math.min(64, left)));
-				}
-			}
+	protected void finishPour(ServerLevel level, PitLoad back) {
+		super.finishPour(level, back);
+		entityData.set(DATA_FILL, -1F);
+	}
+
+	/** The tip's rumble while the load leaves, and how full the body looks. */
+	@Override
+	protected void afterPour(ServerLevel level, boolean leaving) {
+		long now = level.getGameTime();
+		if (leaving && now >= nextRumble) {
+			nextRumble = now + 50;
+			level.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 0.7F);
 		}
-		super.remove(reason);
+		entityData.set(DATA_FILL, pouring.empty() ? -1F : Math.min(1F, (float) (load.total() + pouring.waitingKg(now)) / Math.max(1, pourKg)));
 	}
 
 	/** A pit hopper, or a gyratory's dump pocket (P7a), under the body's tail: up to 3 m behind it, across its width, down to 8 m. */
@@ -679,9 +509,6 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		raising = input.getIntOr("raising", 0);
 		poured = input.getBooleanOr("poured", false);
 		pourKg = input.getLongOr("pour_kg", 1);
-		pour.clear();
-		pour.addAll(Pour.load(input.getStringOr("pour", "")));   // what was still on its way sets on its first tick back, if its time has come
-		entityData.set(DATA_POUR, pour.isEmpty() ? "" : input.getStringOr("pour_shown", ""));
 		String saved = input.getStringOr("route", "");
 		long[] stakes = saved.isEmpty() ? new long[0] : java.util.Arrays.stream(saved.split(",")).mapToLong(Long::parseLong).toArray();
 		if (stakes.length > 0) {
@@ -698,10 +525,6 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		output.putInt("raising", raising);
 		output.putBoolean("poured", poured);
 		output.putLong("pour_kg", pourKg);
-		if (!pour.isEmpty()) {
-			output.putString("pour", Pour.save(pour));
-			output.putString("pour_shown", entityData.get(DATA_POUR));
-		}
 		if (route.active()) {
 			output.putString("route", java.util.Arrays.stream(route.save()).mapToObj(Long::toString).collect(java.util.stream.Collectors.joining(",")));
 			output.putInt("route_at", route.at);

@@ -54,7 +54,7 @@ final class PitHaulGameTests {
 	}
 
 	static int padding(String scene, int otherwise) {
-		return java.util.Arrays.asList(PitPourGameTests.SCENES).contains(scene) ? 80 : PADDING.getOrDefault(scene, PitDispatchGameTests.PADDING.getOrDefault(scene, PitDryStackGameTests.PADDING.getOrDefault(scene, PitBlastGameTests.PADDING.getOrDefault(scene, PitBigGameTests.PADDING.getOrDefault(scene, DraglineGameTests.PADDING.getOrDefault(scene, otherwise))))));
+		return "pit_pour_dragline".equals(scene) ? 160 : java.util.Arrays.asList(PitPourGameTests.SCENES).contains(scene) ? 80 : PADDING.getOrDefault(scene, PitDispatchGameTests.PADDING.getOrDefault(scene, PitDryStackGameTests.PADDING.getOrDefault(scene, PitBlastGameTests.PADDING.getOrDefault(scene, PitBigGameTests.PADDING.getOrDefault(scene, DraglineGameTests.PADDING.getOrDefault(scene, otherwise))))));
 	}
 
 	/** Chunks the long scenes reach, from the test's origin, in chunks. */
@@ -64,6 +64,7 @@ final class PitHaulGameTests {
 			case "pit_one_way" -> new int[] {-1, 3, -1, 12};
 			case "pit_truck_haul" -> new int[] {-2, 8, -1, 5};
 			case "pit_pour_ground", "pit_pour_cut_short" -> new int[] {-1, 5, -1, 5};
+			case "pit_pour_dragline" -> new int[] {-1, 6, -1, 5};
 			default -> PitDispatchGameTests.reach(scene);
 		};
 	}
