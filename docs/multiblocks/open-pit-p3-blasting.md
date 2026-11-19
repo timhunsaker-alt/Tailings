@@ -250,8 +250,8 @@ block in two boxes breaks once.
 ## As built (P3b and P3c, 2026-11-09; decided while Tim was away, see ../questions/p3-blasting.md)
 Built as above except where listed here. The numbers are in `pit.Blasting` (`BlastingTest`).
 - **The drill is one machine** at its real size (7 x 15 m, mast to 26 m), not four placed parts (decision 1): no build check, no
-  contraption, no PLC points until the parts come (they came in C15: As built: four parts, below). Its mast is at its back end, the hole 1.5 m in from it; its back faces the free face
-  and the rows run on the way it faces (decision 2). GO squares it to the nearest of the four ways: patterns run square to the grid.
+  contraption, no PLC points until the parts come (they came in C15: As built: four parts, below). Its mast is at its back end, the
+  hole 1.5 m in from it; its back faces the free face and the rows run on the way it faces (decision 2). GO squares it to the nearest of the four ways: patterns run square to the grid.
   It turns on the spot at **9°/s** to face the next hole's stand, trams, turns back, sets up and drills *(proposed)*; about **110 t**
   *(proposed)*. A hole already drilled is passed over.
 - **Its screen** is a small panel of minus and plus buttons shared with the truck and the logger (decision 3): sneak-right-click the
