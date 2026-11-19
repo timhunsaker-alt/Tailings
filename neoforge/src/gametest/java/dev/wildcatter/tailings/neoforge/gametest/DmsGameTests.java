@@ -149,9 +149,11 @@ final class DmsGameTests {
 	private static void split(GameTestHelper helper) {
 		Rig rig = rig(helper, new BlockPos(0, 4, 0), true);
 		rig.module().receive(gravel(Rock.GRANITE, 2000, Rock.COPPER, 1000));
+		net.minecraft.server.level.ServerPlayer player = QuestGameTests.player(helper, 3, 4, 12);
 		helper.succeedWhen(() -> {
 			rig.water();
 			String s = rig.describe();
+			helper.assertTrue(QuestGameTests.reached(helper, player, dev.wildcatter.tailings.quest.Milestones.DMS_RUNNING), Component.literal("separating gives dms_running (2026-11-19)"));
 			helper.assertTrue(rig.module().hold().isEmpty(), Component.literal("the module should treat it all" + s));
 			helper.assertTrue(rig.floats().getItem(1).is(Items.GRAVEL) && rig.floats().getItem(1).getCount() == 1,
 					Component.literal("1.98 t of floats should pay one block of vanilla gravel" + s));
@@ -160,6 +162,7 @@ final class DmsGameTests {
 			helper.assertTrue(Math.abs(rig.sunk(Rock.GRANITE) - 40) < 1e-3, Component.literal("2 % of the granite should sink with it, got " + rig.sunk(Rock.GRANITE)));
 			helper.assertTrue(rig.sinksBelt().hold().total() + rig.sinksBelt().made().total() > 1000, Component.literal("the sinks should go out on the belt off the sinks screen's south end" + s));
 			helper.assertTrue(rig.module().inspect().getString().contains("medium at SG 2.75"), Component.literal("it should read its medium" + s));
+			QuestGameTests.leave(helper, player);
 		});
 	}
 

@@ -22,6 +22,10 @@
         {
           "item": "tailings:hand_screen",
           "count": 1
+        },
+        {
+          "milestone": "tailings:stamp_mill_running",
+          "text": "Crush ore in the stamp mill"
         }
       ],
       "rewards": [
@@ -128,6 +132,10 @@
         {
           "item": "tailings:zircon_concentrate",
           "count": 1
+        },
+        {
+          "milestone": "tailings:dry_mill_running",
+          "text": "Run a dry mill separator"
         }
       ]
     },
@@ -149,6 +157,10 @@
         {
           "item": "tailings:dms_cyclone_module",
           "count": 1
+        },
+        {
+          "milestone": "tailings:dms_running",
+          "text": "Separate gravel in the DMS"
         }
       ]
     },

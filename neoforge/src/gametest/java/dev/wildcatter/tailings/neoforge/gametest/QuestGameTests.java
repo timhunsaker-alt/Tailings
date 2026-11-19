@@ -57,7 +57,7 @@ import net.minecraft.world.level.block.Blocks;
 final class QuestGameTests {
 	static final String[] SCENES = {"quests_valid", "quest_crusher_milestone", "quest_flotation_milestone", "quest_blast_milestone",
 			"quest_dragline_milestone", "quest_zircon_feed", "quest_gyratory_milestone", "quest_shovel_milestone", "quest_leach_milestone",
-			"quest_pit_energised_milestone"};
+			"quest_pit_energised_milestone", "quest_stamp_mill_milestone"};
 	/** Scenes over a wide area: their chunks are loaded by {@link #reach}. */
 	static final Set<String> WIDE = Set.of("quest_blast_milestone", "quest_dragline_milestone", "quest_gyratory_milestone", "quest_shovel_milestone",
 			"quest_pit_energised_milestone");
@@ -80,6 +80,7 @@ final class QuestGameTests {
 		out.accept("quest_shovel_milestone", QuestGameTests::shovel);
 		out.accept("quest_leach_milestone", QuestGameTests::leach);
 		out.accept("quest_pit_energised_milestone", QuestGameTests::pitEnergised);
+		out.accept("quest_stamp_mill_milestone", QuestGameTests::stampMill);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -112,7 +113,7 @@ final class QuestGameTests {
 	}
 
 	/** A stand-in player at {@code (x, y, z)} of the test, its inventory empty. */
-	private static ServerPlayer player(GameTestHelper helper, int x, int y, int z) {
+	static ServerPlayer player(GameTestHelper helper, int x, int y, int z) {
 		ServerPlayer player = helper.makeMockServerPlayerInLevel();
 		BlockPos at = helper.absolutePos(new BlockPos(x, y, z));
 		player.teleportTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
@@ -120,17 +121,17 @@ final class QuestGameTests {
 		return player;
 	}
 
-	private static void leave(GameTestHelper helper, ServerPlayer player) {
+	static void leave(GameTestHelper helper, ServerPlayer player) {
 		helper.getLevel().getServer().getPlayerList().remove(player);
 	}
 
-	private static boolean reached(GameTestHelper helper, ServerPlayer player, Identifier key) {
+	static boolean reached(GameTestHelper helper, ServerPlayer player, Identifier key) {
 		return QuestData.get(helper.getLevel().getServer()).of(player.getStringUUID()).milestones.contains(key.toString());
 	}
 
 	// ---- scenes ------------------------------------------------------------------------------------------------------------------
 
-	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its eight milestones. */
+	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its eleven milestones. */
 	private static void questsValid(GameTestHelper helper) {
 		MinecraftServer server = helper.getLevel().getServer();
 		List<String> problems = QuestRules.problems(server);
@@ -153,11 +154,26 @@ final class QuestGameTests {
 		}
 		Set<String> fired = Set.of(Milestones.CRUSHER_RUNNING.toString(), Milestones.FLOTATION_RUNNING.toString(), Milestones.BLAST_FIRED.toString(),
 				Milestones.DRAGLINE_RUNNING.toString(), Milestones.GYRATORY_RUNNING.toString(), Milestones.SHOVEL_RUNNING.toString(),
-				Milestones.LEACH_RUNNING.toString(), Milestones.PIT_ENERGISED.toString());
-		check(helper, keys.equals(fired), "the chapter's milestones should be the eight Tailings fires: " + keys);
+				Milestones.LEACH_RUNNING.toString(), Milestones.PIT_ENERGISED.toString(), Milestones.STAMP_MILL_RUNNING.toString(),
+				Milestones.DRY_MILL_RUNNING.toString(), Milestones.DMS_RUNNING.toString());
+		check(helper, keys.equals(fired), "the chapter's milestones should be the eleven Tailings fires: " + keys);
 		log("quests_valid", "ok: " + book.chapters().size() + " chapters, " + book.quests().size() + " quests pass; Tailings' chapter has "
 				+ chapter.quests().size() + " quests");
 		helper.succeed();
+	}
+
+	/** The stamp mill crushing a copper ore block gives a player beside it {@code tailings:stamp_mill_running} (2026-11-19). */
+	private static void stampMill(GameTestHelper helper) {
+		BlockPos at = new BlockPos(2, 2, 2);
+		helper.setBlock(at, TailingsBlocks.STAMP_MILL);
+		ServerPlayer player = player(helper, 4, 2, 4);
+		check(helper, !reached(helper, player, Milestones.STAMP_MILL_RUNNING), "nothing is reached before it stamps");
+		var mill = helper.getBlockEntity(at, dev.wildcatter.tailings.block.HandMillBlockEntity.class);
+		check(helper, mill.offer(new ItemStack(Blocks.COPPER_ORE)), "the stamp mill should take copper ore");
+		helper.succeedWhen(() -> {
+			check(helper, reached(helper, player, Milestones.STAMP_MILL_RUNNING), "the stamping mill should give stamp_mill_running");
+			leave(helper, player);
+		});
 	}
 
 	/** A jaw crusher on 480 V crushing copper ore onto its belt gives a player 6 m off {@code tailings:crusher_running}. */

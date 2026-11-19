@@ -186,6 +186,7 @@ public final class DryMillStages {
 					return;
 				}
 				DryMill.Pass pass = DryMill.separate(self, part.hmc().take(max));
+				dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.DRY_MILL_RUNNING);
 				for (Mineral mineral : pass.product().minerals()) {
 					part.cake().addKg(mineral, pass.product().pay(mineral));
 				}

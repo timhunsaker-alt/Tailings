@@ -90,8 +90,10 @@ final class DryMillGameTests {
 		bag.put(Mineral.MONAZITE, 3);
 		bag.put(Mineral.CASSITERITE, 10);
 		helper.assertTrue(p[0].offer(HeavyMineralConcentrateItem.of(TailingsItems.HEAVY_MINERAL_CONCENTRATE, bag)), Component.literal("the dryer should take a bag of HMC"));
+		net.minecraft.server.level.ServerPlayer player = QuestGameTests.player(helper, 4, 4, 10);
 		helper.succeedWhen(() -> {
 			String s = all(p);
+			helper.assertTrue(QuestGameTests.reached(helper, player, dev.wildcatter.tailings.quest.Milestones.DRY_MILL_RUNNING), Component.literal("separating gives dry_mill_running (2026-11-19)" + s));
 			helper.assertTrue(nuggets(p[1], FOUR, Mineral.ILMENITE) == 4, Component.literal("the roll magnet should pay 4 ilmenite nuggets (50 kg x 1.11)" + s));
 			helper.assertTrue(nuggets(p[2], FOUR, Mineral.RUTILE) == 5 && nuggets(p[2], FOUR, Mineral.CASSITERITE) == 1,
 					Component.literal("the high-tension roll should pay 5 rutile and 1 cassiterite nugget" + s));
@@ -99,6 +101,7 @@ final class DryMillGameTests {
 			helper.assertTrue(nuggets(p[1], FOUR, Mineral.ZIRCON) + nuggets(p[1], FOUR, Mineral.RUTILE) + nuggets(p[2], FOUR, Mineral.ILMENITE) + nuggets(p[2], FOUR, Mineral.ZIRCON)
 					+ nuggets(p[3], FOUR, Mineral.ILMENITE) + nuggets(p[3], FOUR, Mineral.RUTILE) == 0, Component.literal("no mineral at the wrong separator" + s));
 			helper.assertTrue(p[0].inspect().getString().contains("m3 of gas burnt"), Component.literal("the dryer should burn gas" + s));
+			QuestGameTests.leave(helper, player);
 		});
 	}
 

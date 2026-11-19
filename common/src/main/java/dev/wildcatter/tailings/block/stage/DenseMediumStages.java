@@ -187,6 +187,7 @@ public final class DenseMediumStages {
 			recovery.setDryKg(recovery.dryKg() - lost);
 			part.useWater(taken.total() * DenseMedium.WATER_PER_KG);
 			dms.count(taken.total(), split.floats().total(), lost, part.getLevel().getGameTime());
+			dev.wildcatter.tailings.quest.Milestones.fire(part.getLevel(), part.getBlockPos(), dev.wildcatter.tailings.quest.Milestones.DMS_RUNNING);
 			Rock main = taken.main();
 			part.say(main == null ? "separating at SG " + sg(medium)
 					: "separating at SG " + sg(medium) + ": " + main.displayName() + " (SG " + sg(DenseMedium.pieceSg(main)) + ") " + (DenseMedium.sinks(main, medium) ? "sinks" : "floats"));

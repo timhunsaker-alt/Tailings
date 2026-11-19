@@ -52,6 +52,9 @@ public class HandMillBlockEntity extends BlockEntity implements WorldlyContainer
 		}
 		if (tryRun()) {
 			wait = 0;
+			if (level != null && role() == dev.wildcatter.tailings.block.HandMillBlock.Role.STAMP_MILL) {
+				dev.wildcatter.tailings.quest.Milestones.fire(level, worldPosition, dev.wildcatter.tailings.quest.Milestones.STAMP_MILL_RUNNING);
+			}
 		}
 	}
 

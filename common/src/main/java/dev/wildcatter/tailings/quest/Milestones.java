@@ -28,6 +28,12 @@ public final class Milestones {
 	public static final Identifier LEACH_RUNNING = Tailings.id("leach_running");
 	/** A pit switch house with a trailing cable live: its outlet closed, the house fed, the cable's far end at its volts. */
 	public static final Identifier PIT_ENERGISED = Tailings.id("pit_energised");
+	/** The stamp mill crushing a piece of ore or rock (2026-11-19, wave A). */
+	public static final Identifier STAMP_MILL_RUNNING = Tailings.id("stamp_mill_running");
+	/** A dry mill separator separating heavy mineral concentrate (2026-11-19, wave A). */
+	public static final Identifier DRY_MILL_RUNNING = Tailings.id("dry_mill_running");
+	/** The DMS cyclone module separating gravel against its ferrosilicon medium (2026-11-19, wave A). */
+	public static final Identifier DMS_RUNNING = Tailings.id("dms_running");
 
 	private Milestones() {
 	}
