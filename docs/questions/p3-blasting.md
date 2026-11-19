@@ -1,5 +1,7 @@
 # Open pit P3, drilling and blasting — decided while Tim was away (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 The spec ([../multiblocks/open-pit-p3-blasting.md](../multiblocks/open-pit-p3-blasting.md)) is a draft decided on recommendation
 (its choices are in [specs-tailings.md](specs-tailings.md), P3). Building it raised the questions below; each was decided on the best
 recommendation and is open for Tim. New numbers are marked *(proposed)* in the spec's "As built" section. PROGRESS.md, "Open pit P3".
@@ -12,6 +14,7 @@ recommendation and is open for Tim. New numbers are marked *(proposed)* in the s
   and the pit's other machines are already single entities. The written exception to "big parts" stands until Tim chooses.
 - **Alternatives:** the four parts as P3-2 chose (crawlers, deck, mast, dust collector), built when the rope shovel's contraption is
   built in P5, sharing its code.
+- **Tim (2026-11-19):** the drill becomes four placed parts lifted into one machine, as the rope shovel is, with PLC points (answers-2026-11-19, C15); built in <commit>.
 
 ### 2. Which way does a pattern run?
 - **Chosen:** square to the world's grid. GO turns the drill to the nearest of the four ways; its back (the mast end) faces the free
@@ -106,6 +109,7 @@ recommendation and is open for Tim. New numbers are marked *(proposed)* in the s
   siren is vanilla's raid horn, every 2 s for 10 s; the blast is vanilla's explosion, once, loud, at the shot.
 - **Why:** the brief: reuse, and vanilla's explosion where a blast sound is needed.
 - **Alternatives:** recorded drill, pump, siren and blast sounds in the art wave (`drill_rotary`, `blast` in the spec).
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the blast drill and the siren among them (answers-2026-11-19, C25); built in <commit>.
 
 ### 16. Camera shake
 - **Chosen:** left out (Known gaps).

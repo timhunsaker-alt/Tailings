@@ -1,5 +1,7 @@
 # gaps2: known gaps closed by adding behaviour (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `gaps2` from `main`. The task: close the Known gaps in `ROADMAP.md` that can be closed purely by adding behaviour,
 leaving the ones that wait on a design choice of yours. Format as in `README.md` here. **#4, #5 and #6 would change what an existing

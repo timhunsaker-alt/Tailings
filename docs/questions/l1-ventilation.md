@@ -1,5 +1,7 @@
 # L1, ventilation of the drive (2026-11-09): decisions taken while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods". The spec is the draft
 [../multiblocks/ventilation.md](../multiblocks/ventilation.md); its "As built" lists what was built. The lead's rule for this wave:
 **nothing may stop, slow or harm machines or players in existing worlds without Tim's say-so.** Entries 1 and 2 are the ones that need

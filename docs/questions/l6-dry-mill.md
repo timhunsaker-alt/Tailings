@@ -1,5 +1,7 @@
 # L6: the dry mill (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l6-dry-mill` from the draft spec [dry-mill.md](../multiblocks/dry-mill.md), whose own choices are in
 `specs-tailings.md` (L6-1 to L6-3). Format as in `README.md` here. **#3, #9 and #14 most need your eye.** Nothing here changes an
@@ -77,6 +79,7 @@ existing world (#1).
   HMC stockpile ahead of a dry mill does (real dry mills often run apart from the wet plant).
 - **Real counterpart:** induced-roll magnets about 4 t/h a metre, HT rolls 1-2 t/h a metre; real mills run banks of separators.
 - **Alternatives:** size the dry mill at the plant's rate (25 t/h: not a 1.5 m roll); allow several separators in parallel.
+- **Tim (2026-11-19):** keep 2 t/h a part; the HMC bags pile up ahead of the mill (answers-2026-11-19, C17).
 
 ### 10. The dryer's gas
 - **Chosen:** any natural gas on a pipe at its east side (pipeline gas, dried gas, gas, compressed gas, as Wildcatter's gas burners

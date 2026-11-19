@@ -1,5 +1,7 @@
 # The crushers and apron feeders move (2026-11-19)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, C24: the real stroke kept).
+
 Decided while Tim is away (lead's brief: "the jaw crusher and the apron feeder move while they run", for the PLC belts short).
 Each is open for Tim's review.
 
@@ -29,3 +31,4 @@ Each is open for Tim's review.
   Minecraft's scale, so no stroke is enlarged.
 - **Alternatives:** an enlarged stroke so the jaw visibly bites (a display choice like Wildcatter's rpm / 20); pans at the speed the
   feed rate needs (at the plant's 50 t/h, a 2.4 m apron barely moves: about 3 mm/s).
+- **Tim (2026-11-19):** keep the real stroke; no stroke enlarged for display (answers-2026-11-19, C24).

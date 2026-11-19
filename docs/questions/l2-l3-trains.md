@@ -1,5 +1,7 @@
 # L2 and L3: battery locomotives and bottom-dump cars (2026-11-09), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l2-l3-trains` from the draft specs [battery-locomotive.md](../multiblocks/battery-locomotive.md) (L2) and
 [bottom-dump-cars.md](../multiblocks/bottom-dump-cars.md) (L3), whose own choices are in `specs-tailings.md` (L2-1, L3-1). Format as in
@@ -75,6 +77,7 @@ Built on branch `l2-l3-trains` from the draft specs [battery-locomotive.md](../m
 - **Alternatives:** also NEMA L21-30 (208 V, the low tier: the same 20 kW would be 59 A, twice its rating); IEC red 63 A.
 - **Question:** at 400 V the same 20 kW is 30.4 A on a 32 A receptacle, 95 % of its rating, more than the 80 % continuous the 480 V
   case keeps to. Should the charger take 80 % of whichever receptacle it is on (17.7 kW on IEC) instead of a flat 20 kW?
+- **Tim (2026-11-19):** the charger draws 80 % of its receptacle (17.7 kW on IEC 32 A, 20 kW on 480 V as before), from the standard, with no hardcoded voltage (answers-2026-11-19, C6); built in <commit>.
 
 ### 10. What the charger charges
 - **Chosen:** the battery it holds first (right-click it with a battery; sneak-click with an empty hand takes it out; a click reads
@@ -96,6 +99,7 @@ Built on branch `l2-l3-trains` from the draft specs [battery-locomotive.md](../m
 - **Alternatives:** scale charging time (as the TBM's tests do, never play). **Question:** this is the same kind of choice as the real
   residence times (Wildcatter `plant-crane-gaps.md` #11). A full battery runs about 30 km on the flat, so one battery a shift is
   realistic, but a player may find 2.6 hours long.
+- **Tim (2026-11-19):** keep the real 18 kW; the two-battery swap makes it workable (answers-2026-11-19, C2).
 
 ### 13. Recipes (placeholders, as the trolley locomotive's)
 - **Chosen:** battery locomotive: iron around a steel ingot, a mine rail under. Traction battery: six Wildcatter lead ingots, two copper
@@ -130,6 +134,7 @@ Built on branch `l2-l3-trains` from the draft specs [battery-locomotive.md](../m
 - **Why:** one pocket, one rule; the two stations should not differ in a way the player cannot see.
 - **Alternatives:** no oversize for bottom dumps, as the spec says (the track grizzly would let everything through). **Question:**
   which do you want? The scenes lift oversize off where a full train is dumped.
+- **Tim (2026-11-19):** keep the oversize on the track grizzly, one rule for every pocket (answers-2026-11-19, C11).
 
 ### 17. Mixed trains and the signal before the dump
 - **Chosen:** each kind dumps only at its own station: Granby cars at a ramp, bottom-dump cars over a grizzly; each passes the other's

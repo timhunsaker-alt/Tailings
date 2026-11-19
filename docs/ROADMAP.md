@@ -161,7 +161,7 @@ starts the machines downstream first, one a second, then sends GO to the TBM.
 
 The last signals (2026-11-09, decided while Tim was away, [questions/plc-13i.md](questions/plc-13i.md)): the sorter's routing by a
 rock code a side, the TBM's course (target Y and flat length) on its junction, and a slurry part's level, flow and density. NeoForge
-scenes `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`.
+scenes `plc_sorter_route`, `plc_tbm_course`, `plc_slurry`; `PlcScaleTest`. Accepted by Tim 2026-11-19.
 
 ## Open pit — P1: loose ground, the haul truck, the truck dump, the wheel loader (2026-11-09)
 
@@ -177,7 +177,7 @@ Tim's P2 answers (2026-11-09): the loader can run itself as well as be driven; f
 fuel bay; P2 in two waves. Built: survey stakes and the survey book, routes surveyed for grade, clearance and width, self-driving
 haul trucks out and back with turning round and backing in, the self-running loader, diesel by work, and the fuel bay. NeoForge
 scenes `pit_survey`, `pit_loader_auto`, `pit_fuel_burn`, `pit_fuel_bay`, `pit_out_of_fuel`, `pit_truck_obstacle`, `pit_truck_follow`,
-`pit_one_way`, `pit_truck_haul`; unit tests `PitP2aTest`; the filmed client scene `pit_haul`.
+`pit_one_way`, `pit_truck_haul`; unit tests `PitP2aTest`; the filmed client scene `pit_haul`. Its building decisions ([questions/p2a-open-pit.md](questions/p2a-open-pit.md)) were accepted by Tim 2026-11-19.
 
 ## Open pit — P2b: the haul dispatch office on the PLC (2026-11-09)
 
@@ -185,7 +185,7 @@ Built while Tim was away, on the best recommendation (decisions in [questions/p2
 `haul_dispatch` office, a 3 x 3 x 3 `ControlDevice` on the control cable and a small load on the low tier, reaching trucks within
 2 km. Up to 8 routes, added with the survey book; per route RUN, RUNNING, TRUCKS, LOADS, TONNES; for the fleet FUEL LOW and BLOCKED.
 PARK stakes now work: RUN off sends a route's trucks to its PARK stake (or its next stake) with their engines off. NeoForge scenes
-`pit_dispatch`, `pit_dispatch_alarms`, `pit_dispatch_fallback`; unit tests `DispatchTest`.
+`pit_dispatch`, `pit_dispatch_alarms`, `pit_dispatch_fallback`; unit tests `DispatchTest`. Accepted by Tim 2026-11-19.
 
 ## Open pit — P3: drilling and blasting (2026-11-09)
 
@@ -197,7 +197,7 @@ block and its states, stemming from cuttings or gravel. P3c: `cast_booster` and 
 for 3 off the free face, the floor left at grade, blowouts, flyrock, harm by distance, misfires and the 30 s wait, and the guard
 against machines in the shot. NeoForge scenes `pit_drill_pattern`, `pit_drill_short`, `pit_charge`, `pit_prime_stem`, `pit_blast`,
 `pit_blast_blowout`, `pit_blast_boxcut`, `pit_misfire`, `pit_blast_guard`, `pit_blast_plc`; unit tests `BlastingTest`; client film
-`pit_blast` (written, to be filmed).
+`pit_blast` (written, to be filmed). Accepted by Tim 2026-11-19.
 
 Next (after P4 and P5, below): P6
 (the dragline), P7 (the pit-sized plant).
@@ -211,7 +211,7 @@ pipe), the `tailings_filter` (a 15-minute batch press dropping 15 t of `dry_tail
 berms and paddock dumps; NO BERM; a truck backed over a crest is wrecked; the `track_dozer` (CARRY, CUT to grade, RAISED; berms; hard
 rock). NeoForge scenes `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`,
 `pit_over_crest`, `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`; unit tests
-`DryStackTest`; the client scene `pit_dry_stack` (written, not yet filmed).
+`DryStackTest`; the client scene `pit_dry_stack` (written, not yet filmed). Accepted by Tim 2026-11-19.
 
 ## Open pit — P5: the pit switch house, trailing cables, the ultra truck, the big shovels (2026-11-09)
 
@@ -225,7 +225,7 @@ path, CABLE END, its resistance on the solver, drawn on the ground), LOW VOLTAGE
 set down by STOP, on its cable at 3.5 MW hoisting; 4 passes to an ultra. NeoForge scenes `pit_switch_house`, `pit_switch_house_fed`,
 `pit_cable_end`, `pit_low_voltage`, `pit_ultra_haul`, `pit_ultra_loader`, `pit_hyd_shovel`, `pit_hyd_electric`, `pit_rope_shovel_built`,
 `pit_rope_shovel`, `pit_shovel_edge`; unit tests `PitPowerTest`; client film `pit_big`. The self-running loader and the shovels
-now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan).
+now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan). Accepted by Tim 2026-11-19.
 
 Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant, below). Planned from P5 (Known gaps below): the rope
 shovel's PLC points through its outlet; the drill as four parts.
@@ -243,7 +243,7 @@ any ore; standing rock reads BLOCKED, blast it first. With its reach dug out it 
 house outlet, for any machine there. A reel can now be clicked onto any pit machine (a P5 gap). NeoForge scenes `dragline_built`,
 `dragline_cycle`, `dragline_strip`, `dragline_walk`, `dragline_hard`, `dragline_plc`; unit tests `DraglineTest`; client film `dragline`.
 Tim (2026-11-10, answer 10): the house is a hollow shell (2,790 cells, 11,880 fewer block states), and every big part's empty cells
-share one model (13,604 fewer files).
+share one model (13,604 fewer files). Accepted by Tim 2026-11-19.
 
 Next: P7 (the pit-sized plant). Left out from P6's spec (Later, below): cast blasting, hand control, highwall and spoil failures, rehandle,
 bucket-wheel excavators and spreaders.
@@ -252,7 +252,7 @@ bucket-wheel excavators and spreaders.
 ## Open pit — P7: the pit-sized plant line (2026-11-10)
 
 Built while Tim was away on the draft specs, decided on recommendation (decisions in [questions/p7-pit-line.md](questions/p7-pit-line.md)),
-branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which is unchanged.
+branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which is unchanged. Accepted by Tim 2026-11-19.
 
 - **P7a — DONE (2026-11-10):** [multiblocks/primary-gyratory-stockpile.md](multiblocks/primary-gyratory-stockpile.md). The
   `gyratory_pocket` on the `gyratory_crusher` (450 kW, medium voltage, 2,400 t/h) on the `surge_pocket` over the `primary_apron_feeder`;
@@ -269,7 +269,7 @@ branch `p7-pit-line`. The line runs at 1,000 t/h beside the 50 t/h plant, which 
   NeoForge scenes `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests in `PitLineTest`. The
   client film `p7_line` (the truck tipping, the gyratory, the pile and its reclaim, the SAG line).
 - **P7c — DONE (2026-11-10, branch `p7c-pit-flotation`):** [multiblocks/pit-flotation.md](multiblocks/pit-flotation.md); decisions
-  p7-pit-line.md #33-#44 (#33, #36, #37 and #40 need Tim). The model tool first: a part may share one empty model among its empty cells
+  p7-pit-line.md #33-#44 (#33, #36 and #40 answered by Tim 2026-11-10, #37 on 2026-11-19). The model tool first: a part may share one empty model among its empty cells
   (Tailings' driver, opt-in; every existing model regenerates byte-identical), so the 45 m thickener is 2,146 piece models, not 12,150.
   The `conditioning_tank_large` (8 x 9 x 8, 90 kW, reagents per tonne as the small tank), the `tank_cell` (7 x 7 x 7, 160 kW), the
   `column_cell` (4 x 14 x 4, 15 kW), the `flotation_blower_large` (4 x 4 x 6, 400 kW at the medium-voltage tier) and the
@@ -293,7 +293,7 @@ moved to them (`feed_face`, `crushing_circuit`, `playthrough_crushing`); the scr
 (`screen_gravel`); oversize on the pocket's grizzly (`pocket_oversize`); the train waits at the signal before the dump (`dump_signal`);
 lead and zinc concentrate mixed make a bulk cake (`bulk_concentrate`); the ore sorter's screen (`sorter_screen`); metal counted in kg in
 the assay. Kept as they are: concentrate as mineral only, and the old `fines_*` items. The waste bin's way out is written, not built
-into the playthrough.
+into the playthrough. Accepted by Tim 2026-11-19.
 
 ## Later — L2 and L3: battery locomotives and bottom-dump cars (2026-11-09)
 
@@ -305,7 +305,7 @@ battery it holds or a locomotive standing beside it; batteries swap by hand; LOW
 **L3:** the `bottom_dump_car` drops its load through its doors on the move over a `track_grizzly` beside a `dump_cam_rail`, into the
 pocket under the track; mixed trains dump each kind at its own station. NeoForge scenes `battery_loco_run`, `battery_loco_climb`,
 `battery_loco_flat`, `battery_charge`, `bottom_dump_on_move`, `bottom_dump_full`, `bottom_dump_mixed`, `train_models_l2_l3`; unit
-tests `BatteryTest`; the client film `battery_bottom_dump`.
+tests `BatteryTest`; the client film `battery_bottom_dump`. Accepted by Tim 2026-11-19.
 - **Left out, planned (the specs' "Left out"):** lithium packs and fast charging; regeneration down the decline; hydrogen from charging
   and the bay's ventilation (with L1, ventilation); battery life and cycles; battery-electric pit trucks and loaders (open-pit.md);
   doors jamming on sticky muck and frozen loads; oversize and a rock breaker on the track grizzly; rotary car dumpers. The shaft's
@@ -319,7 +319,7 @@ Built while Tim was away on the draft spec [multiblocks/ventilation.md](multiblo
 the junction's AIR AT BACK-UP and the `gas_detector` read the air (10.8 m³/s, 0.3 m/s, needed) and RADON in tuff and sandstone.
 **The interlock (NO VENTILATION) and stale air's effects are world rules, on in new worlds and off in existing ones** (Tim,
 2026-11-10; questions #1, #2), so existing drives run as before. NeoForge scenes `vent_fresh`, `vent_cassette`, `vent_stale_player`,
-`vent_booster`, `vent_default_off`, `vent_parts`, `vent_new_world`; unit tests `AirflowTest`.
+`vent_booster`, `vent_default_off`, `vent_parts`, `vent_new_world`; unit tests `AirflowTest`. Accepted by Tim 2026-11-19.
 - **Left out, planned (the spec's "Left out"):** a network solver (Hardy Cross), return airways, regulators and doors; a shaft as the
   return airway (with L4, shaft-and-hoist.md, Later); heat from the rock at depth and refrigeration; real gases (methane, blasting
   fumes, diesel particulate) and the diesel rule (0.06 m³/s a kW) for when a diesel machine goes below; the battery bay's hydrogen
@@ -332,7 +332,7 @@ Built while Tim was away on the draft spec [multiblocks/shaft-and-hoist.md](mult
 balance at up to 10 m/s between the `measuring_flask` at the shaft bottom and the dump in the headframe, into the 100 t `headframe_bin`
 beside it, which feeds a belt. The L3 bottom-dump station's apron feeder feeds the flask. About 270-280 t/h from 150 m. Reads STOPPED,
 WINDING, WAITING FOR ORE, BIN FULL, NOT BUILT; PLC FILL (the bin) and SKIP DUMPED. NeoForge scenes `shaft_hoist`, `shaft_not_built`,
-`shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; unit tests `HoistingTest`; the client film `shaft_hoist`.
+`shaft_flask_feed`, `shaft_bin_full`, `shaft_power`; unit tests `HoistingTest`; the client film `shaft_hoist`. Accepted by Tim 2026-11-19.
 - **Still to build, planned (the spec's "Still to build"):** L4b the raise borer (pilot and ream, cuttings into the drive); L4c the cage
   on the second drum (CAGE mode, riding, two landings); the shaft as the drive's return airway (with L1 ventilation); then the spec's
   "Left out": Koepe hoists, rope stretch and inspection, overwind, sinking by drill and blast, several levels, lowering the TBM down
@@ -348,7 +348,7 @@ m³, its openings closed with `fill_bulkhead`s), where it lands as wet `paste_fi
 bulkhead lets the wet paste run out. Reads NO FEED, NO CEMENT, NOT ENCLOSED, FULL, LINE PRESSURE; PLC FLOW and PRESSURE on the pump.
 NeoForge scenes `paste_fill_void`, `paste_not_enclosed`, `paste_cure`, `paste_bulkhead_fail`, `paste_no_cement`, `paste_plant`,
 `paste_line_pressure`, `paste_pace`; unit tests `PasteFillTest`, `FillVoidTest`; the client film `paste`. Since Tim's answers
-(2026-11-10) a placed block stands for 10 m³ of paste: a 360 m³ branch fills in about an hour.
+(2026-11-10) a placed block stands for 10 m³ of paste: a 360 m³ branch fills in about an hour. Accepted by Tim 2026-11-19.
 - **Left out, planned (the spec's "Left out"):** uncemented hydraulic and rock fill; fill strength and exposing a fill wall; boreholes
   and their wear; paste rheology; a real cement kiln (cement is a crafted placeholder).
 ## Later — L6: the dry mill (2026-11-10)
@@ -362,7 +362,7 @@ its minerals at the top rung's rate: 50 + 45 = 95 %, the 4x, by the real route. 
 Existing plants pay as before. Since Tim's answers (2026-11-10) the world rule `dry_mill_all_hmc` (on in new worlds) sends the spiral
 bank's share through the dry mill too, where a dryer touches the filter. NeoForge scenes `dry_mill_split`, `dry_mill_ladder`,
 `dry_mill_all_hmc`, `dry_mill_wet`, `dry_mill_no_dryer`, `dry_mill_no_gas`, `dry_mill_parts`; unit tests `DryMillTest`; the client
-film `dry_mill`.
+film `dry_mill`. Accepted by Tim 2026-11-19.
 - **Done on Wildcatter 0.8.0 (2026-11-14):** its chlorinator takes Tailings' `zircon_concentrate` (Tim said yes, L6-3; questions #14),
   by `#wildcatter:zircon_feed` at 56.25 kg an item (questions/quests.md #2; scene `quest_zircon_feed`).
 - **Left out, planned (the spec's "Left out"):** electrostatic plate separators, attritioning and acid washing; leucoxene and altered
@@ -378,7 +378,7 @@ their minerals with them; the sinks go on through a second one to the cone. A `m
 a tonne; `ferrosilicon` is a 25 kg bag with a placeholder recipe. 2 % each way goes wrong. Existing plants run as before. NeoForge
 scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`, `dms_floats_belt`; unit tests `DenseMediumTest`;
 the client films `dms` and `dms_floats_belt`. Since Tim's answers (2026-11-10) the floats can ride a belt off the floats screen's north
-end, back to the plant, so the light ores can be recovered.
+end, back to the plant, so the light ores can be recovered. Accepted by Tim 2026-11-19.
 - **Waits on Wildcatter 0.7.0:** the medium made from Wildcatter's ferrosilicon bag (FeSi 75 and iron to FeSi 15; Tim, #8); the
   placeholder recipe stays until Wildcatter's Phase 17 is released.
 - **Left out, planned (the spec's "Left out"):** a DMS drum for coarser feed; real partition curves and near-gravity material; coal
@@ -393,7 +393,7 @@ atomic number from the real formulas of the minerals its rock holds and splits c
 t/h on crushed rock. Its own 160 kW `sorter_compressor` gives the ejectors air; without it, NO AIR, and it stops. PRODUCT and WASTE pulse
 a tonne each. The dump sorter is unchanged. NeoForge scenes `xrt_split`, `xrt_threshold`, `xrt_no_air`, `xrt_plc`, `xrt_refuses`; unit
 tests `XrtSortingTest`; the client film `xrt`. Since Tim's answers (2026-11-10) a reverse mode keeps what reads under the threshold
-(the sneaking click, or the PLC's REVERSE); scene `xrt_reverse`.
+(the sneaking click, or the PLC's REVERSE); scene `xrt_reverse`. Accepted by Tim 2026-11-19.
 - **Not built:** the spec's sizing screen (questions/l8-xrt.md, 8).
 - **Left out, planned (the spec's "Left out"):** other sensors (optical, laser, NIR, X-ray fluorescence and luminescence for diamonds);
   a grade spread inside one rock; dust extraction.

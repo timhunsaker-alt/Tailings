@@ -1,5 +1,7 @@
 # Open pit P3 and P4 art (2026-11-09): decisions taken while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 Tim (2026-11-09): "close all known gaps". The script-drawn `*_placeholder` textures of P3 (blasting) and P4 (dry stack) are now
 Ludo art, made as the art wave made the rest (`docs/questions/art-wave.md`; prompts in `art/source/PROMPTS.md`). 12 Ludo jobs of 2
 pictures each, 12 credits. Format as in `README.md` here.

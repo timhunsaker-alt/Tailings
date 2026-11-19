@@ -1,5 +1,7 @@
 # P6: the walking dragline — decisions taken while building (2026-11-10)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 Spec: [../multiblocks/dragline.md](../multiblocks/dragline.md) (approved by Tim, 2026-11-09). These are the questions building it
 raised that the spec leaves open, decided on the best recommendation while Tim was away. Nothing here is final until he has been
 through it. It is built as P5's rope shovel was ([p5-big-machines.md](p5-big-machines.md), decisions 27-34): parts on the ground,

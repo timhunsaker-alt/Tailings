@@ -1,5 +1,7 @@
 # L7: dense-medium separation (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l7-dms` from the draft spec [dense-medium-separation.md](../multiblocks/dense-medium-separation.md), whose own choices
 are in `specs-tailings.md` (L7-1 to L7-3). Format as in `README.md` here. **#4, #5 and #8 most need your eye.** Nothing here changes
@@ -54,6 +56,7 @@ an existing world (#1).
   mass at over 90 % recovery, which this matches.
 - **Alternatives:** mark the sinks so a second pass lets them through (needs a mark on rock loads, a change to every belt and
   part); send the sinks to the ball mill (the mill takes sand only).
+- **Tim (2026-11-19):** keep the loop: sinks go round again, about 3 % lost (answers-2026-11-19, C8).
 
 ### 6. Liberation and misplacement
 - **Chosen:** a whole block's gravel floats or sinks as one (the spec's "block's mean"); 2 % of each side goes the wrong way, flat,
@@ -80,6 +83,7 @@ an existing world (#1).
 - **Question:** keep this recipe until then, or make it from Wildcatter's steel and silicon items when they exist?
 - **Alternatives:** magnetite medium from the magnetic separator (real for coal; too light for a 2.75 medium in practice).
 - **Tim (2026-11-10):** make the medium from Wildcatter's ferrosilicon bag (FeSi 75 + iron to FeSi 15) once Phase 17 is released; keep the placeholder until then. Kept; it waits for Wildcatter 0.7.0 (answers-2026-11-10.md #7).
+- **Tim (2026-11-19):** build the 2026-11-10 answer now that Wildcatter 0.7.0 is out: the medium is made from Wildcatter's ferrosilicon bag (answers-2026-11-19, "answered earlier, not built"); built in <commit>.
 
 ### 9. Ferrosilicon losses, and no starting charge
 - **Chosen:** 0.3 kg a tonne of feed *(proposed; real 0.1-0.5)* comes out of the medium recovery's hopper (1 t, 40 bags). With an

@@ -1,5 +1,7 @@
 # Playthrough fix — decided while getting the filmed run to pay again (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation". The playthrough on main (145f0d4) stalled: from its first ore the cone read
 NO POWER and the ball mill's generator tripped, the plant backed up and the filter paid nothing; at 23.5 minutes the TBM read
 "machine not found" and the train ran empty for the rest of the hour. Fixed on branch `worktree-agent-ae0e50cef61c0be63`.

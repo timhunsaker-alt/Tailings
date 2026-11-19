@@ -1,5 +1,7 @@
 # L4: the shaft and hoist (2026-11-09), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l4-shaft` from the draft spec [shaft-and-hoist.md](../multiblocks/shaft-and-hoist.md), whose own choices are in
 `specs-tailings.md` (L4-1, L4-2). Format as in `README.md` here. **#1, #5 and #20 most need your eye.** Nothing here changes an existing
@@ -44,6 +46,7 @@ world (#21).
 - **Why:** with skips in balance the two ends work at once; the spec's "10 s at each end, about 48 s" counted the rest twice. Real
   balanced-skip cycles add one rest of 8-15 s to the wind.
 - **Alternatives:** a 20 s rest (the spec's 225 t/h).
+- **Tim (2026-11-19):** leave as is: the real 3 t skip and its one 10 s rest (answers-2026-11-19, C5).
 
 ### 6. What "150 m" means: the wind is the depth plus the dump height
 - **Chosen:** the skip loads with its bottom at the flask's bottom and dumps with its bottom 18 m above the collar (proposed: the scroll
@@ -133,6 +136,7 @@ world (#21).
   motor hum.
 - **Why:** the parts are steel, concrete and paint, which the materials already cover.
 - **Alternatives:** a hoist sound of its own (a winding hum rising with speed) from Ludo.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the hoist among them (answers-2026-11-19, C25); built in <commit>.
 
 ### 20. The scale of a car against a skip
 - **Chosen:** left as it is: a skip lifts 3 t; a mine car holds 576 items, 1,555 t at the plant's 2.7 t a block. At 270-280 t/h the
@@ -141,6 +145,7 @@ world (#21).
   documentation only). Changing either changes existing worlds or the spec's real figures.
 - **Alternatives:** a bigger skip for the game (say 30 t, the potash shaft's class); counting a car's item as less than a block. Your
   call: the shaft feeds the plant at five times its rate either way.
+- **Tim (2026-11-19):** leave as is: the real 3 t skip (answers-2026-11-19, C5).
 
 ### 21. Existing worlds
 - **Chosen:** nothing changes. The five new parts and the skip are new; the only shared code touched is the apron feeder's tail end

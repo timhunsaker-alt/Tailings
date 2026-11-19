@@ -1,5 +1,7 @@
 # Plant gaps — decided while closing them (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods ... close all known gaps". These are the
 ore plant's and dump's known gaps from ROADMAP.md, closed on branch `plant-gaps` (PROGRESS.md, "Plant gaps").
 

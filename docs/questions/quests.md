@@ -5,7 +5,7 @@ Wildcatter 0.8.0's quest book (Wildcatter `docs/quests.md`) takes a chapter from
 `/Users/timhunsaker/.claude/plans/elegant-swinging-starfish.md`, "Tailings chapter" (approved by Tim 2026-11-14). Format as in
 `README.md` here. Entries 1-8 were **decided on recommendation; for Tim**; Tim went through them on 2026-11-14 (plan
 `elegant-swinging-starfish.md`, "Quest book follow-ups"), and each is marked with his answer below. Entries 9-11 are the follow-up he
-asked for (milestones for the rest of the pit), **decided on recommendation; for Tim**.
+asked for (milestones for the rest of the pit), decided on recommendation and accepted by Tim on 2026-11-19.
 
 ### 1. Grinding and flotation come after MV switchgear, not after Three-phase power
 **Answered by Tim 2026-11-14: flotation stays after MV switchgear.**
@@ -83,7 +83,7 @@ Plan section "4. Tailings: milestones for the rest of the pit". Built on Wildcat
 0.8.1 and the dist jars are left to the lead, who does them after Wildcatter 0.8.1 is released.
 
 ### 9. Where the four new milestones fire
-**Decided on recommendation; for Tim.**
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B6).
 - **Chosen:**
   - `tailings:gyratory_running`: the gyratory crusher on the tick it crushes bank blocks into its surge pocket (not while BRIDGED, with
     no feed, or with its motor off);
@@ -100,7 +100,7 @@ Plan section "4. Tailings: milestones for the rest of the pit". Built on Wildcat
   from the machine on the cable instead of the house (the player would have to stand near the machine, not the house).
 
 ### 10. The four quests ask for their milestone alone
-**Decided on recommendation; for Tim.**
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B6).
 - **Chosen:** "The gyratory", "Leach the tails", "The cabled pit" and "The rope shovel" each have one task, the milestone ("Run the
   gyratory", "Run a leach tank", "Energise a trailing cable", "Dig with the rope shovel"). Their texts still list the parts. The cabled
   pit's text now says to close the outlet on the house's panel. Rewards are unchanged.
@@ -109,7 +109,7 @@ Plan section "4. Tailings: milestones for the rest of the pit". Built on Wildcat
 - **Alternatives:** keep one key part as an item task beside the milestone, as the crusher line does.
 
 ### 11. One scene per key, from the existing setups
-**Decided on recommendation; for Tim.**
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B6).
 - **Chosen:** `quest_gyratory_milestone` (the primary stack of `p7_gyratory_*`, four granite blocks in the pocket),
   `quest_shovel_milestone` (the `pit_rope_shovel` build, lifted on its cable and digging the muck face in AUTO, with no truck),
   `quest_leach_milestone` (the `leach_no_acid` feed with the `full_recovery` acid tank on its east pipe), and

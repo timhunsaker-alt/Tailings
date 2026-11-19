@@ -1,5 +1,7 @@
 # L5: paste backfill (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l5-paste` from the draft spec [paste-backfill.md](../multiblocks/paste-backfill.md), whose own choices are in
 `specs-tailings.md` (L5-1 to L5-3). Format as in `README.md` here. **#8, #14 and #19 most need your eye.** Nothing here changes an
@@ -64,6 +66,7 @@ existing world (#22).
 - **Why:** a bag a tonne is easy to reason about, and real paste plants store cement by the tonne; the recipe is the spec's.
 - **Alternatives:** a 1 t bulk bag (fewer items, but the cheap recipe would make a tonne of cement from a clay ball); vanilla concrete
   powder as the binder (L5-2's alternative).
+- **Tim (2026-11-19):** the cement placeholder stays for now; no kiln (answers-2026-11-19, C16).
 
 ### 9. The pump pushes to the outlet it finds on its line
 - **Chosen:** once a second the pump follows the steel pipe from its south face, up to 1,500 m, to the first fill outlet on it, and
@@ -93,6 +96,7 @@ existing world (#22).
   **since gaps2**, with `paste_unloaded_cure` on (off by default), it makes that time up when the chunk comes back (gaps2.md #6).
 - **Why:** a single 24,000-tick tick would restart when the paste moves; steps cost about one block tick a second for a 20,000 m³ void.
 - **Alternatives:** cure by the clock (a block entity per cubic metre, heavy for 20,000 of them); random ticks (no exact time).
+- **Tim (2026-11-19):** Tailings reads Wildcatter's world time scale (the 1:1 to 50:1 presets answered 2026-11-10), so the cure follows it (answers-2026-11-19, "answered earlier, not built"); built in <commit>.
 
 ### 13. What wet and set paste are like
 - **Chosen:** wet paste has no collision: whatever walks into it sinks, slowed to half speed across and 40 % down; it does not suffocate.

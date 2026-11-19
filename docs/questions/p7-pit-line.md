@@ -1,5 +1,7 @@
 # P7: the pit-sized plant line (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `p7-pit-line` (cut from `p5-big-machines`) from the draft specs
 [primary-gyratory-stockpile.md](../multiblocks/primary-gyratory-stockpile.md) (P7a), [sag-mill-line.md](../multiblocks/sag-mill-line.md)
@@ -86,6 +88,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   texture is drawn by script, `stockpile_rock_placeholder` (muck's art, lighter and greyer).
 - **Why:** P7-7; the same swell as a blast's muck, so the pile's tonnes come out of its blocks.
 - **Alternatives:** muck itself (it would not be crushed, and would not roll, #11).
+- **Tim (2026-11-19):** one Ludo art pass for every script-drawn texture, the stockpile block's included (answers-2026-11-19, C23); built in <commit>.
 
 ### 11. The pile drains as cones: how much is live (needs you)
 - **Chosen:** a stockpile block on the pile's top rolls by the settle rule when it stands too steep, and when a cell of the pile is
@@ -131,6 +134,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   at the feeders gives the same tonnes without a transit delay.
 - **Question:** the 50 t/h step is for P7a feeding the small plant before P7b (P7-10); keep it?
 - **Alternatives:** a PID on the scale's own reading (slower to settle, the same result); feeders each set by hand.
+- **Tim (2026-11-19):** keep the weigher's 50 t/h step (answers-2026-11-19, C12).
 
 ### 15. What the gyratory makes
 - **Chosen:** the crushed class (P80 about 150 mm), as the jaw's, kg for kg of each rock; at about 2,400 t/h while fed and its motor runs,
@@ -163,6 +167,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   on P7a; the stockpile block's texture is a script-drawn placeholder (#10), listed under Known gaps.
 - **Why:** the powered parts' recipes are placeholders plant-wide (ROADMAP, Known gaps).
 - **Alternatives:** Ludo art for the stockpile block's texture (about 1 credit).
+- **Tim (2026-11-19):** the stockpile block's texture comes in the one Ludo art pass (answers-2026-11-19, C23); built in <commit>.
 
 ## P7b: the SAG mill line
 
@@ -253,6 +258,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   clusters round an iron block for the large one). No Ludo credits spent on P7.
 - **Why:** as every plant wave; the parts have no icons of their own to make (their items are their models).
 - **Alternatives:** Ludo icons for the stockpile block (#10).
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the mills among them (answers-2026-11-19, C25); built in <commit>.
 
 ## P7c: pit flotation and the tails
 
@@ -330,6 +336,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
 - **Question:** the columns are not required: the concentrate thickener takes rougher concentrate too and pays the same, only with
   half as much slurry again to thicken. Should the thickener refuse concentrate that has not been cleaned?
 - **Alternatives:** cleaners that reject a share of mineral with a recirculating load (pays about 73 % at 90 % column recovery).
+- **Tim (2026-11-19):** the column cleaners stay optional (answers-2026-11-19, C7).
 
 ### 38. The row's rates
 - **Chosen:** the large tank, each cell and the large thickener are rated 20 % over the line's 1,000 t/h of fines slurry at 35 %
@@ -374,6 +381,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   a flotation bank in iron; a cleaner bank between iron blocks; air blowers round an iron block; tailings thickeners round an iron block.
 - **Why:** as every plant wave.
 - **Alternatives:** none.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the gyratory and the P7 parts among them (answers-2026-11-19, C25); built in <commit>.
 
 ### 44. Tests and the film
 - **Chosen:** NeoForge scenes `p7_tank_row` (eight cells: each cell's share to 1 g, three nuggets of a little over four at the filter,

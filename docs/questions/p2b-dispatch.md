@@ -1,5 +1,7 @@
 # Open pit P2b, the haul dispatch office — decided while Tim was away (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 The spec (open-pit.md, "Haul roads, surveying and dispatch") was approved; these were open in it and were decided on the best
 recommendation while building (PROGRESS.md, "Open pit P2b"). The new numbers are marked *(proposed)* in the spec.
 

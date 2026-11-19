@@ -34,6 +34,8 @@ The specs:
 
 ## P3: drill, emulsion, blast
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 ### P3-1. Is the blasthole drill diesel or electric in P3?
 - **Chosen:** diesel in P3 (a C27-class engine, about 600 kW, *unverified*), burning by work as the trucks do; the 522 kW electric drive
   is a screen choice from P5 when a trailing cable reaches it.
@@ -131,6 +133,8 @@ The specs:
 
 ## P4: dry stack, dumps, dozer
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 ### P4-1. A thickener ahead of the filter
 - **Chosen:** a new `tailings_thickener` (15 m, 11 kW) takes the 35 % tails to 60 % before the filter, its overflow water back to the
   plant.
@@ -171,6 +175,8 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
 
 ## P5: power and big machines
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 ### P5-1. The switch house
 - **Chosen:** no transformer: medium voltage in, four 1,200 A outlets at the same voltage, each with a breaker and a ground-check
   relay; the house's bus 2,000 A.
@@ -207,6 +213,8 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
 - **Alternatives:** allow it at 18 passes.
 
 ## P7: the pit-sized line
+
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
 
 ### P7-1. Does P7 include flotation and the tails?
 - **Chosen:** yes: a third spec, P7c (pit-flotation.md): a row of eight 160 m³ tank cells, two column cleaners, a large blower, a 45 m
@@ -390,3 +398,4 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
 - **Why:** with raw items refused (X-1), a copper-ore block through the plant otherwise pays no more than mining it plainly.
 - **Alternatives:** keep 4 (the plant is pointless for vanilla copper ore, useful only for its nuggets); 8 (half-way).
 - **Tim (2026-11-10):** ore blocks only (#3); copper's block amount was not part of the answer, so it stays 4 (answers-2026-11-10.md #3).
+- **Tim (2026-11-19):** raise it to 14 ingots, paid through copper nuggets, so the ladder is 3.5 / 7 / 10.5 / 14 (answers-2026-11-19, C4); built in <commit>.

@@ -1,5 +1,7 @@
 # L8: the X-ray ore sorter (2026-11-10), decided while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back".
 Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/xrt-ore-sorter.md), whose own choice is L8-1 in
 `specs-tailings.md` (the dump sorter stays; the XRT sorter is a separate two-way machine). Format as in `README.md` here. **#3, #5 and
@@ -38,6 +40,7 @@ Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/
   silver ore would be set on a knife's edge, or not used), but it means a small change to a rock's trace list moves deepslate or silver
   across it. `XrtSortingTest` will fail if one does.
 - **Alternatives:** steps in round units of grade; a default at 12.5 (more margin; silver ore then goes to waste at the default).
+- **Tim (2026-11-19):** keep the default at Zeff 12.0 (answers-2026-11-19, C9).
 
 ### 4. The errors: fixed shares, not chance
 - **Chosen:** of each rock's kg over the threshold, exactly 3 % goes to waste; of each under it, exactly 5 % goes with the product.
@@ -67,6 +70,7 @@ Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/
 - **Needs your eye:** if Wildcatter grows a plant-air system with flow (a compressor rated in m³/min and users that draw it), the
   sorter should draw from it instead.
 - **Alternatives:** Wildcatter's instrument air by tubing (cheap, wrong scale); a plant-air header part in Tailings.
+- **Tim (2026-11-19):** its own compressor now; later Wildcatter plant air with flow (answers-2026-11-19, C10).
 
 ### 7. With no air it stops
 - **Chosen:** with its compressor missing or not running, the sorter reads **NO AIR** and holds its rock; nothing goes to waste.
@@ -126,6 +130,7 @@ Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/
   materials by `tools/models/xrt.py`; no texture was drawn by script and no Ludo art was used (no item needed an icon). The sorter
   plays the dump sorter's `ore_sorter` loop (air jets), the compressor Wildcatter's motor hum.
 - **Alternatives:** real-part recipes once Wildcatter has an X-ray tube; a compressor sound of its own (the art wave's).
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the X-ray sorter among them (answers-2026-11-19, C25); built in <commit>.
 
 ### 16. The X-rays
 - **Chosen:** no harm outside the part: the cabinet is shielded, as the spec says; the model carries its warning signs.

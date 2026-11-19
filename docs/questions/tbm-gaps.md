@@ -1,5 +1,7 @@
 # The TBM, its gantries and the mine trains — gaps closed while Tim was away (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "make decisions best recommendation and complete the rest of these two mods leaving questions for when I get back
 ... close all known gaps". These are the R5, R6, R9 and R10 lines of ROADMAP's Known gaps. Each entry is what was built, so it can be
 changed when Tim goes through them (PROGRESS.md, "TBM gaps").

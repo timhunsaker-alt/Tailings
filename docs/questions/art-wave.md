@@ -1,5 +1,7 @@
 # Art wave (2026-11-09): decisions taken while Tim was away
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B5).
+
 Tim (2026-11-09): "close all known gaps". Every `*_placeholder` texture, the reagents' borrowed vanilla icons and the hand-line
 machines' vanilla block textures now come from Ludo pictures (`art/source/PROMPTS.md`). Format as in `README.md` here.
 

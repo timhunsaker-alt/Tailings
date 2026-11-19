@@ -1,5 +1,7 @@
 # Open pit P2a — decided while building (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 The plan's numbers were approved by Tim on 2026-11-09. These were added while building it, each because a test found the plan did not
 work as written (PROGRESS.md, "Open pit P2a").
 

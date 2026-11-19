@@ -1,5 +1,7 @@
 # P5: big machines — decisions taken while building (2026-11-09)
 
+**Accepted by Tim 2026-11-19** (as built; answers-2026-11-19, B4).
+
 Spec: [../multiblocks/open-pit-p5-big-machines.md](../multiblocks/open-pit-p5-big-machines.md) (a draft decided on recommendation;
 its own choices are in [specs-tailings.md](specs-tailings.md), P5 section). These are the questions building it raised, decided on the
 best recommendation while Tim was away. Nothing here is final until he has been through it.
