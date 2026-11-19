@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SCS",
+    "SCS",
+    "SCS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "C": "minecraft:iron_bars"
+  },
+  "result": {
+    "id": "tailings:drill_mast",
+    "count": 1
+  }
+}

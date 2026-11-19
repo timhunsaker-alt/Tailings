@@ -4,6 +4,7 @@ import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.TailingsItems;
 import dev.wildcatter.tailings.block.BlastholeBlock;
 import dev.wildcatter.tailings.block.BlastholeBlockEntity;
+import dev.wildcatter.tailings.block.BlastholeDrillBlockEntity;
 import dev.wildcatter.tailings.block.PitPanelMenu;
 import dev.wildcatter.tailings.pit.Blasting;
 import dev.wildcatter.tailings.pit.DrillPattern;
@@ -36,8 +37,13 @@ import org.jspecify.annotations.Nullable;
  * a pattern, and GO walks it row by row, a serpentine: turn on the spot toward the next hole, tram, turn back square to the pattern,
  * jacks down, drill. A drilled hole is a column of {@code blasthole} blocks, each remembering its rock.
  *
- * <p>As built it is one machine, not four placed parts (docs/questions/p3-blasting.md). The pattern runs square to the world's grid: GO
- * squares the drill to the nearest of the four ways. Its back faces the free face; the rows run on ahead of it.
+ * <p>The pattern runs square to the world's grid: GO squares the drill to the nearest of the four ways. Its back faces the free face;
+ * the rows run on ahead of it.
+ *
+ * <p>Two ways to have one: built as its four big parts (crawlers, deck, mast, dust collector; {@link BlastholeDrillBlockEntity}) and
+ * lifted into this machine by GO, electric only, which sets its parts back down where it stands at STOP; or placed whole from its item
+ * (P3's way), diesel or electric by its panel. On a trailing cable either answers its switch house outlet's PLC points (MACHINE RUN as
+ * its GO, RUNNING, DONE, CYCLES a pulse a hole, POWER), as the dragline does.
  */
 public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMenu.Panel {
 	/** The hole is under the mast's foot, 1.5 m in from its back end. */
@@ -62,6 +68,14 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 	private boolean single;
 	private int holesDrilled;
 	private int divisor = 1;
+	/** Lifted off its four parts: electric only, STOP sets them down, broken it gives them back. */
+	private boolean parts;
+	/** Its last pattern was drilled to its end (the PLC's DONE); a new GO clears it. */
+	private boolean done;
+	/** The PLC dropped RUN while it drilled: it stops when this hole is done. */
+	private boolean stopAfterHole;
+	/** The PLC's RUN as last read, or null before it has read one: a stopped drill starts again when RUN comes on. */
+	private @Nullable Boolean lastRun;
 
 	public BlastholeDrillEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -76,9 +90,30 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		return PitDrive.DRILL;
 	}
 
+	/** Built from its parts, it is not placed from an item: broken by hand, it gives back its crawlers (and the rest, sneaking). */
 	@Override
 	protected Item item() {
-		return TailingsItems.BLASTHOLE_DRILL;
+		return parts ? TailingsBlocks.DRILL_CRAWLERS.asItem() : TailingsItems.BLASTHOLE_DRILL;
+	}
+
+	/** Lifted off its four parts: their pattern, the holes they have drilled and DONE come with it; it runs on its cable only. */
+	public void fromParts(int[] pattern, long holes, boolean done) {
+		parts = true;
+		System.arraycopy(pattern, 0, settings, 0, Math.min(pattern.length, settings.length));
+		settings[7] = 1;
+		holesDrilled = (int) Math.min(Integer.MAX_VALUE, holes);
+		this.done = done;
+		status = "lifted off its parts";
+	}
+
+	/** Lifted off its four parts (not placed whole from its item). */
+	public boolean builtFromParts() {
+		return parts;
+	}
+
+	/** Its last pattern was drilled to its end. */
+	public boolean done() {
+		return done;
 	}
 
 	@Override
@@ -158,7 +193,7 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 	/** On its trailing cable instead of diesel (open-pit-p5-big-machines.md, P5a; decision P3-1): its panel's Electric setting. */
 	@Override
 	public boolean electric() {
-		return settings[7] == 1;
+		return parts || settings[7] == 1;
 	}
 
 	@Override
@@ -212,12 +247,15 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		next = 0;
 		running = true;
 		single = false;
+		done = false;
+		stopAfterHole = false;
 		phase = Phase.PIVOT_OUT;
 		return say(String.format(Locale.ROOT, "GO: %d x %d holes, %d x %d m%s, %d m deep", rows(), cols(), burden(), spacing(), staggered() ? " staggered" : "",
 				Blasting.depth(bench(), subdrill())));
 	}
 
 	public void stop(String why) {
+		stopAfterHole = false;
 		running = false;
 		phase = Phase.IDLE;
 		setLift(0);
@@ -235,18 +273,67 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 	/** Jump: drills one hole where it stands, square to nothing (it is not part of a pattern). */
 	@Override
 	protected void jump(ServerLevel level, @Nullable Player driver) {
+		drillOne();
+	}
+
+	/** Drill one: one hole where it stands; what it says. */
+	public String drillOne() {
 		if (phase != Phase.IDLE) {
-			return;
+			return status;
 		}
 		single = true;
 		running = false;
 		phase = Phase.SETUP;
 		ticks = Blasting.SETUP_TICKS / divisor;
-		say("jacks down: setting up");
+		return say("jacks down: setting up");
 	}
 
 	@Override
 	protected void work(ServerLevel level) {
+		plc(level);
+		doWork(level);
+		if (cable != null && cable.house(level) instanceof dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity house) {
+			house.reportPlc(cable.outlet(), getUUID(), running, done, holesDrilled);
+		}
+	}
+
+	/**
+	 * Its points on its switch house outlet (P6's machine points, as the dragline's): RUN in AUTO coming on is its GO, or carries its
+	 * pattern on from the hole it stopped at; RUN going off stops it at once while it trams, or when the hole it is drilling is done.
+	 */
+	private void plc(ServerLevel level) {
+		if (cable == null) {
+			return;
+		}
+		var house = cable.house(level);
+		if (house == null) {
+			return;
+		}
+		Boolean run = house.runCommand(cable.outlet());
+		if (run == null) {
+			return;
+		}
+		boolean rising = run && !Boolean.TRUE.equals(lastRun);
+		lastRun = run;
+		if (rising && !running && phase == Phase.IDLE) {
+			if (origin != null && next < plan().size()) {
+				running = true;
+				phase = Phase.PIVOT_OUT;
+				say("RUN by the PLC: on to hole " + (next + 1) + " of " + plan().size());
+			} else {
+				go();
+			}
+		} else if (!run && running && !stopAfterHole) {
+			if (phase == Phase.SETUP || phase == Phase.DRILL) {
+				stopAfterHole = true;
+				say("STOPPING by the PLC: finishing its hole");
+			} else {
+				stop("STOPPED by the PLC");
+			}
+		}
+	}
+
+	private void doWork(ServerLevel level) {
 		if (phase == Phase.IDLE) {
 			return;
 		}
@@ -279,6 +366,7 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		DrillPattern.Hole hole = target();
 		if (hole == null) {
 			stop("DONE: " + holesDrilled + " holes");
+			done = true;
 			return;
 		}
 		Vec3 to = standFor(hole).subtract(position());
@@ -482,6 +570,10 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 			return;
 		}
 		next++;
+		if (stopAfterHole) {
+			stop("STOPPED by the PLC: hole " + next + " of " + plan().size() + " done");
+			return;
+		}
 		phase = Phase.PIVOT_OUT;
 	}
 
@@ -510,6 +602,10 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 
 	@Override
 	public void set(int i, int value, Player player) {
+		if (i == 7 && parts) {
+			say("electric only, on its trailing cable");
+			return;
+		}
 		if (i == 7) {
 			settings[7] = value;   // diesel or electric, at any time: its drives take either
 			syncCable();
@@ -527,7 +623,13 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 	public void action(int a, Player player) {
 		switch (a) {
 			case 0 -> go();
-			case 1 -> stop("stopped");
+			case 1 -> {
+				if (parts && level() instanceof ServerLevel server) {
+					stopAndSetDown(server);
+				} else {
+					stop("stopped");
+				}
+			}
 			case 2 -> {
 				if (level() instanceof ServerLevel server) {
 					jump(server, player);
@@ -553,6 +655,46 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		return Component.literal("Blasthole Drill: " + status());
 	}
 
+	// ---- setting down -------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * STOP, lifted off its parts: it stops (a hole half drilled is finished SHORT where the bit is) and its parts go back down as blocks
+	 * where it stands, square to the nearest way, if their cells are free; what happened.
+	 */
+	public String stopAndSetDown(ServerLevel level) {
+		if (phase == Phase.DRILL && collar != null) {
+			finishHole(level, true, "stopped");
+		}
+		stop("stopped");
+		if (!parts) {
+			return status;
+		}
+		int turns = dev.wildcatter.tailings.pit.BlastholeDrillLayout.turns(getYRot());
+		int[] main = dev.wildcatter.tailings.pit.BlastholeDrillLayout.mainFor(getX(), getZ(), turns);
+		BlockPos at = new BlockPos(main[0], (int) Math.floor(getY() + 0.01), main[1]);
+		String why = BlastholeDrillBlockEntity.setDown(level, at, turns, getUUID(), cable, settings, holesDrilled, done, divisor);
+		if (why != null) {
+			return say(why);
+		}
+		cable = null;
+		ejectPassengers();
+		discard();
+		return "set down as its parts";
+	}
+
+	/** Broken by hand, lifted off its parts, it drops every part (its crawlers as its item). */
+	@Override
+	public boolean hurtServer(ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+		if (parts && source.getEntity() instanceof Player player && player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
+			for (dev.wildcatter.tailings.pit.BlastholeDrillLayout.Part part : dev.wildcatter.tailings.pit.BlastholeDrillLayout.Part.values()) {
+				if (part != dev.wildcatter.tailings.pit.BlastholeDrillLayout.Part.CRAWLERS) {
+					spawnAtLocation(level, new net.minecraft.world.item.ItemStack(TailingsBlocks.plantBlock(part.machine())));
+				}
+			}
+		}
+		return super.hurtServer(level, source, amount);
+	}
+
 	// ---- sound -------------------------------------------------------------------------------------------------------------------
 
 	/** While drilling, the rotary head (the TBM's cutter sound stands in for it); otherwise its diesel. */
@@ -576,6 +718,9 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		next = input.getIntOr("next", 0);
 		holesDrilled = input.getIntOr("holes", 0);
 		divisor = Math.max(1, input.getIntOr("fast", 1));
+		parts = input.getBooleanOr("parts", false);
+		done = input.getBooleanOr("done", false);
+		stopAfterHole = input.getBooleanOr("stopAfterHole", false);
 		single = input.getBooleanOr("single", false);
 		// it goes on where it was: a hole half drilled when its chunk unloaded is finished, from the metre it had reached
 		phase = Phase.values()[Math.floorMod(input.getIntOr("phase", (running ? Phase.PIVOT_OUT : Phase.IDLE).ordinal()), Phase.values().length)];
@@ -603,6 +748,9 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 		output.putInt("next", next);
 		output.putInt("holes", holesDrilled);
 		output.putInt("fast", divisor);
+		output.putBoolean("parts", parts);
+		output.putBoolean("done", done);
+		output.putBoolean("stopAfterHole", stopAfterHole);
 		output.putBoolean("single", single);
 		output.putInt("phase", phase.ordinal());
 		if (collar != null) {

@@ -162,6 +162,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("pit_big")) {
 				pitBig(context, world, server);
 			}
+			if (only("pit_drill_parts")) {
+				pitDrillParts(context, world, server);
+			}
 			if (only("dragline")) {
 				dragline(context, world, server);
 			}
@@ -2651,6 +2654,85 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(loaded.startsWith("362") || loaded.startsWith("363"), "the rope shovel should fill the ultra: " + loaded);
 		// the dipper's dig sounds at the face, out of the camera's hearing; the dump into the truck is heard
 		heard("pit_big", "wildcatter:motor_hum", "tailings:muck_tip");
+	}
+
+	/**
+	 * The blasthole drill as its four parts (open-pit-p3-blasting.md, As built: four parts): crawlers, deck, mast and dust collector
+	 * standing on a stone bench, a trailing cable from a pit switch house to the crawlers. GO lifts them into one drill, which drills a
+	 * 1 x 3 pattern on its cable (ten times fast) and, at STOP, sets its four parts down where it stands.
+	 */
+	private void pitDrillParts(ClientGameTestContext context, TestSingleplayerContext world, TestServerContext server) {
+		BlockPos b = new BlockPos(1500, y + 8, 2100).offset(0, -59, 0);   // b + (x, 60, z) is the bench's floor
+		Object[] v = new Object[2];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = -12; x <= 56; x++) {
+				for (int z = -12; z <= 50; z++) {
+					for (int yy = 36; yy <= 92; yy++) {
+						level.setBlock(b.offset(x, yy, z), (yy <= 59 ? Blocks.STONE : Blocks.AIR).defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
+			BlockPos at = b.offset(12, 60, 6);
+			for (dev.wildcatter.tailings.pit.BlastholeDrillLayout.Part p : dev.wildcatter.tailings.pit.BlastholeDrillLayout.Part.values()) {
+				int[] o = p.offset();
+				part(level, TailingsBlocks.plantBlock(p.machine()), at.offset(o[0], o[1], o[2]));
+			}
+			part(level, TailingsBlocks.PIT_SWITCH_HOUSE, b.offset(2, 60, 30));
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) level.getBlockEntity(b.offset(2, 60, 30));
+			house.forceSupply(true);
+			ItemStack reel = new ItemStack(dev.wildcatter.tailings.TailingsItems.TRAILING_CABLE);
+			dev.wildcatter.tailings.item.TrailingCableItem.pickUp(reel, house);
+			long[] from = dev.wildcatter.tailings.item.TrailingCableItem.from(reel);
+			var crawlers = (dev.wildcatter.tailings.block.BlastholeDrillBlockEntity) level.getBlockEntity(at);
+			System.out.println("[tailings-test] pit_drill_parts: cable " + crawlers.couple(level, BlockPos.of(from[0]), (int) from[1]) + "; " + crawlers.status());
+			crawlers.setting("Rows", 1);
+			crawlers.setting("Columns", 3);
+			crawlers.fast(10);
+			v[0] = house;
+			v[1] = crawlers;
+		});
+		server.runCommand("tp @p " + (b.getX() + 42) + " " + (b.getY() + 78) + " " + (b.getZ() + 38) + " 135 18");
+		context.waitTicks(60);
+		context.takeScreenshot("tailings-pit-drill-parts-standing");
+		Filming film = film(context, world, "pit_drill_parts");
+		java.util.UUID name = server.computeOnServer(srv -> {
+			var house = (dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity) v[0];
+			System.out.println("[tailings-test] pit_drill_parts: outlet " + house.close(0));
+			var crawlers = (dev.wildcatter.tailings.block.BlastholeDrillBlockEntity) v[1];
+			java.util.UUID id = crawlers.machine();
+			System.out.println("[tailings-test] pit_drill_parts: " + crawlers.run(srv.overworld()));
+			return id;
+		});
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-drill-parts-lifted");
+		boolean shotDrilling = false;
+		String said = "";
+		for (int t = 0; t < 300; t++) {
+			context.waitTicks(10);
+			said = server.computeOnServer(srv -> srv.overworld().getEntity(name) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d
+					? (d.done() ? "DONE " : "") + d.lift() + " " + d.status() : "gone");
+			if (t % 20 == 0) {
+				System.out.println("[tailings-test] pit_drill_parts: " + said);
+			}
+			if (!shotDrilling && !said.startsWith("DONE") && !said.startsWith("0.0 ") && !said.startsWith("gone")) {
+				context.waitTicks(20);
+				context.takeScreenshot("tailings-pit-drill-parts-drilling");
+				shotDrilling = true;
+			}
+			if (said.startsWith("DONE") || said.startsWith("gone")) {
+				break;
+			}
+		}
+		context.takeScreenshot("tailings-pit-drill-parts-done");
+		String down = server.computeOnServer(srv -> srv.overworld().getEntity(name) instanceof dev.wildcatter.tailings.entity.BlastholeDrillEntity d
+				? d.stopAndSetDown(srv.overworld()) : "gone");
+		System.out.println("[tailings-test] pit_drill_parts: STOP " + down);
+		context.waitTicks(40);
+		context.takeScreenshot("tailings-pit-drill-parts-set-down");
+		film.stop();
+		require(said.startsWith("DONE"), "the drill should drill its 1 x 3 pattern: " + said);
+		require(down.startsWith("set down"), "STOP should set its parts down: " + down);
 	}
 
 	/**

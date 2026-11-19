@@ -213,6 +213,9 @@ public class TailingsGameTests {
 			helper.register(id("pit_dispatch_fallback"), wide("pit_dispatch_fallback", PitDispatchGameTests::fallback));
 			helper.register(id("pit_drill_pattern"), wide("pit_drill_pattern", PitBlastGameTests::drillPattern));
 			helper.register(id("pit_drill_short"), wide("pit_drill_short", PitBlastGameTests::drillShort));
+			helper.register(id("pit_drill_built"), wide("pit_drill_built", PitBlastGameTests::drillBuilt));
+			helper.register(id("pit_drill_parts_run"), wide("pit_drill_parts_run", PitBlastGameTests::drillPartsRun));
+			helper.register(id("pit_drill_plc"), wide("pit_drill_plc", PitBlastGameTests::drillPlc));
 			helper.register(id("pit_charge"), wide("pit_charge", PitBlastGameTests::charge));
 			helper.register(id("pit_prime_stem"), wide("pit_prime_stem", PitBlastGameTests::primeStem));
 			helper.register(id("pit_blast"), wide("pit_blast", PitBlastGameTests::blast));

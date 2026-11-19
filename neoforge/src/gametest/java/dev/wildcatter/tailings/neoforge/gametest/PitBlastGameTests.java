@@ -9,7 +9,12 @@ import dev.wildcatter.tailings.TailingsEntities;
 import dev.wildcatter.tailings.TailingsItems;
 import dev.wildcatter.tailings.block.BlastholeBlock;
 import dev.wildcatter.tailings.block.BlastholeBlockEntity;
+import dev.wildcatter.tailings.block.BlastholeDrillBlockEntity;
 import dev.wildcatter.tailings.block.BlastingMachineBlockEntity;
+import dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity;
+import dev.wildcatter.tailings.item.TrailingCableItem;
+import dev.wildcatter.tailings.pit.BlastholeDrillLayout;
+import java.util.UUID;
 import dev.wildcatter.tailings.block.MatrixFillPointBlockEntity;
 import dev.wildcatter.tailings.block.MuckBlockEntity;
 import dev.wildcatter.tailings.entity.BlastholeDrillEntity;
@@ -45,18 +50,20 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class PitBlastGameTests {
 	static final String[] SCENES = {"pit_drill_pattern", "pit_drill_short", "pit_charge", "pit_prime_stem", "pit_blast", "pit_blast_blowout",
-			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc"};
-	static final Map<String, Integer> TICKS = Map.of("pit_drill_pattern", 6000, "pit_drill_short", 1200, "pit_charge", 2400, "pit_blast", 1200,
-			"pit_blast_blowout", 1200, "pit_blast_boxcut", 1200, "pit_misfire", 1200, "pit_blast_plc", 1200);
-	static final Map<String, Integer> PADDING = Map.of("pit_drill_pattern", 80, "pit_blast", 160, "pit_blast_blowout", 140, "pit_blast_boxcut", 100,
-			"pit_misfire", 120, "pit_blast_guard", 120, "pit_blast_plc", 120, "pit_charge", 60);
+			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc"};
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_drill_pattern", 6000), Map.entry("pit_drill_short", 1200), Map.entry("pit_charge", 2400),
+			Map.entry("pit_blast", 1200), Map.entry("pit_blast_blowout", 1200), Map.entry("pit_blast_boxcut", 1200), Map.entry("pit_misfire", 1200),
+			Map.entry("pit_blast_plc", 1200), Map.entry("pit_drill_built", 400), Map.entry("pit_drill_parts_run", 4000), Map.entry("pit_drill_plc", 6000));
+	static final Map<String, Integer> PADDING = Map.ofEntries(Map.entry("pit_drill_pattern", 80), Map.entry("pit_blast", 160), Map.entry("pit_blast_blowout", 140),
+			Map.entry("pit_blast_boxcut", 100), Map.entry("pit_misfire", 120), Map.entry("pit_blast_guard", 120), Map.entry("pit_blast_plc", 120),
+			Map.entry("pit_charge", 60), Map.entry("pit_drill_built", 80), Map.entry("pit_drill_parts_run", 80), Map.entry("pit_drill_plc", 80));
 
 	private PitBlastGameTests() {
 	}
 
 	static int[] reach(String scene) {
 		return switch (scene) {
-			case "pit_drill_pattern" -> new int[] {-1, 3, -1, 3};
+			case "pit_drill_pattern", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc" -> new int[] {-1, 3, -1, 3};
 			case "pit_blast" -> new int[] {-1, 5, -1, 8};
 			case "pit_blast_blowout" -> new int[] {-2, 4, -2, 6};
 			case "pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc" -> new int[] {-1, 4, -1, 6};
@@ -512,6 +519,164 @@ final class PitBlastGameTests {
 		helper.startSequence()
 				.thenWaitUntil(() -> check(helper, machine.readPulses(BlastingMachineBlockEntity.FIRED) == 1, "FIRED pulses: " + machine.status()))
 				.thenExecute(() -> check(helper, machine.lastShot().bank() > 0, "the shot broke rock: " + machine.status()))
+				.thenSucceed();
+	}
+
+	// ---- the drill as its four parts (As built: four parts) --------------------------------------------------------------------------
+
+	/** The drill's parts, facing north, its crawlers' main cell at {@code at}, all but {@code leaveOut}. */
+	static BlastholeDrillBlockEntity drillParts(GameTestHelper helper, BlockPos at, BlastholeDrillLayout.Part leaveOut) {
+		for (BlastholeDrillLayout.Part part : BlastholeDrillLayout.Part.values()) {
+			if (part != leaveOut) {
+				int[] o = part.offset();
+				part(helper, TailingsBlocks.plantBlock(part.machine()), at.offset(o[0], o[1], o[2]), null);
+			}
+		}
+		return helper.getBlockEntity(at, BlastholeDrillBlockEntity.class);
+	}
+
+	/** Its crawlers take a trailing cable from outlet 1 of {@code house}. */
+	static void coupleCrawlers(GameTestHelper helper, PitSwitchHouseBlockEntity house, BlastholeDrillBlockEntity crawlers) {
+		ItemStack reel = new ItemStack(TailingsItems.TRAILING_CABLE);
+		TrailingCableItem.pickUp(reel, house);
+		long[] from = TrailingCableItem.from(reel);
+		String why = crawlers.couple(helper.getLevel(), BlockPos.of(from[0]), (int) from[1]);
+		check(helper, why == null, "the crawlers should take the cable: " + why);
+	}
+
+	/**
+	 * Built without its mast it reads NOT BUILT naming the mast; with it, NO CABLE. Coupled, GO lifts it into one drill by the crawlers'
+	 * name, electric only, its parts' cells air; STOP sets its four parts back down where they stood, its cable still on.
+	 */
+	static void drillBuilt(GameTestHelper helper) {
+		fill(helper, Blocks.STONE, 0, 40, 1, 1, 0, 40);
+		BlockPos at = new BlockPos(12, 2, 6);
+		BlastholeDrillBlockEntity crawlers = drillParts(helper, at, BlastholeDrillLayout.Part.MAST);
+		String said = crawlers.run(helper.getLevel());
+		check(helper, said.startsWith("NOT BUILT") && said.contains("Drill Mast"), "it should name the missing mast: " + said);
+		int[] o = BlastholeDrillLayout.Part.MAST.offset();
+		part(helper, TailingsBlocks.DRILL_MAST, at.offset(o[0], o[1], o[2]), null);
+		check(helper, crawlers.check() == null, "built: " + crawlers.check());
+		said = crawlers.run(helper.getLevel());
+		check(helper, said.startsWith("NO CABLE"), "no cable, no lift: " + said);
+		PitSwitchHouseBlockEntity house = PitBigGameTests.house(helper, new BlockPos(30, 2, 30));
+		coupleCrawlers(helper, house, crawlers);
+		UUID name = crawlers.machine();
+		said = crawlers.run(helper.getLevel(), BlastholeDrillBlockEntity.Start.NOTHING);
+		check(helper, said.startsWith("lifted"), "GO should lift it: " + said);
+		var found = helper.getLevel().getEntity(name);
+		check(helper, found instanceof BlastholeDrillEntity, "one drill, by the crawlers' name: " + found);
+		BlastholeDrillEntity drill = (BlastholeDrillEntity) found;
+		check(helper, drill.builtFromParts() && drill.electric() && drill.cable() != null, "electric, on its cable: " + drill.status());
+		for (BlastholeDrillLayout.Part part : BlastholeDrillLayout.Part.values()) {
+			int[] p = part.offset();
+			check(helper, helper.getBlockState(at.offset(p[0], p[1], p[2])).isAir(), "the " + part + "'s cells are air");
+		}
+		check(helper, drill.holeColumn().equals(helper.absolutePos(at.offset(3, 0, 11))), "the hole is under the mast's foot: " + drill.holeColumn().toShortString());
+		said = drill.stopAndSetDown(helper.getLevel());
+		check(helper, said.startsWith("set down"), "STOP should set it down: " + said);
+		BlastholeDrillBlockEntity back = helper.getBlockEntity(at, BlastholeDrillBlockEntity.class);
+		check(helper, back != null && back.check() == null && name.equals(back.machine()) && back.cable() != null, "its four parts stand again, its name and cable on");
+		check(helper, !drill.isAlive(), "the lifted drill is gone");
+		System.out.println("[tailings-test] pit_drill_built: " + back.inspect().getString());
+		helper.succeed();
+	}
+
+	/** A bench of stone, its top at y 59, and the drill's parts on it, their crawlers at x 12, z 6; a switch house fed on the bench. */
+	private static BlastholeDrillBlockEntity drillOnBench(GameTestHelper helper, PitSwitchHouseBlockEntity[] house) {
+		fill(helper, Blocks.STONE, 0, 40, 40, 59, 0, 40);
+		BlockPos at = new BlockPos(12, 60, 6);
+		BlastholeDrillBlockEntity crawlers = drillParts(helper, at, null);
+		house[0] = PitBigGameTests.house(helper, new BlockPos(2, 60, 30));
+		coupleCrawlers(helper, house[0], crawlers);
+		crawlers.setting("Rows", 1);
+		crawlers.setting("Columns", 3);
+		crawlers.fast(20);
+		return crawlers;
+	}
+
+	/**
+	 * Built on a bench and coupled, GO lifts it and it drills a 1 x 3 pattern on its cable, 16 m holes, burning no diesel; STOP sets its
+	 * parts down where it stands, which carry its pattern, its three holes and DONE.
+	 */
+	static void drillPartsRun(GameTestHelper helper) {
+		PitSwitchHouseBlockEntity[] house = new PitSwitchHouseBlockEntity[1];
+		BlastholeDrillBlockEntity crawlers = drillOnBench(helper, house);
+		UUID name = crawlers.machine();
+		BlastholeDrillEntity[] drill = new BlastholeDrillEntity[1];
+		BlockPos[] origin = new BlockPos[1];
+		helper.startSequence()
+				.thenIdle(3)
+				.thenExecute(() -> {
+					check(helper, house[0].close(0) == null, "its outlet should close on the standing drill's cable");
+					String said = crawlers.run(helper.getLevel());
+					check(helper, said.startsWith("lifted: GO"), "GO should lift it and start the pattern: " + said);
+					drill[0] = (BlastholeDrillEntity) helper.getLevel().getEntity(name);
+					origin[0] = drill[0].holeColumn();
+				})
+				.thenWaitUntil(() -> check(helper, drill[0].done() && !drill[0].running(), "it should drill its pattern: " + drill[0].status()))
+				.thenExecute(() -> {
+					check(helper, drill[0].holesDrilled() == 3, "3 holes: " + drill[0].status());
+					int top = helper.absolutePos(new BlockPos(0, 59, 0)).getY();
+					for (int k = 0; k < 3; k++) {
+						BlockPos collar = new BlockPos(origin[0].getX() + 8 * k, top, origin[0].getZ());   // along the row, to its right: east
+						check(helper, helper.getLevel().getBlockEntity(collar) instanceof BlastholeBlockEntity h && h.depth() == 16, "a 16 m hole at " + collar.toShortString());
+					}
+					int turns = BlastholeDrillLayout.turns(drill[0].getYRot());
+					int[] main = BlastholeDrillLayout.mainFor(drill[0].getX(), drill[0].getZ(), turns);
+					BlockPos at = new BlockPos(main[0], helper.absolutePos(new BlockPos(0, 60, 0)).getY(), main[1]);
+					String said = drill[0].stopAndSetDown(helper.getLevel());
+					check(helper, said.startsWith("set down"), "STOP should set it down: " + said);
+					var back = helper.getLevel().getBlockEntity(at) instanceof BlastholeDrillBlockEntity b ? b : null;
+					check(helper, back != null && back.check() == null, "its parts stand where it stopped, at " + at.toShortString());
+					check(helper, back.holes() == 3 && back.done() && back.setting(1) == 3 && back.cable() != null, "they carry its pattern, holes and DONE: " + back.status());
+					System.out.println("[tailings-test] pit_drill_parts_run: " + back.inspect().getString());
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * Its PLC points on its switch house outlet: in AUTO, RUN coming on lifts the standing parts and starts the pattern (RUNNING); a pulse
+	 * a hole on CYCLES; RUN off stops it when its hole is done; RUN on again carries the pattern on; DONE when it is drilled. POWER reads
+	 * its draw while it drills.
+	 */
+	static void drillPlc(GameTestHelper helper) {
+		PitSwitchHouseBlockEntity[] h = new PitSwitchHouseBlockEntity[1];
+		BlastholeDrillBlockEntity crawlers = drillOnBench(helper, h);
+		PitSwitchHouseBlockEntity house = h[0];
+		UUID name = crawlers.machine();
+		int base = PitSwitchHouseBlockEntity.MACHINE_POINTS;   // outlet 1's machine: RUN, RUNNING, DONE, CYCLES, POWER
+		boolean[] run = {true};
+		double[] mostMa = {0};
+		helper.onEachTick(() -> {
+			long now = helper.getLevel().getGameTime();
+			house.commandPoint(0, true, now);   // outlet 1 CLOSE
+			house.commandPoint(base, run[0], now);
+			mostMa[0] = Math.max(mostMa[0], house.readMa(base + 4));
+		});
+		house.cycleHoa(null);
+		house.cycleHoa(null);   // HAND, OFF, AUTO
+		helper.startSequence()
+				.thenWaitUntil(() -> check(helper, house.readPoint(base + 1), "RUN should lift it and it should answer RUNNING: " + crawlers.status()))
+				.thenExecute(() -> check(helper, helper.getLevel().getEntity(name) instanceof BlastholeDrillEntity d && d.builtFromParts(), "lifted by RUN"))
+				.thenWaitUntil(() -> check(helper, house.readPulses(base + 3) >= 1, "a pulse a hole: " + house.readPulses(base + 3)))
+				.thenExecute(() -> run[0] = false)
+				.thenWaitUntil(() -> check(helper, !house.readPoint(base + 1), "RUN off: it stops"))
+				.thenIdle(40)
+				.thenExecute(() -> {
+					BlastholeDrillEntity d = (BlastholeDrillEntity) helper.getLevel().getEntity(name);
+					check(helper, !d.running() && d.status().startsWith("STOPPED by the PLC") && house.readPulses(base + 3) < 3 && !house.readPoint(base + 2),
+							"stopped, not done: " + d.status());
+					run[0] = true;
+				})
+				.thenWaitUntil(() -> check(helper, house.readPoint(base + 2), "RUN on again: it carries on to DONE"))
+				.thenExecute(() -> {
+					BlastholeDrillEntity d = (BlastholeDrillEntity) helper.getLevel().getEntity(name);
+					check(helper, house.readPulses(base + 3) == 3 && d.holesDrilled() == 3, "3 holes, 3 pulses: " + house.readPulses(base + 3) + "; " + d.status());
+					check(helper, !house.readPoint(base + 1), "DONE, not RUNNING");
+					check(helper, mostMa[0] > 8, "POWER read its draw while it drilled: " + mostMa[0] + " mA");
+					System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_drill_plc: %d pulses, DONE, POWER up to %.1f mA; %s%n", house.readPulses(base + 3), mostMa[0], d.status());
+				})
 				.thenSucceed();
 	}
 }

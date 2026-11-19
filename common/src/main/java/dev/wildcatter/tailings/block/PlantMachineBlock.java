@@ -61,6 +61,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		if (machine == Machine.DRAGLINE_TUB) {
 			return new DraglineBlockEntity(pos, state);
 		}
+		if (machine == Machine.DRILL_CRAWLERS) {
+			return new BlastholeDrillBlockEntity(pos, state);
+		}
 		if (machine == Machine.BATTERY_CHARGER) {
 			return new BatteryChargerBlockEntity(pos, state);
 		}
@@ -89,6 +92,9 @@ public class PlantMachineBlock extends TailingsPartBlock {
 		}
 		if (machine == Machine.DRAGLINE_TUB) {
 			return createTickerHelper(type, TailingsBlocks.DRAGLINE_ENTITY, DraglineBlockEntity::tick);
+		}
+		if (machine == Machine.DRILL_CRAWLERS) {
+			return createTickerHelper(type, TailingsBlocks.BLASTHOLE_DRILL_ENTITY, BlastholeDrillBlockEntity::tick);
 		}
 		if (machine == Machine.BATTERY_CHARGER) {
 			return createTickerHelper(type, TailingsBlocks.BATTERY_CHARGER_ENTITY, BatteryChargerBlockEntity::tick);
@@ -177,6 +183,18 @@ public class PlantMachineBlock extends TailingsPartBlock {
 				} else {
 					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, crawlers),
 							net.minecraft.network.chat.Component.literal("Rope Shovel")));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if (level.getBlockEntity(main(pos, state)) instanceof BlastholeDrillBlockEntity crawlers) {
+			// the blasthole drill standing as its parts: its pattern panel, GO to lift it; sneak for the readout
+			if (!level.isClientSide()) {
+				if (player.isShiftKeyDown()) {
+					player.sendSystemMessage(crawlers.inspect());
+				} else {
+					player.openMenu(new net.minecraft.world.SimpleMenuProvider((id, inventory, opener) -> new PitPanelMenu(id, inventory, crawlers),
+							net.minecraft.network.chat.Component.literal("Blasthole Drill")));
 				}
 			}
 			return InteractionResult.SUCCESS;

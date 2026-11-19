@@ -250,8 +250,8 @@ block in two boxes breaks once.
 ## As built (P3b and P3c, 2026-11-09; decided while Tim was away, see ../questions/p3-blasting.md)
 Built as above except where listed here. The numbers are in `pit.Blasting` (`BlastingTest`).
 - **The drill is one machine** at its real size (7 x 15 m, mast to 26 m), not four placed parts (decision 1): no build check, no
-  contraption, no PLC points until the parts come. Its mast is at its back end, the hole 1.5 m in from it; its back faces the free face
-  and the rows run on the way it faces (decision 2). GO squares it to the nearest of the four ways: patterns run square to the grid.
+  contraption, no PLC points until the parts come (they came in C15: As built: four parts, below). Its mast is at its back end, the
+  hole 1.5 m in from it; its back faces the free face and the rows run on the way it faces (decision 2). GO squares it to the nearest of the four ways: patterns run square to the grid.
   It turns on the spot at **9°/s** to face the next hole's stand, trams, turns back, sets up and drills *(proposed)*; about **110 t**
   *(proposed)*. A hole already drilled is passed over.
 - **Its screen** is a small panel of minus and plus buttons shared with the truck and the logger (decision 3): sneak-right-click the
@@ -274,7 +274,53 @@ Built as above except where listed here. The numbers are in `pit.Blasting` (`Bla
 - **Game tests** as listed, plus `pit_prime_stem` (priming in either order, stemming, gravel, washing out, the logger's delays) and
   `pit_blast_blowout` (the blowout split out of `pit_blast`). The harm is measured on iron golems, not a player.
 
+## As built: four parts (C15, 2026-11-19; Tim chose the parts, p3-blasting.md #1)
+The drill is now also built as P3-2 planned: **four big parts**, checked and lifted into one machine as the rope shovel is
+(open-pit-p5-big-machines.md). The lifted machine is the same `BlastholeDrillEntity`, with the same pattern panel and pattern.
+
+**The real counterpart** is a large electric rotary blasthole drill: 270-406 mm holes (the game drills 270 mm only), about **19.8 m**
+single pass, about **30 m** to the mast top with the mast up, about **170-180 t** working, driven by electric motors off a trailing
+cable at the pit's medium voltage (spec sheets of the class, *rounded*). The game keeps P3's machine: **7 x 15 m**, **26 m** to the
+mast top, a 16 m hole *(the rounding of the class to the lifted drill's size and its single pass, proposed)*.
+
+| Part | Cells (W x H x L) | From the crawlers' main cell | Real component |
+|---|---|---|---|
+| `drill_crawlers` | 7 x 2 x 10 | 0, 0, 0 | The two crawler tracks on their frame, the car body, the three levelling jacks. Its main cell holds the machine's block entity: cable reel, pattern panel, PLC answers |
+| `drill_deck` | 7 x 4 x 15 | 0, 2, -2 | The main frame: the electric drive and its transformer, the hydraulic pumps, the screw compressor for the flushing air, the cab at the front left corner, the mast table, the cable reel at the back right |
+| `drill_mast` | 3 x 20 x 3 | 2, 6, 10 | The lattice mast standing on the deck's back end: the rotary head on its pull-down chains, the drill pipe and the bit, over the hole |
+| `drill_dust_collector` | 2 x 3 x 3 | 0, 6, 10 | The dust collector and its fan beside the mast's foot, its duct to the deck bushing's skirt |
+
+Facing north, the front (the cab) is north and the mast south. The machine's centre is the middle of the deck, 3.5 m east and 5.5 m
+south of the crawlers' main cell; the hole is 6 m behind it, under the mast's foot and clear of the crawlers (`BlastholeDrillLayout`,
+`BlastholeDrillLayoutTest`).
+
+- **Built and checked:** the crawlers read NOT BUILT naming the missing part, then NO CABLE until a trailing cable from a pit switch
+  house reaches them (a reel used on the crawlers, as the rope shovel's).
+- **GO** (its panel on the crawlers, or the PLC's RUN) lifts the parts into one drill by the crawlers' name, carrying the cable, the
+  pattern settings, its count of holes and DONE, and starts the pattern at the hole under its mast. **Drill one** lifts it and drills one
+  hole. It is **electric only**: the panel's Electric setting stays on.
+- **STOP** (its panel, lifted) finishes a half-drilled hole SHORT where the bit is, and sets its four parts down where it stands, square
+  to the nearest way, if their cells are free (else it reads which block is in the way and stays lifted). Broken by hand it gives back
+  all four parts.
+- **The drill placed whole from its item** (P3's way) is kept as it was: diesel or electric by its panel, a drill an old world may
+  already hold.
+
+**PLC points**, on its switch house outlet's control pair, as the dragline's (P6's machine points; a drill placed whole answers them too
+while on a cable):
+
+| Point | Meaning |
+|---|---|
+| OUTLET n MACHINE RUN (command) | In AUTO, coming on is its GO: standing as its parts it lifts and starts its pattern; lifted and stopped, it carries the pattern on from the next hole (a new pattern at its mast once the last is DONE). Going off: it stops at once while it trams or turns, or when the hole it is drilling is done |
+| OUTLET n MACHINE RUNNING | On while it walks its pattern |
+| OUTLET n MACHINE DONE | On when its last pattern was drilled to its end, until the next GO; carried through a set-down |
+| OUTLET n MACHINE CYCLES (pulse) | One pulse a hole drilled, ever (its count is carried through every lift and set-down) |
+| OUTLET n MACHINE POWER (4-20 mA) | Its draw against its peak, 4 mA standing, 20 mA at its peak |
+
+P3's FUEL LOW is left out: the built drill burns no diesel.
+
 ## Sources
+- Large electric rotary blasthole drills' spec sheets (two makers' classes): 270-406 mm and 270-444 mm holes; about 172-181 t working;
+  about 30.6 m mast-up height; electric drive.
 - A 271-class rotary drill's product page: 270 mm single pass, 16.8 m single pass, 32 m max, 34 t (75,000 lb) bit load.
 - AusIMM, *Rotary blast hole drills, a comparison* (Large Open Pit Mining Conference, Newman): 0.012 m/s scheduled penetration for a
   270 mm bit (43 m/h).

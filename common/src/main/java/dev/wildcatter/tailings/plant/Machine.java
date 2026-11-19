@@ -183,7 +183,19 @@ public enum Machine {
 	/** A multistage centrifugal blower for the row's air, 400 kW at the medium-voltage tier (P7c, proposed). */
 	FLOTATION_BLOWER_LARGE("flotation_blower_large", "Large Flotation Blower", 4, 4, 6, 400_000, Supply.MEDIUM),
 	/** A 45 m high-rate thickener on the pit line's tails, its 55 kW rake drive (P7c, proposed: 24,000 t/day at about 0.07 m² a t/day). */
-	TAILINGS_THICKENER_LARGE("tailings_thickener_large", "Large Tailings Thickener", 45, 6, 45, 55_000, Supply.INDUSTRIAL);
+	TAILINGS_THICKENER_LARGE("tailings_thickener_large", "Large Tailings Thickener", 45, 6, 45, 55_000, Supply.INDUSTRIAL),
+	/**
+	 * The large electric rotary blasthole drill's four parts (open-pit-p3-blasting.md, As built: four parts), built as the rope
+	 * shovel's and lifted into one machine, a {@code BlastholeDrillEntity}, when it runs. Its power is its trailing cable's, not a motor
+	 * box: the crawlers' main cell holds its reel, its pattern panel and its PLC answers. The crawlers carry the three levelling jacks.
+	 */
+	DRILL_CRAWLERS("drill_crawlers", "Drill Crawlers", 7, 2, 10, 0, Supply.NONE),
+	/** The machinery deck: the main frame, the electric drive and its transformer, the screw compressor for the flushing air, the cab. */
+	DRILL_DECK("drill_deck", "Drill Deck", 7, 4, 15, 0, Supply.NONE),
+	/** The mast standing at the deck's back end: the rotary head, the pull-down chains, the drill pipe and the 270 mm tricone bit. */
+	DRILL_MAST("drill_mast", "Drill Mast", 3, 20, 3, 0, Supply.NONE),
+	/** The dust collector beside the mast's foot, and the deck bushing's skirt round the collar. */
+	DRILL_DUST_COLLECTOR("drill_dust_collector", "Drill Dust Collector", 2, 3, 3, 0, Supply.NONE);
 
 	/** Motors on the part: the two pinions of the big mills' twin-pinion drives, one for every other part. */
 	public int motors() {
