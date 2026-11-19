@@ -363,8 +363,11 @@ final class PitDryStackGameTests {
 		dozer.setGrade(DryStack.Grade.TEN);
 		dozer.testDrive(FORWARD);
 		double startZ = relZ(helper, dozer);
+		boolean[] clanked = {false};
+		helper.onEachTick(() -> clanked[0] |= dozer.loop() == dev.wildcatter.tailings.TailingsSounds.TRACK_DOZER);
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, dozer) - startZ >= 20, Component.literal("it should cut 20 m: " + where(helper, dozer))))
+				.thenExecute(() -> helper.assertTrue(clanked[0], Component.literal("moving, the dozer sounds its diesel and tracks")))
 				.thenExecute(() -> dozer.testDrive(Input.EMPTY))
 				// under a loaded test server it can take more than 10 ticks to stop; wait for it, then look well behind the blade
 				// (where it stops it drops what the blade carries)

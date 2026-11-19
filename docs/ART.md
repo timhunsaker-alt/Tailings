@@ -55,7 +55,7 @@ The overlay is a thin element just above the bed (about 0.25 pixels). The bed st
 
 ## Sounds
 
-Rules and which machine makes which: [sound.md](sound.md). Sources are in `art/sound_source/`, made with Ludo `createSoundEffect`, one take each; `tools/process_sounds.py` makes the mono `.ogg`s and `sounds.json` (it needs `soundfile` and `numpy`). Do not edit `sounds.json` by hand.
+Rules and which machine makes which: [sound.md](sound.md). Sources are in `art/sound_source/`, made with Ludo `createSoundEffect`, one take each; `tools/process_sounds.py` makes the mono `.ogg`s and `sounds.json` (it needs `soundfile` and `numpy`). Do not edit `sounds.json` by hand. It re-writes every `.ogg`; another libsndfile build changes the bytes of the old ones, not their sound, so check out the files whose source did not change.
 
 | File | Loop | Duration | Prompt |
 |---|---|---|---|
@@ -75,6 +75,24 @@ Rules and which machine makes which: [sound.md](sound.md). Sources are in `art/s
 | muck_load.mp3 | no | 2 s | broken rock pouring off a conveyor into a steel mine car, a short rattling clatter of stones hitting steel |
 | ring_set.mp3 | no | 2 s | a heavy concrete tunnel lining segment seated by a hydraulic erector, a short hydraulic hiss then a deep solid thud with a low underground echo |
 | car_couple.mp3 | no | 1 s | heavy steel rail car coupling engaging, one sharp loud metallic clank with a short ringing rattle of the link and pin |
+
+Added 2026-11-19 (Tim's answer C25), Ludo `createSoundEffect` with its loop setting on for the loops, one take each but the siren (its
+first take held one pitch, a horn more than a wail). `process_sounds.py` cross-fades the last 60 ms of `rotary_drill` into its start,
+as Ludo's take ended far from where it began.
+
+| File | Loop | Duration | Prompt |
+|---|---|---|---|
+| gyratory_crusher.wav | yes | 8 s | a huge primary gyratory rock crusher running, a very deep slow grinding rumble as the mantle gyrates and crushes large boulders against steel concaves, occasional heavy rock cracks and groans, constant, industrial, no music |
+| rock_breaker.wav | yes | 6 s | a hydraulic rock breaker hammer pounding a large boulder, rapid heavy rhythmic steel chisel blows about eight a second against hard rock, hydraulic hiss and pump drone, stone cracking, constant, industrial, no music |
+| sag_mill.wav | yes | 8 s | a giant semi-autogenous grinding mill turning, large rocks and steel balls tumbling and cascading inside a huge rotating steel shell, heavy irregular crashing impacts over a deep constant roar and gear drive hum, industrial, no music |
+| large_ball_mill.wav | yes | 8 s | a very large overflow ball mill turning slowly, a dense steady roar of small steel balls and wet ore slurry cascading inside a huge steel drum, deep low hum of the girth gear and pinion, smooth and constant, industrial, no music |
+| slurry_pump.wav | yes | 6 s | a large centrifugal slurry pump running, a powerful electric motor drone with a deep gritty rushing of thick ore slurry through the pump casing and steel pipes, slight rattle of sand, constant, industrial, no music |
+| tank_cell.wav | yes | 8 s | a row of huge tank flotation cells running, deep low drone of big agitator motors and gearboxes, heavy churning of slurry and air bubbling up, froth spilling over a steel lip into a launder with a steady wet rush, constant, industrial, no music |
+| xrt_sorter.wav | yes | 6 s | an x-ray ore sorting machine, rock rattling along a fast conveyor belt with sharp rapid bursts of compressed air jets blowing stones off the belt edge, irregular pneumatic puffs and clatter, steady machine hum, industrial, no music |
+| mine_hoist.wav | yes | 8 s | a large mine shaft hoist winding, a big electric drum winder motor humming and rising, thick steel wire rope running over a sheave wheel with a low whirr and creak, steady, industrial, no music |
+| rotary_drill.wav | yes | 8 s | a rotary blasthole drill rig drilling rock in an open pit, the rotary head turning the drill pipe with a deep grinding of the tricone bit in hard rock, a constant roaring rush of compressed air blowing cuttings up out of the hole, diesel engine drone underneath, constant, no music |
+| track_dozer.wav | yes | 8 s | a large crawler track dozer moving, a big turbo diesel engine working hard with a deep rumble, heavy steel tracks clanking and squeaking over rollers and sprockets, rocks crunching under the tracks, constant, no music |
+| blast_siren.mp3 | no | 6 s | a mechanical motor-driven warning siren at an open pit mine before a blast: the siren winds up from a low growl, its pitch sweeping up to a loud high wail, holds, then slowly winds back down falling in pitch, outdoors with a distant echo, no music, no voice, no horn |
 
 ## Regenerating
 

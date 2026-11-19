@@ -25,6 +25,17 @@ public final class TailingsSounds {
 	public static final SoundEvent MUCK_LOAD = make("muck_load");
 	public static final SoundEvent RING_SET = make("ring_set");
 	public static final SoundEvent CAR_COUPLE = make("car_couple");
+	public static final SoundEvent GYRATORY_CRUSHER = make("gyratory_crusher");
+	public static final SoundEvent SAG_MILL = make("sag_mill");
+	public static final SoundEvent LARGE_BALL_MILL = make("large_ball_mill");
+	public static final SoundEvent MINE_HOIST = make("mine_hoist");
+	public static final SoundEvent XRT_SORTER = make("xrt_sorter");
+	public static final SoundEvent ROTARY_DRILL = make("rotary_drill");
+	public static final SoundEvent TRACK_DOZER = make("track_dozer");
+	public static final SoundEvent ROCK_BREAKER = make("rock_breaker");
+	public static final SoundEvent SLURRY_PUMP = make("slurry_pump");
+	public static final SoundEvent TANK_CELL = make("tank_cell");
+	public static final SoundEvent BLAST_SIREN = make("blast_siren");
 
 	private TailingsSounds() {
 	}
@@ -50,7 +61,8 @@ public final class TailingsSounds {
 			case CYCLONE -> SLURRY_RUSH;
 			case CONDITIONER, ACTIVATION_TANK, FLOTATION_BANK -> AGITATOR;
 			case FILTER, TAILINGS_FILTER -> PRESSURE_FILTER;
-			case ORE_SORTER, XRT_SORTER -> ORE_SORTER;
+			case ORE_SORTER -> ORE_SORTER;
+			case XRT_SORTER -> XRT_SORTER;
 			case SORTER_COMPRESSOR -> WildcatterSounds.MOTOR_HUM;
 			case BLOWER, VENT_FAN, BOOSTER_FAN, FLUID_BED_DRYER -> WildcatterSounds.FAN;
 			case SPIRAL_BANK, SCAVENGER_SPIRAL_BANK, CLEANER_BANK, CCD_THICKENER -> SLURRY_RUSH;
@@ -60,20 +72,22 @@ public final class TailingsSounds {
 			case REGRIND_MILL -> BALL_MILL;
 			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case THICKENER, TAILINGS_THICKENER -> WildcatterSounds.MOTOR_HUM;
-			case HOIST_HOUSE -> WildcatterSounds.MOTOR_HUM;
+			case HOIST_HOUSE -> MINE_HOIST;
 			case PASTE_FILTER, PASTE_PUMP -> WildcatterSounds.MOTOR_HUM;
 			case PASTE_MIXER -> AGITATOR;
 			case DESLIME_SCREEN, DRAIN_RINSE_SCREEN -> VIBRATING_SCREEN;
 			case DMS_MODULE -> SLURRY_RUSH;
 			case MEDIUM_RECOVERY -> WildcatterSounds.MOTOR_HUM;
-			case GYRATORY_CRUSHER -> CONE_CRUSHER;
-			case ROCK_BREAKER -> JAW_CRUSHER;
+			case GYRATORY_CRUSHER -> GYRATORY_CRUSHER;
+			case ROCK_BREAKER -> ROCK_BREAKER;
 			case PRIMARY_APRON_FEEDER, RECLAIM_FEEDER -> APRON_FEEDER;
 			case HEAVY_CONVEYOR_DRIVE -> BELT_CONVEYOR;
-			case SAG_MILL, BALL_MILL_LARGE -> BALL_MILL;
-			case PEBBLE_CRUSHER -> CONE_CRUSHER;
-			case CYCLONE_FEED_PUMP -> WildcatterSounds.MOTOR_HUM;
-			case CONDITIONING_TANK_LARGE, TANK_CELL -> AGITATOR;
+			case SAG_MILL -> SAG_MILL;
+			case BALL_MILL_LARGE -> LARGE_BALL_MILL;
+			case PEBBLE_CRUSHER -> CONE_CRUSHER;   // a pebble crusher is a cone crusher
+			case CYCLONE_FEED_PUMP -> SLURRY_PUMP;
+			case CONDITIONING_TANK_LARGE -> AGITATOR;
+			case TANK_CELL -> TANK_CELL;
 			case COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE -> WildcatterSounds.MOTOR_HUM;
 			default -> null;
 		};
@@ -86,7 +100,8 @@ public final class TailingsSounds {
 			case JAW, CONE -> 1.5F;
 			case GYRATORY_CRUSHER -> 2.5F;
 			case SAG_MILL, BALL_MILL_LARGE -> 4F;
-			case PRIMARY_APRON_FEEDER -> 1.5F;
+			case PRIMARY_APRON_FEEDER, HOIST_HOUSE, ROCK_BREAKER -> 1.5F;
+			case XRT_SORTER, CYCLONE_FEED_PUMP -> 1F;
 			case HEAVY_CONVEYOR_DRIVE -> 1F;
 			case FLOTATION_BANK, TANK_CELL -> 1.2F;
 			case FLOTATION_BLOWER_LARGE -> 1.5F;

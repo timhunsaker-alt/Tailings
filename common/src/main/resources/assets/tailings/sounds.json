@@ -23,6 +23,12 @@
     ],
     "subtitle": "subtitles.tailings.car_couple"
   },
+  "blast_siren": {
+    "sounds": [
+      "tailings:blast_siren"
+    ],
+    "subtitle": "subtitles.tailings.blast_siren"
+  },
   "jaw_crusher": {
     "sounds": [
       "tailings:jaw_crusher"
@@ -94,5 +100,65 @@
       "tailings:mine_locomotive"
     ],
     "subtitle": "subtitles.tailings.mine_locomotive"
+  },
+  "gyratory_crusher": {
+    "sounds": [
+      "tailings:gyratory_crusher"
+    ],
+    "subtitle": "subtitles.tailings.gyratory_crusher"
+  },
+  "sag_mill": {
+    "sounds": [
+      "tailings:sag_mill"
+    ],
+    "subtitle": "subtitles.tailings.sag_mill"
+  },
+  "large_ball_mill": {
+    "sounds": [
+      "tailings:large_ball_mill"
+    ],
+    "subtitle": "subtitles.tailings.large_ball_mill"
+  },
+  "mine_hoist": {
+    "sounds": [
+      "tailings:mine_hoist"
+    ],
+    "subtitle": "subtitles.tailings.mine_hoist"
+  },
+  "xrt_sorter": {
+    "sounds": [
+      "tailings:xrt_sorter"
+    ],
+    "subtitle": "subtitles.tailings.xrt_sorter"
+  },
+  "rotary_drill": {
+    "sounds": [
+      "tailings:rotary_drill"
+    ],
+    "subtitle": "subtitles.tailings.rotary_drill"
+  },
+  "track_dozer": {
+    "sounds": [
+      "tailings:track_dozer"
+    ],
+    "subtitle": "subtitles.tailings.track_dozer"
+  },
+  "rock_breaker": {
+    "sounds": [
+      "tailings:rock_breaker"
+    ],
+    "subtitle": "subtitles.tailings.rock_breaker"
+  },
+  "slurry_pump": {
+    "sounds": [
+      "tailings:slurry_pump"
+    ],
+    "subtitle": "subtitles.tailings.slurry_pump"
+  },
+  "tank_cell": {
+    "sounds": [
+      "tailings:tank_cell"
+    ],
+    "subtitle": "subtitles.tailings.tank_cell"
   }
 }

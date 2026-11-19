@@ -79,13 +79,17 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		setLift(blade.lift());
 	}
 
-	/** Parked with its engine off it is silent, whatever its blade's height. */
+	/** Parked with its engine off it is silent, whatever its blade's height; moving, its own loop of diesel and track clank. */
 	@Override
 	public net.minecraft.sounds.@Nullable SoundEvent loop() {
 		if (!isVehicle() && !engineSynced() && Math.abs(syncedSpeed()) < 0.05F) {
 			return null;
 		}
-		return super.loop() == null ? dev.wildcatter.WildcatterSounds.DIESEL_IDLE : super.loop();
+		net.minecraft.sounds.SoundEvent diesel = super.loop();
+		if (diesel == dev.wildcatter.WildcatterSounds.DIESEL_LOAD) {
+			return dev.wildcatter.tailings.TailingsSounds.TRACK_DOZER;   // moving: its diesel working and its tracks clanking
+		}
+		return diesel == null ? dev.wildcatter.WildcatterSounds.DIESEL_IDLE : diesel;
 	}
 
 	@Override

@@ -105,6 +105,8 @@ final class XrtGameTests {
 		}
 		PlantBlockEntity feed = TailingsGameTests.plant(helper, Machine.CONVEYOR_DRIVE, new BlockPos(5, y + 5, 2));
 		feed.forceRunning();
+		boolean[] jets = {false};
+		helper.onEachTick(() -> jets[0] |= line.sorter().loop() == dev.wildcatter.tailings.TailingsSounds.XRT_SORTER);
 		helper.startSequence()
 				.thenExecuteAfter(20, () -> {
 					RockLoad mixed = load(Rock.GALENA, 1000);
@@ -123,6 +125,7 @@ final class XrtGameTests {
 							Component.literal("95 % of the andesite to waste, 5 % with the product" + s));
 					helper.assertTrue(near(line.sorter().xrt().productKg(), 1020) && near(line.sorter().xrt().wasteKg(), 980), Component.literal("its tallies" + s));
 					helper.assertTrue(line.sorter().readPulses(7) == 1 && line.sorter().readPulses(8) == 0, Component.literal("a pulse a whole tonne" + s));
+					helper.assertTrue(jets[0], Component.literal("sorting, its air jets sound their own loop" + s));
 				})
 				.thenSucceed();
 	}

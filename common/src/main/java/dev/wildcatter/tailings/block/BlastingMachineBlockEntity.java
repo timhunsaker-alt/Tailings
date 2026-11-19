@@ -12,7 +12,6 @@ import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -254,9 +253,10 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 			}
 		}
 		if (sirenUntil >= 0) {
-			if ((sirenUntil - now) % 40 == 0 && !holes.isEmpty()) {
+			// the siren's wail is 5.4 s: one as FIRE is pressed and one 5 s later, the second dying away as the shot goes
+			if ((sirenUntil - now) % 100 == 99 && !holes.isEmpty()) {
 				BlockPos at = holes.get(0).collar();
-				server.playSound(null, at, SoundEvents.RAID_HORN.value(), SoundSource.BLOCKS, 8F, 1.0F);
+				server.playSound(null, at, dev.wildcatter.tailings.TailingsSounds.BLAST_SIREN, SoundSource.BLOCKS, 8F, 1.0F);
 			}
 			if (now >= sirenUntil) {
 				sirenUntil = -1;
