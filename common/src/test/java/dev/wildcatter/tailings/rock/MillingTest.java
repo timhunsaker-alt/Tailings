@@ -58,10 +58,13 @@ class MillingTest {
 		List<Milling.Yield> copper = Milling.concentrate(Rock.COPPER, Separator.GRAVITY, bank);
 		List<Milling.Yield> gold = Milling.concentrate(Rock.GOLD, Separator.GRAVITY, bank);
 		assertEquals(List.of(new Milling.Yield("minecraft:iron_ingot", 2)), iron);
-		assertEquals(List.of(new Milling.Yield("minecraft:copper_ingot", 2)), copper);
+		assertEquals(List.of(new Milling.Yield("minecraft:copper_ingot", 7)), copper, "copper's block holds 14 ingots (Tim, 2026-11-19)");
 		assertEquals(List.of(new Milling.Yield("minecraft:gold_ingot", 2)), gold);
 		assertTrue(bank.save().isEmpty());
-		for (Rock rock : List.of(Rock.IRON, Rock.COPPER, Rock.GOLD)) {
+		assertEquals(0, new BigDecimal("14").compareTo(Rock.COPPER.contained(Mineral.COPPER)), "3.5 / 7 / 10.5 / 14");
+		assertEquals(400, Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.COPPER.kgPerUnit(), 1e-9, "still 400 kg of copper in the block");
+		assertEquals(1.0 / 9, Mineral.COPPER.nuggetAmount().doubleValue(), 1e-6, "a copper nugget is a ninth of an ingot");
+		for (Rock rock : List.of(Rock.IRON, Rock.GOLD)) {
 			Mineral metal = rock.minerals().get(0);
 			assertEquals(0, new BigDecimal("4").compareTo(rock.contained(metal)));
 			assertTrue(new BigDecimal("2").compareTo(rock.contained(metal)) < 0);

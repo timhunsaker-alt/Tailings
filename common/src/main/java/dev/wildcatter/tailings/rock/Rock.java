@@ -10,8 +10,8 @@ import java.util.Map;
 /**
  * One feed rock and the mineral it holds. Country-rock traces are crustal abundance times ten, written as a fixed
  * amount so a nugget is reachable; granite zircon is the 8 kg in {@code docs/multiblocks/crushing-circuit.md}.
- * Wildcatter ore blocks hold {@link Mineral#blockAmount()}. Vanilla iron, copper and gold hold four ingots, so plain
- * smelting is one and the 50% route is two.
+ * Wildcatter ore blocks hold {@link Mineral#blockAmount()}. Vanilla iron and gold hold four ingots, so plain smelting is one and
+ * the 50% route is two; vanilla copper holds fourteen, as plain mining drops 3.5 raw copper on average (specs-tailings.md X-3).
  */
 public enum Rock {
 	COBBLESTONE("cobblestone", "Cobblestone", Kind.COUNTRY),

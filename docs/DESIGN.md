@@ -15,7 +15,7 @@ Package root: `dev.wildcatter.tailings`. Mod id: `tailings`. Recovery, rock list
 | Flotation | 75% | 3x | A full flotation bank, on fines |
 | Full recovery | 95% | 4x | Not implemented. 95/25 is 3.8. The even 4x is the written exception. The mass paid will still be 95%, not 100% |
 
-Vanilla iron, copper, and gold hold four ingots in the rock list, so plain smelting is one ingot and the 50% route is two. The flotation bank pays three for copper and gold. Iron does not float. It is the magnetic mineral.
+Vanilla iron and gold hold four ingots in the rock list, so plain smelting is one ingot and the 50% route is two. Vanilla copper holds fourteen (Tim, 2026-11-19; specs-tailings.md X-3): plain mining drops 2-5 raw copper, 3.5 on average, so its ladder is 3.5 / 7 / 10.5 / 14, paid through copper nuggets. The flotation bank pays three quarters of the block for copper and gold. Iron does not float. It is the magnetic mineral.
 
 ## Rock and the size ladder
 
@@ -23,7 +23,7 @@ Vanilla iron, copper, and gold hold four ingots in the rock list, so plain smelt
 Wildcatter ore's mined drop (`wildcatter:galena` and the rest, what Fortune multiplies), are no plant feed (`block.Feeds`; Tim,
 2026-11-10, questions/specs-tailings.md X-1). `rock.SizeClass` is `crushed`, `gravel`, `sand`, `fines`. The item id is `tailings:<size>_<rock>`, for example `tailings:sand_granite`. Fines are made only by the ball mill. The stamp mill and the jaw make crushed rock from a whole block. The hand screen, the double-deck screen, and the cone move crushed rock to gravel and gravel to sand. Sand does not become fines on a screen.
 
-Country-rock traces are fixed kilograms, crustal abundance times the same tenfold game factor Wildcatter uses. Granite's zircon is 8 kg, matching the crushing-circuit spec. Ore blocks hold `Mineral.blockAmount()` (density in t/m³ × 1000 × the game grade). Vanilla metals hold 4 ingots.
+Country-rock traces are fixed kilograms, crustal abundance times the same tenfold game factor Wildcatter uses. Granite's zircon is 8 kg, matching the crushing-circuit spec. Ore blocks hold `Mineral.blockAmount()` (density in t/m³ × 1000 × the game grade). Vanilla iron and gold hold 4 ingots, copper 14.
 
 What each country rock holds (`Rock`'s static list):
 
@@ -79,7 +79,7 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
   - ball mill: sand and the cyclone underflow (first), water from a Wildcatter pump; mill discharge at 70 % solids on steel pipe at the south face of its back bottom cells;
   - cyclone cluster: mill discharge in at its north face, water from a pump; at a 250 % circulating load a 3.5th of the solids leave as fines slurry at 35 % solids on its south face, the rest goes back into the mill it touches (NOT BUILT without one);
   - ore bin: 8,192 rock items, fed by hand or hopper, out onto the belt under it.
-- **Assays:** the slurry carries Wildcatter's assay (v0.3.0), keyed by each mineral's item id: the kg of the whole mineral the rock holds per kg (`plant.Assays`). Crushing liberates and recovers nothing. The vanilla metals are counted in kg too (plant-gaps): an ingot is 100 kg of metal (`Mineral.INGOT_KG`, as Wildcatter counts an iron ingot), so copper ore's four ingots are 400 kg in its 2.7 t; the filter and the cells divide by it to pay ingots and nuggets (`FilterCake.addKg`).
+- **Assays:** the slurry carries Wildcatter's assay (v0.3.0), keyed by each mineral's item id: the kg of the whole mineral the rock holds per kg (`plant.Assays`). Crushing liberates and recovers nothing. The vanilla metals are counted in kg too (plant-gaps): an ingot is 100 kg of metal (`Mineral.INGOT_KG`, as Wildcatter counts an iron ingot), so copper ore holds 400 kg of copper in its 2.7 t, paid as fourteen ingots (a copper ingot counts 400 / 14 kg); the filter and the cells divide by it to pay ingots and nuggets (`FilterCake.addKg`).
 - **Readouts:** NO FEED, NO WATER, NO DRIVE, NOT BUILT (names the part), FULL, "its output has nowhere to go".
 
 **How flotation runs (R4b, docs/multiblocks/flotation-bank.md):** each part draws its feed off steel pipe at the north face of its front cells into a few seconds' buffer, and puts its product on pipe at the south face of its back cells (`block.stage.Flotation`).

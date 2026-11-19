@@ -38,7 +38,7 @@ class FlotationTest {
 	}
 
 	@Test
-	void aBlockOfCopperOrePaysThreeIngotsWorthOfNuggets() {
+	void aBlockOfCopperOrePaysTenAndAHalfIngotsWorthOfNuggets() {
 		FilterCake cake = new FilterCake();
 		double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * 0.75;
 		// it arrives in many small parts, as it does off the pipe
@@ -49,8 +49,9 @@ class FlotationTest {
 		for (int i = 0; i < 5; i++) {
 			nuggets += cake.takeNuggets(Mineral.COPPER);
 		}
-		assertEquals(27, nuggets, "27 nuggets pack into 3 ingots, the 3x step");
-		assertEquals(0, cake.held(Mineral.COPPER), 1e-6);
+		// the block holds 14 ingots (Tim, 2026-11-19): the 3x step is 10.5, 94 nuggets and half a nugget kept for the next block
+		assertEquals(94, nuggets, "94 nuggets, 10 ingots and 4 nuggets");
+		assertEquals(1.0 / 18, cake.held(Mineral.COPPER), 1e-6);
 	}
 
 	@Test

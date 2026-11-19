@@ -1091,7 +1091,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			// the assay counts metal in kg: the block's four copper ingots are 400 kg
-			double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.INGOT_KG;
+			double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.COPPER.kgPerUnit();
 			PlantBlockEntity source = plant(level, Machine.CYCLONE, o);
 			source.out().offer(Product.FINES_SLURRY, 1200, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", copper / 1200)));
 			pipe(level, o.offset(0, 0, 2), o.offset(1, 0, 2));
@@ -1143,7 +1143,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			PlantBlockEntity source = plant(level, Machine.FLOTATION_BANK, o.offset(3, 0, 0));
-			source.out().offer(Product.TAILS_SLURRY, 800, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 2 * Mineral.INGOT_KG / 800)));
+			source.out().offer(Product.TAILS_SLURRY, 800, SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", 2 * Mineral.COPPER.kgPerUnit() / 800)));
 			pipe(level, o.offset(3, 0, 13));
 			PlantBlockEntity scavenger = plant(level, Machine.SCAVENGER_BANK, o.offset(3, 0, 14));
 			PlantBlockEntity blower = plant(level, Machine.BLOWER, o.offset(1, 0, 15));

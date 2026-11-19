@@ -52,7 +52,7 @@ class BeltTravelTest {
 	@Test
 	void aFilterCountsAVanillaMetalsKgAsIngots() {
 		FilterCake cake = new FilterCake();
-		cake.addKg(Mineral.COPPER, 3 * Mineral.INGOT_KG);
+		cake.addKg(Mineral.COPPER, 3 * Mineral.COPPER.kgPerUnit());
 		assertEquals(3, cake.held(Mineral.COPPER), 1e-9);
 		cake.addKg(Mineral.GALENA, 12);
 		assertEquals(12, cake.held(Mineral.GALENA), 1e-9);

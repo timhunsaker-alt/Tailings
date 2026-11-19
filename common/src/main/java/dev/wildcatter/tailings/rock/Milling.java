@@ -72,7 +72,16 @@ public final class Milling {
 			if (paid.compareTo(contained) > 0 || recovered.compareTo(contained) > 0) {
 				throw new IllegalStateException(mineral + " would pay more than the block holds");
 			}
-			yields.add(new Yield(mineral.phaseOneProductId(), count));
+			// a vanilla metal pays its ingots: iron and gold 2, copper 7 (its block holds 14; Tim, 2026-11-19); the half ingot of an odd
+			// share goes to the nugget bank
+			int whole = mineral.unit() == Mineral.Unit.INGOT ? paid.intValue() : count;
+			yields.add(new Yield(mineral.phaseOneProductId(), whole));
+			if (mineral.unit() == Mineral.Unit.INGOT && paid.compareTo(BigDecimal.valueOf(whole)) > 0) {
+				int nuggets = bank.deposit(mineral, paid.subtract(BigDecimal.valueOf(whole)));
+				if (nuggets > 0) {
+					yields.add(new Yield(mineral.nuggetId(), nuggets));
+				}
+			}
 		}
 		return yields;
 	}

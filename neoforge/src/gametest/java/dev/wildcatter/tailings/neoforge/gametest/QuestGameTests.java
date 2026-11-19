@@ -183,7 +183,7 @@ final class QuestGameTests {
 	/** A flotation bank floating conditioned slurry, its blower running, gives a player beside it {@code tailings:flotation_running}. */
 	private static void flotation(GameTestHelper helper) {
 		int y = 4;
-		double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.INGOT_KG;
+		double copper = Rock.COPPER.contained(Mineral.COPPER).doubleValue() * Mineral.COPPER.kgPerUnit();
 		TailingsGameTests.fines(helper, new BlockPos(0, y, 0), 1200, Map.of("minecraft:copper_ingot", copper / 1200));
 		TailingsGameTests.pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
 		PlantBlockEntity tank = TailingsGameTests.plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
@@ -322,7 +322,7 @@ final class QuestGameTests {
 	private static void leach(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = TailingsGameTests.plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
-		source.out().offer(Product.TAILS_SLURRY, 200, SlurryAssay.of(Map.of("minecraft:copper_ingot", Mineral.INGOT_KG / 200)));
+		source.out().offer(Product.TAILS_SLURRY, 200, SlurryAssay.of(Map.of("minecraft:copper_ingot", Mineral.COPPER.kgPerUnit() / 200)));
 		TailingsGameTests.pipe(helper, new BlockPos(0, y, 13));
 		PlantBlockEntity leach = TailingsGameTests.plant(helper, Machine.LEACH_TANK, new BlockPos(0, y, 14));
 		var acid = TailingsGameTests.part(helper, BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "stock_tank")), new BlockPos(6, y, 15),

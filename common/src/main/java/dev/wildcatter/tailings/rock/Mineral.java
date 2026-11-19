@@ -10,7 +10,9 @@ import java.math.RoundingMode;
  */
 public enum Mineral {
 	IRON(Unit.INGOT, Separator.MAGNETIC, "minecraft:iron_nugget", "minecraft:iron_ingot", "minecraft:iron_ingot", new BigDecimal("4")),
-	COPPER(Unit.INGOT, Separator.GRAVITY, "tailings:copper_nugget", "minecraft:copper_ingot", "minecraft:copper_ingot", new BigDecimal("4")),
+	// 14 ingots (Tim, 2026-11-19; specs-tailings.md X-3): plain mining drops 2-5 raw copper, 3.5 on average, so the ladder pays
+	// 3.5 / 7 / 10.5 / 14 through copper nuggets and the plant pays more than mining plainly
+	COPPER(Unit.INGOT, Separator.GRAVITY, "tailings:copper_nugget", "minecraft:copper_ingot", "minecraft:copper_ingot", new BigDecimal("14")),
 	GOLD(Unit.INGOT, Separator.GRAVITY, "minecraft:gold_nugget", "minecraft:gold_ingot", "minecraft:gold_ingot", new BigDecimal("4")),
 
 	ZIRCON(Unit.KILOGRAM, Separator.GRAVITY, nugget("zircon"), "tailings:zircon", null, heavy(new BigDecimal("0.25"))),
@@ -77,9 +79,13 @@ public enum Mineral {
 	 */
 	public static final double INGOT_KG = 100;
 
-	/** Kilograms in one of this mineral's {@link #unit()}: {@link #INGOT_KG} for an ingot, 1 for a kilogram. */
+	/**
+	 * Kilograms in one of this mineral's {@link #unit()}: {@link #INGOT_KG} for an ingot, 1 for a kilogram. A copper ingot counts 400 / 14
+	 * kg (about 28.6): the ore block keeps its 400 kg of copper and pays 14 ingots (Tim, 2026-11-19; specs-tailings.md X-3).
+	 */
 	public double kgPerUnit() {
-		return unit == Unit.INGOT ? INGOT_KG : 1;
+		// copper's block holds the same 400 kg of metal as ever (its density and atomic number unchanged), paid as 14 ingots
+		return this == COPPER ? INGOT_KG * 4 / blockAmount.doubleValue() : unit == Unit.INGOT ? INGOT_KG : 1;
 	}
 
 	/** Null when this mineral is not paid at 50% in phase 1. */
@@ -137,9 +143,9 @@ public enum Mineral {
 		return blockAmount.divide(BigDecimal.valueOf(4), 8, RoundingMode.DOWN);
 	}
 
-	/** A ninth of {@link #itemAmount()}. */
+	/** A ninth of {@link #itemAmount()}; for a vanilla metal a ninth of an ingot, as nine nuggets craft one (copper's item is 3.5 ingots). */
 	public BigDecimal nuggetAmount() {
-		return itemAmount().divide(BigDecimal.valueOf(9), 8, RoundingMode.DOWN);
+		return (unit == Unit.INGOT ? BigDecimal.ONE : itemAmount()).divide(BigDecimal.valueOf(9), 8, RoundingMode.DOWN);
 	}
 
 	private static String nugget(String id) {

@@ -565,7 +565,7 @@ public class TailingsGameTests {
 	private static void flotation(GameTestHelper helper) {
 		int y = 4;
 		// the assay counts metal in kg: a block of copper ore's four ingots are 400 kg of copper
-		double copper = Rock.COPPER.contained(dev.wildcatter.tailings.rock.Mineral.COPPER).doubleValue() * dev.wildcatter.tailings.rock.Mineral.INGOT_KG;
+		double copper = Rock.COPPER.contained(dev.wildcatter.tailings.rock.Mineral.COPPER).doubleValue() * dev.wildcatter.tailings.rock.Mineral.COPPER.kgPerUnit();
 		fines(helper, new BlockPos(0, y, 0), 1200, java.util.Map.of("minecraft:copper_ingot", copper / 1200));
 		pipe(helper, new BlockPos(0, y, 2), new BlockPos(1, y, 2));
 		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
@@ -596,7 +596,7 @@ public class TailingsGameTests {
 	private static void fullRecovery(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(3, y, 0));
-		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.INGOT_KG / 200)));
+		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.COPPER.kgPerUnit() / 200)));
 		pipe(helper, new BlockPos(3, y, 13));
 		PlantBlockEntity scavenger = plant(helper, Machine.SCAVENGER_BANK, new BlockPos(3, y, 14));
 		PlantBlockEntity blower = plant(helper, Machine.BLOWER, new BlockPos(1, y, 15));
@@ -839,7 +839,7 @@ public class TailingsGameTests {
 	private static void leachNoAcid(GameTestHelper helper) {
 		int y = 4;
 		PlantBlockEntity source = plant(helper, Machine.FLOTATION_BANK, new BlockPos(0, y, 0));
-		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.INGOT_KG / 200)));
+		source.out().offer(Product.TAILS_SLURRY, 200, dev.wildcatter.fluid.SlurryAssay.of(java.util.Map.of("minecraft:copper_ingot", dev.wildcatter.tailings.rock.Mineral.COPPER.kgPerUnit() / 200)));
 		pipe(helper, new BlockPos(0, y, 13));
 		PlantBlockEntity leach = plant(helper, Machine.LEACH_TANK, new BlockPos(0, y, 14));
 		leach.forceRunning();
