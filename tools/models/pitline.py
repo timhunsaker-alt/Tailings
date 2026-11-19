@@ -46,7 +46,7 @@ disc(GY, 3.0, 3.0, 2.7, 1.6, 4.2, "steel")                                   # t
 GY.box((2.2, 0.6, 2.2), (3.8, 1.6, 3.8), "dark")                             # the discharge opening to the surge pocket
 GY.box((1.3, 1.9, 2.6), (1.5, 2.9, 3.4), "blue")                             # the pinion housing's flange
 GY.box((0.3, 1.9, 2.5), (1.3, 2.9, 3.5), "steel")                            # the countershaft box
-octo(GY, "x", 2.4, 3.0, 0.45, 0.0, 0.3, "blue")                              # the coupling
+# the coupling (octo x 2.4 3.0 r 0.45 from x 0.0 to 0.3) turns: PlantRenderer draws it
 GY.box((0.0, 1.6, 0.6), (0.3, 1.9, 2.4), "iron")                            # the motor's base
 disc(GY, 3.0, 3.0, 2.5, 4.2, 7.4, "blue")                                    # the concave shell
 for y in (4.6, 5.6, 6.6):
@@ -54,7 +54,7 @@ for y in (4.6, 5.6, 6.6):
 	GY.box((2.8, y, 0.45), (3.2, y + 0.15, 5.55), "steel")
 disc(GY, 3.0, 3.0, 2.95, 7.4, 9.2, "steel")                                  # the top shell, the bowl's rim
 disc(GY, 3.0, 3.0, 1.2, 9.2, 9.25, "dark")                                   # the bowl's mouth, the 1,066 mm opening round the head
-disc(GY, 3.0, 3.0, 0.9, 9.0, 9.4, "iron")                                    # the mantle's head
+# the mantle's head (disc 3.0 3.0 r 0.9, y 9.0 to 9.4) gyrates: PlantRenderer draws it
 GY.box((0.1, 9.2, 2.6), (5.9, 9.8, 3.4), "blue")                             # the spider arm across the top
 disc(GY, 3.0, 3.0, 0.7, 9.2, 10.0, "blue")                                   # the spider cap over the main shaft
 GY.box((0.25, 9.8, 2.65), (5.75, 9.85, 3.35), "rubber")                      # the arm's liner
@@ -134,9 +134,7 @@ for z in (0.3, 4.0, 7.7, 11.2):
 	PF.box((0.1, 0.0, z), (2.9, 0.6, z + 0.5), "concrete")                   # its piers
 PF.box((0.2, 0.6, 0.2), (0.4, 1.2, 11.6), "blue")                            # the side frames
 PF.box((2.6, 0.6, 0.2), (2.8, 1.2, 11.6), "blue")
-for k in range(23):
-	z = 0.3 + k * 0.5
-	PF.box((0.4, 1.2, z), (2.6, 1.35, z + 0.46), "steel")                     # the pans
+# the pans (0.4 to 2.6 across, y 1.2 to 1.35, a 0.46 m pan every 0.5 m from z 0.3 to 11.8) travel: PlantRenderer draws them
 octo(PF, "x", 1.0, 0.5, 0.45, 0.4, 2.6, "iron")                              # the tail sprockets
 octo(PF, "x", 1.0, 11.4, 0.5, 0.4, 2.6, "iron")                              # the head sprockets
 PF.box((0.25, 1.35, 0.2), (0.4, 1.95, 9.5), "steel")                         # the skirts
@@ -177,9 +175,7 @@ RF = model("reclaim_feeder", 2, 2, 6, "grey")
 RF.box((0.1, 0.0, 0.1), (1.9, 0.4, 5.9), "concrete")                         # its plinth on the tunnel floor
 RF.box((0.15, 0.4, 0.1), (0.3, 1.1, 5.9), "blue")                             # the side frames
 RF.box((1.7, 0.4, 0.1), (1.85, 1.1, 5.9), "blue")
-for k in range(11):
-	z = 0.2 + k * 0.5
-	RF.box((0.3, 1.1, z), (1.7, 1.22, z + 0.46), "steel")                     # the pans
+# the pans (0.3 to 1.7 across, y 1.1 to 1.22, a 0.46 m pan every 0.5 m from z 0.2 to 5.7) travel: PlantRenderer draws them
 RF.box((0.15, 1.22, 0.0), (0.3, 2.0, 2.0), "steel")                           # the skirts under the roof's opening
 RF.box((1.7, 1.22, 0.0), (1.85, 2.0, 2.0), "steel")
 RF.box((0.15, 1.22, 0.0), (1.85, 2.0, 0.12), "steel")

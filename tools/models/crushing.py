@@ -32,11 +32,10 @@ JC.box((0.0, 0.0, 0.0), (3.0, 0.8, 4.0), "concrete")                        # th
 JC.box((0.6, 0.8, 0.5), (0.9, 3.95, 3.3), "padgreen")                       # the frame's cheek plates, open on top
 JC.box((2.1, 0.8, 0.5), (2.4, 3.95, 3.3), "padgreen")
 JC.box((0.9, 0.8, 0.5), (2.1, 3.95, 0.9), "padgreen")                       # the fixed jaw's back
-JC.box((0.9, 1.2, 1.7), (2.1, 3.7, 2.1), "iron")                            # the swing jaw and pitman
+# the swing jaw and pitman (0.9 to 2.1 across, y 1.2 to 3.7, z 1.7 to 2.1) swing on the eccentric: PlantRenderer draws them
 JC.box((0.9, 0.8, 2.9), (2.1, 1.4, 3.3), "padgreen")                        # the toggle seat
-JC.cylinder("x", (3.1, 2.3), 0.85, 0.25, 0.55, "iron", 16)                   # the flywheels on the eccentric shaft
-JC.cylinder("x", (3.1, 2.3), 0.85, 2.45, 2.75, "iron", 16)
-JC.cylinder("x", (3.1, 2.3), 0.12, 0.55, 2.45, "steel", 8)                   # the eccentric shaft
+# the flywheels (r 0.85 about y 3.1 z 2.3, x 0.25 to 0.55 and 2.45 to 2.75) and the eccentric shaft between them turn:
+# PlantRenderer draws them
 JC.box((0.9, 0.8, 3.3), (2.1, 1.0, 4.0), "steel")                           # the discharge chute, out of the south face
 JC.cylinder("z", (2.6, 1.3), 0.38, 3.3, 3.98, "blue", 12)                    # the 110 kW motor
 motor_box(JC, 0.9, 0.3)

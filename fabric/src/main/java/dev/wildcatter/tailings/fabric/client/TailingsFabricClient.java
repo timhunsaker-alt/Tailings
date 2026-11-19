@@ -58,6 +58,7 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		EntityRendererRegistry.register(TailingsEntities.DRAGLINE, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.HYDRAULIC_SHOVEL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		BlockEntityRenderers.register(TailingsBlocks.BELT, context -> new BeltRenderer());
+		BlockEntityRenderers.register(TailingsBlocks.PLANT, context -> new dev.wildcatter.tailings.client.PlantRenderer());
 		Tailings.LOGGER.info("Tailings client ready");
 	}
 }

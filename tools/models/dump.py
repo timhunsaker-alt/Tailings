@@ -40,10 +40,8 @@ DP.collide((0.3, 2.8, 0.3), (3.7, 3.0, 3.0))
 AF = model("apron_feeder", 2, 1, 4, "grey")
 AF.box((0.15, 0.0, 0.1), (0.3, 0.9, 3.9), "grey")                           # the skirts and frame
 AF.box((1.7, 0.0, 0.1), (1.85, 0.9, 3.9), "grey")
-z = 0.2
-while z < 3.6:
-	AF.box((0.3, 0.45, z), (1.7, 0.55, z + 0.24), "iron")                   # an overlapping pan
-	z += 0.22
+# the overlapping pans (0.3 to 1.7 across, y 0.45 to 0.55, a 0.24 m pan every 0.22 m from z 0.2 to 3.68) travel: PlantRenderer
+# draws them
 AF.cylinder("x", (0.45, 3.65), 0.3, 0.3, 1.7, "iron", 12)                    # the head sprocket shaft and wheels
 AF.box((0.3, 0.05, 0.25), (0.65, 0.4, 0.75), "blue")                        # the 11 kW drive
 motor_box(AF, 0.05, 0.85, 0.35, 0.3)

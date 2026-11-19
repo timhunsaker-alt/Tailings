@@ -2,6 +2,13 @@
 
 Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## The crushers and apron feeders move (2026-11-19, branch `plant-motion`)
+For the PLC belts short: the jaw crusher's flywheels and swing jaw, the gyratory's mantle head and drive coupling, and the pans of
+the primary apron feeder, the reclaim feeder and the dump's apron feeder move while the part's motor runs, and stop where they are
+when it stops (`client.PlantRenderer`, speeds in `plant.PlantMotion`; the parts left out of the still models). The server sends
+`moving` to clients. Decisions in [docs/questions/plant-motion.md](docs/questions/plant-motion.md). NeoForge scenes `jaw_moves`,
+`gyratory_moves`, `apron_feeder_moves`, `primary_apron_moves`, `reclaim_feeder_moves`; the belts short's world takes re-filmed.
+
 ## Every machine pours (2026-11-18)
 Tim: all earthmoving equipment uses the truck's pour. One service, `pit.Pouring`, hosted by every pit machine (`PitVehicleEntity`:
 synced, saved, finished at once if removed for good); the truck now uses it too. The dozer's reverse spill, crest push and CARRY

@@ -174,6 +174,7 @@ public class TailingsGameTests {
 			Gaps2GameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			AnswersGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			BeltSlopeGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			PlantMotionGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			QuestGameTests.register((name, scene) -> helper.register(id(name), QuestGameTests.WIDE.contains(name) ? wide(name, scene) : loaded(scene)));
 			helper.register(id("belt_transit"), loaded(TailingsGameTests::beltTransit));
 			helper.register(id("feed_face"), loaded(TailingsGameTests::feedFace));
@@ -256,7 +257,7 @@ public class TailingsGameTests {
 			Holder<TestEnvironmentDefinition<?>> plain = event.registerEnvironment(id("plain"));
 			Holder<TestEnvironmentDefinition<?>> existing = event.registerEnvironment(id("existing_world"), RulesEnvironment.existingWorld());
 			Holder<TestEnvironmentDefinition<?>> ruleScenes = event.registerEnvironment(id("rule_scenes"), new RulesEnvironment(dev.wildcatter.tailings.OptInRules.NEW_WORLD));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitPourGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, Gaps2GameTests.SCENES, AnswersGameTests.SCENES, BeltSlopeGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES, QuestGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitPourGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, Gaps2GameTests.SCENES, AnswersGameTests.SCENES, BeltSlopeGameTests.SCENES, PlantMotionGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES, QuestGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),

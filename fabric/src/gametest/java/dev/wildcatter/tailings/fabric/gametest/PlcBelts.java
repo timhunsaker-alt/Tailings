@@ -46,7 +46,7 @@ import net.minecraft.world.level.block.Blocks;
  * <li>{@code chart}: the chart's steps lighting one after another (screen);</li>
  * <li>{@code warn}: the stack light to amber with the horn, then the stockpile belt starting behind it;</li>
  * <li>{@code belt1}: the transfer belt starting, seen down its grade to the crusher;</li>
- * <li>{@code crusher}: the gyratory starting, then its feeder under it;</li>
+ * <li>{@code crusher}: close on the feeder's head end as its pans start, then up to the gyratory over it;</li>
  * <li>{@code lineup}: the stack light to green, rising to the whole line running.</li>
  * </ol>
  * The motors have no grid in the scene, so the test runs each machine while the PLC's own output for it is on: the order and timing on
@@ -59,6 +59,11 @@ final class PlcBelts {
 	private static final int PH = Integer.parseInt(System.getenv().getOrDefault("PLC_BELTS_PH", "864"));
 	private static final long TIME = Long.parseLong(System.getenv().getOrDefault("PLC_BELTS_TIME", "12350"));
 	private static final String UNIT = "BELTS";
+	/**
+	 * PLC_BELTS_FRAMES=1 saves each film a frame a tick ({@code <PLC_BELTS_OUT>/frames/<id>/}, 20 a second) instead of recording the
+	 * screen: for a locked screen, which records only itself. The game waits for each frame, so the film runs at game speed.
+	 */
+	private static final boolean FRAMES = "1".equals(System.getenv("PLC_BELTS_FRAMES"));
 	/** The chart's steps in order, and when each comes on after start, for the log. */
 	private static final String[] STEPS = {"IDLE", "WARN", "BELT_2", "BELT_1", "CRUSH", "FEED", "LINE_UP", "STOP"};
 
@@ -214,6 +219,16 @@ final class PlcBelts {
 		log("still " + at);
 	}
 
+	/** One frame of a film saved a frame a tick. */
+	private void frame(String id, int t) {
+		TestScreenshotOptions options = TestScreenshotOptions.of(String.format(Locale.ROOT, "f%04d", t)).withDestinationDir(OUT.resolve("frames").resolve(id))
+				.disableCounterPrefix();
+		if (portrait) {
+			options = options.withSize(972, 1728);
+		}
+		context.takeScreenshot(options);
+	}
+
 	/** The step that is on now, or null. */
 	private String active() {
 		return server.computeOnServer(srv -> {
@@ -253,7 +268,7 @@ final class PlcBelts {
 		}
 		String last = active();
 		List<String> events = new ArrayList<>();
-		Filming film = context.computeOnClient(client -> Filming.start(client, "plcBelts_" + id));
+		Filming film = FRAMES ? null : context.computeOnClient(client -> Filming.start(client, "plcBelts_" + id));
 		long started = System.nanoTime();
 		for (int t = 0; t <= length; t++) {
 			double s = Math.max(0, Math.min(1, (double) (t - from) / (to - from)));
@@ -269,6 +284,9 @@ final class PlcBelts {
 			}
 			follow();
 			context.waitTick();
+			if (FRAMES) {
+				frame(id, t);
+			}
 			String now = active();
 			if (now != null && !now.equals(last)) {
 				events.add(String.format(Locale.ROOT, "%s at %.2f s (tick %d, wall %.2f s)", now, (t + 1) / 20.0, t + 1, (System.nanoTime() - started) / 1e9));
@@ -278,7 +296,9 @@ final class PlcBelts {
 				server.runCommand("kill @e[type=item]");
 			}
 		}
-		film.stop();
+		if (film != null) {
+			film.stop();
+		}
 		log("film " + id + ": " + length + " ticks, wall " + String.format(Locale.ROOT, "%.2f", (System.nanoTime() - started) / 1e9) + " s; events " + events);
 	}
 
@@ -624,8 +644,8 @@ final class PlcBelts {
 		}
 		if (wanted(5)) {
 			load(700);
-			// south-east of the gyratory: the crusher, the feeder under it, and the transfer belt's tail it loads
-			film("05_crusher", cam(11.5, 4.5, 25, 5.5, 3.5, 10), cam(11.5, 6, 22, 5.5, 5, 7), 170, 70, null);
+			// close on the feeder's head end as its pans start to travel, then up and back to the gyratory over it
+			film("05_crusher", cam(9.6, 2.9, 17.6, 6.5, 1.4, 11.5), cam(11.5, 6, 22, 5.5, 5, 7), 170, 70, null, 100, 170);
 			ticks(40);
 			stopLine();
 		}

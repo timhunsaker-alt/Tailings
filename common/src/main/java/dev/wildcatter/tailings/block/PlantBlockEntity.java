@@ -420,6 +420,15 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private int runOn;
 	private boolean sounding;
 	private int soundHold;
+	/**
+	 * Whether its moving parts move (a jaw's swing jaw and flywheels, a gyratory's mantle and coupling, an apron feeder's pans): while
+	 * its motor runs, work or none, as {@link #running()}. Sent to clients for {@code PlantRenderer}; not saved.
+	 */
+	private boolean moving;
+	/** The client's turn of those parts, degrees, advanced by game time while {@link #moving}: they stop where they are and start from there. */
+	private double turned;
+	/** The game time (with the partial tick) the client last turned them at, or NaN. */
+	private double turnedAt = Double.NaN;
 	private boolean grown;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(7, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
@@ -541,8 +550,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		runOn = demand ? dev.wildcatter.tailings.plant.PlantRates.MOTOR_RUN_ON_SECONDS * 20 : Math.max(0, runOn - 1);
 		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
 		boolean now = soundHold > 0;
-		if (now != sounding) {
+		boolean go = running();
+		if (now != sounding || go != moving) {
 			sounding = now;
+			moving = go;
 			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
 		}
 	}
@@ -567,11 +578,31 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
 	}
 
-	/** All the client needs of a part: whether to sound. */
+	/** Whether its moving parts move (on the client: as the server last said). */
+	public boolean moving() {
+		return moving;
+	}
+
+	/**
+	 * Client side: how far its moving parts have turned, degrees, at game time {@code now} for a shaft of {@code rpm}. Game time, not
+	 * the wall clock, so a film saved a frame a tick shows them at their real speed; a gap of more than a second (out of view) is not
+	 * caught up.
+	 */
+	public double turned(double now, double rpm) {
+		if (!Double.isNaN(turnedAt) && moving) {
+			double ticks = Math.max(0, Math.min(20, now - turnedAt));
+			turned = (turned + rpm * 6 * ticks / 20) % 360;
+		}
+		turnedAt = now;
+		return turned;
+	}
+
+	/** All the client needs of a part: whether to sound, and whether its moving parts move. */
 	@Override
 	public net.minecraft.nbt.CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
 		net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
 		tag.putBoolean("sounding", sounding);
+		tag.putBoolean("moving", moving);
 		return tag;
 	}
 
@@ -1576,6 +1607,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		sounding = input.getBooleanOr("sounding", false);
+		moving = input.getBooleanOr("moving", false);
 		grown = input.getBooleanOr("grown", false);
 		slots.clear();
 		loading = true;
