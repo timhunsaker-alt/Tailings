@@ -135,3 +135,12 @@ Ludo `createImage`, model klimt, `Photorealistic 3D`, `item-icon`, 2 variations,
 | File | Prompt |
 |---|---|
 | ferrosilicon (a) | A single small heavy woven grey polypropylene sack, top open, full of fine dark grey metallic ferrosilicon powder with a slight silver sheen, plain unbranded, game item icon, plain white background, no text |
+
+## Art and sound pass (2026-11-19)
+Tim's answer C23. Ludo `createImage`, model klimt, `Photorealistic 3D`, `texture`, 2 variations, the first (a) kept (1 credit). It
+replaces the script-drawn `stockpile_rock_placeholder` (muck's art made lighter and greyer). Ludo drew some thirty stones across the
+picture, which averaged to flat grey at 16 px, so `tools/process_art.py` keeps its middle 3/8 (`CROP`) before the box filter.
+
+| File | Prompt |
+|---|---|
+| stockpile_rock (a) | Seamless flat texture, top-down orthographic view, even lighting: the surface of a crushed ore stockpile at a mine, angular light grey crushed rock pieces of fairly even size about a fist to a head across, sharp fresh fracture faces, a little pale grey dust between them, drier and lighter than blasted rock, plain, no text |
