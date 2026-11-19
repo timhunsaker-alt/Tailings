@@ -409,7 +409,7 @@ final class PitPourGameTests {
 	 * floating; broken up mid-pour, it sets them at once, and none is lost.
 	 */
 	static void dragline(GameTestHelper helper) {
-		DraglineGameTests.bench(helper, 90, 70);
+		DraglineGameTests.bench(helper, 96, 70);   // wide enough that the cast never rolls off its edge (at 90 a block now and then did, and fell out of the count)
 		DraglineGameTests.strip(helper, 30, 10, 5, Blocks.SAND, 2);
 		dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity house = DraglineGameTests.house(helper);
 		dev.wildcatter.tailings.entity.DraglineEntity d = DraglineGameTests.dragline(helper, house, 30, 10, 5, 4);
@@ -422,19 +422,19 @@ final class PitPourGameTests {
 				.thenWaitUntil(() -> helper.assertTrue(d.pouring() > 0, Component.literal("the bucket should open over the spoil: " + d.status())))
 				.thenExecute(() -> {
 					int dug = before - count(helper, Blocks.SAND, 33, 62, 5, 9, 30, 39);
-					helper.assertTrue(dug == 25 && count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70) == 0,
-							Component.literal("25 dug, none set yet: " + dug + ", " + count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70)));
+					helper.assertTrue(dug == 25 && count(helper, Blocks.SAND, 63, 96, bench, bench + 20, 0, 70) == 0,
+							Component.literal("25 dug, none set yet: " + dug + ", " + count(helper, Blocks.SAND, 63, 96, bench, bench + 20, 0, 70)));
 				})
 				.thenIdle(8)
 				.thenExecute(() -> {
 					d.stop(helper.getLevel(), false);
-					int set = count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70);
+					int set = count(helper, Blocks.SAND, 63, 96, bench, bench + 20, 0, 70);
 					helper.assertTrue(set < 25 && d.pouring() > 0, Component.literal("mid-pour: " + set + " set, " + d.pouring() + " on their way"));
 					System.out.println("[tailings-test] pit_pour_dragline: casting at " + d.dumpAt() + " (the scene from " + helper.absolutePos(BlockPos.ZERO) + ")");
 					d.discard();   // broken up mid-pour
-					int cast = count(helper, Blocks.SAND, 63, 90, bench, bench + 20, 0, 70);
+					int cast = count(helper, Blocks.SAND, 63, 96, bench, bench + 20, 0, 70);
 					int floating = 0;
-					for (int x = 63; x <= 90; x++) {
+					for (int x = 63; x <= 96; x++) {
 						for (int y = bench; y <= bench + 20; y++) {
 							for (int z = 0; z <= 70; z++) {
 								if (helper.getBlockState(new BlockPos(x, y, z)).is(Blocks.SAND) && helper.getBlockState(new BlockPos(x, y - 1, z)).isAir()) {

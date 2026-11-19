@@ -177,7 +177,7 @@ final class DraglineGameTests {
 	 * 6 MW while the bucket fills and 1.2 MW the rest of the cycle.
 	 */
 	static void cycle(GameTestHelper helper) {
-		bench(helper, 90, 70);
+		bench(helper, 96, 70);   // wide enough that the cast never rolls off its edge (at 90 a block now and then did, and fell out of the count)
 		strip(helper, 30, 10, 5, Blocks.SAND, 2);
 		PitSwitchHouseBlockEntity house = house(helper);
 		DraglineEntity d = dragline(helper, house, 30, 10, 5, 4);
@@ -199,9 +199,9 @@ final class DraglineGameTests {
 				.thenExecute(() -> {
 					d.stop(helper.getLevel(), false);
 					int dug = before - count(helper, Blocks.SAND, 33, 62, 5, 9, 30, 39);
-					int cast = count(helper, Blocks.SAND, 63, 90, BENCH, BENCH + 20, 0, 70);
+					int cast = count(helper, Blocks.SAND, 63, 96, BENCH, BENCH + 20, 0, 70);
 					int floating = 0;
-					for (int x = 63; x <= 90; x++) {
+					for (int x = 63; x <= 96; x++) {
 						for (int y = BENCH; y <= BENCH + 20; y++) {
 							for (int z = 0; z <= 70; z++) {
 								if (helper.getBlockState(new BlockPos(x, y, z)).is(Blocks.SAND) && helper.getBlockState(new BlockPos(x, y - 1, z)).isAir()) {
