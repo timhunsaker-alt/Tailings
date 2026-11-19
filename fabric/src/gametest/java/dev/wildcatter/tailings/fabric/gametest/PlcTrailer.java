@@ -220,13 +220,13 @@ final class PlcTrailer {
 	// ---- the control side: a cabinet with its own small steam set for 24 V, cable to every device ----
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private static BlockState facing(Block block, Direction way) {
+	static BlockState facing(Block block, Direction way) {
 		BlockState state = block.defaultBlockState();
 		Property<?> p = block.getStateDefinition().getProperty("facing");
 		return p != null && p.getPossibleValues().contains(way) ? state.setValue((Property) p, (Comparable) way) : state;
 	}
 
-	private static Block wc(String id) {
+	static Block wc(String id) {
 		return BuiltInRegistries.BLOCK.getValue(Identifier.parse("wildcatter:" + id));
 	}
 
@@ -243,7 +243,7 @@ final class PlcTrailer {
 	 * buried 5 m under the box: junction box, supply, hot wire, steam turbine, boiler on a campfire, the neutral behind on {@code back}.
 	 * Returns the surface box; the buried run's cable cells go into {@code laid}.
 	 */
-	private static BlockPos rig(ServerLevel level, BlockPos at, Direction along, Direction front, BlockPos[] devices, Set<BlockPos> laid) {
+	static BlockPos rig(ServerLevel level, BlockPos at, Direction along, Direction front, BlockPos[] devices, Set<BlockPos> laid) {
 		Direction back = front.getOpposite();
 		BlockPos box = at.relative(along, -1);
 		BlockPos low = box.below(5);
@@ -294,7 +294,7 @@ final class PlcTrailer {
 	 * Cable from the device at {@code device} to the nearest cable already laid (or {@code net}'s cells): buried where it can be,
 	 * through air where it must. Cells touching more than two things become junction boxes afterwards ({@link #joints}).
 	 */
-	private static void route(ServerLevel level, BlockPos device, Set<BlockPos> net, Set<BlockPos> laid, int g, BlockPos lo, BlockPos hi) {
+	static void route(ServerLevel level, BlockPos device, Set<BlockPos> net, Set<BlockPos> laid, int g, BlockPos lo, BlockPos hi) {
 		List<BlockPos> cells = BigParts.cellsAt(level, device);
 		if (cells.isEmpty()) {
 			cells = List.of(device);
@@ -377,7 +377,7 @@ final class PlcTrailer {
 	}
 
 	/** A cable cell touching more than two things is a bad joint: a junction box there, as the playthrough's trunk does. */
-	private static void joints(ServerLevel level, Set<BlockPos> laid) {
+	static void joints(ServerLevel level, Set<BlockPos> laid) {
 		for (BlockPos at : laid) {
 			int touching = 0;
 			for (Direction side : Direction.values()) {
@@ -391,7 +391,7 @@ final class PlcTrailer {
 		}
 	}
 
-	private static void auto(ServerLevel level, BlockPos at) {
+	static void auto(ServerLevel level, BlockPos at) {
 		var device = ControlNet.deviceAt(level, at);
 		if (device == null) {
 			throw new AssertionError("no device at " + at.toShortString());
@@ -405,7 +405,7 @@ final class PlcTrailer {
 		return "%QX" + ((firstSlot + k / 16) * PlcCabinetBlockEntity.BYTES_PER_SLOT + k % 16 / 8) + "." + (k % 8);
 	}
 
-	private static String land(PlcCabinetBlockEntity box, BlockPos at, int point, String address) {
+	static String land(PlcCabinetBlockEntity box, BlockPos at, int point, String address) {
 		String refused = box.land(at, point, address);
 		if (refused != null) {
 			throw new AssertionError(address + " on " + at.toShortString() + ": " + refused);
