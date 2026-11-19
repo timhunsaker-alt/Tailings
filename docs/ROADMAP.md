@@ -308,7 +308,7 @@ pocket under the track; mixed trains dump each kind at its own station. NeoForge
 tests `BatteryTest`; the client film `battery_bottom_dump`. Accepted by Tim 2026-11-19.
 - **Left out, planned (the specs' "Left out"):** lithium packs and fast charging; regeneration down the decline; hydrogen from charging
   and the bay's ventilation (with L1, ventilation); battery life and cycles; battery-electric pit trucks and loaders (open-pit.md);
-  doors jamming on sticky muck and frozen loads; oversize and a rock breaker on the track grizzly; rotary car dumpers. The shaft's
+  doors jamming on sticky muck and frozen loads; a rock breaker on the track grizzly; rotary car dumpers. The shaft's
   measuring pocket (L4) is the next user of the bottom-dump station.
 
 ## Later — L1: ventilation of the drive (2026-11-09)
@@ -379,8 +379,8 @@ a tonne; `ferrosilicon` is a 25 kg bag with a placeholder recipe. 2 % each way g
 scenes `dms_split`, `dms_density`, `dms_medium`, `dms_gravel_face`, `dms_parts`, `dms_floats_belt`; unit tests `DenseMediumTest`;
 the client films `dms` and `dms_floats_belt`. Since Tim's answers (2026-11-10) the floats can ride a belt off the floats screen's north
 end, back to the plant, so the light ores can be recovered. Accepted by Tim 2026-11-19.
-- **Waits on Wildcatter 0.7.0:** the medium made from Wildcatter's ferrosilicon bag (FeSi 75 and iron to FeSi 15; Tim, #8); the
-  placeholder recipe stays until Wildcatter's Phase 17 is released.
+- **Done (2026-11-19, wave A):** the medium is made from Wildcatter's ferrosilicon 75 bulk bag and iron: 64 bags of 15 % Si (Tim, #8;
+  questions/wave-a.md 5; scene `dms_fesi_recipe`). The placeholder recipe is gone.
 - **Left out, planned (the spec's "Left out"):** a DMS drum for coarser feed; real partition curves and near-gravity material; coal
   washing and diamond recovery (X-2); medium viscosity and contamination by slimes; a starting charge of medium; a screen for the
   setting and a PLC setpoint.
@@ -429,8 +429,9 @@ dozer's spills (but its CUT windrow), the dragline's cast, and a loader's or sho
 blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_pour_dozer`, `pit_pour_dragline`, `pit_pour_loader`.
 
 ## Later, not scheduled
-- **Time scale (Tim, 2026-11-10):** Wildcatter's world setting `timeScale` (1:1 to 50:1, spec `wildcatter/docs/time-scale.md`). Tailings
-  reads Wildcatter's value: the paste cure scales with it, and Tailings' rules appear on the same World Rules screen.
+- **Time scale (Tim, 2026-11-10): built 2026-11-19 (wave A).** Tailings reads Wildcatter's `timeScale` (1:1 to 50:1, spec
+  `wildcatter/docs/time-scale.md`): the paste cure scales with it, and Tailings' rules are on the same World Rules screen (scenes
+  `paste_cure_time_scale`, `rules_on_world_rules_screen`; client shot `world_rules`).
 - Ventilation of the drive: built as L1 (above).
 - Magnetic separation for ilmenite, and electrostatic separation for rutile and zircon: built as L6, the dry mill (above). Magnetite for vanilla iron is already the phase 1 separator.
 - Dense-medium separation: built as L7 (above). X-ray ore sorting as its own machine. The dump sorter is a stand-in, not that machine.
@@ -462,7 +463,7 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **The lined cell takes 72 t/h (P7c):** Wildcatter's decant tower takes 20 kg a tick; the pit line's underflow is about 1,670 t/h, so it
   needs over 20 lined cells or its thickener backs up (p7-pit-line.md, 40).
 - **The row's air line is instrument tubing (P7c):** Wildcatter's air tubing stands for a 600 mm air header (p7-pit-line.md, 36).
-- **The column cleaners are optional (P7c):** the concentrate thickener takes the row's rougher concentrate too and pays the same
+- **The column cleaners are optional (P7c; kept, Tim 2026-11-19):** the concentrate thickener takes the row's rougher concentrate too and pays the same
   (p7-pit-line.md, 37).
 - **Empty piece models shared only for the 45 m thickener (P7c):** the older big parts still write a model for every empty cell
   (p7-pit-line.md, 33).
@@ -506,19 +507,19 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **The emulsion truck is driven by hand only (P3):** no self-running charge crew (spec, Left out); no hose drawn to the hole.
 - **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
   damage, less armour and Blast Protection, but no scene checks a player.
-- **Ferrosilicon is a crafted placeholder (L7):** 4 bags of 25 kg from an iron ingot, a sand and a metallurgical coke. Tim
-  (2026-11-10): make it from Wildcatter's ferrosilicon bag (FeSi 75 and iron to FeSi 15) once that is released; that waits for
-  Wildcatter 0.7.0 (Phase 17) (questions/l7-dms.md, 8).
+- **The medium recipe makes 64 bags (L7, wave A):** Wildcatter's 1 t ferrosilicon 75 bag and about 1.3 t of iron make 1.6 t of 15 %
+  Si; a real bag would make 5 t, which a crafting table cannot hand back (questions/wave-a.md 5).
 - **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).
 - **The medium is set by clicks (L7):** no screen and no PLC setpoint; the PLC reads it (questions/l7-dms.md, 10).
 - **Floats on a belt are rock again (L7):** with a belt off the floats screen they go back to the plant as gravel with their rock;
   a belt that runs them straight back to the DMS only floats them again; the player routes them past it, to the cone or the mill
   (questions/l7-dms.md, 11).
-- **DMS sinks go round again (L7):** through the cone, the screen and the DMS, losing 2 % a pass (questions/l7-dms.md, 5).
+- **DMS sinks go round again (L7; kept, Tim 2026-11-19):** through the cone, the screen and the DMS, losing 2 % a pass
+  (questions/l7-dms.md, 5).
 - **A flat 2 % misplacement (L7):** no partition curve; a whole block floats or sinks as one (questions/l7-dms.md, 6).
 - **No new L7 sounds:** the screens use the vibrating screen, the module the slurry rush, the recovery Wildcatter's motor hum.
 
-- **Cement is a crafted placeholder (L5):** a 50 kg bag from one quicklime and a clay ball, until a cement kiln exists
+- **Cement is a crafted placeholder (L5; kept for now, Tim 2026-11-19):** a 50 kg bag from one quicklime and a clay ball, until a cement kiln exists
   (questions/l5-paste.md, 8).
 - **Paste is marked tails slurry (L5):** Wildcatter 0.5.1 has no product for paste; it carries `tailings:solids` and `tailings:binder`
   in its assay. A `PASTE` product is proposed for Wildcatter.
@@ -537,11 +538,10 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **A duct line is one line (L1):** at a branch the farther end gets the air; the rest is not counted.
 - **No new L1 sounds:** the fans use Wildcatter's fan loop.
 
-- **Charging takes 2.6 real hours (L2):** built at the real 18 kW into a 46 kWh battery; whether to scale it is a question for Tim
+- **Charging takes 2.6 real hours (L2; kept, Tim 2026-11-19):** the real 18 kW into a 46 kWh battery; swap batteries
   (questions/l2-l3-trains.md, 12).
-- **The charger takes 20 kW on either standard (L2):** on an IEC world that is 30.4 A on a 32 A receptacle, over the 80 % continuous
-  the 480 V case keeps (questions/l2-l3-trains.md, 9).
-- **The track grizzly keeps the pocket's oversize (L3):** the spec says TBM muck has none (questions/l2-l3-trains.md, 16).
+- **The track grizzly keeps the pocket's oversize (L3; kept, Tim 2026-11-19):** one rule for every pocket, though the spec said TBM
+  muck has none (questions/l2-l3-trains.md, 16).
 - **Bottom-dump doors snap (L3):** they are drawn open or shut, not swinging; the load drops in one tick rather than over the grizzly's
   4 m.
 - **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
@@ -551,11 +551,11 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
   (questions/l4-shaft.md, 1, 2). Planned in shaft-and-hoist.md, "Still to build".
 - **The hoist motor draws its full 450 kW while it runs (L4):** Wildcatter 0.5.1's motor has no part load, so the real lift (346 kW,
   less between winds) is not modelled (questions/l4-shaft.md, 8).
-- **A 3 t skip against a 1,555 t car (L4):** the hoist is right in tonnes but takes over five hours to lift one car's 576 items
-  (questions/l4-shaft.md, 20).
+- **A 3 t skip against a 1,555 t car (L4; kept, Tim 2026-11-19):** the hoist is right in tonnes but takes over five hours to lift one
+  car's 576 items (questions/l4-shaft.md, 20).
 - **Only the scavengers' share goes through the dry mill (L6):** the filter still pays the spiral bank's 50 %; a real plant sends all
   its HMC through (questions/l6-dry-mill.md, 3).
-- **The dry mill is 2 t/h (L6):** on heavy mineral sand ore the scavengers make about 7.5 t/h; the filter bags what the dryer cannot
+- **The dry mill is 2 t/h (L6; kept, Tim 2026-11-19):** on heavy mineral sand ore the scavengers make about 7.5 t/h; the filter bags what the dryer cannot
   take (questions/l6-dry-mill.md, 9).
 - **Dry HMC moves by touching (L6):** filter to dryer to each separator, no elevator or chute; the separators pay into their own
   stacks, with no product bins (questions/l6-dry-mill.md, 6, 7).
@@ -565,7 +565,7 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
   (questions/l8-xrt.md, 4).
 - **Light ores need the X-ray sorter in reverse (L8):** graphite, magnesite, borax, bauxite, spodumene and bentonite read under quartz,
   so at a normal step they go to waste; LOW in reverse keeps them. The platinum reef's platinum cannot be seen (questions/l8-xrt.md, 5).
-- **The X-ray sorter's air is a running compressor, not a pressure (L8):** its own 160 kW compressor touching it, not Wildcatter's
+- **The X-ray sorter's air is a running compressor, not a pressure (L8; kept, Tim 2026-11-19, until Wildcatter has plant air with flow):** its own 160 kW compressor touching it, not Wildcatter's
   instrument air, which has no flow model (questions/l8-xrt.md, 6).
 - **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
 - **No X-ray sorter sounds of its own (L8):** it plays the dump sorter's air jets; its compressor Wildcatter's motor hum.
@@ -608,7 +608,7 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
   before an end it is some 15 m to one side and backs in at an angle. A truck whose tail passes the end within 4 m of the line now
   stops there (before, it circled behind the end for ever); it may tip up to a few metres past a DUMP POINT stake.
 
-- **The old `dewatering_pump` is a legacy block (R6c):** no recipe, out of the creative tab, doing nothing. Kept until the release after the first one that ships it (no release yet; docs/questions/tbm-gaps.md 8).
+- **The old `dewatering_pump` is a legacy block (R6c):** no recipe, out of the creative tab, doing nothing. Ships in 0.1.0, the first release, and goes in the release after (Tim, 2026-11-19, C26; docs/questions/tbm-gaps.md 8).
 - **The running machine collides as one box (R6b),** not the parts' exact shapes, and it does not turn on the grade: the box is its outline, raised at the rear when pitched. Left with a plan (docs/questions/tbm-gaps.md 7): the game collides an entity by one box, and the bore is the machine's own 8 x 8 section, so it differs from the parts only beside the main beam and in the corners on the grade.
 - **The loading point reaches a train's length behind the conveyor (TBM gaps),** 29 rows, so every car loads; nothing is drawn over it (a real back-up is longer than the train, or has a shuttle belt).
 - **The reel gantry's transformer is built at the cable junction (TBM gaps),** a real part of the circuit, but at the cable's fixed end: the trailing cable's own impedance is not modelled.
@@ -616,7 +616,7 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **Standing on the moving machine waits (decided with Tim, R6).** Riding is a seat in the cab.
 - **The headlight's light is a vanilla light block.** The model lamp is full bright. The entity also places `minecraft:light` at level 15 on the block above the rail, and removes it when the train leaves. That block is what actually lights the tunnel.
 - **The hand-line machines are plain cubes (2026-11-09 art wave).** Stamp mill, hand screen, shaking table and magnetic separator have their own Ludo textures now, but are still one textured cube each, not models; the crushing, flotation and dump parts are real models since R3.
-- **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one. Kept, with the other legacy parts, until a release has shipped them as legacy (docs/questions/tbm-gaps.md 8).
+- **The old `tailings_pond_placeholder` is a legacy part (4d):** no recipe, out of the creative tab; an old plant's pond goes on working. Wildcatter's lined cell takes tails now. A few scenes still end their line in it, as it can read the tails' assay and the tower does not keep one. Kept, with the other legacy parts, in 0.1.0; removed in the release after (Tim, 2026-11-19, C26; docs/questions/tbm-gaps.md 8).
 - **Still staged in the playthrough (R10, 4d, 13i):** the PLC's control deck, its 24 V steam set and the control cable to each machine, placed rather than crafted (not in the bill), digging the pit, the gas and diesel in the generators, the acid in its tank, the hole and the bucket of water under the pump, the raw materials, the forced chunks, and peaceful difficulty (a creeper in the pit killed the player during the placing in one run). The plant's water is real now, from the process pump and the cell's decant.
 - **The scavengers' concentrate has its own thickener and filter in the playthrough (4d),** only as that was the shorter layout; a pipe to the main thickener works too.
 - **Concentrate is mineral only (R4b; kept, plant-gaps decision 10).** The bank's concentrate carries the recovered mineral at 30 % solids; the gangue in a real concentrate, and the thickener's overflow water, are left out. Since the assay is in kg (plant-gaps) its mass is the real mineral's.
@@ -626,7 +626,7 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **A blocked belt stops at once (plant-gaps).** A run whose head end cannot deliver stops where its rock is; there is no spill or chute switch to reset.
 - **The sorter screen is drawn by code (plant-gaps):** flat panels, no texture, a "W" button a side.
 - **Holds (R4a, proposed):** a dry part holds one 2.7 t block; a slurry part about 10 s of its flow; a belt can carry three times the plant rate; the grizzly passes 30 %, the screen 15 % of crushed and 40 % of gravel; the screen's gravel face takes 35 % of crushed (plant-gaps); an ingot counts 100 kg of metal in the assay (plant-gaps).
-- **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron. No release yet, so still kept (docs/questions/tbm-gaps.md 8).
+- **Old items (R3).** `flotation_cell` and `dump_station` are kept for one release as items that craft back into iron: they ship in 0.1.0 and go in the release after (Tim, 2026-11-19, C26; docs/questions/tbm-gaps.md 8).
 - **One node a metre of track (R5b).** Each rail is a node on Wildcatter's circuit, and Wildcatter solves at most 4,000 nodes in one circuit (grid included): a very long drive needs its own rectifier further in, on track not joined to the first. Past the limit the track is dead and says so: the rectifier's readout, a stopped train's status and a chat line to players near it ("TRACK TOO LONG"). A line split by unloaded chunks loses its far end until they load.
 - **The client films ran before the world rules (answers):** the Fabric client scenes make a new world, so the rules are on in them;
   only `dms_floats_belt` was filmed since. A film whose TBM runs over a minute with no fan would now stop NO VENTILATION.

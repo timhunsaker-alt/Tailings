@@ -1,8 +1,30 @@
 # Changelog
 
-All notable changes are the merged pull requests on `main`. The mod version is still 0.1.0. Dates are the merge dates in the repository history (2026-11-02 and 2026-11-03).
+All notable changes are the merged pull requests on `main`. Dates are the merge dates in the repository history.
 
-## [Unreleased]
+## [0.1.0] - 2026-11-19
+
+The first public release. It requires Wildcatter 0.8.1. Everything below, from Phase 0 on, is in it.
+
+### Wave A: Tim's answers of 2026-11-19 (2026-11-19)
+
+- **Copper ore:** a copper ore block through the plant now pays up to 14 ingots, through copper nuggets: 3.5 at the plain
+  step, 7 at gravity, 10.5 by flotation, 14 at the top. The block's copper, its density and its X-ray reading are unchanged. The
+  stamp mill line pays 7 ingots at its 2x step. A copper nugget is a ninth of an ingot.
+- **Battery Charger:** draws 80 % of its receptacle's rating: about 20 kW on a 480 V 30 A receptacle as before, 17.7 kW on IEC 60309
+  red 32 A, so a flat battery takes about 2.9 hours on IEC worlds.
+- **Tunnel boring machine:** the cab screen's course buttons are greyed out while the machine drives; standing, a new target cannot
+  move floor already cut, as the PLC's cannot.
+- **Ore Sorter:** a side set to an ore takes every variant of it: copper ore and deepslate copper ore go the same way, from the
+  screen or a PLC code.
+- **Ferrosilicon:** the dense medium is made from Wildcatter's bulk bag of ferrosilicon 75, an iron block and four iron ingots:
+  64 bags. The old recipe from iron, sand and coke is gone.
+- **World time scale:** paste fill cures at Wildcatter's world time scale (a game day at 1:1, about 29 s at 50:1). Tailings' world
+  rules are on Wildcatter's World Rules screen when making a world.
+- **Quest book:** the stamp mill, zircon and ferrosilicon quests now tick off when the stamp mill crushes, a dry mill separator
+  separates, or the DMS separates, for players within 64 blocks.
+- **Legacy blocks:** `dewatering_pump`, `flotation_cell`, `dump_station` and `tailings_pond_placeholder` are still in this
+  release, out of the creative tab; they will be removed in the next.
 
 ### Milestones for the rest of the pit (2026-11-14)
 

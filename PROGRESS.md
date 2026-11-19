@@ -1,6 +1,26 @@
 # Progress
 
-Phases 0 through 3 are on `main` (pull requests 1 through 9). The realignment with Wildcatter (R) is current; R1 is done. Phase 4 has not started. The full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
+Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
+
+## Wave A: Tim's answers of 2026-11-19 (2026-11-19, branch `wave-a`)
+Tim's answers (B4-B6 and the C items, recorded under each entry in `docs/questions/`); decisions taken building them in
+[docs/questions/wave-a.md](docs/questions/wave-a.md). Every decision file is now accepted or answered: nothing waits on Tim.
+- **C4, copper:** a copper ore block counts 14 ingots (3.5 / 7 / 10.5 / 14 through copper nuggets); a copper ingot counts 400 / 14 kg,
+  so the block's 400 kg of copper, its density and its X-ray reading are unchanged; a copper nugget is a ninth of an ingot.
+- **C6, the charger:** 80 % of its receptacle's rating from Wildcatter's plug type (19.95 kW on L22-30, 17.7 kW on IEC red 32 A).
+- **C13:** the TBM cab's course buttons do nothing (and grey out) while it drives, and standing follow the PLC's rule; a sorter side
+  takes every variant of its ore (deepslate too).
+- **The DMS medium** from Wildcatter's ferrosilicon 75 bag and iron: 64 bags; the placeholder recipe is gone.
+- **Time scale:** the paste cure follows Wildcatter's world time scale; Tailings' rules are on the World Rules screen and a new world
+  takes what was chosen there.
+- **Milestones** `stamp_mill_running`, `dry_mill_running`, `dms_running`: the stamp mill, zircon and ferrosilicon quests now have one.
+- **The two dragline scenes** that failed together (`dragline_cycle`, `pit_pour_dragline`): a block of the cast now and then rolled
+  off the 90 m bench (the settle rule's rolls share the level's random source with the other scene); the bench is 96 m. 8 of 8
+  paired runs pass.
+- **Scenes:** NeoForge `tbm_cab_course_held`, `sorter_any_variant`, `dms_fesi_recipe`, `rules_on_world_rules_screen`,
+  `paste_cure_time_scale`, `quest_stamp_mill_milestone`; `battery_charge`, `dms_split`, `dry_mill_split` and `quests_valid` check
+  more. Unit tests in `MillingTest`, `FlotationTest`, `BatteryTest`, `HaulTest`, `PasteFillTest`. Client shot `world_rules`.
+- **Release:** 0.1.0, the first public release (C26); the legacy blocks ship in it and go in the next.
 
 ## The crushers and apron feeders move (2026-11-19, branch `plant-motion`)
 For the PLC belts short: the jaw crusher's flywheels and swing jaw, the gyratory's mantle head and drive coupling, and the pans of
@@ -45,7 +65,8 @@ rebuilt on it.
 - **Scenes:** NeoForge `quest_gyratory_milestone`, `quest_shovel_milestone`, `quest_leach_milestone`,
   `quest_pit_energised_milestone`; `quests_valid` checks the chapter's eight keys.
   **The full server suite passes, 233 required tests** (229 before, 4 new), in one run; `build` passes.
-- **Known gaps:** the stamp mill, zircon and ferrosilicon quests are item tasks only (no milestone); the book's text is English only.
+- **Known gaps:** the stamp mill, zircon and ferrosilicon quests are item tasks only (no milestone; they have one since wave A,
+  2026-11-19); the book's text is English only.
 
 ## The quest chapter, on Wildcatter 0.8.0 (2026-11-14)
 Wildcatter 0.8.0's quest book takes a chapter from each mod (Wildcatter `docs/quests.md`). Plan:
