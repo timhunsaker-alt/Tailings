@@ -141,6 +141,14 @@ public final class OptInRules extends SavedData {
 		return rules;
 	}
 
+	/**
+	 * Shows Tailings' rules on Wildcatter's World Rules screen (Create World), after Wildcatter's, each preset to its new-world value
+	 * (Tim, 2026-11-10; wildcatter/docs/time-scale.md). Called once at mod setup.
+	 */
+	public static void registerNewWorldSetup() {
+		NEW_WORLD.forEach((key, value) -> dev.wildcatter.NewWorldSetup.register(Tailings.MOD_ID, key, meaning(key), value));
+	}
+
 	/** Called at server start, so a world's rules are made before its game time moves. */
 	public static void serverStarted(MinecraftServer server) {
 		get(server);
@@ -151,7 +159,9 @@ public final class OptInRules extends SavedData {
 		boolean data = tailingsData(server);
 		OptInRules made = new OptInRules();
 		made.newWorld = isNew(time, data);
-		NEW_WORLD.forEach((key, value) -> made.rules.put(key, made.newWorld && value));
+		// a new world takes what was chosen on Wildcatter's World Rules screen (or wildcatter.properties' newWorld.tailings.<rule>), else
+		// each rule's default
+		NEW_WORLD.forEach((key, value) -> made.rules.put(key, made.newWorld && dev.wildcatter.NewWorldSetup.rule(Tailings.MOD_ID, key, value)));
 		Path config = Platform.INSTANCE.configDir();
 		List<String> old = TrainHarm.read(config.resolve(FILE));
 		List<String> vent = TrainHarm.read(config.resolve(VENT_FILE));

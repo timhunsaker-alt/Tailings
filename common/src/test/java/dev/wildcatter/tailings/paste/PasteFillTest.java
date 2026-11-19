@@ -72,6 +72,14 @@ class PasteFillTest {
 		assertEquals(3_000, PasteFill.cureStepTicks());
 	}
 
+	/** The cure is a wait: it follows Wildcatter's world time scale (Tim, 2026-11-10; wildcatter/docs/time-scale.md). */
+	@Test
+	void theCureFollowsTheWorldTimeScale() {
+		assertEquals(3_000, PasteFill.cureStepTicks(1));
+		assertEquals(300, PasteFill.cureStepTicks(10), "2.4 minutes to set at 10:1");
+		assertEquals(60, PasteFill.cureStepTicks(50), "about 29 s at 50:1");
+	}
+
 	@Test
 	void aDriveBranchFillsInAboutAnHour() {
 		// Tim, 2026-11-10 (l5-paste.md #19): ten times the real pace; the cure stays a game day

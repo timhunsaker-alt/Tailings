@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.Blocks;
  * off ({@link RulesEnvironment}).
  */
 final class AnswersGameTests {
-	static final String[] SCENES = {"rules_new_world", "rules_existing_world", "rules_command", "raw_ore_refused"};
+	static final String[] SCENES = {"rules_new_world", "rules_existing_world", "rules_command", "raw_ore_refused", "rules_on_world_rules_screen", "paste_cure_time_scale"};
 	static final Set<String> LONG = Set.of();
 	/** Scenes of a world saved before the rules: their batch runs with every rule off. */
 	static final Set<String> EXISTING_WORLD = Set.of("rules_existing_world", "vent_default_off", "dry_mill_ladder");
@@ -45,6 +45,8 @@ final class AnswersGameTests {
 		out.accept("rules_existing_world", AnswersGameTests::existingWorld);
 		out.accept("rules_command", AnswersGameTests::command);
 		out.accept("raw_ore_refused", AnswersGameTests::rawOre);
+		out.accept("rules_on_world_rules_screen", AnswersGameTests::onWorldRulesScreen);
+		out.accept("paste_cure_time_scale", AnswersGameTests::pasteCureTimeScale);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -123,6 +125,48 @@ final class AnswersGameTests {
 		helper.setBlock(8, 1, 0, TailingsBlocks.STAMP_MILL);
 		HandMillBlockEntity mill = helper.getBlockEntity(new BlockPos(8, 1, 0), HandMillBlockEntity.class);
 		helper.assertTrue(!mill.offer(Feeds.stack("wildcatter:galena", 1)) && !mill.offer(new ItemStack(Items.RAW_COPPER)), Component.literal("the stamp mill refuses mined drops"));
+		helper.succeed();
+	}
+
+	/**
+	 * Tailings' rules are on Wildcatter's World Rules screen (Create World), after Wildcatter's, each with its new-world value; what the
+	 * player chooses there is what a new world's rules start from (Tim, 2026-11-10; wildcatter/docs/time-scale.md).
+	 */
+	private static void onWorldRulesScreen(GameTestHelper helper) {
+		java.util.List<dev.wildcatter.NewWorldSetup.Entry> mine = dev.wildcatter.NewWorldSetup.entries().stream().filter(e -> e.mod().equals(dev.wildcatter.tailings.Tailings.MOD_ID)).toList();
+		helper.assertTrue(mine.size() == dev.wildcatter.tailings.OptInRules.NEW_WORLD.size(), Component.literal("every Tailings rule is on the screen: " + mine));
+		for (dev.wildcatter.NewWorldSetup.Entry e : mine) {
+			helper.assertTrue(e.newWorld() == dev.wildcatter.tailings.OptInRules.NEW_WORLD.get(e.key()) && !e.what().isBlank(),
+					Component.literal(e.key() + " shows its new-world value and what it does: " + e));
+		}
+		helper.assertTrue(dev.wildcatter.NewWorldSetup.rule(dev.wildcatter.tailings.Tailings.MOD_ID, dev.wildcatter.tailings.OptInRules.STALE_AIR, true),
+				Component.literal("unchosen, a rule takes its default"));
+		boolean chosenBefore = dev.wildcatter.NewWorldSetup.chosen();
+		if (!chosenBefore) {
+			dev.wildcatter.NewWorldSetup.choose(dev.wildcatter.tailings.Tailings.MOD_ID, dev.wildcatter.tailings.OptInRules.STALE_AIR, false);
+			helper.assertFalse(dev.wildcatter.NewWorldSetup.rule(dev.wildcatter.tailings.Tailings.MOD_ID, dev.wildcatter.tailings.OptInRules.STALE_AIR, true),
+					Component.literal("chosen off on the screen, a new world starts with it off"));
+			dev.wildcatter.NewWorldSetup.clear();
+		}
+		helper.succeed();
+	}
+
+	/** The paste cure is a wait, so it follows Wildcatter's world time scale: at 50:1 a step is 60 ticks, and wet paste takes its step. */
+	private static void pasteCureTimeScale(GameTestHelper helper) {
+		int was = dev.wildcatter.TimeScale.scale();
+		try {
+			dev.wildcatter.TimeScale.set(50);
+			helper.assertTrue(dev.wildcatter.tailings.paste.PasteFill.cureStepTicks() == 60, Component.literal("a step at 50:1, got " + dev.wildcatter.tailings.paste.PasteFill.cureStepTicks()));
+			BlockPos at = new BlockPos(2, 2, 2);
+			helper.setBlock(at.below(), net.minecraft.world.level.block.Blocks.STONE);
+			helper.setBlock(at, dev.wildcatter.tailings.TailingsBlocks.PASTE_FILL);
+			helper.assertTrue(helper.getLevel().getBlockTicks().hasScheduledTick(helper.absolutePos(at), dev.wildcatter.tailings.TailingsBlocks.PASTE_FILL),
+					Component.literal("wet paste should be curing"));
+			dev.wildcatter.TimeScale.set(1);
+			helper.assertTrue(dev.wildcatter.tailings.paste.PasteFill.cureStepTicks() == 3_000, Component.literal("a game day at 1:1"));
+		} finally {
+			dev.wildcatter.TimeScale.set(was);
+		}
 		helper.succeed();
 	}
 }

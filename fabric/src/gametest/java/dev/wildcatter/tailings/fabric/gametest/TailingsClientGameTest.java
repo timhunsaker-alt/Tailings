@@ -93,6 +93,14 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Trailer(context).run();
 			return;
 		}
+		// Tailings' rules on Wildcatter's World Rules screen (Create World), after Wildcatter's (Tim, 2026-11-10)
+		if (only("world_rules")) {
+			context.setScreen(() -> new dev.wildcatter.client.WorldRulesScreen(null));
+			context.waitTicks(10);
+			context.takeScreenshot("tailings-world-rules");
+			context.setScreen(() -> null);
+			dev.wildcatter.NewWorldSetup.clear();
+		}
 		context.runOnClient(client -> client.getSoundManager().addListener((sound, accessor, range) -> HEARD.computeIfAbsent(sound.getIdentifier().toString(), id -> java.util.concurrent.ConcurrentHashMap.newKeySet()).add(System.identityHashCode(sound))));
 		try (TestSingleplayerContext world = context.worldBuilder().create()) {
 			TestServerContext server = world.getServer();

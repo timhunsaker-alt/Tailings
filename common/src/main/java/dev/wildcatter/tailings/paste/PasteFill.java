@@ -47,13 +47,16 @@ public final class PasteFill {
 	 * The fill's game pace (Tim, 2026-11-10, l5-paste.md #19): each placed block of paste fill stands for this many cubic metres of
 	 * the paste the line delivers, so a void fills ten times as fast as the real 34 m3 an hour: a 360 m3 drive branch in about an
 	 * hour of play, not eleven. Everything up the line (the filter, the mixer, the pump, the cement) runs at its real rate; the cure
-	 * stays one game day.
+	 * stays one game day at the world time scale 1:1.
 	 */
 	public static final int FILL_SCALE = 10;
 
 	/** The largest void an outlet fills, cells (proposed, as the lined cell's basin search). */
 	public static final int MOST_CELLS = 20_000;
-	/** Wet paste sets in one game day, 20 minutes (scaled from 28 days to design strength), in this many steps. */
+	/**
+	 * Wet paste sets in one game day, 20 minutes (scaled from 28 days to design strength), in this many steps; at a world time scale
+	 * over 1:1, that over the scale ({@link #cureStepTicks()}).
+	 */
 	public static final int CURE_TICKS = 24_000;
 	public static final int CURE_STEPS = 8;
 
@@ -144,9 +147,17 @@ public final class PasteFill {
 		return linePressure(pipes, drop) <= PUMP_MAX_PA;
 	}
 
-	/** Ticks between curing steps: a step every 2.5 minutes, the eighth sets the paste. */
+	/**
+	 * Ticks between curing steps: a step every 2.5 minutes at 1:1, the eighth sets the paste. The cure is a wait, so it follows
+	 * Wildcatter's world time scale (wildcatter/docs/time-scale.md): a game day at 1:1, 2.4 minutes at 10:1, 29 s at 50:1.
+	 */
 	public static int cureStepTicks() {
-		return CURE_TICKS / CURE_STEPS;
+		return cureStepTicks(dev.wildcatter.TimeScale.scale());
+	}
+
+	/** Ticks between curing steps at a time scale of {@code scale}:1. */
+	public static int cureStepTicks(int scale) {
+		return Math.max(1, (int) Math.round((double) CURE_TICKS / Math.max(1, scale) / CURE_STEPS));
 	}
 
 	/** Bags of cement for {@code tailsSolidsKg} kg of tails solids. */
