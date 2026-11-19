@@ -11,6 +11,17 @@ Tim's answers (B4-B6 and the C items, recorded under each entry in `docs/questio
 - **C13:** the TBM cab's course buttons do nothing (and grey out) while it drives, and standing follow the PLC's rule; a sorter side
   takes every variant of its ore (deepslate too).
 - **The DMS medium** from Wildcatter's ferrosilicon 75 bag and iron: 64 bags; the placeholder recipe is gone.
+- **C15, the blasthole drill as four parts (2026-11-19):** four big parts in Wildcatter's materials (`tools/models/drill.py`):
+  `drill_crawlers` 7 x 2 x 10 (its block entity `BlastholeDrillBlockEntity`: reel, pattern panel, PLC answers), `drill_deck` 7 x 4 x 15,
+  `drill_mast` 3 x 20 x 3 and `drill_dust_collector` 2 x 3 x 3, placed by `pit.BlastholeDrillLayout` (`BlastholeDrillLayoutTest`). Built
+  and checked as the rope shovel (NOT BUILT naming the part, NO CABLE); GO lifts them into the existing `BlastholeDrillEntity`, electric
+  only, carrying its pattern, hole count and DONE; STOP finishes a hole SHORT and sets the parts down where it stands. Every drill on a
+  cable answers its outlet's machine points as the dragline (RUN as GO on its rising edge, RUN off at the end of the hole, RUNNING, DONE,
+  CYCLES a pulse a hole, POWER). The drill item still places the whole drill. Spec: open-pit-p3-blasting.md, "As built: four parts".
+  NeoForge scenes `pit_drill_built`, `pit_drill_parts_run`, `pit_drill_plc` pass, with all of PitBlastGameTests and PitBigGameTests
+  (25 required tests passed); `build` passes. Client scene `pit_drill_parts` (TAILINGS_ONLY=pit_drill_parts): the four parts standing,
+  lifted, drilling a 1 x 3 pattern on its cable, set down. Run in the Fabric client: DONE, 3 holes at 438 kW on its cable, set down as its parts; film
+  fabric/build/scene-videos/pit_drill_parts.mov, screenshots tailings-pit-drill-parts-{standing,lifted,drilling,done,set-down}.
 - **Time scale:** the paste cure follows Wildcatter's world time scale; Tailings' rules are on the World Rules screen and a new world
   takes what was chosen there.
 - **Milestones** `stamp_mill_running`, `dry_mill_running`, `dms_running`: the stamp mill, zircon and ferrosilicon quests now have one.

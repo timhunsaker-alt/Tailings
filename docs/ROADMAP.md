@@ -228,7 +228,7 @@ set down by STOP, on its cable at 3.5 MW hoisting; 4 passes to an ultra. NeoForg
 now edge up to 5 m toward a face out of reach (p3-blasting.md 21's plan). Accepted by Tim 2026-11-19.
 
 Next: P6 (the dragline, on the same switch house and cable), P7 (the pit-sized plant, below). Planned from P5 (Known gaps below): the rope
-shovel's PLC points through its outlet; the drill as four parts.
+shovel's PLC points through its outlet. The drill as four parts was built in wave A (2026-11-19, C15).
 
 ## Open pit — P6: the walking dragline (2026-11-10)
 
@@ -472,12 +472,11 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **P7a recipes are placeholders,** as the plant's; the gyratory sounds the cone crusher and the breaker the jaw: no sounds of their own.
 - **No dust, liner wear or tramp metal (P7a, the spec's Left out):** and no stacker-reclaimer, no in-pit crushing.
 
-- **The drill is one machine, not four parts (P3, decision 1):** no build check, no lift into a contraption, no parts to place; and so
-  no PLC points (RUN, RUNNING, HOLES DRILLED, DONE, FUEL LOW). Its electric drive came in P5a (a panel setting). Plan: four big parts
-  (crawlers, deck, mast, dust collector) built and lifted as the rope shovel's are (`RopeShovelBlockEntity` is the pattern: a layout
-  class, a check naming the missing part, RUN lifts into the existing `BlastholeDrillEntity`, STOP sets down), and its PLC points on
-  its switch house outlet as the rope shovel's below.
-- **Two paints on the rope shovel (P5):** the switch house and the rope shovel's six parts are
+- **The built drill does not keep a half-walked pattern through a set-down (C15, wave-a.md 16):** the next GO starts at its mast and
+  passes over the holes already drilled.
+- **P3's FUEL LOW point is left out (C15, wave-a.md 18):** the built drill burns no diesel; a diesel drill placed whole is not on a cable.
+- **Two paints on the rope shovel and the drill (P5, C15):** the drill's four parts are drawn in Wildcatter's materials and the lifted
+  drill's skin by `tools/models/pit_vehicles.py` in Ludo's, as the rope shovel's. The switch house and the rope shovel's six parts are
   drawn in Wildcatter's materials; the ultra's, the hydraulic shovel's and the lifted rope shovel's skins are painted by
   `tools/models/pit_vehicles.py` in Ludo's materials. So the rope shovel standing as its parts and running as one machine look alike in
   shape but not in paint.

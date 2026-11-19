@@ -23,6 +23,11 @@ The first public release. It requires Wildcatter 0.8.1. Everything below, from P
   rules are on Wildcatter's World Rules screen when making a world.
 - **Quest book:** the stamp mill, zircon and ferrosilicon quests now tick off when the stamp mill crushes, a dry mill separator
   separates, or the DMS separates, for players within 64 blocks.
+- **Blasthole Drill, as four parts** (C15): build the large electric drill from `drill_crawlers`, `drill_deck`, `drill_mast` and
+  `drill_dust_collector`; the crawlers read NOT BUILT naming a missing part, then NO CABLE until a trailing cable reaches them. GO on the
+  crawlers' pattern panel lifts it into one drill, which walks its pattern on its cable; STOP sets its parts down where it stands. On its
+  switch house outlet a drill answers MACHINE RUN (its GO), RUNNING, DONE, CYCLES (a pulse a hole) and POWER. The Blasthole Drill item
+  still places the whole drill, diesel or electric, as before.
 - **Legacy blocks:** `dewatering_pump`, `flotation_cell`, `dump_station` and `tailings_pond_placeholder` are still in this
   release, out of the creative tab; they will be removed in the next.
 

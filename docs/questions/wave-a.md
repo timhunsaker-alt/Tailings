@@ -71,3 +71,79 @@ while building them, as in the other files here: what was chosen, why, and the a
   `flotation_cell`, `dump_station`, `tailings_pond_placeholder`) ship in it and go in the release after (C26).
 - **Why:** the first public release; 0.x as Wildcatter's are.
 - **Alternatives:** 1.0.0 (says the mod is finished, which its Known gaps say it is not).
+
+## The blasthole drill as four parts (C15)
+
+Spec: `docs/multiblocks/open-pit-p3-blasting.md`, "As built: four parts".
+
+### 10. C15: How big are the four parts: the real class, or the lifted drill?
+- **Chosen:** the lifted drill's: 7 x 15 m on its crawlers, 26 m to the mast top (P3's `PitDrive.DRILL`), parts as P3-2 planned:
+  `drill_crawlers` 7 x 2 x 10, `drill_deck` 7 x 4 x 15, `drill_mast` 3 x 20 x 3, `drill_dust_collector` 2 x 3 x 3. The spec states the real
+  class beside it: 270-406 mm holes, about 19.8 m single pass, about 30 m mast-up height, about 170-180 t.
+- **Why:** the parts lift into the existing `BlastholeDrillEntity`, whose box, model and hole position are 7 x 15 x 26; parts of another
+  size would stand up as one machine and lift into a different one. The class's 30 m mast-up height is near the game's 26 m. (The brief's
+  "50-60 m mast" was not borne out by the spec sheets found: about 30 m mast-up for the 270-444 mm class.)
+- **Alternatives:** the real class's 8 x 17 m, 30 m (the entity, its model and the P3 scenes all change size).
+
+### 11. C15: Does the mast stand or lie on the ground when built?
+- **Chosen:** it stands on the deck's back end, over the hole, as the lifted drill carries it.
+- **Why:** a drill's mast is raised to drill and lowered only to tram far; at 3 x 20 x 3 standing it is 180 cells, as cheap as lying down,
+  and the parts then look like the lifted machine (the rope shovel's boom lies down because it reaches 20 m ahead).
+- **Alternatives:** laid on the ground behind the deck, raised by the lift (a look only).
+
+### 12. C15: What becomes of the drill item (placing the whole drill)?
+- **Chosen:** kept as it was: the item places the whole drill, diesel or electric by its panel, with its recipe, its creative-tab entry and
+  its quest task. The four parts are the second way, the large electric drill.
+- **Why:** old worlds hold placed drills (diesel and electric) and the open-pit quest asks for the item; nothing has to be migrated. A
+  diesel drill placed whole still has a use before a switch house is built.
+- **Alternatives:** a legacy item (no recipe, out of the tab, as the earthen tailings pond) with the quest moved to the crawlers; or a
+  diesel-only placement (an electric drill in an old world would lose its cable).
+
+### 13. C15: One entity or two?
+- **Chosen:** the same `BlastholeDrillEntity`, with a saved `parts` flag: lifted off parts it is electric only (the panel's Electric stays
+  on), STOP sets its parts down, broken by hand it gives back all four parts (the crawlers as its item).
+- **Why:** the brief's "RUN lifts into the existing entity"; the pattern, tramming, drilling and the P3 scenes stay one code path.
+- **Alternatives:** a subclass for the built drill (a second entity type and renderer registration).
+
+### 14. C15: Which drills answer the outlet's PLC points?
+- **Chosen:** every drill on a trailing cable, the built one and one placed whole on its panel's Electric: RUN, RUNNING, DONE, CYCLES
+  (a pulse a hole), POWER, on its switch house outlet as the dragline's. Standing as its parts, the crawlers answer RUNNING off, DONE and
+  CYCLES (the count carried through every lift and set-down).
+- **Why:** the points are the outlet's, not the parts'; a placed drill on a cable is the same machine on the same pair.
+- **Alternatives:** only the built drill.
+
+### 15. C15: What do RUN on and off do?
+- **Chosen:** in AUTO, RUN **coming on** is its GO: the standing parts lift and start the pattern at the mast; a lifted drill stopped by
+  the PLC carries its pattern on from the next hole; after DONE it starts a new pattern at its mast. RUN **going off** stops it at once
+  while it turns or trams, or when the hole it is drilling is done ("STOPPING by the PLC: finishing its hole"). A held RUN does not lift
+  parts that were just set down by hand: it must go off and on again.
+- **Why:** an edge is what GO is (a button), and a held RUN would otherwise lift the parts again the tick after a STOP; finishing the hole
+  matches the dragline finishing its cycle. Carrying a stopped pattern on is what a PLC restart wants.
+- **Alternatives:** RUN held means running (level, as the dragline's resume); DONE only cleared from the panel.
+
+### 16. C15: What does STOP keep?
+- **Chosen:** STOP on the lifted drill finishes a half-drilled hole SHORT where the bit is, then sets the four parts down where it stands,
+  square to the nearest way, if their cells are free (else it says which block is in the way and stays lifted). The parts keep the pattern
+  settings, the hole count and DONE; the pattern's progress is not kept, and the next GO starts at the mast (holes already drilled are
+  passed over, as in P3).
+- **Why:** the crawlers' block entity holds the settings; a pattern half walked has its origin under a machine that may be set down
+  elsewhere. Passing over drilled holes makes a GO in the same place carry on in practice.
+- **Alternatives:** keep the origin and next hole in the crawlers (a GO elsewhere would walk back to the old pattern).
+
+### 17. C15: The standing drill's panel
+- **Chosen:** the crawlers open the drill's own panel (`PitPanelMenu.Kind.DRILL`): the pattern settings, GO (lifts and starts the
+  pattern), STOP (reads "standing as its parts") and Drill one (lifts and drills one hole). Electric reads on and refuses a change.
+- **Why:** "pattern panel kept": the same settings before and after the lift, no new panel kind.
+- **Alternatives:** the rope shovel's RUN / STOP panel and the pattern set only once lifted.
+
+### 18. C15: FUEL LOW
+- **Chosen:** left out (P3's spec listed it among the drill's points).
+- **Why:** the built drill burns no diesel; the outlet's machine points have no fuel point. A diesel drill placed whole is not on a cable.
+- **Alternatives:** a fuel point on the dispatch office's radio, as the trucks report.
+
+### 19. C15: Recipes *(placeholders)*
+- **Chosen:** crawlers: two iron blocks, a track dozer and three steel ingots; deck: an iron door, Wildcatter's MV drive cells and
+  transformer, five steel ingots; mast: six steel ingots and three iron bars; dust collector: a hopper and seven steel ingots. Each pattern
+  differs from the rope shovel's and the dragline's.
+- **Why:** as the rope shovel's parts (placeholders in kind and count); the recipe set is not balanced yet.
+- **Alternatives:** n/a.
