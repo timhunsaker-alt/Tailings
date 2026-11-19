@@ -588,7 +588,8 @@ public class TailingsGameTests {
 		helper.succeedWhen(() -> {
 			int ingots = filter.countIn(new int[] {1, 2}, new ItemStack(Items.COPPER_INGOT));
 			double tailCopper = pond.back().assayOf(Product.TAILS_SLURRY).get("minecraft:copper_ingot") * pond.back().held(Product.TAILS_SLURRY);
-			helper.assertTrue(ingots == 3, Component.literal("the filter should pay 3 copper ingots, got " + ingots + " (tank " + tank.status()
+			// the block's 14 ingots (Tim, 2026-11-19): 10.5 by flotation, 10 ingots and the half in nuggets
+			helper.assertTrue(ingots == 10, Component.literal("the filter should pay 10 copper ingots, got " + ingots + " (tank " + tank.status()
 					+ "; bank " + bank.status() + "; thickener " + thickener.status() + "; filter " + filter.status() + ")"));
 			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 0.1, Component.literal("the tails should carry the rest of the copper, got "
 					+ tailCopper + " (pond " + pond.status() + ")"));
