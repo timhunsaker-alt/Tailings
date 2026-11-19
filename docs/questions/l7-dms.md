@@ -83,7 +83,7 @@ an existing world (#1).
 - **Question:** keep this recipe until then, or make it from Wildcatter's steel and silicon items when they exist?
 - **Alternatives:** magnetite medium from the magnetic separator (real for coal; too light for a 2.75 medium in practice).
 - **Tim (2026-11-10):** make the medium from Wildcatter's ferrosilicon bag (FeSi 75 + iron to FeSi 15) once Phase 17 is released; keep the placeholder until then. Kept; it waits for Wildcatter 0.7.0 (answers-2026-11-10.md #7).
-- **Tim (2026-11-19):** build the 2026-11-10 answer now that Wildcatter 0.7.0 is out: the medium is made from Wildcatter's ferrosilicon bag (answers-2026-11-19, "answered earlier, not built"); built in <commit>.
+- **Tim (2026-11-19):** build the 2026-11-10 answer now that Wildcatter 0.7.0 is out: the medium is made from Wildcatter's ferrosilicon bag (answers-2026-11-19, "answered earlier, not built"); built in fb37babb.
 
 ### 9. Ferrosilicon losses, and no starting charge
 - **Chosen:** 0.3 kg a tonne of feed *(proposed; real 0.1-0.5)* comes out of the medium recovery's hopper (1 t, 40 bags). With an

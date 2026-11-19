@@ -88,7 +88,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   texture is drawn by script, `stockpile_rock_placeholder` (muck's art, lighter and greyer).
 - **Why:** P7-7; the same swell as a blast's muck, so the pile's tonnes come out of its blocks.
 - **Alternatives:** muck itself (it would not be crushed, and would not roll, #11).
-- **Tim (2026-11-19):** one Ludo art pass for every script-drawn texture, the stockpile block's included (answers-2026-11-19, C23); built in <commit>.
+- **Tim (2026-11-19):** one Ludo art pass for every script-drawn texture, the stockpile block's included (answers-2026-11-19, C23); built in 51636926.
 
 ### 11. The pile drains as cones: how much is live (needs you)
 - **Chosen:** a stockpile block on the pile's top rolls by the settle rule when it stands too steep, and when a cell of the pile is
@@ -167,7 +167,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   on P7a; the stockpile block's texture is a script-drawn placeholder (#10), listed under Known gaps.
 - **Why:** the powered parts' recipes are placeholders plant-wide (ROADMAP, Known gaps).
 - **Alternatives:** Ludo art for the stockpile block's texture (about 1 credit).
-- **Tim (2026-11-19):** the stockpile block's texture comes in the one Ludo art pass (answers-2026-11-19, C23); built in <commit>.
+- **Tim (2026-11-19):** the stockpile block's texture comes in the one Ludo art pass (answers-2026-11-19, C23); built in 51636926.
 
 ## P7b: the SAG mill line
 
@@ -258,7 +258,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   clusters round an iron block for the large one). No Ludo credits spent on P7.
 - **Why:** as every plant wave; the parts have no icons of their own to make (their items are their models).
 - **Alternatives:** Ludo icons for the stockpile block (#10).
-- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the mills among them (answers-2026-11-19, C25); built in <commit>.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the mills among them (answers-2026-11-19, C25); built in e19a4502.
 
 ## P7c: pit flotation and the tails
 
@@ -381,7 +381,7 @@ as in `README.md` here. **#11, #14, #21 and #27 most need your eye; for P7c, #33
   a flotation bank in iron; a cleaner bank between iron blocks; air blowers round an iron block; tailings thickeners round an iron block.
 - **Why:** as every plant wave.
 - **Alternatives:** none.
-- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the gyratory and the P7 parts among them (answers-2026-11-19, C25); built in <commit>.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the gyratory and the P7 parts among them (answers-2026-11-19, C25); built in e19a4502.
 
 ### 44. Tests and the film
 - **Chosen:** NeoForge scenes `p7_tank_row` (eight cells: each cell's share to 1 g, three nuggets of a little over four at the filter,

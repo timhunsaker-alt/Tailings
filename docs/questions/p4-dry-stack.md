@@ -123,7 +123,7 @@ for when I get back"). PROGRESS.md, "Open pit P4", has what was built.
 - **Chosen:** reused: the pressure filter's loop for the press, the motor hum for the thickener, the muck tip at each cake drop and
   for a wreck, the muck pour while the gate loads, and the diesel loops for the dozer.
 - **Why:** the task asked to reuse sounds; the spec's hydraulic whine and track clatter are new sounds for the art wave.
-- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the dozer among them (answers-2026-11-19, C25); built in <commit>.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the dozer among them (answers-2026-11-19, C25); built in e19a4502.
 
 ### 19. Waiting at a load-out
 - **Chosen:** as at LOAD: a truck with some load leaves after 60 s with nothing more loaded; an empty truck waits for the bin.

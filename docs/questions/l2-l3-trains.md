@@ -77,7 +77,7 @@ Built on branch `l2-l3-trains` from the draft specs [battery-locomotive.md](../m
 - **Alternatives:** also NEMA L21-30 (208 V, the low tier: the same 20 kW would be 59 A, twice its rating); IEC red 63 A.
 - **Question:** at 400 V the same 20 kW is 30.4 A on a 32 A receptacle, 95 % of its rating, more than the 80 % continuous the 480 V
   case keeps to. Should the charger take 80 % of whichever receptacle it is on (17.7 kW on IEC) instead of a flat 20 kW?
-- **Tim (2026-11-19):** the charger draws 80 % of its receptacle (17.7 kW on IEC 32 A, 20 kW on 480 V as before), from the standard, with no hardcoded voltage (answers-2026-11-19, C6); built in <commit>.
+- **Tim (2026-11-19):** the charger draws 80 % of its receptacle (17.7 kW on IEC 32 A, 20 kW on 480 V as before), from the standard, with no hardcoded voltage (answers-2026-11-19, C6); built in ab01a44a.
 
 ### 10. What the charger charges
 - **Chosen:** the battery it holds first (right-click it with a battery; sneak-click with an empty hand takes it out; a click reads

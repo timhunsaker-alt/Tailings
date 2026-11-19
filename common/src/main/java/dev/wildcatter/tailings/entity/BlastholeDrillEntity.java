@@ -697,7 +697,7 @@ public class BlastholeDrillEntity extends PitVehicleEntity implements PitPanelMe
 
 	// ---- sound -------------------------------------------------------------------------------------------------------------------
 
-	/** While drilling, the rotary head (the TBM's cutter sound stands in for it); otherwise its diesel. */
+	/** While drilling, the rotary head's own loop; otherwise its diesel. */
 	@Override
 	public net.minecraft.sounds.@Nullable SoundEvent loop() {
 		return lift() > 0 ? dev.wildcatter.tailings.TailingsSounds.ROTARY_DRILL : super.loop();

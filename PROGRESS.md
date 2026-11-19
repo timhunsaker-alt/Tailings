@@ -22,6 +22,12 @@ Tim's answers (B4-B6 and the C items, recorded under each entry in `docs/questio
   (25 required tests passed); `build` passes. Client scene `pit_drill_parts` (TAILINGS_ONLY=pit_drill_parts): the four parts standing,
   lifted, drilling a 1 x 3 pattern on its cable, set down. Run in the Fabric client: DONE, 3 holes at 438 kW on its cable, set down as its parts; film
   fabric/build/scene-videos/pit_drill_parts.mov, screenshots tailings-pit-drill-parts-{standing,lifted,drilling,done,set-down}.
+- **C23, C25, art and sound:** art and sound pass (C23, C25, 2026-11-19). The last script-drawn texture, the stockpile block's, is now Ludo art, cropped to
+its middle so its stones stay a pixel or two across at 16 px. Eleven new Ludo sounds replace the borrowed ones: the gyratory, rock
+breaker, SAG mill, large ball mill, cyclone feed pump, tank cells, X-ray sorter, hoist, the drill's rotary head, the dozer moving,
+and a wailing blast siren in place of the raid horn. The pebble crusher keeps the cone crusher's loop, since it is one. NeoForge
+scenes now check each part sounds its own loop while it works. The client scenes p7_line, xrt, pit_blast, p7_flotation and
+pit_dry_stack listen for them. 25 Ludo credits.
 - **Time scale:** the paste cure follows Wildcatter's world time scale; Tailings' rules are on the World Rules screen and a new world
   takes what was chosen there.
 - **Milestones** `stamp_mill_running`, `dry_mill_running`, `dms_running`: the stamp mill, zircon and ferrosilicon quests now have one.

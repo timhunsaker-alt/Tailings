@@ -136,7 +136,7 @@ world (#21).
   motor hum.
 - **Why:** the parts are steel, concrete and paint, which the materials already cover.
 - **Alternatives:** a hoist sound of its own (a winding hum rising with speed) from Ludo.
-- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the hoist among them (answers-2026-11-19, C25); built in <commit>.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the hoist among them (answers-2026-11-19, C25); built in e19a4502.
 
 ### 20. The scale of a car against a skip
 - **Chosen:** left as it is: a skip lifts 3 t; a mine car holds 576 items, 1,555 t at the plant's 2.7 t a block. At 270-280 t/h the

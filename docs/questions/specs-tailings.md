@@ -398,4 +398,4 @@ Built on these choices (2026-11-09); what building it decided is in [p4-dry-stac
 - **Why:** with raw items refused (X-1), a copper-ore block through the plant otherwise pays no more than mining it plainly.
 - **Alternatives:** keep 4 (the plant is pointless for vanilla copper ore, useful only for its nuggets); 8 (half-way).
 - **Tim (2026-11-10):** ore blocks only (#3); copper's block amount was not part of the answer, so it stays 4 (answers-2026-11-10.md #3).
-- **Tim (2026-11-19):** raise it to 14 ingots, paid through copper nuggets, so the ladder is 3.5 / 7 / 10.5 / 14 (answers-2026-11-19, C4); built in <commit>.
+- **Tim (2026-11-19):** raise it to 14 ingots, paid through copper nuggets, so the ladder is 3.5 / 7 / 10.5 / 14 (answers-2026-11-19, C4); built in f20b53fe.

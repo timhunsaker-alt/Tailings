@@ -96,7 +96,7 @@ existing world (#22).
   **since gaps2**, with `paste_unloaded_cure` on (off by default), it makes that time up when the chunk comes back (gaps2.md #6).
 - **Why:** a single 24,000-tick tick would restart when the paste moves; steps cost about one block tick a second for a 20,000 m³ void.
 - **Alternatives:** cure by the clock (a block entity per cubic metre, heavy for 20,000 of them); random ticks (no exact time).
-- **Tim (2026-11-19):** Tailings reads Wildcatter's world time scale (the 1:1 to 50:1 presets answered 2026-11-10), so the cure follows it (answers-2026-11-19, "answered earlier, not built"); built in <commit>.
+- **Tim (2026-11-19):** Tailings reads Wildcatter's world time scale (the 1:1 to 50:1 presets answered 2026-11-10), so the cure follows it (answers-2026-11-19, "answered earlier, not built"); built in 8f44e3e2.
 
 ### 13. What wet and set paste are like
 - **Chosen:** wet paste has no collision: whatever walks into it sinks, slowed to half speed across and 40 % down; it does not suffocate.

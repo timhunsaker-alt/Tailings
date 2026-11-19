@@ -83,7 +83,7 @@ Tim (2026-11-09): "make decisions best recommendation and complete the rest of t
 
 - **The cab's screen can still change the course while the machine drives,** and after it has levelled out (both move floor already
   cut, as 5 says). The PLC is held to 5; should the screen be too?
-  - **Tim (2026-11-19):** yes, the cab screen is locked from course changes while the machine drives, as the PLC is (answers-2026-11-19, C13); built in <commit>.
+  - **Tim (2026-11-19):** yes, the cab screen is locked from course changes while the machine drives, as the PLC is (answers-2026-11-19, C13); built in 4f6fc90a.
 - **Deepslate ores:** a code names the plain ore's item (`minecraft:copper_ore`), as the screen does from what is in hand; a
   `deepslate_copper_ore` item is another item to both. Should a side take a rock whatever its block (any copper ore)?
-  - **Tim (2026-11-19):** yes, a sorter side takes any variant of an ore, deepslate too, from the screen or a code (answers-2026-11-19, C13); built in <commit>.
+  - **Tim (2026-11-19):** yes, a sorter side takes any variant of an ore, deepslate too, from the screen or a code (answers-2026-11-19, C13); built in 4f6fc90a.

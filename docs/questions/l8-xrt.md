@@ -130,7 +130,7 @@ Built on branch `l8-xrt` from the draft spec [xrt-ore-sorter.md](../multiblocks/
   materials by `tools/models/xrt.py`; no texture was drawn by script and no Ludo art was used (no item needed an icon). The sorter
   plays the dump sorter's `ore_sorter` loop (air jets), the compressor Wildcatter's motor hum.
 - **Alternatives:** real-part recipes once Wildcatter has an X-ray tube; a compressor sound of its own (the art wave's).
-- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the X-ray sorter among them (answers-2026-11-19, C25); built in <commit>.
+- **Tim (2026-11-19):** a Ludo sound pass for the borrowed sounds, the X-ray sorter among them (answers-2026-11-19, C25); built in e19a4502.
 
 ### 16. The X-rays
 - **Chosen:** no harm outside the part: the cabinet is shielded, as the spec says; the model carries its warning signs.

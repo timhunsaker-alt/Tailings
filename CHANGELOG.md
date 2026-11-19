@@ -28,6 +28,12 @@ The first public release. It requires Wildcatter 0.8.1. Everything below, from P
   crawlers' pattern panel lifts it into one drill, which walks its pattern on its cable; STOP sets its parts down where it stands. On its
   switch house outlet a drill answers MACHINE RUN (its GO), RUNNING, DONE, CYCLES (a pulse a hole) and POWER. The Blasthole Drill item
   still places the whole drill, diesel or electric, as before.
+- **Art:** the stockpile's crushed rock (`stockpile_rock`) has a Ludo texture in place of the script-drawn placeholder; the texture file is
+  `stockpile_rock.png`.
+- **Sound:** eleven new sounds from Ludo: the gyratory crusher, the rock breaker, the SAG mill, the large ball mill, the cyclone feed pump, the
+  flotation tank cells, the X-ray sorter, the shaft hoist, the blasthole drill's rotary head, the track dozer moving, and a blast
+  siren. The siren winds up and wails in place of vanilla's raid horn, as FIRE is pressed and again 5 s later.
+- **Subtitles** for each new sound.
 - **Legacy blocks:** `dewatering_pump`, `flotation_cell`, `dump_station` and `tailings_pond_placeholder` are still in this
   release, out of the creative tab; they will be removed in the next.
 

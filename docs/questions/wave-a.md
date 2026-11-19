@@ -147,3 +147,57 @@ Spec: `docs/multiblocks/open-pit-p3-blasting.md`, "As built: four parts".
   differs from the rope shovel's and the dragline's.
 - **Why:** as the rope shovel's parts (placeholders in kind and count); the recipe set is not balanced yet.
 - **Alternatives:** n/a.
+
+## Art and sound (C23, C25)
+
+25 Ludo credits: 1 for the stockpile picture, 24 for twelve sound takes.
+
+### 20. Art and sound: Which textures are still script-drawn?
+- **Chosen:** only `stockpile_rock_placeholder`. Every other texture under `textures/block` and `textures/item` is either an output
+  of `tools/process_art.py` or Phase 3 Ludo art (2026-11-03). Skins are painted from Ludo swatches by the model generators. The sorter
+  screen is drawn by code and was left as it is. The rock-size items' vanilla icons were not done (art-wave.md, 5).
+- **Why:** checked each texture against `art/final` and searched the tools for drawing code.
+- **Alternatives:** none.
+
+### 21. Art and sound: The stockpile texture: the middle of the picture, not the whole
+- **Chosen:** one Ludo picture of crushed grey ore (`art/source/stockpile_rock.webp`, variation a). `process_art.py` keeps its middle
+  3/8 before the box filter (a new `CROP` table). The file is renamed `stockpile_rock.png` and the model points at it.
+- **Why:** Ludo drew some thirty stones across the picture. Box-filtered whole to 16 px, they averaged to flat grey (checked in a
+  contact sheet). At 3/8 each stone is a pixel or two, like vanilla gravel's grain, and the block still reads grey and crushed
+  beside brown muck. At 1/4 it was lumpier and the tile repeat showed.
+- **Alternatives:** a second picture with larger stones (a credit; the crop does the same); the whole picture (flat).
+
+### 22. Art and sound: Eleven sounds, not one per borrowing machine
+- **Chosen:** new loops `gyratory_crusher`, `rock_breaker`, `sag_mill`, `large_ball_mill`, `slurry_pump` (cyclone feed pump),
+  `tank_cell`, `xrt_sorter`, `mine_hoist`, `rotary_drill` and `track_dozer`, and a one-shot `blast_siren`. The pebble crusher keeps
+  `cone_crusher`, and the large conditioning tank keeps `agitator`.
+- **Why:** a pebble crusher is a cone crusher, so its sound is already right. The large tank is an agitated tank like the small one.
+  The SAG mill (rock and balls) and the overflow ball mill (fine balls in slurry) sound different, so each has its own.
+- **Alternatives:** one mill sound for both big mills; a pebble crusher sound (the cone's again, in other words).
+
+### 23. Art and sound: The siren is a 5.4 s wail, sounded twice
+- **Chosen:** `blast_siren` plays as FIRE is pressed and again 5 s later (`(sirenUntil - now) % 100 == 99`), at volume 8 as the
+  horn was. The second wail dies away as the shot fires at 10 s. Ludo's first take held one pitch (more horn than wail), so it was
+  taken a second time (2 credits). The second winds up from about 760 to 925 Hz, holds, then falls to about 570 Hz.
+- **Why:** a wind-up siren's wail is the sound itself. Repeating a 5 s wail every 2 s, as the horn was, would have stacked three at once.
+- **Alternatives:** a looping siren for the full 10 s (needs a moving sound on a block, more code for a one-off).
+
+### 24. Art and sound: The dozer: its own loop only while it moves
+- **Chosen:** `TrackDozerEntity.loop()` gives `track_dozer` where the pit vehicles give `diesel_load` (moving faster than 0.3 m/s).
+  Idling, it keeps Wildcatter's `diesel_idle`.
+- **Why:** the track clank is the tracks turning; a parked dozer only idles.
+- **Alternatives:** `track_dozer` whenever the engine runs.
+
+### 25. Art and sound: The drill's loop
+- **Chosen:** only the sound reference line in `BlastholeDrillEntity` changed, `TBM_CUTTER` to `ROTARY_DRILL`, as asked. Its
+  javadoc still says "the TBM's cutter sound stands in for it". The drill agent rewriting that file should drop that clause.
+  The take is mostly the air bailing's rush (little under 200 Hz), so `process_sounds.py` cross-fades its last 60 ms into its start
+  (its ends did not meet, a click on each loop).
+- **Why:** the drill agent owns the file.
+- **Alternatives:** none.
+
+### 26. Art and sound: Volumes
+- **Chosen:** as the parts had them where set (gyratory 2.5, SAG and large ball mill 4, tank cells 1.2). Newly set: hoist house and
+  rock breaker 1.5, XRT sorter and cyclone feed pump 1 (they were the default 0.8). Dozer and drill keep the pit vehicles' 1.
+- **Why:** the hoist house and the breaker are loud, big machines heard across a site; the sorter and pump sit with the 1.0 parts.
+- **Alternatives:** leave them at 0.8.

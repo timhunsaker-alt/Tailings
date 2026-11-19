@@ -450,8 +450,6 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 
 ## Known gaps and stand-ins
 
-- **`stockpile_rock_placeholder` (P7a):** the stockpile block's texture is drawn by script, muck's art made lighter and greyer
-  (questions/p7-pit-line.md, 10). A Ludo texture would replace it.
 - **No reclaim tunnel part (P7a):** the tunnel is the player's own solid blocks with an opening over each feeder (p7-pit-line.md, 9).
 - **The stockpile is not counted (P7a):** the head counts tonnes stacked and the feeders tonnes drawn; nothing reads the pile's live
   and dead tonnes (p7-pit-line.md, 13).
@@ -467,9 +465,9 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
   (p7-pit-line.md, 37).
 - **Empty piece models shared only for the 45 m thickener (P7c):** the older big parts still write a model for every empty cell
   (p7-pit-line.md, 33).
-- **P7c parts reuse sounds and have placeholder recipes:** the cells and tank the agitator, the rest the motor hum.
-- **P7b parts reuse sounds:** the mills the ball mill's, the pebble crusher the cone's, the pump the motor hum.
-- **P7a recipes are placeholders,** as the plant's; the gyratory sounds the cone crusher and the breaker the jaw: no sounds of their own.
+- **P7c parts have placeholder recipes:** the tank cells have their own loop (wave A); the large conditioning tank the agitator; the column cells, blower and 45 m thickener Wildcatter's motor hum.
+- **The pebble crusher sounds the cone crusher (P7b):** it is one; the mills and the cyclone feed pump have their own (wave A).
+- **P7a recipes are placeholders,** as the plant's.
 - **No dust, liner wear or tramp metal (P7a, the spec's Left out):** and no stacker-reclaimer, no in-pit crushing.
 
 - **The built drill does not keep a half-walked pattern through a set-down (C15, wave-a.md 16):** the next GO starts at its mast and
@@ -501,8 +499,8 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **Patterns run square to the grid (P3):** GO turns the drill to the nearest of the four ways.
 - **No flyrock in the air (P3):** a piece lands after its flight time with no entity drawn on the way; one landing in an unloaded
   chunk is lost. No camera shake for players near a blast.
-- **Borrowed sounds (P3):** the drill's rotary head is the TBM's cutter, the truck's pump Wildcatter's motor hum, the siren vanilla's
-  raid horn, the blast vanilla's explosion.
+- **Borrowed sounds (P3):** the emulsion truck's pump is Wildcatter's motor hum and the blast vanilla's explosion; the drill's rotary
+  head and the siren have their own since wave A.
 - **The emulsion truck is driven by hand only (P3):** no self-running charge crew (spec, Left out); no hose drawn to the hole.
 - **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
   damage, less armour and Blast Protection, but no scene checks a player.
@@ -567,15 +565,15 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **The X-ray sorter's air is a running compressor, not a pressure (L8; kept, Tim 2026-11-19, until Wildcatter has plant air with flow):** its own 160 kW compressor touching it, not Wildcatter's
   instrument air, which has no flow model (questions/l8-xrt.md, 6).
 - **No sizing screen (L8):** the sorter takes the game's crushed and gravel classes as they come (questions/l8-xrt.md, 8).
-- **No X-ray sorter sounds of its own (L8):** it plays the dump sorter's air jets; its compressor Wildcatter's motor hum.
-- **No hoist sound of its own (L4):** the hoist house uses Wildcatter's motor hum; the skip dumps silently.
+- **The X-ray sorter's compressor hums (L8):** the sorter has its own loop since wave A; its compressor is Wildcatter's motor hum.
+- **The skip dumps silently (L4):** the hoist house has its own loop since wave A.
 
 - **Dry tails do not ride belts (P4):** belts carry rock by kind and size, and dry tails are not a rock kind. The filter drops its
   cake into a load-out bin under it, a container under its chute, or onto open ground (questions/p4-dry-stack.md, 4).
 - **Thickened tails are marked tails slurry (P4):** Wildcatter 0.5.1 has no product for them, so the underflow is tails slurry whose
   assay carries its solids. Wildcatter's lined cell counts it as plain tails. A `THICKENED_TAILS` product is proposed for Wildcatter.
-- **No new P4 sounds:** the press, thickener, gate and dozer reuse existing sounds; the hydraulic whine, the cake's thud and the
-  track clatter are for the art wave.
+- **Old P4 sounds:** the press and thickener reuse existing sounds; the hydraulic whine and the cake's thud are still for an art
+  wave. The dozer has its own loop while it moves (wave A).
 - **The dozer is drawn level and its treads do not run (P4):** its idlers and sprockets turn as it moves; the tread boxes are still.
 - **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
   to its right; it halts and says so if it cannot loop within 3 minutes.
