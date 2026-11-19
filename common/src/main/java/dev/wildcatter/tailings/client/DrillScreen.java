@@ -24,6 +24,8 @@ import net.minecraft.world.item.Items;
 public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 	private static final int TEXT_WIDTH = 160;
 	private final List<Toggle> toggles = new ArrayList<>();
+	/** Y-, Y+, L-, L+: held while the machine drives (Tim, 2026-11-19), as the PLC's course is. */
+	private final List<Button> course = new ArrayList<>();
 
 	private record Toggle(Button button, String label, String help, int bit) {
 	}
@@ -42,10 +44,11 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 		int x = leftPos + 8;
 		int y = topPos + 79;
 		toggles.clear();
-		add(x, y, 22, "Y-", 0);
-		add(x + 24, y, 22, "Y+", 1);
-		add(x + 52, y, 24, "L-", 3);
-		add(x + 78, y, 24, "L+", 4);
+		course.clear();
+		course.add(add(x, y, 22, "Y-", 0));
+		course.add(add(x + 24, y, 22, "Y+", 1));
+		course.add(add(x + 52, y, 24, "L-", 3));
+		course.add(add(x + 78, y, 24, "L+", 4));
 		add(x + 112, y, 32, "Ride", dev.wildcatter.tailings.block.TbmCore.BUTTON_RIDE);
 		add(x + 148, y, 20, "Go", 10);
 		int y2 = topPos + 62;
@@ -78,6 +81,11 @@ public class DrillScreen extends AbstractContainerScreen<DrillMenu> {
 			toggle.button().setMessage(on ? Component.literal(toggle.label()).withStyle(ChatFormatting.GREEN)
 					: Component.literal(toggle.label()).withStyle(ChatFormatting.RED, ChatFormatting.STRIKETHROUGH));
 			toggle.button().setTooltip(Tooltip.create(Component.literal(toggle.help() + (on ? ": on" : ": off"))));
+		}
+		boolean driving = menu.on(4);
+		for (Button button : course) {
+			button.active = !driving;
+			button.setTooltip(driving ? Tooltip.create(Component.literal("The course holds while it drives: stop it to change")) : null);
 		}
 		super.extractContents(graphics, mouseX, mouseY, partial);
 		for (int i = 0; i < DrillBlockEntity.INPUTS; i++) {

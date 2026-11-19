@@ -43,10 +43,23 @@ public final class Sorter {
 		return choosing[side] ? chosen[side] : product[side];
 	}
 
-	/** Sets {@code side} to take {@code itemId}; the side stops being waste, and no other side keeps that type. */
+	/**
+	 * The ore an item is a variant of: a deepslate ore is its plain ore ({@code minecraft:deepslate_copper_ore} is
+	 * {@code minecraft:copper_ore}), so a side set to either takes both (Tim, 2026-11-19, plc-13i.md). Null stays null.
+	 */
+	public static String variantOf(String itemId) {
+		if (itemId == null) {
+			return null;
+		}
+		int colon = itemId.indexOf(':');
+		String path = itemId.substring(colon + 1);
+		return path.startsWith("deepslate_") && path.endsWith("_ore") ? itemId.substring(0, colon + 1) + path.substring("deepslate_".length()) : itemId;
+	}
+
+	/** Sets {@code side} to take {@code itemId}; the side stops being waste, and no other side keeps that type (any variant of it). */
 	public void set(int side, String itemId) {
 		for (int i = 0; i < SIDES; i++) {
-			if (itemId.equals(product[i])) {
+			if (variantOf(itemId).equals(variantOf(product[i]))) {
 				product[i] = null;
 			}
 		}
@@ -78,10 +91,14 @@ public final class Sorter {
 		return waste;
 	}
 
-	/** The side {@code itemId} leaves by, or -1 when it has none and there is no waste side. Two sides choosing one type: the first takes it. */
+	/**
+	 * The side {@code itemId} leaves by, or -1 when it has none and there is no waste side. Two sides choosing one type: the first takes it.
+	 * A side takes every variant of its ore, deepslate too.
+	 */
 	public int route(String itemId) {
+		String ore = variantOf(itemId);
 		for (int i = 0; i < SIDES; i++) {
-			if (itemId.equals(takes(i))) {
+			if (ore.equals(variantOf(takes(i)))) {
 				return gateShut[i] ? waste : i;
 			}
 		}

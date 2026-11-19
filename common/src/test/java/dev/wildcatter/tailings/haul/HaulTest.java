@@ -65,4 +65,21 @@ class HaulTest {
 		assertEquals(-1, back.waste());
 		assertEquals(Haul.MAX_CARS * Haul.CAR_ITEMS, Haul.POCKET_ITEMS, "the pocket holds one 10-car train");
 	}
+
+	/** Tim, 2026-11-19 (plc-13i.md): a side takes any variant of its ore, deepslate too, set from either. */
+	@Test
+	void aSideTakesEveryVariantOfItsOre() {
+		Sorter sorter = new Sorter();
+		sorter.set(1, "minecraft:copper_ore");
+		sorter.setWaste(0);
+		assertEquals(1, sorter.route("minecraft:deepslate_copper_ore"));
+		assertEquals(0, sorter.route("minecraft:deepslate"), "deepslate itself is a rock of its own");
+		sorter.set(2, "minecraft:deepslate_copper_ore");
+		assertEquals(null, sorter.product(1), "one ore has one side, whichever variant set it");
+		assertEquals(2, sorter.route("minecraft:copper_ore"));
+		sorter.choose(3, "minecraft:iron_ore");
+		assertEquals(3, sorter.route("minecraft:deepslate_iron_ore"), "a PLC's code takes every variant too");
+		assertEquals("minecraft:copper_ore", Sorter.variantOf("minecraft:deepslate_copper_ore"));
+		assertEquals("wildcatter:galena_ore", Sorter.variantOf("wildcatter:galena_ore"));
+	}
 }

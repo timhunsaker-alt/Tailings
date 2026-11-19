@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.Blocks;
  * every tick, as its scan sends one.
  */
 final class PlcSignalGameTests {
-	static final String[] SCENES = {"plc_sorter_route", "plc_tbm_course", "plc_slurry"};
+	static final String[] SCENES = {"plc_sorter_route", "plc_tbm_course", "plc_slurry", "tbm_cab_course_held", "sorter_any_variant"};
 	static final Set<String> LONG = Set.of("plc_slurry", "plc_sorter_route");
 	/** The sorter's points: a rock code a side, north to west, past its four gates. */
 	private static final int CODES = 10;
@@ -39,6 +39,8 @@ final class PlcSignalGameTests {
 		out.accept("plc_sorter_route", PlcSignalGameTests::sorterRoute);
 		out.accept("plc_tbm_course", PlcSignalGameTests::tbmCourse);
 		out.accept("plc_slurry", PlcSignalGameTests::slurry);
+		out.accept("tbm_cab_course_held", PlcSignalGameTests::cabCourseHeld);
+		out.accept("sorter_any_variant", PlcSignalGameTests::sorterAnyVariant);
 	}
 
 	private static void auto(dev.wildcatter.control.ControlDevice device, BlockPos cell) {
@@ -131,6 +133,47 @@ final class PlcSignalGameTests {
 			helper.assertTrue(Math.abs(junction.readMa(9) - 20) < 1e-6, Component.literal("stopped, it takes the PLC's new 400 m, reading " + junction.readMa(9)));
 			helper.assertTrue(Math.abs(junction.readMa(8) - targetMa) < 0.05, Component.literal("TARGET Y SET reads its target, " + junction.readMa(8)));
 		});
+	}
+
+	/**
+	 * The cab's screen (Tim, 2026-11-19; plc-13i.md): standing, Y- and L+ change the course; while the machine drives, the course
+	 * buttons do nothing, as the PLC's course holds.
+	 */
+	private static void cabCourseHeld(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = TailingsGameTests.tbm(helper, c, 6, true);
+		TailingsGameTests.feed(helper, c);
+		int target = cab.program().targetY(), flat = cab.program().flatLength();
+		cab.core().press(0, helper.getLevel());
+		cab.core().press(4, helper.getLevel());
+		helper.assertTrue(cab.program().targetY() == target - 1 && cab.program().flatLength() == flat + 8,
+				Component.literal("standing, the screen sets the course: " + cab.program().targetY() + ", " + cab.program().flatLength()));
+		int heldY = target - 1, heldFlat = flat + 8;
+		TailingsGameTests.go(cab, 20);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = TailingsGameTests.machine(helper, c);
+			helper.assertTrue(machine != null && machine.core().running(), Component.literal("it should drive"));
+			for (int button : new int[] {0, 1, 1, 3, 4, 4}) {
+				machine.core().press(button, helper.getLevel());
+			}
+			helper.assertTrue(machine.core().program().targetY() == heldY && machine.core().program().flatLength() == heldFlat,
+					Component.literal("driving, the course holds: " + machine.core().program().targetY() + ", " + machine.core().program().flatLength()));
+		});
+	}
+
+	/** A sorter side set to copper ore takes deepslate copper ore too (Tim, 2026-11-19; plc-13i.md), from the screen and from a code. */
+	private static void sorterAnyVariant(GameTestHelper helper) {
+		dev.wildcatter.tailings.haul.Sorter sorter = new dev.wildcatter.tailings.haul.Sorter();
+		sorter.set(1, "minecraft:copper_ore");
+		sorter.setWaste(2);
+		sorter.choose(3, dev.wildcatter.tailings.block.Feeds.blockId(PlcScale.rock(10)));
+		helper.assertTrue(sorter.route("minecraft:deepslate_copper_ore") == 1, Component.literal("deepslate copper by its plain ore's side"));
+		sorter.release(3);
+		sorter.choose(0, dev.wildcatter.tailings.block.Feeds.blockId(dev.wildcatter.tailings.rock.Rock.IRON));
+		helper.assertTrue(sorter.route("minecraft:deepslate_iron_ore") == 0, Component.literal("a code's ore takes its deepslate variant"));
+		helper.assertTrue(dev.wildcatter.tailings.block.Feeds.parse(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DEEPSLATE_COPPER_ORE)).rock()
+				== dev.wildcatter.tailings.rock.Rock.COPPER, Component.literal("deepslate copper is copper to the plant"));
+		helper.succeed();
 	}
 
 	/**

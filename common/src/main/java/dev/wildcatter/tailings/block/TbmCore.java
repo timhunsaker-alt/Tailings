@@ -356,11 +356,22 @@ public final class TbmCore {
 		return Math.max(0, cableMetres() - drill.advanceCount());
 	}
 
-	/** Screen buttons; the same ids are the menu's click buttons. */
+	/** Y-, Y+, L-, L+: the buttons that change the course. */
+	public static boolean courseButton(int button) {
+		return button == 0 || button == 1 || button == 3 || button == 4;
+	}
+
+	/**
+	 * Screen buttons; the same ids are the menu's click buttons. While it drives the course buttons do nothing, and standing, the target
+	 * cannot move floor already cut, as the PLC's TARGET Y (PlcScale.allowedTarget).
+	 */
 	public void press(int button, Level level) {
+		if (running && courseButton(button)) {
+			return;   // the course holds while it drives, from the cab as from the PLC (Tim, 2026-11-19; plc-13i.md)
+		}
 		switch (button) {
-			case 0 -> program.setTargetY(program.targetY() - 1);
-			case 1 -> program.setTargetY(program.targetY() + 1);
+			case 0, 1 -> program.setTargetY(dev.wildcatter.tailings.plant.PlcScale.allowedTarget(program.targetY() + (button == 0 ? -1 : 1), drill.advanceCount(),
+					drill.declining(), drill.floorY(), program.targetY(), level.getMinY() + 1));
 			case 3 -> program.setFlatLength(program.flatLength() - 8);
 			case 4 -> program.setFlatLength(program.flatLength() + 8);
 			case 6 -> program.setStopOnOre(!program.stopOnOre());
