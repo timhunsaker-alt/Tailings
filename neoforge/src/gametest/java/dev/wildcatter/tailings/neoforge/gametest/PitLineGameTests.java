@@ -210,6 +210,7 @@ final class PitLineGameTests {
 					helper.assertTrue(p.surge().hold().kg(Rock.GRANITE, SizeClass.CRUSHED) > 0 && p.surge().hold().kg(Rock.GRANITE, null) == 0,
 							Component.literal("the surge pocket holds crushed rock"));
 					helper.assertTrue(p.crusher().status().startsWith("crushing Granite"), Component.literal("its status: " + p.crusher().status()));
+					helper.assertTrue(p.crusher().loop() == dev.wildcatter.tailings.TailingsSounds.GYRATORY_CRUSHER, Component.literal("crushing, it sounds its own loop: " + p.crusher().loop()));
 				})
 				.thenSucceed();
 	}
@@ -224,6 +225,8 @@ final class PitLineGameTests {
 		p.crusher().pit().setSinceBoulder(PitLine.BOULDER_EVERY - 1);
 		p.crusher().forceRunning();
 		long[] started = {0};
+		boolean[] hammered = {false};
+		helper.onEachTick(() -> hammered[0] |= p.breaker().loop() == dev.wildcatter.tailings.TailingsSounds.ROCK_BREAKER);
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(p.crusher().pit().bridged() && p.crusher().status().startsWith("BRIDGED"),
 						Component.literal("the boulder should bridge the bowl" + describe(p.crusher()))))
@@ -237,6 +240,7 @@ final class PitLineGameTests {
 				.thenExecute(() -> {
 					long took = helper.getLevel().getGameTime() - started[0];
 					helper.assertTrue(took >= PitLine.BREAK_SECONDS * 20 - 2 && took <= PitLine.BREAK_SECONDS * 20 + 5, Component.literal("30 s to break it, took " + took + " ticks"));
+					helper.assertTrue(hammered[0], Component.literal("breaking, the breaker sounds its own loop"));
 				})
 				.thenWaitUntil(() -> helper.assertTrue(p.surge().hold().total() > 2000, Component.literal("the crusher goes on" + describe(p.crusher()))))
 				.thenSucceed();
@@ -550,7 +554,12 @@ final class PitLineGameTests {
 		g.sag().receive(crushed(Rock.COPPER, PitLine.SAG_NORMAL_CHARGE_KG));
 		double[] added = {0};
 		boolean[] assayed = {false};
+		boolean[] heard = new boolean[4];
 		helper.onEachTick(() -> {
+			heard[0] |= g.sag().loop() == dev.wildcatter.tailings.TailingsSounds.SAG_MILL;
+			heard[1] |= g.ball().loop() == dev.wildcatter.tailings.TailingsSounds.LARGE_BALL_MILL;
+			heard[2] |= g.pump().loop() == dev.wildcatter.tailings.TailingsSounds.SLURRY_PUMP;
+			heard[3] |= g.pebbles().loop() == dev.wildcatter.tailings.TailingsSounds.CONE_CRUSHER;
 			g.water();
 			assayed[0] |= g.drain();
 			double short_ = PitLine.SAG_NORMAL_CHARGE_KG - g.sag().hold().total();
@@ -575,6 +584,8 @@ final class PitLineGameTests {
 					helper.assertTrue(g.pebbles().status().startsWith("crushing pebbles"), Component.literal("the pebble crusher crushes the pebbles: " + g.pebbles().status()));
 					helper.assertTrue(g.returnDrive().hold().kg(Rock.COPPER, SizeClass.GRAVEL) > 0, Component.literal("its gravel goes out on its belt" + describe(g.returnDrive())));
 					helper.assertTrue(!g.sag().status().contains("slower"), Component.literal("with the pebble crusher crushing it runs at full rate: " + g.sag().status()));
+					helper.assertTrue(heard[0] && heard[1] && heard[2] && heard[3],
+							Component.literal("the SAG, ball mill, pump and pebble crusher sound their loops: " + java.util.Arrays.toString(heard)));
 				})
 				.thenSucceed();
 	}

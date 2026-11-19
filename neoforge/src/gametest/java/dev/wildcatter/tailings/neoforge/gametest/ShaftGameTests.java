@@ -110,7 +110,9 @@ final class ShaftGameTests {
 		long[] dumped = new long[4];
 		int[] seen = {0};
 		double[] fastest = {0};
+		boolean[] wound = {false};
 		helper.onEachTick(() -> {
+			wound[0] |= b.hoist().loop() == dev.wildcatter.tailings.TailingsSounds.MINE_HOIST;
 			int dumps = b.hoist().winder().dumps();
 			if (dumps > seen[0] && dumps <= 3) {
 				dumped[dumps] = helper.getTick();
@@ -130,6 +132,7 @@ final class ShaftGameTests {
 			dev.wildcatter.tailings.Tailings.LOGGER.info("shaft_hoist: {} m, a cycle of {} s (expected {} s), {} t/h", travel, cycle, expected, tph);
 			helper.assertTrue(tph > 225, Component.literal(String.format("at least the spec's 225 t/h, got %.0f", tph)));
 			helper.assertTrue(Math.abs(fastest[0] - Hoisting.ROPE_SPEED) < 1e-6, Component.literal("full rope speed: " + fastest[0]));
+			helper.assertTrue(wound[0], Component.literal("winding, the hoist sounds its own loop"));
 			helper.assertTrue(b.bin().hold().kg(Rock.GRANITE, null) >= 3 * Hoisting.SKIP_KG - 1, Component.literal("the bin holds the granite: " + b.bin().hold().total()));
 			// in balance: one skip's height above the loading stop and the other's add up to the wind
 			double ws = west.getY() - (helper.absolutePos(BlockPos.ZERO).getY() + COLLAR - 150), es = east.getY() - (helper.absolutePos(BlockPos.ZERO).getY() + COLLAR - 150);

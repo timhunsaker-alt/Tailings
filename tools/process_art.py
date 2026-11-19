@@ -2,7 +2,8 @@
 """Turns the Ludo pictures in art/source into Tailings' textures (art/final), and copies them into the mod.
 
 Wildcatter's pipeline, at Tailings' sizes (art/source/PROMPTS.md has the prompts):
-- blocks (muck, the survey stake's post and flags, the four hand-line machines): the whole picture box-filtered to 16 px, a touch
+- blocks (muck, the stockpile's crushed rock, the survey stake's post and flags, the four hand-line machines): the whole picture
+  (the stockpile's middle 3/8, so its stones stay a pixel or two across) box-filtered to 16 px, a touch
   of contrast, then its edges cross-faded so it tiles. The stake flags are one Ludo picture of white flagging tape, dyed in each
   stake's colour (the colours the script-drawn flags had), so the seven read alike;
 - items: Ludo draws them on transparency (or a plain ground, made transparent here), cropped to the item, squared and shrunk to 16 px;
@@ -27,7 +28,8 @@ BLOCK, ITEM, VEHICLE = 16, 16, 32
 BLOCKS = {"muck": "muck", "stake_post": "survey_stake_post", "stamp_mill": "stamp_mill", "hand_screen": "hand_screen",
 	"shaking_table": "shaking_table", "magnetic_separator": "magnetic_separator", "blasting_machine": "blasting_machine",
 	"dry_tails": "dry_tails", "vent_duct": "vent_duct",
-	"fill_bulkhead": "fill_bulkhead", "paste_fill_wet": "paste_fill_wet", "paste_fill_set": "paste_fill_set"}
+	"fill_bulkhead": "fill_bulkhead", "paste_fill_wet": "paste_fill_wet", "paste_fill_set": "paste_fill_set",
+	"stockpile_rock": "stockpile_rock"}
 # each stake's flag colour, as the placeholder flags had them (docs/multiblocks/open-pit.md)
 FLAGS = {"load": (63, 173, 73), "loadout": (76, 136, 206), "dump_point": (155, 75, 45), "dump_pocket": (209, 69, 59),
 	"park": (137, 137, 147), "fuel": (240, 210, 50), "waypoint": (225, 115, 25)}
@@ -58,8 +60,17 @@ def tileable(img, band):
 	return img
 
 
+# blocks drawn from the middle of their picture, the share of it kept, so each piece is a pixel or two across, not averaged away
+CROP = {"stockpile_rock": 0.375}
+
+
 def tile(name, size):
-	img = Image.open(f"{SRC}/{name}.webp").convert("RGB").resize((size, size), Image.BOX)
+	img = Image.open(f"{SRC}/{name}.webp").convert("RGB")
+	if name in CROP:
+		side = int(img.width * CROP[name])
+		left = (img.width - side) // 2
+		img = img.crop((left, left, left + side, left + side))
+	img = img.resize((size, size), Image.BOX)
 	return tileable(ImageEnhance.Contrast(img).enhance(1.1), max(2, size // 8))
 
 

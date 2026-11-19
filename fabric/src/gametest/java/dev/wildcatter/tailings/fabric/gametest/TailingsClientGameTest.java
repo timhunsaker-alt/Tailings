@@ -899,7 +899,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		double[] sent = server.computeOnServer(srv -> new double[] {parts[0][0].xrt().productKg(), parts[0][0].xrt().wasteKg()});
 		System.out.println("[tailings-test] xrt end: " + sent[0] + " kg to product, " + sent[1] + " kg to waste");
 		require(sent[0] > 500 && sent[1] > 500 && Math.abs(sent[0] / (sent[0] + sent[1]) - 0.51) < 0.02, "half galena, half andesite: 51 % to product (97 % of one, 5 % of the other)");
-		heard("xrt", "tailings:ore_sorter", "wildcatter:motor_hum");
+		heard("xrt", "tailings:xrt_sorter", "wildcatter:motor_hum");
 	}
 
 	private static PlantBlockEntity plant(ServerLevel level, Machine machine, BlockPos at) {
@@ -2017,7 +2017,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		}
 		film.stop();
 		server.runOnServer(srv -> System.out.println("[tailings-test] pit_blast: loader " + (srv.overworld().getEntity(loaderId) instanceof dev.wildcatter.tailings.entity.WheelLoaderEntity l ? l.status() : "gone")));
-		heard("pit_blast", "tailings:tbm_cutter", "wildcatter:diesel_idle", "minecraft:entity.generic.explode");
+		heard("pit_blast", "tailings:rotary_drill", "tailings:blast_siren", "wildcatter:diesel_idle", "minecraft:entity.generic.explode");
 	}
 
 	/**
@@ -2259,7 +2259,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		context.takeScreenshot("tailings-pit-dry-stack-tipped");
 		film.stop();
 		require(server.computeOnServer(srv -> truck[0].load().empty()), "with the berm up, the truck should tip over it");
-		heard("pit_dry_stack", "wildcatter:diesel_load", "tailings:muck_tip");
+		heard("pit_dry_stack", "wildcatter:diesel_load", "tailings:track_dozer", "tailings:muck_tip");
 	}
 
 	/** The whole mine: the machine drives down a decline in section while a real train takes its muck to the dump and comes back. */
@@ -3045,7 +3045,7 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(got[1] >= 1, "the stockpile head should drop blocks onto the pile");
 		require(got[2] > 10_000 && got[3] > 10_000, "the reclaim feeders should draw the pile past the weigher");
 		require(got[4] > 10_000, "the SAG line should classify its undersize");
-		heard("p7_line", "tailings:cone_crusher", "tailings:ball_mill");
+		heard("p7_line", "tailings:gyratory_crusher", "tailings:sag_mill", "tailings:large_ball_mill", "tailings:slurry_pump", "tailings:cone_crusher");
 	}
 
 	/**
@@ -3217,6 +3217,6 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		require(got[1] == 8, "all eight cells should float");
 		require(got[2] > 0, "the filter should pay the row's concentrate");
 		require(got[3] > 0, "the large thickener's underflow should settle in the lined cell");
-		heard("p7_flotation", "tailings:agitator");
+		heard("p7_flotation", "tailings:tank_cell", "tailings:agitator");
 	}
 }

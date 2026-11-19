@@ -181,7 +181,10 @@ final class PitFlotationGameTests {
 	private static void tankRow(GameTestHelper helper) {
 		double copper = fourNuggets();
 		Row row = row(helper, 8, copper, true);
+		boolean[] churned = {false};
+		helper.onEachTick(() -> churned[0] |= row.cells().stream().anyMatch(c -> c.loop() == dev.wildcatter.tailings.TailingsSounds.TANK_CELL));
 		helper.succeedWhen(() -> {
+			helper.assertTrue(churned[0], Component.literal("floating, the cells sound their own loop"));
 			helper.assertTrue(nuggets(row.filter()) == 3, Component.literal("the filter should pay 3 copper nuggets, got " + nuggets(row.filter()) + ": " + row.describe()));
 			for (int k = 0; k < 8; k++) {
 				double want = copper * PitFlotation.SHARES_PERCENT[k] / 100.0;

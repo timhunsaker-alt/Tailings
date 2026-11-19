@@ -26,12 +26,25 @@ Volume above 1 is range, not loudness: the game hears a sound over 16 m times it
 | `ore_sorter` | loop | ore sorter | 0.8 |
 | `tbm_cutter` | loop | the machine, while it drives | 2.5 |
 | `mine_locomotive` | loop | locomotive; pitch and volume follow its speed | 0.4 to 1 |
+| `gyratory_crusher` | loop | gyratory crusher | 2.5 |
+| `rock_breaker` | loop | rock breaker | 1.5 |
+| `sag_mill` | loop | SAG mill | 4 |
+| `large_ball_mill` | loop | large ball mill | 4 |
+| `slurry_pump` | loop | cyclone feed pump | 1 |
+| `tank_cell` | loop | flotation tank cells | 1.2 |
+| `xrt_sorter` | loop | X-ray sorter | 1 |
+| `mine_hoist` | loop | hoist house, while it winds | 1.5 |
+| `rotary_drill` | loop | blasthole drill, while it drills | 1 |
+| `track_dozer` | loop | track dozer, while it moves; idling, Wildcatter's `diesel_idle` | 1 |
 | Wildcatter's `fan` | loop | air blower | 0.8 |
 | Wildcatter's `motor_hum` | loop | thickener, pump gantry | 0.4, 0.6 |
 | `muck_tip` | one-shot | a car tipping at the dump | 2 |
 | `muck_load` | one-shot | muck pouring into a car, each 1.5 s | 2 |
 | `ring_set` | one-shot | each ring the machine sets | 2 |
 | `car_couple` | one-shot | a car or gantry coupling | 1 |
+| `blast_siren` | one-shot | the blasting machine's siren, a 5.4 s wail as FIRE is pressed and again 5 s later | 8 |
 | Wildcatter's `structure_formed` | one-shot | the machine lifting and setting down | 2 |
 
 Silent on purpose: the grizzly, pocket, ramp, bins and pond (no motor), the reel gantry (the reel does not turn yet, see Known gaps).
+
+The pebble crusher keeps `cone_crusher` on purpose: a pebble crusher is a cone crusher. The conditioning tank (large) keeps `agitator`.
