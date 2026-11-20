@@ -69,6 +69,12 @@ public final class Slopes extends SavedData {
 	/** The station reads prisms this far off. */
 	public static final double STATION_M = 500;
 	private static final int[] CRACK_ORDER = {4, 5, 3, 6, 2, 7, 1, 8, 0, 9};
+	/** A section's slide reaches this far into the sections either side, its wedge thinning to nothing (spec: the ends taper 2 m). */
+	public static final int TAPER_M = 2;
+	/** How far through its clock a failing highwall's bench slab moves a metre toward the face, opening its crack (proposed). */
+	static final double[] CREEP_STEPS = {0.35, 0.6, 0.8};
+	/** A slope cracking or failing is checked this much more often at the world's time scale, down to once a second. */
+	static final int FAST_CHECK_TICKS = 20;
 
 	/** One slope's state: a highwall's or a spoil pile's. */
 	public static final class Part {
@@ -83,6 +89,8 @@ public final class Slopes extends SavedData {
 		long lastCrack = -CRACK_TICKS;
 		double height;
 		double beta;
+		/** How many times its bench slab has moved toward the face while failing. */
+		int steps;
 
 		public Slope.Stage stage() {
 			return stage;
@@ -110,6 +118,10 @@ public final class Slopes extends SavedData {
 
 		public double beta() {
 			return beta;
+		}
+
+		public int steps() {
+			return steps;
 		}
 
 		boolean cracking() {
@@ -429,6 +441,9 @@ public final class Slopes extends SavedData {
 	public static void tick(ServerLevel level) {
 		Slopes s = get(level.getServer());
 		Pouring pour = s.pours.get(dim(level));
+		if (!s.runouts.isEmpty()) {
+			s.runouts(level);
+		}
 		if (pour != null && !pour.empty()) {
 			PitLoad back = new PitLoad(Long.MAX_VALUE);
 			pour.tick(level, back);
@@ -451,8 +466,12 @@ public final class Slopes extends SavedData {
 				forget.add(strip.id);
 				continue;
 			}
+			int scale = dev.wildcatter.TimeScale.scale();
 			for (int i = 0; i < strip.sections(); i++) {
-				if ((now + i * 7 + strip.id * 13) % CHECK_TICKS != 0) {
+				Section sec = strip.sections.get(i);
+				boolean moving = sec != null && (sec.wall.cracking() || sec.spoil.cracking() || sec.wall.failAt >= 0 || sec.spoil.failAt >= 0);
+				int every = moving ? Math.max(FAST_CHECK_TICKS, CHECK_TICKS / Math.max(1, scale)) : CHECK_TICKS;
+				if ((now + i * 7 + strip.id * 13) % every != 0) {
 					continue;
 				}
 				BlockPos c = strip.crest(i);
@@ -477,12 +496,12 @@ public final class Slopes extends SavedData {
 		}
 	}
 
-	/** A column's top: the first solid block down from {@code fromY}, plus one; water and plants are not ground. */
+	/** A column's top: the first solid block down from {@code fromY}, plus one; water, plants and survey prisms are not ground. */
 	static int top(ServerLevel level, int x, int z, int fromY, int most) {
 		BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos(x, fromY, z);
 		for (int i = 0; i < most; i++) {
 			BlockState state = level.getBlockState(at);
-			if (!state.isAir() && state.getFluidState().isEmpty() && !state.canBeReplaced()) {
+			if (!state.isAir() && state.getFluidState().isEmpty() && !state.canBeReplaced() && !state.is(TailingsBlocks.SLOPE_PRISM)) {
 				return at.getY() + 1;
 			}
 			at.move(0, -1, 0);
@@ -523,8 +542,21 @@ public final class Slopes extends SavedData {
 		}
 		int crestY = h[benchCol];
 		int crest = benchCol;
-		while (crest + 1 < h.length && h[crest + 1] >= crestY) {
-			crest++;
+		while (crest + 1 < h.length) {
+			if (h[crest + 1] >= crestY) {
+				crest++;
+				continue;
+			}
+			// an open tension crack on the bench, up to 3 m wide, with the bench standing again beyond it: still the bench
+			int k = 2;
+			while (k <= 4 && crest + k < h.length && h[crest + k] < crestY && h[crest + k - 1] >= crestY - 3) {
+				k++;
+			}
+			if (k <= 4 && crest + k < h.length && h[crest + k] >= crestY && h[crest + k - 1] >= crestY - 3) {
+				crest += k;
+				continue;
+			}
+			break;
 		}
 		if (crest + 1 >= h.length) {
 			return null;
@@ -598,13 +630,94 @@ public final class Slopes extends SavedData {
 			part.stage = Slope.Stage.SLID;
 			part.failAt = -1;
 			part.cracks = 0;
+			part.steps = 0;
 			return;
 		}
 		if (part.cracking()) {
 			double theta = Slope.planeDegrees(w.beta(), mix.phi());
-			int behind = (int) Math.floor(Slope.crackBehind(w.height(), w.beta(), theta));
-			crack(level, strip, i, part, Math.max(0, w.crestCol() - behind), w.crestY(), now);
+			int behind = Math.max(1, (int) Math.floor(Slope.crackBehind(w.height(), w.beta(), theta)));
+			int crackCol = Math.max(-WEDGE_BEHIND, w.crestCol() - behind);
+			crack(level, strip, i, part, crackCol, w.crestY(), now, scale);
 			ravel(level, strip, i, w);
+			if (part.stage == Slope.Stage.FAILING && part.failAt >= 0 && part.clock > 0) {
+				double through = 1 - (part.failAt - now) / (double) part.clock;
+				if (part.steps < CREEP_STEPS.length && through >= CREEP_STEPS[part.steps]) {
+					creepStep(level, strip, i, w, crackCol);
+					part.steps++;
+				}
+			}
+		}
+	}
+
+	/**
+	 * A failing highwall moves: the slab of bench between its crack and its crest slides a metre toward the face, with whatever stands
+	 * on it (its prisms), over about half a second; the crack gapes a metre wider behind it, and the block at the crest goes down the
+	 * face. Nothing is lost: each block is let go and set again through the slide's pour.
+	 */
+	private void creepStep(ServerLevel level, Strip strip, int i, Wall w, int crackCol) {
+		Pouring pour = pour(level);
+		long now = level.getGameTime();
+		List<Pouring.Slid> drawn = new ArrayList<>();
+		for (int k = 0; k < SECTION_M; k++) {
+			int j = i * SECTION_M + k;
+			int[] h = profile(level, strip, j, w.toeCol() + 2);
+			Wall line = wall(h, (int) Math.floor(Dragline.standoff()) - BENCH_BACK);
+			if (line == null) {
+				continue;
+			}
+			int top = line.crestY() - 1;
+			int from = Math.max(crackCol + 1, -WEDGE_BEHIND + 1);
+			// the crest's top block, and what stands on it, go down the face
+			PitLoad ravel = new PitLoad(Long.MAX_VALUE);
+			List<Pouring.SlideFrom> ravelFrom = new ArrayList<>();
+			Vec3 foot = new Vec3(strip.x(line.toeCol(), j) + 0.5, line.toeY() + 0.5, strip.z(line.toeCol(), j) + 0.5);
+			for (int y = top; y <= top + 1; y++) {
+				BlockPos at = new BlockPos(strip.x(line.crestCol(), j), y, strip.z(line.crestCol(), j));
+				if (level.getBlockState(at).is(TailingsBlocks.SLOPE_PRISM)) {
+					continue;   // a prism at the very crest rides on; the scene's crews set them back from it
+				}
+				if (take(level, at, ravel)) {
+					ravelFrom.add(new Pouring.SlideFrom(at, foot, now));
+				}
+			}
+			// the rest of the slab, a metre on, from the crest end back
+			for (int a = line.crestCol() - 1; a >= from; a--) {
+				for (int y = top; y <= top + 1; y++) {
+					BlockPos at = new BlockPos(strip.x(a, j), y, strip.z(a, j));
+					BlockPos to = new BlockPos(strip.x(a + 1, j), y, strip.z(a + 1, j));
+					boolean prism = level.getBlockState(at).is(TailingsBlocks.SLOPE_PRISM);
+					Pouring.Slid moved = pour.shift(level, at, to, now + (line.crestCol() - a) / 3);
+					if (moved != null) {
+						drawn.add(moved);
+						if (prism) {
+							movePrism(level, at, to);
+						}
+					}
+				}
+			}
+			if (!ravel.empty()) {
+				// it bounces off the foot of the face and comes to rest a few metres out, clear of the toe
+				BlockPos start = new BlockPos(strip.x(line.toeCol() + 3, j), line.toeY(), strip.z(line.toeCol() + 3, j));
+				drawn.addAll(pour.slide(level, ravel, start, Settle.MOST_RISE_37, ravelFrom));
+				dropLeft(level, ravel, Vec3.atCenterOf(start));
+			}
+		}
+		if (!drawn.isEmpty()) {
+			dev.wildcatter.tailings.entity.SlideEntity.show(level, drawn);
+		}
+		BlockPos c = strip.crest(i);
+		level.playSound(null, c, dev.wildcatter.tailings.TailingsSounds.HIGHWALL_CREAK, SoundSource.BLOCKS, 4F, 0.6F);
+		level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.DIRT.defaultBlockState()), c.getX() + 0.5, c.getY() + 0.5, c.getZ() + 0.5, 30,
+				SECTION_M / 3.0, 0.3, SECTION_M / 3.0, 0);
+		Tailings.LOGGER.info("Tailings: highwall section {} of strip {} moved a metre toward its face", i + 1, strip.id);
+		setDirty();
+	}
+
+	/** A prism carried on a moving slab: the record follows it to its new cell. */
+	private void movePrism(ServerLevel level, BlockPos from, BlockPos to) {
+		Set<BlockPos> set = prisms.get(dim(level));
+		if (set != null && set.remove(from)) {
+			set.add(to.immutable());
 		}
 	}
 
@@ -664,6 +777,7 @@ public final class Slopes extends SavedData {
 			}
 		} else {
 			part.failAt = -1;
+			part.steps = 0;
 		}
 		part.stage = stage;
 		long left = part.failAt < 0 ? -1 : part.failAt - now;
@@ -671,8 +785,13 @@ public final class Slopes extends SavedData {
 	}
 
 	/** A crack block more along the line where the failure plane meets the bench, a minute at a time; on rock, dust only. */
-	private void crack(ServerLevel level, Strip strip, int i, Part part, int a, int crestY, long now) {
-		if (part.cracks < CRACK_ORDER.length && now - part.lastCrack >= CRACK_TICKS) {
+	private void crack(ServerLevel level, Strip strip, int i, Part part, int a, int crestY, long now, int scale) {
+		// a block a minute (at the world's time scale); failing, as fast as its clock runs out
+		int due = part.cracks < CRACK_ORDER.length && now - part.lastCrack >= CRACK_TICKS / Math.max(1, scale) ? part.cracks + 1 : part.cracks;
+		if (part.stage == Slope.Stage.FAILING && part.failAt >= 0 && part.clock > 0) {
+			due = Math.max(due, (int) Math.ceil(CRACK_ORDER.length * Math.min(1, 1 - (part.failAt - now) / (double) part.clock)));
+		}
+		while (part.cracks < Math.min(CRACK_ORDER.length, due)) {
 			int j = i * SECTION_M + CRACK_ORDER[part.cracks];
 			BlockPos at = new BlockPos(strip.x(a, j), crestY - 1, strip.z(a, j));
 			BlockState state = level.getBlockState(at);
@@ -738,6 +857,7 @@ public final class Slopes extends SavedData {
 			part.stage = Slope.Stage.SLID;
 			part.failAt = -1;
 			part.cracks = 0;
+			part.steps = 0;
 		} else if (part.cracking()) {
 			double x = strip.x(pile.crestCol(), mid) + 0.5, z = strip.z(pile.crestCol(), mid) + 0.5;
 			level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.DIRT.defaultBlockState()), x, pile.crestY() + 0.2, z, 16, 3, 0.1, 3, 0);
@@ -802,77 +922,126 @@ public final class Slopes extends SavedData {
 		return true;
 	}
 
-	/** The highwall's wedge in section {@code i} runs into the cut, line by line along the section. */
+	/** How deep the wedge reaches on line {@code k} of a section (0 to 9; -2, -1 and 10, 11 are the tapers into its neighbours). */
+	static double taper(int k) {
+		if (k < 0) {
+			return (k + TAPER_M + 1) / (TAPER_M + 1.0);
+		}
+		if (k >= SECTION_M) {
+			return (SECTION_M + TAPER_M - k) / (TAPER_M + 1.0);
+		}
+		return 1;
+	}
+
+	/**
+	 * When a block of the wedge lets go: the toe and the face first, the top and the back of the wedge after, and the middle of the
+	 * section before its ends, so the slide starts at its foot and middle and pulls the rest after it, within about 1.5 s.
+	 */
+	private static long launch(long now, double up, double back, int k) {
+		return now + Math.round(0.45 * up + 0.3 * back + 1.2 * Math.abs(k - (SECTION_M - 1) / 2.0));
+	}
+
+	/**
+	 * The highwall's wedge in section {@code i} runs into the cut, line by line along the section and 2 m into each neighbour, thinning:
+	 * each block slides from where it stood down the failure plane and out over the cut's floor to its cell, at the slide's run.
+	 */
 	public void slideWall(ServerLevel level, Strip strip, int i, double theta) {
 		int to = (int) Math.ceil(Dragline.farEdge(strip.width)) + 2;
 		int bench = (int) Math.floor(Dragline.standoff()) - BENCH_BACK;
 		Pouring pour = pour(level);
+		long now = level.getGameTime();
+		double tan = Math.tan(Math.toRadians(theta));
 		AABB caught = null;
 		int moved = 0;
-		for (int k = 0; k < SECTION_M; k++) {
+		List<Pouring.Slid> slid = new ArrayList<>();
+		for (int k = -TAPER_M; k < SECTION_M + TAPER_M; k++) {
 			int j = i * SECTION_M + k;
 			Wall w = wall(profile(level, strip, j, to), bench);
 			if (w == null) {
 				continue;
 			}
+			double depth = taper(k);
 			PitLoad load = new PitLoad(Long.MAX_VALUE);
+			List<Pouring.SlideFrom> from = new ArrayList<>();
 			for (int y = w.crestY() - 1; y >= w.toeY(); y--) {
-				for (int a = Math.max(-WEDGE_BEHIND, (int) Math.floor(w.planeAcross(y + 0.5, theta))); a < w.toeCol(); a++) {
-					if (a + 0.5 > w.planeAcross(y + 0.5, theta) && take(level, new BlockPos(strip.x(a, j), y, strip.z(a, j)), load)) {
+				double reach = depth * (w.toeCol() - w.planeAcross(y + 0.5, theta));
+				for (int a = Math.max(-WEDGE_BEHIND, (int) Math.floor(w.toeCol() - reach)); a < w.toeCol(); a++) {
+					if (w.toeCol() - (a + 0.5) >= reach) {
+						continue;
+					}
+					BlockPos at = new BlockPos(strip.x(a, j), y, strip.z(a, j));
+					if (take(level, at, load)) {
 						moved++;
+						// down the plane to the foot of the face, then out over the floor
+						double viaY = Math.max(w.toeY() + 0.5, y + 0.5 - (w.toeCol() - (a + 0.5)) * tan);
+						Vec3 via = new Vec3(strip.x(w.toeCol(), j) + 0.5, viaY, strip.z(w.toeCol(), j) + 0.5);
+						from.add(new Pouring.SlideFrom(at, via, launch(now, y - w.toeY(), w.toeCol() - 1 - a, k)));
 					}
 				}
 			}
+			if (from.isEmpty()) {
+				continue;
+			}
 			BlockPos start = new BlockPos(strip.x(w.toeCol() - 1, j), w.toeY() + (int) (w.height() / 2), strip.z(w.toeCol() - 1, j));
-			Vec3 lip = Vec3.atCenterOf(start);
 			Vec3 land = new Vec3(strip.x(w.toeCol(), j) + 0.5, w.toeY(), strip.z(w.toeCol(), j) + 0.5);
-			pour.pour(level, load, new Pouring.Spec(start, lip, land, SLIDE_WINDOW, SLIDE_SETTING, 3F));
+			slid.addAll(pour.slide(level, load, start, Settle.MOST_RISE_37, from));
 			dropLeft(level, load, land);
 			AABB box = new AABB(strip.x((int) Math.floor(w.planeAcross(w.crestY(), theta)) - 1, j), w.toeY() - 1, strip.z((int) Math.floor(w.planeAcross(w.crestY(), theta)) - 1, j),
 					strip.x(w.toeCol() + (int) w.height(), j) + 1, w.crestY() + 3, strip.z(w.toeCol() + (int) w.height(), j) + 1);
 			caught = caught == null ? box : caught.minmax(box);
 		}
 		Tailings.LOGGER.info("Tailings: highwall section {} of strip {} slid: {} blocks", i + 1, strip.id, moved);
-		afterSlide(level, strip, i, caught);
+		afterSlide(level, strip, i, caught, slid);
 	}
 
-	/** The spoil pile's face in section {@code i} slumps to about 1 in 2, by the wet settle rule. */
+	/** The spoil pile's face in section {@code i} slumps to about 1 in 2, by the wet settle rule, and 2 m into each neighbour, thinning. */
 	public void slideSpoil(ServerLevel level, Strip strip, int i) {
-		int from = (int) Math.floor(Dragline.standoff());
+		int from0 = (int) Math.floor(Dragline.standoff());
 		int to = (int) Math.ceil(Dragline.REACH_M);
 		Pouring pour = pour(level);
+		long now = level.getGameTime();
 		AABB caught = null;
 		int moved = 0;
-		for (int k = 0; k < SECTION_M; k++) {
+		List<Pouring.Slid> slid = new ArrayList<>();
+		for (int k = -TAPER_M; k < SECTION_M + TAPER_M; k++) {
 			int j = i * SECTION_M + k;
 			int[] h = profile(level, strip, j, to);
-			Pile p = pile(h, from, (int) Math.floor(Dragline.farEdge(strip.width)));
+			Pile p = pile(h, from0, (int) Math.floor(Dragline.farEdge(strip.width)));
 			if (p == null) {
 				continue;
 			}
+			double depth = taper(k);
 			PitLoad load = new PitLoad(Long.MAX_VALUE);
+			List<Pouring.SlideFrom> from = new ArrayList<>();
 			int topA = p.toeCol();
 			for (int a = p.toeCol() + 1; a <= to; a++) {
-				double line = p.toeY() + (a - p.toeCol()) / 2.0;
+				double plane = p.toeY() + (a - p.toeCol()) / 2.0;
+				double line = h[a] - depth * (h[a] - plane);   // the taper takes less off the top
 				for (int y = h[a] - 1; y >= Math.ceil(line); y--) {
-					if (take(level, new BlockPos(strip.x(a, j), y, strip.z(a, j)), load)) {
+					BlockPos at = new BlockPos(strip.x(a, j), y, strip.z(a, j));
+					if (take(level, at, load)) {
 						moved++;
 						topA = a;
+						double viaY = Math.max(p.toeY() + 0.5, y + 0.5 - (a - p.toeCol()) * 0.5);
+						Vec3 via = new Vec3(strip.x(p.toeCol(), j) + 0.5, viaY, strip.z(p.toeCol(), j) + 0.5);
+						from.add(new Pouring.SlideFrom(at, via, launch(now, y - p.toeY(), a - p.toeCol(), k)));
 					}
 				}
 			}
+			if (from.isEmpty()) {
+				continue;
+			}
 			int a0 = p.toeCol() + Math.max(1, (topA - p.toeCol()) / 3);
 			BlockPos start = new BlockPos(strip.x(a0, j), (int) Math.ceil(p.toeY() + (a0 - p.toeCol()) / 2.0) + 1, strip.z(a0, j));
-			Vec3 lip = Vec3.atCenterOf(start);
 			Vec3 land = new Vec3(strip.x(p.toeCol(), j) + 0.5, p.toeY(), strip.z(p.toeCol(), j) + 0.5);
-			pour.pour(level, load, new Pouring.Spec(start, lip, land, SLIDE_WINDOW, SLIDE_SETTING, 3F, Settle.WET_RISE));
+			slid.addAll(pour.slide(level, load, start, Settle.WET_RISE, from));
 			dropLeft(level, load, land);
 			AABB box = new AABB(strip.x(p.toeCol() - (int) (p.crestY() - p.base()), j), p.base() - 1, strip.z(p.toeCol() - (int) (p.crestY() - p.base()), j),
 					strip.x(topA + 1, j) + 1, p.crestY() + 3, strip.z(topA + 1, j) + 1);
 			caught = caught == null ? box : caught.minmax(box);
 		}
 		Tailings.LOGGER.info("Tailings: spoil section {} of strip {} slid: {} blocks", i + 1, strip.id, moved);
-		afterSlide(level, strip, i, caught);
+		afterSlide(level, strip, i, caught, slid);
 	}
 
 	/** What found no room in the cut drops as items where the slide lands: nothing is lost. */
@@ -886,8 +1055,101 @@ public final class Slopes extends SavedData {
 		}
 	}
 
-	/** The rumble, dust, and what the slide catches: players and mobs hurt, the dragline's ground checked. */
-	private void afterSlide(ServerLevel level, Strip strip, int i, @Nullable AABB caught) {
+	/**
+	 * A slide's run-out on its way: its blocks' cells and when each arrives, so the machines in its way are caught as it reaches them (a
+	 * truck buried or pushed and BLOCKED, a dragline's bucket buried). Kept while it runs, not saved.
+	 */
+	private static final class Runout {
+		final String dim;
+		final List<Pouring.Slid> slid;
+		final long[] arrive;
+		final AABB box;
+		final long end;
+		final Set<UUID> caught = new HashSet<>();
+
+		Runout(String dim, List<Pouring.Slid> slid, AABB box) {
+			this.dim = dim;
+			this.slid = slid;
+			this.arrive = new long[slid.size()];
+			long last = 0;
+			for (int n = 0; n < slid.size(); n++) {
+				Pouring.Slid s = slid.get(n);
+				arrive[n] = s.launch() + SlideMotion.ticks(Vec3.atCenterOf(s.from()).distanceTo(s.via()) + s.via().distanceTo(Vec3.atCenterOf(s.to())));
+				last = Math.max(last, arrive[n]);
+			}
+			this.box = box;
+			this.end = last + 40;
+		}
+	}
+
+	private final List<Runout> runouts = new ArrayList<>();
+
+	/** Every other tick: the machines each slide's run-out has reached are caught. */
+	private void runouts(ServerLevel level) {
+		long now = level.getGameTime();
+		String dim = dim(level);
+		for (java.util.Iterator<Runout> it = runouts.iterator(); it.hasNext();) {
+			Runout r = it.next();
+			if (!r.dim.equals(dim)) {
+				continue;
+			}
+			if (now > r.end) {
+				it.remove();
+			}
+			if (now % 2 != 0) {
+				continue;
+			}
+			Set<BlockPos> arrived = new HashSet<>();
+			for (int n = 0; n < r.slid.size(); n++) {
+				if (r.arrive[n] <= now) {
+					arrived.add(r.slid.get(n).to());
+				}
+			}
+			for (dev.wildcatter.tailings.entity.PitVehicleEntity v : level.getEntitiesOfClass(dev.wildcatter.tailings.entity.PitVehicleEntity.class, r.box)) {
+				if (v instanceof dev.wildcatter.tailings.entity.DraglineEntity d) {
+					d.slideOver(level, arrived);
+					continue;
+				}
+				if (r.caught.contains(v.getUUID())) {
+					continue;
+				}
+				AABB b = v.getBoundingBox().inflate(0.4, 0, 0.4);
+				boolean hit = false;
+				int top = Integer.MIN_VALUE;
+				double px = 0, pz = 0;
+				for (int n = 0; n < r.slid.size(); n++) {
+					Pouring.Slid s = r.slid.get(n);
+					BlockPos c = s.to();
+					if (c.getX() + 1 <= b.minX || c.getX() >= b.maxX || c.getZ() + 1 <= b.minZ || c.getZ() >= b.maxZ || c.getY() + 1 < b.minY - 0.5) {
+						continue;
+					}
+					top = Math.max(top, c.getY() + 1);
+					if (r.arrive[n] <= now) {
+						hit = true;
+					}
+					px += c.getX() + 0.5 - s.via().x;
+					pz += c.getZ() + 0.5 - s.via().z;
+				}
+				if (!hit) {
+					continue;
+				}
+				r.caught.add(v.getUUID());
+				boolean buried = top - b.minY >= v.getBbHeight() / 2;
+				double pl = Math.hypot(px, pz);
+				Vec3 push = pl < 1e-6 ? Vec3.ZERO : new Vec3(px / pl * 2, 0, pz / pl * 2);
+				v.caughtBySlide(level, push, top, buried);
+			}
+		}
+	}
+
+	/** The rumble, dust, and what the slide catches: players and mobs hurt, the dragline's ground checked, its blocks drawn on their way. */
+	private void afterSlide(ServerLevel level, Strip strip, int i, @Nullable AABB caught, List<Pouring.Slid> slid) {
+		if (!slid.isEmpty()) {
+			dev.wildcatter.tailings.entity.SlideEntity.show(level, slid);
+			if (caught != null) {
+				runouts.add(new Runout(dim(level), slid, caught.inflate(4, 2, 4)));
+			}
+		}
 		BlockPos c = strip.crest(i);
 		level.playSound(null, c, dev.wildcatter.tailings.TailingsSounds.HIGHWALL_SLIDE, SoundSource.BLOCKS, 12F, 0.8F);
 		level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, c.getX() + 0.5, c.getY() + 1, c.getZ() + 0.5, 30, 6, 2, 6, 0.01);
@@ -941,7 +1203,7 @@ public final class Slopes extends SavedData {
 	}
 
 	private static String part(Part p) {
-		return p.stage.name() + ',' + p.fs + ',' + p.failAt + ',' + p.clock + ',' + p.mm + ',' + p.cracks + ',' + p.rainSince + ',' + p.wetUntil + ',' + p.lastCrack;
+		return p.stage.name() + ',' + p.fs + ',' + p.failAt + ',' + p.clock + ',' + p.mm + ',' + p.cracks + ',' + p.rainSince + ',' + p.wetUntil + ',' + p.lastCrack + ',' + p.steps;
 	}
 
 	private static void part(Part p, String text) {
@@ -955,6 +1217,7 @@ public final class Slopes extends SavedData {
 		p.rainSince = Long.parseLong(f[6]);
 		p.wetUntil = Long.parseLong(f[7]);
 		p.lastCrack = Long.parseLong(f[8]);
+		p.steps = f.length > 9 ? Integer.parseInt(f[9]) : 0;
 	}
 
 	private static Slopes parse(String text) {

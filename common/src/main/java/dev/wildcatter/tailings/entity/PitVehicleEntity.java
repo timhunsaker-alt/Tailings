@@ -496,6 +496,48 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		return false;
 	}
 
+	// ---- a slide (dragline-hand-control.md, What a slide does) ----------------------------------------------------------------------
+
+	/** Ticks it still stands BLOCKED after a slide's run-out caught it. */
+	private int slideBlocked;
+
+	public boolean slideBlocked() {
+		return slideBlocked > 0;
+	}
+
+	/**
+	 * A slide's run-out reaches it. Buried over half its height it is wrecked (its item and its load, nothing lost); otherwise the
+	 * ground pushes it {@code push} and up onto the run-out's top at {@code restY}, and it stops, BLOCKED.
+	 */
+	public void caughtBySlide(ServerLevel level, Vec3 push, double restY, boolean buried) {
+		if (buried) {
+			dev.wildcatter.tailings.Tailings.LOGGER.info("Tailings: a {} was buried by a slide's run-out at {} and wrecked", getType().getDescription().getString(), blockPosition().toShortString());
+			wreckedBySlide(level);
+			return;
+		}
+		setPos(getX() + push.x, Math.max(getY(), restY), getZ() + push.z);
+		speed = 0;
+		slideBlocked = 600;
+		status = "BLOCKED: caught in a slide's run-out";
+		if (getFirstPassenger() instanceof Player p) {
+			p.sendOverlayMessage(Component.literal(getType().getDescription().getString() + ": " + status));
+		}
+	}
+
+	/** Buried by a slide: it breaks into its item and its load, tipped where it stands, and its driver is thrown clear and hurt. */
+	protected void wreckedBySlide(ServerLevel level) {
+		finishPour(level, load);
+		dev.wildcatter.tailings.pit.Loose.tip(level, blockPosition().above(), load);
+		refreshLoad();
+		spawnAtLocation(level, new net.minecraft.world.item.ItemStack(item()));
+		java.util.List<Entity> riders = java.util.List.copyOf(getPassengers());
+		ejectPassengers();
+		for (Entity rider : riders) {
+			rider.hurtServer(level, level.damageSources().fallingBlock(null), dev.wildcatter.tailings.pit.Slopes.SLIDE_DAMAGE);
+		}
+		discard();
+	}
+
 	// ---- driving -----------------------------------------------------------------------------------------------------------------
 
 	protected Input keys() {
@@ -513,6 +555,17 @@ public abstract class PitVehicleEntity extends Entity implements SoundingEntity 
 		}
 		if (ownTick(server)) {
 			return;
+		}
+		if (slideBlocked > 0) {
+			// caught in a slide's run-out: it stands, BLOCKED, until its driver drives it out or 30 s pass
+			slideBlocked--;
+			if (getFirstPassenger() instanceof ServerPlayer driver && (driver.getLastClientInput().forward() || driver.getLastClientInput().backward())) {
+				slideBlocked = 0;
+			} else {
+				speed = 0;
+				entityData.set(DATA_SPEED, 0F);
+				return;
+			}
 		}
 		Vec3 start = position();
 		boolean driven = getFirstPassenger() instanceof ServerPlayer;

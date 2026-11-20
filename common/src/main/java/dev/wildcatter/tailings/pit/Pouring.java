@@ -156,6 +156,106 @@ public final class Pouring {
 		return n;
 	}
 
+	/** One block of a slide: where it stood, the point at the foot of the face it runs past, and the tick it lets go. */
+	public record SlideFrom(BlockPos from, Vec3 via, long launch) {
+	}
+
+	/** One block of a slide on its way: where it stood, the foot of the face, the cell it comes to rest in, and when it lets go. */
+	public record Slid(BlockPos from, Vec3 via, BlockPos to, BlockState drawn, long launch) {
+	}
+
+	/**
+	 * A slide (dragline-hand-control.md, The slide): {@code load} is let go from {@code from}, block by block, each running from where it
+	 * stood down past the foot of the face and out to the cell the settle rule gives it from {@code start}, at a slide's run
+	 * ({@link SlideMotion}); the cells are held as {@link #pour} holds them, and they set lowest first, rim first, each once it has
+	 * arrived. The blocks that let go earliest run farthest, to the rim. What finds no room stays in {@code load}. Returns each block's way,
+	 * for drawing.
+	 */
+	public List<Slid> slide(ServerLevel level, PitLoad load, BlockPos start, int[] rise, List<SlideFrom> from) {
+		Set<BlockPos> held = held();
+		List<Loose.Piece> pieces = new ArrayList<>();
+		List<BlockPos> cells = new ArrayList<>();
+		for (Loose.Piece piece = Loose.next(load); piece != null; piece = Loose.next(load)) {
+			BlockPos rest = Loose.rest(level, start, held, rise);
+			if (rest == null) {
+				piece.putBack(load);
+				break;
+			}
+			held.add(rest);
+			pieces.add(piece);
+			cells.add(rest);
+		}
+		int n = pieces.size();
+		List<Slid> out = new ArrayList<>();
+		if (n == 0 || from.isEmpty()) {
+			pieces.forEach(p -> p.putBack(load));
+			return out;
+		}
+		// the first cells are by the start, the last at the rim: the blocks that let go first run to the rim. Rock swells as it breaks,
+		// so a wedge of rock gives more pieces than it had blocks: those share the blocks they broke from
+		List<SlideFrom> sorted = new ArrayList<>(from);
+		sorted.sort(java.util.Comparator.comparingLong(SlideFrom::launch).reversed());
+		List<SlideFrom> byLaunch = new ArrayList<>(n);
+		for (int i = 0; i < n; i++) {
+			byLaunch.add(sorted.get((int) ((long) i * sorted.size() / n)));
+		}
+		long[] arrive = new long[n];
+		int[] fall = new int[n];
+		for (int i = 0; i < n; i++) {
+			SlideFrom f = byLaunch.get(i);
+			BlockPos at = cells.get(i);
+			double toVia = SlideMotion.distance(Vec3.atCenterOf(f.from()), f.via());
+			double all = toVia + SlideMotion.distance(f.via(), Vec3.atCenterOf(at));
+			fall[i] = SlideMotion.ticks(toVia);
+			arrive[i] = f.launch() + SlideMotion.ticks(all);
+		}
+		Integer[] order = new Integer[n];
+		for (int i = 0; i < n; i++) {
+			order[i] = i;
+		}
+		double sx = start.getX() + 0.5, sz = start.getZ() + 0.5;
+		java.util.Arrays.sort(order, java.util.Comparator.<Integer>comparingInt(i -> cells.get(i).getY())
+				.thenComparing(i -> -Math.hypot(cells.get(i).getX() + 0.5 - sx, cells.get(i).getZ() + 0.5 - sz)));
+		long last = lastSet();
+		for (int k = 0; k < n; k++) {
+			int i = order[k];
+			SlideFrom f = byLaunch.get(i);
+			Loose.Piece piece = pieces.get(i);
+			long set = Math.max(arrive[i] + 2, last);
+			last = set;
+			flows.add(new Pour.Flow(cells.get(i), piece.state(), piece.quarters(), piece.taken(), f.launch(), fall[i], (int) (arrive[i] - f.launch() - fall[i]), set, Pour.GROUND,
+					Vec3.atCenterOf(f.from()), f.via(), 1.5F));
+			out.add(new Slid(f.from(), f.via(), cells.get(i), piece.state(), f.launch()));
+		}
+		changed = true;
+		return out;
+	}
+
+	/**
+	 * One block moved as it stands (a failing bench's slab creeping toward its face): let go at {@code launch}, it slides from
+	 * {@code from} to {@code to} and sets there as the same block, after every block set before it. Plants on it are swept off; machines'
+	 * blocks and muck stay. Returns its way, or null if nothing moved.
+	 */
+	public @Nullable Slid shift(ServerLevel level, BlockPos from, BlockPos to, long launch) {
+		BlockState state = level.getBlockState(from);
+		if (state.isAir() || !state.getFluidState().isEmpty() || state.hasBlockEntity()) {
+			return null;
+		}
+		if (state.canBeReplaced()) {
+			level.setBlock(from, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+			return null;
+		}
+		String id = PitMass.dugAs(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
+		level.setBlock(from, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		double d = Vec3.atCenterOf(from).distanceTo(Vec3.atCenterOf(to));
+		long arrive = launch + SlideMotion.ticks(d);
+		long set = Math.max(arrive + 1, lastSet());
+		flows.add(new Pour.Flow(to.immutable(), state, Map.of(), Map.of(id, (long) PitMass.kg(id)), launch, 0, (int) (arrive - launch), set, Pour.GROUND, Vec3.atCenterOf(from),
+				Vec3.atCenterOf(from), 1F));
+		changed = true;
+		return new Slid(from.immutable(), Vec3.atCenterOf(from), to.immutable(), state, launch);
+	}
+
 	/**
 	 * A stream drawn only, of {@code kg} already counted where it went: into a hopper's pocket at {@code at} ({@link Pour#POCKET}) or
 	 * onto a truck's load ({@link Pour#BODY}), {@code shares} lumps of it over {@code window} ticks.

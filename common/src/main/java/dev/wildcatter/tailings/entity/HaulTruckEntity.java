@@ -485,6 +485,11 @@ public class HaulTruckEntity extends PitVehicleEntity {
 		return true;
 	}
 
+	@Override
+	protected void wreckedBySlide(ServerLevel level) {
+		wreck(level);
+	}
+
 	/** Wrecked at the bottom: it breaks into its item and its load, tipped where it lands, and its driver takes the fall. Public for tests. */
 	public void wreck(ServerLevel level) {
 		finishPour(level, load);

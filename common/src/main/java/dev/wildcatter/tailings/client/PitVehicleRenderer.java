@@ -91,6 +91,16 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			state.bucketUp = d.bucketUp();
 			state.walk = d.walkPhase();
 			state.shadowRadius = 9F;
+			float[] tip = d.tipped(partialTick);
+			state.tip = tip[0];
+			state.tipX = tip[1];
+			state.tipZ = tip[2];
+			state.tipDrop = tip[3];
+			state.tipShift = tip[4];
+			state.tipPivot = tip[5];
+			if (state.tip != 0) {
+				state.shadowRadius = 0;
+			}
 		}
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
 		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
@@ -204,6 +214,14 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	@Override
 	public void submit(PitState state, PoseStack pose, SubmitNodeCollector collector, CameraRenderState camera) {
 		pose.pushPose();
+		if (state.tip != 0) {
+			// a dragline going down with a slide: it tips over its tub's edge toward the cut, sliding out and down with the ground
+			pose.translate(state.tipX * state.tipShift, -state.tipDrop, state.tipZ * state.tipShift);
+			pose.translate(state.tipX * state.tipPivot, 0, state.tipZ * state.tipPivot);
+			pose.rotateDegrees(Axis.of(new org.joml.Vector3f(state.tipZ, 0, -state.tipX)), state.tip);
+			pose.translate(-state.tipX * state.tipPivot, 0, -state.tipZ * state.tipPivot);
+		}
+		pose.pushPose();
 		pose.rotateDegrees(Axis.YP, 180.0F - state.yaw);
 		pose.scale(-1.0F, -1.0F, 1.0F);
 		EntityModel<PitState> model = switch (state.kind) {
@@ -255,6 +273,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 						}
 					});
 		}
+		pose.popPose();
 		super.submit(state, pose, collector, camera);
 	}
 
@@ -281,5 +300,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float walk;
 		/** The rope shovel's or dragline's ropes, pairs of points from it; empty for any other machine. */
 		public float[] ropes = NO_CABLE;
+		/** A dragline going down with a slide: degrees tipped, toward x z (a unit vector), metres dropped and slid out, and its pivot's distance out. */
+		public float tip, tipX, tipZ, tipDrop, tipShift, tipPivot;
 	}
 }
