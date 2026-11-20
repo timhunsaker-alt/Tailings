@@ -90,15 +90,26 @@ public class SlideRenderer extends EntityRenderer<SlideEntity, SlideRenderer.Sta
 				deg = (float) (run * TUMBLE * (0.6 + 0.8 * ((seed >>> 8) & 0xFF) / 255.0));
 			}
 			state.drawn.add(model(w.state()));
-			state.at.add(new float[] {(float) (p.x - ex), (float) (p.y - ey), (float) (p.z - ez), ax, az, deg});
+			state.at.add(new float[] {(float) (p.x - ex), (float) (p.y - ey), (float) (p.z - ez), ax, az, deg, light(entity.level(), p)});
 		}
+	}
+
+	/** The light where a block is now (or just over it, where it runs through ground still being set), not where its entity stands. */
+	private static float light(net.minecraft.world.level.Level level, Vec3 p) {
+		net.minecraft.core.BlockPos at = net.minecraft.core.BlockPos.containing(p);
+		int sky = 0, block = 0;
+		for (int up = 0; up <= 3 && sky < 15; up++) {
+			sky = Math.max(sky, level.getBrightness(net.minecraft.world.level.LightLayer.SKY, at.above(up)));
+			block = Math.max(block, level.getBrightness(net.minecraft.world.level.LightLayer.BLOCK, at.above(up)));
+		}
+		return Float.intBitsToFloat(net.minecraft.util.LightCoordsUtil.pack(block, sky));
 	}
 
 	@Override
 	public void submit(State state, PoseStack pose, SubmitNodeCollector collector, CameraRenderState camera) {
-		int light = state.lightCoords;
 		for (int i = 0; i < state.drawn.size(); i++) {
 			float[] a = state.at.get(i);
+			int light = Float.floatToRawIntBits(a[6]);
 			pose.pushPose();
 			pose.translate(a[0], a[1], a[2]);
 			if (a[5] != 0) {

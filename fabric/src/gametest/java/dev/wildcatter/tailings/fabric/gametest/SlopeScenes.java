@@ -33,12 +33,12 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * The dragline by hand and its slopes failing (docs/multiblocks/dragline-hand-control.md), filmed for the trailer in real time at
- * 1920 x 1080 with a clean view (no hotbar, no chat; the HUD only where the cab's readout is the point): TAILINGS_ONLY=dragline_hand,
+ * 2880 x 1620 (1440 x 810 points) with a clean view (no hotbar, no chat; the HUD only where the cab's readout is the point): TAILINGS_ONLY=dragline_hand,
  * highwall_slide, spoil_slide, dragline_wrecked. Each film holds still 3 s at its start and end for captions. Films to
  * {@code fabric/build/scene-videos/<scene>.mov}; each film's events are logged at their second in it ("[tailings-film]").
  */
 final class SlopeScenes {
-	private static final int W = 1920, H = 1080;
+	private static final int W = 1440, H = 810;   // points: 2880 x 1620 pixels on the Retina display, and the whole window on it
 	/** Held still at each film's start and end, ticks, for captions. */
 	private static final int PAD = 60;
 
@@ -80,6 +80,13 @@ final class SlopeScenes {
 	private static void site(ServerLevel level, BlockPos o) {
 		fill(level, o, Blocks.AIR, -40, 110, 1, 60, -50, 90);
 		fill(level, o, Blocks.STONE, -40, 110, -2, 0, -50, 90);
+	}
+
+	/** Goes to a site and keeps its chunks loaded, so what is built and spawned there is there. */
+	private void go(BlockPos o) {
+		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", o.getX() - 40, o.getZ() - 50, o.getX() + 110, o.getZ() + 90));
+		server.runCommand(String.format(Locale.ROOT, "tp @p %d %d %d", o.getX() + 30, o.getY() + 40, o.getZ() - 30));
+		context.waitTicks(60);
 	}
 
 	void run(boolean hand, boolean slide, boolean spoil, boolean wrecked) {
@@ -200,6 +207,7 @@ final class SlopeScenes {
 	 */
 	private void hand() {
 		BlockPos o = new BlockPos(2200, y + 4, -800);
+		go(o);
 		UUID[] name = new UUID[1];
 		UUID[] truckId = new UUID[1];
 		double truckSwing = 38, truckOut = 34;
@@ -359,14 +367,15 @@ final class SlopeScenes {
 
 	/**
 	 * highwall_slide: a 21 m dirt highwall laid back 2 in 1 (FS 0.81, FAILING), three prisms on its bench and a survey station behind,
-	 * at a time scale of 20: cracks open along the bench as its clock runs, the slab between the crack and the crest moves toward the
+	 * at a time scale of 10: cracks open along the bench as its clock runs, the slab between the crack and the crest moves toward the
 	 * face three times with its prisms, then the wall runs into the cut.
 	 */
 	private void highwallSlide() {
 		BlockPos o = new BlockPos(2200, y + 4, -500);
+		go(o);
 		long[] id = new long[1];
 		int crest = 22;
-		server.runCommand("wildcatter rule timeScale 20");
+		server.runCommand("wildcatter rule timeScale 10");
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
 			site(level, o);
@@ -382,15 +391,20 @@ final class SlopeScenes {
 				level.setBlock(o.offset(29, crest, z), TailingsBlocks.SLOPE_PRISM.defaultBlockState(), Block.UPDATE_ALL);
 			}
 			level.setBlock(o.offset(8, crest, 16), TailingsBlocks.SURVEY_STATION.defaultBlockState(), Block.UPDATE_ALL);
-			id[0] = strip(level, o, crest, 30, Dragline.BATTER_2_IN_1);
 		});
 		hud(false);
-		Cam c = Cam.of(o, 62, crest + 9, -22, 30, crest - 6, 6);
+		Cam c = Cam.of(o, 52, crest + 6, -12, 30, crest - 7, 6);
 		int[] cracks = {0}, steps = {0};
 		String[] stage = {"STABLE"};
 		film("highwall_slide", 1400, t -> c, t -> {
 			if (t == PAD) {
-				server.runOnServer(srv -> Slopes.checkNow(srv.overworld(), id[0], 0));
+				server.runOnServer(srv -> {
+					id[0] = strip(srv.overworld(), o, crest, 30, Dragline.BATTER_2_IN_1);
+					Slopes.checkNow(srv.overworld(), id[0], 0);
+				});
+			}
+			if (id[0] == 0) {
+				return;
 			}
 			String[] now = server.computeOnServer(srv -> {
 				Slopes.Part p = Slopes.strip(srv, id[0]).section(0).wall();
@@ -418,6 +432,7 @@ final class SlopeScenes {
 	/** spoil_slide: an 18 m spoil pile at 37 degrees on a clay floor, a pond at its toe: it slumps into the pond to about 1 in 2. */
 	private void spoilSlide() {
 		BlockPos o = new BlockPos(2200, y + 4, -200);
+		go(o);
 		long[] id = new long[1];
 		server.runCommand("wildcatter rule timeScale 20");
 		server.runOnServer(srv -> {
@@ -432,15 +447,20 @@ final class SlopeScenes {
 			fill(level, o, Blocks.STONE, 30, 43, 2, 3, -14, -13);
 			fill(level, o, Blocks.STONE, 30, 43, 2, 3, 23, 24);
 			fill(level, o, Blocks.WATER, 32, 43, 2, 2, -12, 22);
-			id[0] = strip(level, o, 12, 10, Dragline.BATTER_VERTICAL);
-			Slopes.cast(level, id[0], o.offset(50, 10, 5));
 		});
 		hud(false);
 		Cam c = Cam.of(o, 20, 22, -26, 52, 9, 6);
 		String[] stage = {"STABLE"};
 		film("spoil_slide", 900, t -> c, t -> {
 			if (t == PAD) {
-				server.runOnServer(srv -> Slopes.checkNow(srv.overworld(), id[0], 0));
+				server.runOnServer(srv -> {
+					id[0] = strip(srv.overworld(), o, 12, 10, Dragline.BATTER_VERTICAL);
+					Slopes.cast(srv.overworld(), id[0], o.offset(50, 10, 5));
+					Slopes.checkNow(srv.overworld(), id[0], 0);
+				});
+			}
+			if (id[0] == 0) {
+				return;
 			}
 			String now = server.computeOnServer(srv -> Slopes.strip(srv, id[0]).section(0).spoil().stage().name());
 			if (!now.equals(stage[0]) && !stage[0].equals("SLID")) {
@@ -456,6 +476,7 @@ final class SlopeScenes {
 	/** dragline_wrecked: a dragline standing on dirt by a 30 m vertical highwall: the wall slides, and the dragline tips into the cut. */
 	private void wrecked() {
 		BlockPos o = new BlockPos(2200, y + 4, 100);
+		go(o);
 		UUID[] name = new UUID[1];
 		long[] stripId = new long[1];
 		server.runCommand("wildcatter rule timeScale 20");
@@ -464,6 +485,11 @@ final class SlopeScenes {
 			site(level, o);
 			fill(level, o, Blocks.DIRT, -40, 32, 1, 29, -40, 40);
 			fill(level, o, Blocks.GRASS_BLOCK, -40, 32, 30, 30, -40, 40);
+			BlockPos hs = o.offset(-12, 31, -30);
+			level.setBlock(hs, TailingsBlocks.PIT_SWITCH_HOUSE.defaultBlockState().setValue(dev.wildcatter.block.BigPartBlock.FACING, Direction.NORTH), Block.UPDATE_ALL);
+			dev.wildcatter.multiblock.BigParts.grow(level, hs, level.getBlockState(hs));
+			PitSwitchHouseBlockEntity house = (PitSwitchHouseBlockEntity) level.getBlockEntity(hs);
+			house.forceSupply(true);
 			DraglineEntity d = TailingsEntities.DRAGLINE.create(level, EntitySpawnReason.COMMAND);
 			d.setPos(o.getX() + 20.5, o.getY() + 31, o.getZ() + 0.5);
 			d.setYRot(0);
@@ -472,12 +498,15 @@ final class SlopeScenes {
 			d.job().set(2, 1);
 			d.job().set(3, 0);
 			level.addFreshEntity(d);
+			ItemStack reel = new ItemStack(TailingsItems.TRAILING_CABLE, 4);
+			TrailingCableItem.pickUp(reel, house);
+			log("dragline_wrecked", "cable " + TrailingCableItem.couple(level, reel, d) + "; outlet " + house.close(0));
 			d.start();
 			name[0] = d.getUUID();
 			stripId[0] = d.stripId();
 		});
 		hud(false);
-		Cam c = Cam.of(o, 88, 40, -46, 24, 18, 4);
+		Cam c = Cam.of(o, 74, 42, -38, 26, 24, 2);
 		boolean[] tipping = {false}, gone = {false};
 		film("dragline_wrecked", 1200, t -> c, t -> {
 			if (t == PAD) {

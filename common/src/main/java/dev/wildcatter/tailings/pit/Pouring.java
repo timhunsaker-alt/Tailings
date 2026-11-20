@@ -44,6 +44,16 @@ public final class Pouring {
 		return flows.size();
 	}
 
+	/** Whether any block still on its way lands within {@code r} blocks (across the ground) of {@code at}. */
+	public boolean anyNear(BlockPos at, double r) {
+		for (Pour.Flow f : flows) {
+			if (Math.hypot(f.at().getX() - at.getX(), f.at().getZ() - at.getZ()) <= r) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public List<Pour.Flow> flows() {
 		return Collections.unmodifiableList(flows);
 	}

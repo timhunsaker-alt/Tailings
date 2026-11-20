@@ -1169,8 +1169,8 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		String slope = stripId >= 0 && dev.wildcatter.tailings.pit.Slopes.cracksNear(level, stripId, getX(), getZ(), Dragline.REACH_M) ? " | CRACKS" : "";
 		int pct = (int) Math.round(100.0 * Math.max(bucketQuarters / (double) Dragline.BUCKET_BANK_QUARTERS, load.total() / (double) Dragline.BUCKET_KG));
 		// short enough to read whole on a phone: swing, the bucket's reach and height, its load, the ropes, the draw
-		return String.format(Locale.ROOT, "HAND | swing %+.0f° | %.0f m out %+.0f m | %.0f t %d%% | hoist %+.1f drag %+.1f m/s | %.0f kW%s%s", swing(), bucketOut(), bucketUp(),
-				load.total() / 1000.0, pct, -hoistSpeed, -dragSpeed, handWatts / 1000, slope, bucketBuried ? " | BURIED" : "");
+		return String.format(Locale.ROOT, "HAND | swing %+.0f° | %.0f m out, %+.0f m | %.0f t, %d%% | %.0f kW%s%s", swing(), bucketOut(), bucketUp(), load.total() / 1000.0, pct,
+				handWatts / 1000, slope, bucketBuried ? " | BURIED" : "");
 	}
 
 	// ---- a slide (dragline-hand-control.md, Part 2) ---------------------------------------------------------------------------------

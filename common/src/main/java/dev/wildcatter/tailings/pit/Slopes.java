@@ -577,6 +577,10 @@ public final class Slopes extends SavedData {
 	}
 
 	private void check(ServerLevel level, Strip strip, int i) {
+		Pouring moving = pours.get(dim(level));
+		if (moving != null && moving.anyNear(strip.crest(i), Dragline.REACH_M)) {
+			return;   // its ground still on its way (a slide, its bench creeping): it is read again once that has set
+		}
 		Section sec = strip.section(i);
 		long now = level.getGameTime();
 		int scale = dev.wildcatter.TimeScale.scale();
@@ -658,6 +662,7 @@ public final class Slopes extends SavedData {
 		Pouring pour = pour(level);
 		long now = level.getGameTime();
 		List<Pouring.Slid> drawn = new ArrayList<>();
+		List<Runnable> ravels = new ArrayList<>();
 		for (int k = 0; k < SECTION_M; k++) {
 			int j = i * SECTION_M + k;
 			int[] h = profile(level, strip, j, w.toeCol() + 2);
@@ -696,12 +701,16 @@ public final class Slopes extends SavedData {
 				}
 			}
 			if (!ravel.empty()) {
-				// it bounces off the foot of the face and comes to rest a few metres out, clear of the toe
-				BlockPos start = new BlockPos(strip.x(line.toeCol() + 3, j), line.toeY(), strip.z(line.toeCol() + 3, j));
-				drawn.addAll(pour.slide(level, ravel, start, Settle.MOST_RISE_37, ravelFrom));
-				dropLeft(level, ravel, Vec3.atCenterOf(start));
+				// it bounces off the foot of the face and comes to rest a few metres out, clear of the toe; poured after every line's slab has
+				// moved, so the slabs set first
+				BlockPos start = new BlockPos(strip.x(line.toeCol() + 4, j), line.toeY(), strip.z(line.toeCol() + 4, j));
+				ravels.add(() -> {
+					drawn.addAll(pour.slide(level, ravel, start, Settle.MOST_RISE_37, ravelFrom));
+					dropLeft(level, ravel, Vec3.atCenterOf(start));
+				});
 			}
 		}
+		ravels.forEach(Runnable::run);
 		if (!drawn.isEmpty()) {
 			dev.wildcatter.tailings.entity.SlideEntity.show(level, drawn);
 		}
