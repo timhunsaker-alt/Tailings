@@ -2,6 +2,25 @@
 
 All notable changes are the merged pull requests on `main`. Dates are the merge dates in the repository history.
 
+## [0.2.1] - unreleased
+
+It requires Wildcatter 0.8.1.
+
+### Slides you can watch
+
+- **Slides flow:** a failing highwall or spoil pile now runs into the cut block by block, each block sliding down the face and out
+  over the floor at about 6 m/s over several seconds, instead of failing in one frame. The slide reaches 2 m into the sections
+  either side, thinning out.
+- **Creep you can see:** before a failing highwall slides, its tension cracks open along the bench and the ground between the crack
+  and the crest moves toward the face a metre at a time, three times, carrying its survey prisms with it. At a faster world time scale
+  this all happens sooner.
+- **A wrecked dragline tips over** the edge into the cut before it breaks into its parts.
+- **A buried bucket:** a slide over the dragline's bucket buries it (BUCKET BURIED); drag it out before it can hoist or swing.
+- **Caught in the run-out:** a truck or other pit machine buried over half its height is wrecked (its item and load dropped);
+  one at the edge of the run-out is pushed aside and stands BLOCKED for 30 seconds.
+- **Hand dumping into a truck:** dump the dragline's bucket by hand over a haul truck and it loads the truck.
+- The dragline's cab readout is shorter.
+
 ## [0.2.0] - unreleased
 
 It requires Wildcatter 0.8.1.

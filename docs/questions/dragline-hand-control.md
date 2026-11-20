@@ -128,3 +128,60 @@ Calls taken while building Tim's answers, on the best recommendation, for review
 - **Chosen:** a hand dump always pours where the bucket hangs, by the settle rule, onto whatever is below.
 - **Why:** the spec's truck loading by hand needs the shovels' loading into a body; a dragline is not a loading tool in practice.
 - **Alternatives:** load a truck under the bucket as the shovels do.
+
+## Finishing it (2026-11-20, branch `finish-0.2`, 0.2.1)
+
+The Wave B gaps closed for the trailer, on the best recommendation, for review. 11, 12 and 17 are superseded as below; 14 stands.
+
+### 18. A slide runs block by block at 6 m/s, each block drawn on its way (supersedes 11)
+- **Chosen:** each block of the wedge lets go (the toe and the middle first, the top and the ends within 1.5 s), speeds up at about
+  5 m/s² down the failure plane to 6 m/s, runs down the face and out over the cut to the cell the settle rule gives it, and sets
+  there. A small never-saved slide entity carries the blocks' ways to the client, which draws each block in its own model, tumbling;
+  the pour service still sets every block, so nothing is lost and the scenes' counts hold.
+- **Why:** the wall now visibly flows into the cut over several seconds instead of failing in one frame; one pour service still
+  owns the blocks.
+- **Alternatives:** the pour's wet sheet (a ground-hugging film; it does not show a face coming down); vanilla falling blocks (they
+  place themselves and lose the settle rule and the count).
+
+### 19. A failing bench creeps in three steps of a metre
+- **Chosen:** at 35, 60 and 80 % of a failing highwall's clock, the slab of bench between its tension crack and its crest slides a
+  metre toward the face over about half a second, with its prisms; the crack gapes a metre wider each time and the crest's block
+  ravels down the face, coming to rest 3 m out from the toe (at the toe it would read as a buttress). Cracks open as fast as the clock
+  runs out; a cracking or failing section is checked every 10 s divided by the time scale (at least once a second).
+- **Why:** real failing walls move metres in their last hours; this makes the warning something you can see and film, at the world's
+  time scale.
+- **Alternatives:** prism readings only (invisible); a smooth sub-block shift (the world has no sub-block ground).
+
+### 20. A prism is not ground
+- **Chosen:** a slope's profile reads through survey prisms, so a prism standing on the bench never moves its crest.
+- **Why:** a prism carried onto the bench's measuring column made the wall read as a different shape.
+
+### 21. The 2 m taper (closes part of 12)
+- **Chosen:** a section's slide reaches 2 m into each neighbouring section, the wedge reaching 2/3 then 1/3 as far behind the face.
+
+### 22. A wrecked dragline tips into the cut before it breaks
+- **Chosen:** with a third of its tub's ground gone it tips over the tub's edge toward the missing ground, to 70° over 3 s, sliding out
+  and down into the cut, drawn as its model turning; its operator is thrown clear at once; then it breaks where it landed into all
+  its parts, as before (Q3).
+- **Alternatives:** falling blocks of its parts (it is an entity drawn by its model, not blocks).
+
+### 23. A buried bucket (closes part of 12)
+- **Chosen:** a slide's blocks coming to rest over the bucket lying in the cut bury it: BUCKET BURIED. In HAND it neither hoists nor
+  swings until dragged out with W (full or not, it comes out); in AUTO the job stops its cycle and its next bucket is the slid ground
+  over it, top down. Saved with the machine.
+
+### 24. Machines caught in the run-out (closes part of 12)
+- **Chosen:** as the run-out reaches a truck, dozer, loader or shovel: buried over half its height by the cells planned over it, it is
+  wrecked (its item and load, nothing lost); otherwise it is pushed 2 m the way the slide runs, up onto the run-out, and stands BLOCKED
+  for 30 s or until its driver drives. Not saved (a slide reloaded mid-run catches nothing more).
+- **Alternatives:** BLOCKED until a player clears it (a self-driving fleet would stand forever).
+
+### 25. Dumped by hand over a truck, the load goes into the truck (supersedes 17)
+- **Chosen:** with the bucket over a haul truck's box, S loads the truck to its rated mass as a shovel does (the stream drawn into the
+  body); what it cannot take spills beside it by the settle rule. A cycle and a hand cast either way.
+
+### 26. The cab's readout is shorter
+- **Chosen:** HAND | swing | m out and up | t and % | hoist and drag m/s | kW (and CRACKS, BURIED), so it reads whole on a phone.
+
+### 27. No chart screen yet (14 stands)
+- **Chosen:** the station still reads out in chat; the chart screen was optional and is left for the next art wave.

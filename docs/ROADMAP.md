@@ -496,11 +496,10 @@ scenes `dragline_hand_dig`, `dragline_hand_limits`, `dragline_hand_give_back`, `
 - **The dragline's strip is square to the grid (P6):** set on its panel from where it was lifted. Hand control and slope failures were
   built in Wave B (below).
 - **Dragline by hand, not built (Wave B, dragline-hand-control.md 10-17):** walking by hand; the bucket swinging out of the boom's
-  plane, thrown past the point, or loading a truck; boom and rope damage; the job's cycle driven through the rope model (it carries on
+  plane or thrown past the point (a hand dump over a truck loads it since 0.2.1); boom and rope damage; the job's cycle driven through the rope model (it carries on
   from the bucket's pose instead).
-- **Slope failures, not built (Wave B):** a buried bucket; trucks and dozers buried by a run-out (they fall by their own driving); the
-  2 m taper at a section's ends; the slide drawn as the wet sheet and run at 6 m/s (it pours at the service's 2.4 m/s, undrawn); wedge
-  and toppling failures; shovel benches and truck dumps (only the dragline's own highwall and spoil, Tim's answer); presplit blasting,
+- **Slope failures, not built (Wave B; 0.2.1 closed the buried bucket, the run-out catching machines, the 2 m taper and the slide
+  running at 6 m/s, drawn block by block, decisions 18-25):** wedge and toppling failures; shovel benches and truck dumps (only the dragline's own highwall and spoil, Tim's answer); presplit blasting,
   drains, slope radar; the station's chart screen (it reads out in chat).
 - **Two paints on the dragline (P6):** as the rope shovel's: its parts in Wildcatter's materials, the lifted machine in Ludo's.
 - **The cable is drawn straight (P5a, decision 9):** from the coupler to the machine along the ground, not along the path it counts; it

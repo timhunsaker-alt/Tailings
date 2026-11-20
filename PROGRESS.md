@@ -2,6 +2,17 @@
 
 Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Finishing Wave B for the trailer (0.2.1, 2026-11-20, branch `finish-0.2`)
+
+The Wave B slope gaps closed (decisions 18-27 in [docs/questions/dragline-hand-control.md](docs/questions/dragline-hand-control.md)):
+slides run block by block at 6 m/s, drawn by never-saved slide entities while the pour service sets every block; a failing bench
+creeps three metre steps with its prisms, cracks keeping pace with the clock; the 2 m taper; a wrecked dragline tips into the cut over
+3 s; a buried bucket; machines caught in the run-out (wrecked if buried over half their height, else pushed and BLOCKED); hand dumps
+load trucks. New scenes `slope_slide_flow`, `slope_runout_trucks`, `slope_bucket_buried`, `slope_creep_steps`, `dragline_hand_truck`;
+unit test `SlideMotionTest`. The four client films re-shot for the trailer (real time, 1920 x 1080, clean view, 3 s caption room).
+- **Known gaps:** the survey station's chart screen (it reads out in chat); the run-out's catches and a vehicle's BLOCKED are not
+  saved; wedge and toppling failures; walking by hand.
+
 ## Wave B: the dragline by hand, highwall and spoil failures (2026-11-19, branch `spec-dragline-hand`)
 
 Spec approved by Tim 2026-11-19 (every question on its recommendation). Built: hand control of swing, drag and hoist with real

@@ -313,3 +313,12 @@ Everything above is built, with these readings (each a numbered decision in
 - **Scenes as built** (DraglineHandGameTests): `slope_water` uses a 14 m wall 2 in 1 (FS 1.19 dry, 0.91 wet: a 13 m staircase measures
   62 degrees, not 63); `slope_spoil` waits out its 3,840-tick clock at FS 0.8. The client films' spoil pile is 18 m (FS 0.67, slides in
   10 s); the highwall film's toe is dug from 9 to 12 m to bring the wall down within seconds.
+
+
+## Finished (0.2.1, 2026-11-20, branch `finish-0.2`)
+
+Decisions 18-27 in [../questions/dragline-hand-control.md](../questions/dragline-hand-control.md): a slide now runs block by block at
+6 m/s, drawn on its way (18); a failing bench creeps in three metre steps with its prisms (19); prisms are not ground (20); the 2 m
+taper (21); a wrecked dragline tips into the cut over 3 s before it breaks (22); a buried bucket (23); machines caught in the run-out
+(24); a hand dump over a truck loads it (25). Still left: the station's chart screen (27), wedge and toppling failures, walking by hand.
+New scenes: `slope_slide_flow`, `slope_runout_trucks`, `slope_bucket_buried`, `slope_creep_steps`, `dragline_hand_truck`.
