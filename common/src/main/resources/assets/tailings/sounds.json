@@ -29,6 +29,36 @@
     ],
     "subtitle": "subtitles.tailings.blast_siren"
   },
+  "highwall_creak": {
+    "sounds": [
+      "tailings:highwall_creak"
+    ],
+    "subtitle": "subtitles.tailings.highwall_creak"
+  },
+  "ravel": {
+    "sounds": [
+      "tailings:ravel"
+    ],
+    "subtitle": "subtitles.tailings.ravel"
+  },
+  "highwall_slide": {
+    "sounds": [
+      "tailings:highwall_slide"
+    ],
+    "subtitle": "subtitles.tailings.highwall_slide"
+  },
+  "survey_alarm": {
+    "sounds": [
+      "tailings:survey_alarm"
+    ],
+    "subtitle": "subtitles.tailings.survey_alarm"
+  },
+  "dragline_swing_brake": {
+    "sounds": [
+      "tailings:dragline_swing_brake"
+    ],
+    "subtitle": "subtitles.tailings.dragline_swing_brake"
+  },
   "jaw_crusher": {
     "sounds": [
       "tailings:jaw_crusher"

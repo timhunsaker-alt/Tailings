@@ -9,7 +9,8 @@ import soundfile as sf
 
 SRC = "art/sound_source"
 OUT = "common/src/main/resources/assets/tailings/sounds"
-ONE_SHOTS = ("muck_tip", "muck_load", "ring_set", "car_couple", "blast_siren")
+ONE_SHOTS = ("muck_tip", "muck_load", "ring_set", "car_couple", "blast_siren", "highwall_creak", "ravel", "highwall_slide", "survey_alarm",
+	"dragline_swing_brake")
 LOOPS = ("jaw_crusher", "cone_crusher", "vibrating_screen", "ball_mill", "belt_conveyor", "apron_feeder", "slurry_rush", "agitator",
 	"pressure_filter", "ore_sorter", "tbm_cutter", "mine_locomotive", "gyratory_crusher", "sag_mill", "large_ball_mill", "mine_hoist", "xrt_sorter",
 	"rotary_drill", "track_dozer", "rock_breaker", "slurry_pump", "tank_cell")
