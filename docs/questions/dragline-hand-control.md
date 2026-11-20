@@ -67,3 +67,64 @@ Format as [README.md](README.md).
 - **Why:** braking early for the dump point is the dragline operator's skill, and the job's own 17-20 s swings come from the same rates.
 - **Alternatives:** the swing stops when the key is let go (easier; hand casts would be faster than the job's).
 - **Tim (2026-11-19):** real inertia.
+
+## Building it (2026-11-19, branch `spec-dragline-hand`)
+
+Calls taken while building Tim's answers, on the best recommendation, for review.
+
+### 9. Handing back from the cab: jump and sprint together, not sprint alone
+- **Chosen:** jump and sprint held together for 2 s (and no other key) hands it back to AUTO while seated; getting out still does.
+- **Why:** sprint alone lowers the hoist, so holding it 2 s to lower the bucket handed the machine back by mistake. Hoisting up and
+  down at once means nothing on the levers, so it is free for the hand-back.
+- **Alternatives:** sprint alone with the hoist doing nothing while it is held (lowering would stop after 2 s); getting out only.
+
+### 10. Handed back, the job carries on from the bucket's pose; its cycle is not re-driven through the ropes
+- **Chosen:** loaded, the job picks its cast target and swings out from where the bucket hangs; empty, it swings back from there to
+  its last dig point and starts its next cycle. Its own 55 s cycle and its draw stay as built in P6 (poses on a timeline).
+- **Why:** the same result for the player (no jump of the bucket, nothing dug twice) without rebuilding a tested job; the hand's rope
+  model (`pit.DraglineRopes`) and the job's timeline agree on the rates (a 90 degree swing about 19 s by hand, 17-20 s by the job).
+- **Alternatives:** the job driving the same rope model (the spec's sentence; a larger change to P6's tested cycle).
+
+### 11. A slide runs at the pour service's 2.4 m/s, not 6 m/s
+- **Chosen:** a slide pours through the same `pit.Pouring` as a truck's load, leaving over 2 s and setting over 2 s, at the service's
+  run speed. The slide's blocks are not drawn as the wet sheet (no machine owns them): they appear rim first with dust, a rumble and
+  the slide's sound.
+- **Why:** one pour service, and the slide's mass is kept exactly (the scenes count every block). A faster run would need a second speed
+  in `Pour`; the sheet needs an entity to carry it to the client.
+- **Alternatives:** a run speed per pour; a small "slide" entity to draw the sheet.
+
+### 12. Left out of the slide for now: a buried bucket, trucks buried by the run-out, the 2 m taper at a section's ends
+- **Chosen:** a section slides its own 10 m, line by line; players and mobs in the wedge or the run-out take 8 damage (and vanilla
+  suffocation if buried); other vehicles fall by their own driving physics if the ground goes; the dragline's bucket is not buried.
+- **Why:** the spec's parts that matter most (the wedge, the cut filling, the dragline wrecked or GROUND GONE, harm) are in; the rest
+  each need their own scene. Listed in ROADMAP, Known gaps.
+- **Alternatives:** build them now.
+
+### 13. A slide reaches only the half of the tub ahead of the strip's start
+- **Chosen:** the strip's frame starts at the dragline's centre where it was lifted, so section 1's slide can take ground only under
+  the part of its tub ahead of that line. A 20 m vertical dirt wall at the strip's start takes about a fifth of the tub (GROUND GONE);
+  the scene and film use a 30 m wall, whose plane reaches past the tub's centre, to wreck it. Further along the strip (after a walk)
+  the tub is wholly beside the section.
+- **Why:** the record keeps what the dragline digs; a slide behind the start would be a wall it never dug.
+- **Alternatives:** sections that reach 10 m behind the start.
+
+### 14. The survey station reads out in chat; no chart screen
+- **Chosen:** clicked, the station lists each prism it sees (in line of sight, within 500 m): how far it has moved, mm/h, STEADY,
+  CREEPING or ACCELERATING, and the predicted slide time once one accelerates. Its PLC points are as specified.
+- **Why:** everything the chart would show, readable now; a screen with a chart is art and UI work for the next art wave.
+- **Alternatives:** a screen with each prism's velocity chart over the last game day (spec).
+
+### 15. The prism and the station are drawn from their Ludo icons, crossed
+- **Chosen:** each is a cross model (as a flower) of its 16 px Ludo picture; the tension crack is dirt with a Ludo crack on top.
+- **Why:** they read as the objects at once with no hand-built model; a real model is cheap to add later.
+- **Alternatives:** box models in Wildcatter's materials.
+
+### 16. "On the levers" asks for one bucket by hand, not ten
+- **Chosen:** the quest's task is the milestone `tailings:dragline_hand_cast`, fired for each bucket cast by hand.
+- **Why:** Wildcatter's milestone tasks tick once; there is no count on a milestone task.
+- **Alternatives:** a count on milestone tasks in Wildcatter.
+
+### 17. Dumped by hand over a truck, the load pours onto the ground under the bucket
+- **Chosen:** a hand dump always pours where the bucket hangs, by the settle rule, onto whatever is below.
+- **Why:** the spec's truck loading by hand needs the shovels' loading into a body; a dragline is not a loading tool in practice.
+- **Alternatives:** load a truck under the bucket as the shovels do.

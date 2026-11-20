@@ -2,6 +2,27 @@
 
 All notable changes are the merged pull requests on `main`. Dates are the merge dates in the repository history.
 
+## [0.2.0] - unreleased
+
+It requires Wildcatter 0.8.1.
+
+### The dragline by hand, and highwall and spoil failures (Wave B)
+
+- **Dragline by hand:** sit in the walking dragline's cab and touch a key to take the levers: A and D swing the house (it coasts:
+  brake early), W drags the bucket in through the bank, S pays the drag out, jump hoists, sprint lowers. Hoisted and loaded, S dumps
+  the bucket where it hangs. Get out, or hold jump and sprint for 2 seconds, and its job carries on from where the bucket is. The
+  switch house outlet has a new MACHINE HAND point; its MACHINE RUN off sets the brakes.
+- **Highwall batter and Stop on cracks** on the dragline's panel: the highwall is dug vertical, 2 in 1, 1 in 1 or 1 in 2 (auto: 2 in
+  1 with slope failures on, vertical with them off).
+- **Slope failures (world rule `slope_failures`, off in every world):** the dragline's highwalls and spoil piles can fail. Height,
+  slope, ground, water, rain and blast damage decide whether a highwall stands; a spoil pile slides over clay or mud or with water at
+  its toe. A slope going bad creeps: tension cracks open on the bench, loose ground ravels, prisms move; then it slides into the cut. A
+  slide under a dragline's tub can wreck it (all its parts given back) or leave it GROUND GONE until the ground is made up.
+- **Slope Prism and Survey Station:** read a prism with the survey book; a station reads every prism it can see within 500 m, raises
+  an ALARM over a set speed and predicts the slide time. PLC points: ALARM, WORST SPEED, PRISMS, ALARM SET.
+- **Quests:** "On the levers" and "Watch the wall", after the dragline.
+- **Sounds:** a ground groan, ravelling stones, the slide's rumble, the station's alarm, the swing brake.
+
 ## [0.1.0] - 2026-11-19
 
 The first public release. It requires Wildcatter 0.8.1. Everything below, from Phase 0 on, is in it.

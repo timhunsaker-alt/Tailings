@@ -2,6 +2,14 @@
 
 Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Wave B: the dragline by hand, highwall and spoil failures (2026-11-19, branch `spec-dragline-hand`)
+
+Spec approved by Tim 2026-11-19 (every question on its recommendation). Built: hand control of swing, drag and hoist with real
+inertia and rope geometry, the job handing over and back; the world rule `slope_failures` (off in every world) with highwall and spoil
+failures by Culmann's wedge and spoil limits, cracks, prisms, a survey station on the PLC, slides poured into the cut, the dragline
+wrecked or GROUND GONE; Ludo art and sound. 19 unit tests, 16 NeoForge scenes, 4 client films. Not built: see ROADMAP, Known gaps
+(Wave B lines) and questions/dragline-hand-control.md 10-17.
+
 ## Wave A: Tim's answers of 2026-11-19 (2026-11-19, branch `wave-a`)
 Tim's answers (B4-B6 and the C items, recorded under each entry in `docs/questions/`); decisions taken building them in
 [docs/questions/wave-a.md](docs/questions/wave-a.md). Every decision file is now accepted or answered: nothing waits on Tim.

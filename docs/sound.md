@@ -43,6 +43,11 @@ Volume above 1 is range, not loudness: the game hears a sound over 16 m times it
 | `ring_set` | one-shot | each ring the machine sets | 2 |
 | `car_couple` | one-shot | a car or gantry coupling | 1 |
 | `blast_siren` | one-shot | the blasting machine's siren, a 5.4 s wail as FIRE is pressed and again 5 s later | 8 |
+| `highwall_creak` | one-shot | a creeping or failing highwall or spoil pile, each check | 2.5 |
+| `ravel` | one-shot | loose ground ravelling off a cracking face | 1.5 |
+| `highwall_slide` | one-shot | a slope sliding; a dragline wrecked | 12 |
+| `survey_alarm` | one-shot | the survey station's alarm, as it comes on | 3 |
+| `dragline_swing_brake` | one-shot | the dragline's swing braked to a stop by hand | 2 |
 | Wildcatter's `structure_formed` | one-shot | the machine lifting and setting down | 2 |
 
 Silent on purpose: the grizzly, pocket, ramp, bins and pond (no motor), the reel gantry (the reel does not turn yet, see Known gaps).

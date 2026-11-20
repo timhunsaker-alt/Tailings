@@ -428,6 +428,18 @@ film `pit_pour`. Since 2026-11-18 (branch `flow-all`) every earthmoving machine 
 dozer's spills (but its CUT windrow), the dragline's cast, and a loader's or shovel's bucket drawn pouring into a truck's body. A
 blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_pour_dozer`, `pit_pour_dragline`, `pit_pour_loader`.
 
+## Wave B: the dragline by hand, highwall and spoil failures (2026-11-19)
+
+Spec: [multiblocks/dragline-hand-control.md](multiblocks/dragline-hand-control.md) (approved by Tim 2026-11-19, every question on its
+recommendation); decisions [questions/dragline-hand-control.md](questions/dragline-hand-control.md); branch `spec-dragline-hand`. A
+player in the dragline's cab takes the levers by touching a key: swing with real inertia, drag and hoist on two ropes, dig, dump; the
+job carries on from the bucket when handed back. With the world rule `slope_failures` (off in every world) the dragline's highwall
+and spoil can crack and slide; slope prisms and a survey station warn. Unit tests `DraglineRopesTest`, `SlopeTest`, `SlopeClockTest`;
+scenes `dragline_hand_dig`, `dragline_hand_limits`, `dragline_hand_give_back`, `dragline_hand_plc_stop`, `slope_rule_off`,
+`dragline_batter`, `slope_highwall_creep`, `slope_highwall_slide`, `slope_water`, `slope_blast`, `slope_buttress`, `slope_spoil`,
+`slope_dragline_wrecked`, `slope_dragline_ground_gone`, `slope_station_alarm`, `slope_saved`; client films `dragline_hand`,
+`highwall_slide`, `spoil_slide`, `dragline_wrecked`.
+
 ## Later, not scheduled
 - **Time scale (Tim, 2026-11-10): built 2026-11-19 (wave A).** Tailings reads Wildcatter's `timeScale` (1:1 to 50:1, spec
   `wildcatter/docs/time-scale.md`): the paste cure scales with it, and Tailings' rules are on the same World Rules screen (scenes
@@ -481,10 +493,15 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
 - **The rope shovel does not answer on its outlet's PLC points (P5d, decision 32):** since P6 every switch house outlet has a machine's
   points (MACHINE RUN, RUNNING, DONE, CYCLES, POWER) on its cable's control pair, and the dragline answers them (p6-dragline.md 18). The
   rope shovel does not yet: it would report RUNNING and a pulse a pass from `PitShovelEntity.afterPass`, and take RUN as its AUTO.
-- **The dragline is driven by its job only (P6, spec):** a player may sit in its cab, but the keys do nothing: no hand control of
-  swing, drag and hoist. Its strip is set on its panel from where it was lifted, square to the grid.
-- **The dragline's spoil and highwall never fail (P6, spec Left out):** the pile stands at the settle rule's angle; nothing slides under
-  the machine; spoil that rolls into the cut is dug again (it is kept 6 m out and leaned away, so it rarely does).
+- **The dragline's strip is square to the grid (P6):** set on its panel from where it was lifted. Hand control and slope failures were
+  built in Wave B (below).
+- **Dragline by hand, not built (Wave B, dragline-hand-control.md 10-17):** walking by hand; the bucket swinging out of the boom's
+  plane, thrown past the point, or loading a truck; boom and rope damage; the job's cycle driven through the rope model (it carries on
+  from the bucket's pose instead).
+- **Slope failures, not built (Wave B):** a buried bucket; trucks and dozers buried by a run-out (they fall by their own driving); the
+  2 m taper at a section's ends; the slide drawn as the wet sheet and run at 6 m/s (it pours at the service's 2.4 m/s, undrawn); wedge
+  and toppling failures; shovel benches and truck dumps (only the dragline's own highwall and spoil, Tim's answer); presplit blasting,
+  drains, slope radar; the station's chart screen (it reads out in chat).
 - **Two paints on the dragline (P6):** as the rope shovel's: its parts in Wildcatter's materials, the lifted machine in Ludo's.
 - **The cable is drawn straight (P5a, decision 9):** from the coupler to the machine along the ground, not along the path it counts; it
   is drawn while the machine is near enough to be tracked (about 256 blocks for the rope shovel).

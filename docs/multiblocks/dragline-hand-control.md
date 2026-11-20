@@ -298,3 +298,18 @@ Also in [../questions/dragline-hand-control.md](../questions/dragline-hand-contr
 6. **The levers' keys:** vanilla keys (W/S drag, A/D swing, jump and sprint hoist); or new rebindable key bindings for two levers?
 7. **Walking by hand:** left out (the job walks); or a step key in HAND?
 8. **Swing inertia:** real inertia (the house coasts 40° from full speed); or the swing stops when the key is let go?
+
+## As built (Wave B, 2026-11-19, branch `spec-dragline-hand`)
+
+Everything above is built, with these readings (each a numbered decision in
+[../questions/dragline-hand-control.md](../questions/dragline-hand-control.md), 9-17):
+- **Handing back from the cab** is jump and sprint held together 2 s, not sprint alone, which lowers the hoist (9).
+- **Handed back,** the job carries on from the bucket's pose on its own P6 timeline; it is not re-driven through the rope model (10).
+- **A slide** pours at the pour service's own speed, undrawn as the wet sheet; what finds no room drops as items (11). A buried bucket,
+  vehicles buried by the run-out and the 2 m taper are not built (12). A section reaches only the part of the tub ahead of its strip's
+  start, so the wreck scene and film use a 30 m wall (13).
+- **The station** reads out in chat, with no chart screen (14); the prism and station are crossed Ludo icons (15).
+- **"On the levers"** is one bucket by hand (16). A hand dump over a truck pours onto the ground under the bucket (17).
+- **Scenes as built** (DraglineHandGameTests): `slope_water` uses a 14 m wall 2 in 1 (FS 1.19 dry, 0.91 wet: a 13 m staircase measures
+  62 degrees, not 63); `slope_spoil` waits out its 3,840-tick clock at FS 0.8. The client films' spoil pile is 18 m (FS 0.67, slides in
+  10 s); the highwall film's toe is dug from 9 to 12 m to bring the wall down within seconds.

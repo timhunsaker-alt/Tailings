@@ -576,6 +576,45 @@ Spec: [multiblocks/dragline.md](multiblocks/dragline.md) (approved); the choices
   placed out and up by its job; its hoist, drag and suspension ropes drawn as lines. Its parts in Wildcatter's materials
   (`tools/models/dragline.py`). Its box is the house over the tub, 24 x 20 x 15 m.
 
+## The dragline by hand, and highwall and spoil failures (Wave B)
+
+Spec: [multiblocks/dragline-hand-control.md](multiblocks/dragline-hand-control.md); decisions in
+[questions/dragline-hand-control.md](questions/dragline-hand-control.md).
+
+- **The levers** (`DraglineEntity.levers`, `pit.DraglineRopes`, plain Java, `DraglineRopesTest`): a player in the cab takes HAND by
+  touching a key (forward, back, left, right, jump, sprint, read from the server's copy of the rider's input). A/D swing at up to 9
+  degrees a second, speeding up and braking at 1 degree a second squared (it coasts 40 degrees from full speed; the other key brakes
+  twice as hard); W/S wind the drag in and out (2.5 m/s free, a third of a metre a second through the bank); jump and sprint the hoist
+  (2.5 m/s empty, 1.5 loaded). The bucket hangs where its hoist rope from the boom point (72 m out, 44 up) and its drag rope from the
+  fairlead (8.5 m out, 1 up) meet, or lies on the ground; it stops 4 m under the point, 15 m from the centre, 65 m out and 35 m down.
+  Dragged along the ground it cuts the layer it bit into, 5 wide and up to 4 high, a metre at a time: 25 bank blocks or 55 t, as the
+  job; rock skids it, ore and machines are left. Drag paid out with the bucket hoisted and loaded dumps it where it hangs (`Pouring`).
+  The motions share 6 MW (drag through the bank 4.8 MW, hoist loaded 4.8, any other 1.2, swing speeding up 1.2), so the breaker never
+  trips by the levers. Getting out, or jump and sprint held 2 s, hands it back: the job casts a loaded bucket from where it hangs, or
+  swings back to dig. The PLC's MACHINE RUN off sets the brakes in HAND; MACHINE HAND (one an outlet, after every other point) reads on.
+  Walking stays the job's.
+- **The strip panel** gains **Highwall** (auto, vertical, 2 in 1, 1 in 1, 1 in 2; auto is 2 in 1 with `slope_failures` on, vertical
+  off; a job saved before reads vertical: `Dragline.batterOffset`) and **Stop on cracks** (on). The width is at the crest; the face leans
+  into the strip.
+- **The slope record** (`pit.Slopes`, saved data `tailings:slopes`): each dragline's strip from its lift, in 10 m sections, kept until 7
+  game days after DONE. With the world rule `slope_failures` on, each loaded section is checked every 10 s (`mine.Slope`, plain Java,
+  `SlopeTest`, `SlopeClockTest`):
+  - **highwall:** its crest 3 m back on the bench, its toe where the face stops falling, its height and angle from the section's middle
+    line; the ground in its wedge on three lines (sand, gravel, dirt, clay, spoil, rock: Culmann's critical height from c, phi and
+    gamma); wet with water in the wedge or 8 m behind it, or after 10 min of rain for a game day (phi as atan(0.7 tan phi)); a blast hole
+    within 15 m of the crest halves c for good (`Shot` tells it), within 100 m takes 0.05 off for a game hour. FS is its critical height
+    over its height.
+  - **spoil** (sections the dragline cast into): over clay or mud at its toe or with water at it, it stands to 24 m, both 12 m.
+  - **stages:** 1.3 STABLE; CREEP (prisms 0-2 mm/h; under 1.15 a `tension_crack` a minute where the plane meets the bench, creaks and
+    ravelling dust); FAILING under 1 on a clock of a game day at 0.95 to 2 min at 0.7 (10 s under 0.7), at Wildcatter's time scale,
+    only ever shortening; prisms accelerate (1/velocity to zero at the slide). Then the wedge (the face to a plane at (beta + phi)/2
+    through the toe; for spoil, above 1 in 2 from its toe) is taken line by line and poured into the cut by the settle rule (spoil by
+    `Settle.WET_RISE`, about 1 in 2); what finds no room drops as items. Players and mobs caught take 8; a dragline with a third of its
+    tub's ground gone is wrecked into all its parts, cable and load; with less, GROUND GONE until made up.
+- **Survey:** `slope_prism` (read by the survey book or a click; never the FS) and `survey_station` (reads prisms in sight within 500 m
+  each minute; ALARM, WORST SPEED and PRISMS 4-20 mA, ALARM SET as an analog output, 10 mm/h). `/tailings slope` (operators) prints each
+  section's FS.
+
 ## The shaft and hoist (L4)
 
 Spec: [multiblocks/shaft-and-hoist.md](multiblocks/shaft-and-hoist.md) (draft, decided on recommendation); the choices made building it
@@ -840,6 +879,7 @@ sets explicitly is taken over that world's default; after that they are not read
 | `paste_unloaded_cure` | on | Paste makes up the time its chunk was unloaded (gaps2.md #6) |
 | `dry_mill_all_hmc` | on | A filter with a dryer touching it sends all its HMC to the dry mill (l6-dry-mill.md #3) |
 | `paste_wall_breach` | off | A solid wall removed beside wet paste spills it, as a broken bulkhead does (gaps2.md #5) |
+| `slope_failures` | off | A dragline's highwall and spoil pile can crack and slide (dragline-hand-control.md #1) |
 
 ## Blocks
 
