@@ -26,7 +26,7 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [dump-station.md](dump-station.md) | R3, R4 | the one-block `dump_station` with a slot-map sorter |
 | [open-pit.md](open-pit.md) | P1-P5, P7 | (new) drill, blast, load, haul, dumps |
 | [dragline.md](dragline.md) | P6 | (new) strip mining |
-| [dragline-hand-control.md](dragline-hand-control.md) | Wave B (DRAFT) | (new) the dragline by hand; highwall and spoil failures |
+| [dragline-hand-control.md](dragline-hand-control.md) | Wave B (approved 2026-11-19) | (new) the dragline by hand; highwall and spoil failures |
 | [tunnel-drill-haulage.md](tunnel-drill-haulage.md) | | pointer only: split into the three specs above |
 | [open-pit-p3-blasting.md](open-pit-p3-blasting.md) | P3 (DRAFT) | (new) build detail: blasthole drill, emulsion truck, boosters, detonators, the blast, misfires |
 | [open-pit-p4-dry-stack.md](open-pit-p4-dry-stack.md) | P4 (DRAFT) | (new) build detail: tailings thickener and filter, load-out, dumps, berms, track dozer |

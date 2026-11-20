@@ -1,4 +1,4 @@
-# The dragline by hand, and highwall and spoil failures (DRAFT, Wave B, 2026-11-19; not approved)
+# The dragline by hand, and highwall and spoil failures (APPROVED by Tim 2026-11-19, every question on its recommendation; Wave B)
 
 Follows [dragline.md](dragline.md) (approved 2026-11-09, built in P6) and closes two of its Left out lines: **hand control of swing,
 drag and hoist**, and **highwall and spoil-pile failures**. Questions for Tim are at the end and in
@@ -286,7 +286,7 @@ No new dragline part, no voltage written anywhere (the dragline's power is in MW
 - Presplit and wall-control blasting; horizontal drains and dewatering bores as their own machines; slope radar.
 - A wider stand-back setting on the panel.
 
-## Questions for Tim
+## Questions for Tim (answered 2026-11-19: the recommended option of each)
 Also in [../questions/dragline-hand-control.md](../questions/dragline-hand-control.md), recommended option first.
 1. **The world rule's default:** off in every world (opt-in), or on in new worlds and off in existing ones (house rule 9)?
 2. **How long a failing wall gives:** about a game day at FS 0.95 down to 2 min at 0.7; several game days (real pace); or a slide
