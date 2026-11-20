@@ -50,6 +50,7 @@ answer still has to be built, that line ends "built in" and the commit. Decision
 | Tailings | `specs-tailings.md` | 56 | the specs written for every remaining idea (P5 to P7, mills, shaft and hoist, ventilation, sorting) |
 | Tailings | `plant-motion.md` | 3 | the crushers and apron feeders move (2026-11-19) |
 | Tailings | `wave-a.md` | - | Wave A (2026-11-19): decisions taken building Tim's 11-19 answers |
+| Tailings | `dragline-hand-control.md` (branch `spec-dragline-hand`) | 8 | Wave B spec: the dragline by hand, highwall and spoil failures (world rule `slope_failures`) |
 | Wildcatter | `ammonia-plant.md` | 14 | the ammonia plant (0.6.0) |
 | Wildcatter | `phase14-gas-power.md` | 19 | Phase 14b-e: gas and power quick wins (and the solver's closing angle) |
 | Wildcatter | `protection-gaps.md` | 28 | relays, switchgear, poles, service drops |
