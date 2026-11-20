@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "Y",
+    "R",
+    "I"
+  ],
+  "key": {
+    "Y": "minecraft:spyglass",
+    "R": "minecraft:redstone",
+    "I": "wildcatter:steel_ingot"
+  },
+  "result": {
+    "id": "tailings:survey_station",
+    "count": 1
+  }
+}

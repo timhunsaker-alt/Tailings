@@ -118,12 +118,17 @@ public final class Loose {
 
 	/** Where a block let go at {@code start} rests by the settle rule, the {@code held} cells counted as taken; null with no room. */
 	public static @Nullable BlockPos rest(ServerLevel level, BlockPos start, java.util.Set<BlockPos> held) {
+		return rest(level, start, held, Settle.MOST_RISE_37);
+	}
+
+	/** As {@link #rest(ServerLevel, BlockPos, java.util.Set)}, by a settle rule's own rises (a slid spoil pile's wet rule). */
+	public static @Nullable BlockPos rest(ServerLevel level, BlockPos start, java.util.Set<BlockPos> held, int[] rise) {
 		Settle.Ground ground = ground(level, held);
 		BlockPos open = opening(ground, start);
 		if (open == null) {
 			return null;
 		}
-		Settle.Cell cell = Settle.rest(ground, open.getX(), open.getY(), open.getZ(), new java.util.Random(level.getRandom().nextLong()));
+		Settle.Cell cell = Settle.rest(ground, open.getX(), open.getY(), open.getZ(), new java.util.Random(level.getRandom().nextLong()), rise);
 		return cell == null ? null : new BlockPos(cell.x(), cell.y(), cell.z());
 	}
 

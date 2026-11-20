@@ -255,6 +255,15 @@ public final class TailingsBlocks {
 			.strength(3.5F, 8.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
 	public static final BlockEntityType<DumpBlockEntity> DUMP = new BlockEntityType<>(DumpBlockEntity::new, Set.of(DUMP_POCKET, PIT_HOPPER, GYRATORY_POCKET));
 	public static final BlockEntityType<SignalBlockEntity> SIGNAL = new BlockEntityType<>(SignalBlockEntity::new, Set.of(BLOCK_SIGNAL));
+	/** Ground cracked behind a failing highwall's crest (dragline-hand-control.md): dirt with a crack through it; it drops dirt. */
+	public static final Block TENSION_CRACK = block("tension_crack", props -> new Block(props.mapColor(MapColor.DIRT).strength(0.5F).sound(SoundType.GRAVEL)));
+	/** A survey prism on a pole, read by the survey book and the survey station. */
+	public static final Block SLOPE_PRISM = block("slope_prism", props -> new dev.wildcatter.tailings.block.SlopePrismBlock(props.mapColor(MapColor.COLOR_ORANGE)
+			.strength(0.5F, 1.0F).sound(SoundType.METAL).noOcclusion()));
+	/** The survey station: a robotic total station on a pillar, with PLC points. */
+	public static final Block SURVEY_STATION = block("survey_station", props -> new dev.wildcatter.tailings.block.SurveyStationBlock(props.mapColor(MapColor.COLOR_YELLOW)
+			.strength(2.0F, 6.0F).sound(SoundType.METAL).noOcclusion()));
+	public static final BlockEntityType<dev.wildcatter.tailings.block.SurveyStationBlockEntity> SURVEY_STATION_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.SurveyStationBlockEntity::new, Set.of(SURVEY_STATION));
 	public static final BlockEntityType<RectifierBlockEntity> RECTIFIER = new BlockEntityType<>(RectifierBlockEntity::new, Set.of(TRACTION_RECTIFIER));
 
 	private TailingsBlocks() {
@@ -307,6 +316,10 @@ public final class TailingsBlocks {
 		add("heavy_belt_conveyor", HEAVY_BELT_CONVEYOR);
 		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("muck"), MUCK_ENTITY);
 		add("survey_stake", SURVEY_STAKE);
+		add("tension_crack", TENSION_CRACK);
+		add("slope_prism", SLOPE_PRISM);
+		add("survey_station", SURVEY_STATION);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, Tailings.id("survey_station"), SURVEY_STATION_ENTITY);
 		add("dry_tails", DRY_TAILS);
 		add("vent_duct", VENT_DUCT);
 		add("fill_bulkhead", FILL_BULKHEAD);

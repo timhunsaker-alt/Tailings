@@ -22,6 +22,16 @@ public final class TailingsSounds {
 	public static final SoundEvent TBM_CUTTER = make("tbm_cutter");
 	public static final SoundEvent MINE_LOCOMOTIVE = make("mine_locomotive");
 	public static final SoundEvent MUCK_TIP = make("muck_tip");
+	/** A highwall or spoil pile creeping: a deep ground groan (dragline-hand-control.md). */
+	public static final SoundEvent HIGHWALL_CREAK = make("highwall_creak");
+	/** Loose ground ravelling off a cracking face. */
+	public static final SoundEvent RAVEL = make("ravel");
+	/** A slope sliding: a long low rumble. */
+	public static final SoundEvent HIGHWALL_SLIDE = make("highwall_slide");
+	/** The survey station's alarm. */
+	public static final SoundEvent SURVEY_ALARM = make("survey_alarm");
+	/** The dragline's swing brake, set by hand. */
+	public static final SoundEvent DRAGLINE_SWING_BRAKE = make("dragline_swing_brake");
 	public static final SoundEvent MUCK_LOAD = make("muck_load");
 	public static final SoundEvent RING_SET = make("ring_set");
 	public static final SoundEvent CAR_COUPLE = make("car_couple");

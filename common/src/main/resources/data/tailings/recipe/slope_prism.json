@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "G",
+    "C",
+    "S"
+  ],
+  "key": {
+    "G": "minecraft:glass_pane",
+    "C": "minecraft:copper_ingot",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "tailings:slope_prism",
+    "count": 4
+  }
+}

@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import dev.wildcatter.tailings.mine.Settle;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -29,7 +30,10 @@ public final class Pouring {
 	private boolean changed;
 
 	/** A pour onto the ground, as a machine asks for it. */
-	public record Spec(BlockPos start, Vec3 lip, Vec3 land, int window, int setting, float wide) {
+	public record Spec(BlockPos start, Vec3 lip, Vec3 land, int window, int setting, float wide, int[] rise) {
+		public Spec(BlockPos start, Vec3 lip, Vec3 land, int window, int setting, float wide) {
+			this(start, lip, land, window, setting, wide, Settle.MOST_RISE_37);
+		}
 	}
 
 	public boolean empty() {
@@ -106,7 +110,7 @@ public final class Pouring {
 		List<Loose.Piece> pieces = new ArrayList<>();
 		List<BlockPos> cells = new ArrayList<>();
 		for (Loose.Piece piece = Loose.next(load); piece != null; piece = Loose.next(load)) {
-			BlockPos rest = Loose.rest(level, spec.start(), held);
+			BlockPos rest = Loose.rest(level, spec.start(), held, spec.rise());
 			if (rest == null) {
 				piece.putBack(load);
 				break;

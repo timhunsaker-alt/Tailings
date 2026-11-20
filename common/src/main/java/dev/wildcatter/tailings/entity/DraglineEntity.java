@@ -1,5 +1,6 @@
 package dev.wildcatter.tailings.entity;
 
+import dev.wildcatter.tailings.Tailings;
 import dev.wildcatter.tailings.TailingsBlocks;
 import dev.wildcatter.tailings.block.ChunkRunner;
 import dev.wildcatter.tailings.block.DraglineBlockEntity;
@@ -83,6 +84,29 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	private long bankQuarters;
 	private int steps;
 	private int divisor = 1;
+
+	// ---- by hand (dragline-hand-control.md, Part 1) ----
+	/** A player has its levers: the job waits, and the keys move swing, drag and hoist. */
+	private boolean hand;
+	/** The swing's speed, degrees a second, plus to its right. */
+	private double swingRate;
+	/** After handing back with sprint, the keys do nothing until all are let go. */
+	private boolean latch;
+	private int sprintTicks;
+	/** The layer the bucket bit into when this pass began, or MIN_VALUE between passes; the last metre it cut. */
+	private int biteY = Integer.MIN_VALUE;
+	private int lastCut = Integer.MIN_VALUE;
+	private boolean dumpLatch;
+	/** The PLC's RUN is off: the brakes are set. */
+	private boolean plcHold;
+	private double handWatts;
+	private long handCasts;
+	private boolean testSeated;
+	private int sayIn;
+	/** A slide took ground from under its tub (Part 2). */
+	private boolean groundGone;
+	/** Its strip in the slope record, or -1. */
+	private long stripId = -1;
 
 	public DraglineEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -206,6 +230,7 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		originX = getX();
 		originZ = getZ();
 		mode = Mode.RUNNING;
+		register();
 		status = "lifted off its parts: DIGGING; " + job.describe() + (cable == null ? "; NO CABLE" : "; " + cable.describe());
 	}
 
@@ -226,7 +251,10 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 
 	@Override
 	protected double electricWatts(double engineWatts) {
-		return Dragline.watts(phase());
+		if (hand) {
+			return handWatts;
+		}
+		return groundGone && mode == Mode.RUNNING ? Dragline.STANDING_WATTS : Dragline.watts(phase());
 	}
 
 	// ---- work ---------------------------------------------------------------------------------------------------------------------
@@ -234,9 +262,12 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	@Override
 	protected void work(ServerLevel level) {
 		plc(level);
-		doWork(level);
+		levers(level);
+		if (!hand) {
+			doWork(level);
+		}
 		if (cable != null && cable.house(level) instanceof PitSwitchHouseBlockEntity house) {
-			house.reportPlc(cable.outlet(), getUUID(), mode == Mode.RUNNING, mode == Mode.DONE, cycles);
+			house.reportPlc(cable.outlet(), getUUID(), mode == Mode.RUNNING, mode == Mode.DONE, cycles, hand);
 		}
 	}
 
@@ -246,6 +277,12 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		}
 		if (outOfFuel()) {
 			status = noPower();   // the cycle holds where it is until its power comes back
+			return;
+		}
+		if (groundGone) {
+			if (level.getGameTime() % 200 == 0) {
+				groundCheck(level);
+			}
 			return;
 		}
 		if (walkTick >= 0 || cycleTick >= 0) {
@@ -274,6 +311,12 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 			return;
 		}
 		Boolean run = house.runCommand(cable.outlet());
+		if (hand) {
+			// a stop always wins: in HAND the PLC's RUN off sets the brakes; on does not move the levers
+			plcHold = run != null && !run;
+			return;
+		}
+		plcHold = false;
 		if (run != null) {
 			if (run && mode == Mode.STOPPED) {
 				resume("started by the PLC");
@@ -287,6 +330,44 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 
 	/** One strip cell the bucket can take, and what it is. */
 	private record Cell(BlockPos pos, double across, double along, boolean muck) {
+	}
+
+	/** Its strip goes in the slope record, so its highwall and spoil are watched (Part 2). */
+	private void register() {
+		if (level() instanceof ServerLevel server) {
+			Vec3 f = square(ahead()), sd = square(castSide());
+			stripId = dev.wildcatter.tailings.pit.Slopes.register(server, getUUID(), originX, originZ, (int) f.x, (int) f.z, (int) sd.x, (int) sd.z, floorY(), job.width(), job.length(),
+					batter(server));
+		}
+	}
+
+	/** The highwall's batter it digs: auto by the world rule. */
+	private int batter(ServerLevel level) {
+		return job.batter(dev.wildcatter.tailings.pit.Slopes.on(level));
+	}
+
+	public long stripId() {
+		return stripId;
+	}
+
+	public boolean hand() {
+		return hand;
+	}
+
+	public boolean groundGone() {
+		return groundGone;
+	}
+
+	public long handCasts() {
+		return handCasts;
+	}
+
+	public double swingRate() {
+		return swingRate;
+	}
+
+	public double handWatts() {
+		return handWatts;
 	}
 
 	private int floorY() {
@@ -325,8 +406,14 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 			}
 			return;
 		}
+		if (job.stopOnCracks() && stripId >= 0 && dev.wildcatter.tailings.pit.Slopes.cracksNear(level, stripId, getX(), getZ(), Dragline.REACH_M)) {
+			status = "WARNING: CRACKS in its highwall or spoil within its reach: it stands (Stop on cracks); survey it, or set Stop on cracks off to dig on";
+			retryIn = 200;
+			return;
+		}
 		int floor = floorY();
 		int top = floor + Dragline.DIG_ABOVE_M - 1, bottom = floor - job.seam();
+		int batter = batter(level);
 		double[] me = frame(getX(), getZ());
 		List<Cell> cells = new ArrayList<>();
 		boolean hard = false;
@@ -344,6 +431,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 					continue;
 				}
 				for (int y = top; y >= bottom; y--) {
+					if (!Dragline.inStrip(p[0], p[1], job.width(), job.length(), batter, floor - y)) {
+						break;   // the highwall's face, laid back at its batter: deeper cells are further into the strip
+					}
 					BlockState state = level.getBlockState(at.set(x, y, z));
 					if (state.isAir() || !state.getFluidState().isEmpty()) {
 						continue;
@@ -375,6 +465,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 				startWalk(level);
 			} else {
 				mode = Mode.DONE;
+				if (stripId >= 0) {
+					dev.wildcatter.tailings.pit.Slopes.done(level, stripId);
+				}
 				status = String.format(Locale.ROOT, "DONE: the strip is uncovered to the seam, %d m down; %d cycles, %,.0f bank m³", job.seam(), cycles, bankM3());
 			}
 			return;
@@ -540,6 +633,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		// out of the bucket while it hangs there: 1 s, or its dump if that is shorter
 		pour(level, load, new dev.wildcatter.tailings.pit.Pouring.Spec(dumpAt, lip, land, Math.max(3, Math.min(20, Dragline.DUMP_TICKS / divisor)), 30, 3.5F));
 		refreshLoad();
+		if (stripId >= 0) {
+			dev.wildcatter.tailings.pit.Slopes.cast(level, stripId, dumpAt);
+		}
 		if (load.empty()) {
 			cycles++;
 			bankQuarters += quarters;
@@ -612,10 +708,384 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		}
 	}
 
+	// ---- by hand (dragline-hand-control.md, Part 1) ----------------------------------------------------------------------------------
+
+	/** Test hook: an empty bucket. */
+	public void emptyBucket() {
+		load.clear();
+		bucketQuarters = 0;
+		refreshLoad();
+	}
+
+	/** Test hook: puts the bucket at a pose, as a player would have swung, dragged and hoisted it. */
+	public void handPose(double swingDeg, double out, double up) {
+		pose(swingDeg, out, up);
+	}
+
+	/** Test hook: a player sits in its cab, so the test's keys ({@link #testDrive}) are an operator's. */
+	public void testSeat(boolean seated) {
+		testSeated = seated;
+	}
+
+	private boolean seated() {
+		return getFirstPassenger() instanceof net.minecraft.server.level.ServerPlayer || testSeated;
+	}
+
+	private static boolean anyKey(net.minecraft.world.entity.player.Input k) {
+		return k.forward() || k.backward() || k.left() || k.right() || k.jump() || k.sprint();
+	}
+
+	/** Its levers, each tick: a seated player takes it into HAND by touching a key; getting out (or sprint held 2 s alone) hands it back. */
+	private void levers(ServerLevel level) {
+		net.minecraft.world.entity.player.Input k = keys();
+		boolean seated = seated();
+		if (!anyKey(k)) {
+			latch = false;
+		}
+		if (mode != Mode.RUNNING) {
+			hand = false;
+			if (seated && anyKey(k) && sayIn-- <= 0) {
+				sayIn = 40;
+				tell("the levers do nothing: " + status);
+			}
+			return;
+		}
+		if (!hand) {
+			if (!seated || !anyKey(k) || latch || groundGone) {
+				return;
+			}
+			if (walkTick >= 0) {
+				if (sayIn-- <= 0) {
+					sayIn = 40;
+					tell("WALKING: the levers take it after the step");
+				}
+				return;
+			}
+			takeOver();
+		}
+		if (!seated) {
+			handBack(level, "its operator got out: AUTO");
+			return;
+		}
+		if (outOfFuel()) {
+			handWatts = 0;
+			if (sayIn-- <= 0) {
+				sayIn = 40;
+				tell(noPower());
+			}
+			return;
+		}
+		// jump and sprint together (hoist up and down at once, which means nothing) held 2 s hand it back
+		boolean chord = k.sprint() && k.jump() && !k.forward() && !k.backward() && !k.left() && !k.right();
+		sprintTicks = chord ? sprintTicks + 1 : 0;
+		if (sprintTicks >= 40) {
+			sprintTicks = 0;
+			latch = true;
+			handBack(level, "handed back to AUTO from the cab");
+			tell("AUTO: the job carries on");
+			return;
+		}
+		moveByHand(level, k);
+	}
+
+	private void takeOver() {
+		hand = true;
+		cycleTick = -1;   // the job stops planning; nothing is undone: the bucket stays where it is with what it holds
+		biteY = Integer.MIN_VALUE;
+		lastCut = Integer.MIN_VALUE;
+		swingRate = 0;
+		status = "HAND: its operator has the levers";
+		tell("HAND: W/S drag, A/D swing, jump hoist up, sprint lower; S hoisted and loaded dumps. Jump and sprint 2 s, or get out, for AUTO");
+	}
+
+	/** Back to its job, carrying on from where the bucket is: loaded, it casts; empty, it swings back to dig. */
+	private void handBack(ServerLevel level, String why) {
+		hand = false;
+		swingRate = 0;
+		handWatts = 0;
+		biteY = Integer.MIN_VALUE;
+		retryIn = 0;
+		status = "DIGGING: " + why;
+		if (!load.empty()) {
+			if (pickDump(level, frame(getX(), getZ())[1])) {
+				digSwing = swing();
+				digOut = bucketOut() + 10;   // the swing out lerps from 10 m in from its dig point: so from where the bucket is
+				digUp = bucketUp();
+				cycleTick = Dragline.FILL_TICKS;
+				dumped = false;
+			}
+			return;
+		}
+		dumpSwing = swing();
+		dumpOut = bucketOut();
+		dumpUp = bucketUp();
+		cycleTick = Dragline.FILL_TICKS + Dragline.SWING_OUT_TICKS + Dragline.DUMP_TICKS;
+		dumped = true;
+	}
+
+	private void tell(String what) {
+		if (getFirstPassenger() instanceof Player p) {
+			p.sendOverlayMessage(Component.literal("Dragline: " + what));
+		}
+	}
+
+	/** The bucket's world position: its out and up turned by the swing about the tub's centre. */
+	public Vec3 bucketAt(double swingDeg, double out, double up) {
+		double r = Math.toRadians(swingDeg);
+		return local(out * Math.sin(r), 0, out * Math.cos(r)).add(0, floorY() - getY() + up, 0);
+	}
+
+	/** The ground's top under the bucket, metres over the tub's floor. */
+	private double groundAt(ServerLevel level, Vec3 at) {
+		return groundUnder(level, new Vec3(at.x, Math.max(at.y, floorY() - Dragline.DIG_DEPTH_M) + 1.0, at.z), 120) - floorY();
+	}
+
+	private void moveByHand(ServerLevel level, net.minecraft.world.entity.player.Input k) {
+		double dt = 0.05 * divisor;
+		int key = k.left() ? -1 : k.right() ? 1 : 0;
+		int hoist = k.jump() ? -1 : k.sprint() ? 1 : 0;
+		int drag = k.forward() ? -1 : k.backward() ? 1 : 0;
+		boolean loaded = !load.empty();
+		Vec3 at = bucketAt(swing(), bucketOut(), bucketUp());
+		double ground = groundAt(level, at);
+		boolean grounded = bucketUp() <= ground + 0.05;
+		boolean full = bucketQuarters >= Dragline.BUCKET_BANK_QUARTERS || load.total() >= Dragline.BUCKET_KG;
+		boolean digging = drag < 0 && grounded && hoist >= 0 && !full;
+		if (!grounded || drag >= 0) {
+			biteY = Integer.MIN_VALUE;
+		}
+		if (plcHold) {
+			key = 0;
+			hoist = 0;
+			drag = 0;
+			digging = false;
+			if (sayIn-- <= 0) {
+				sayIn = 40;
+				tell("stopped by the plant: its RUN is off");
+			}
+		}
+		// dump: the drag paid out with the bucket hoisted clear and loaded
+		if (drag > 0 && loaded && bucketUp() > ground + 1 && !dumpLatch) {
+			dumpLatch = true;
+			dumpByHand(level, at, ground);
+			return;
+		}
+		if (drag <= 0) {
+			dumpLatch = false;
+		}
+		boolean pushing = key != 0 && swingRate * key >= 0 && Math.abs(swingRate) < dev.wildcatter.tailings.pit.DraglineRopes.SWING_MAX;
+		double asked = dev.wildcatter.tailings.pit.DraglineRopes.asked(digging, drag != 0, hoist, loaded, pushing);
+		double share = dev.wildcatter.tailings.pit.DraglineRopes.share(asked);
+		handWatts = dev.wildcatter.tailings.pit.DraglineRopes.draw(asked);
+		// the swing, with its inertia; into a block it stops
+		double before = swingRate;
+		double[] sw = dev.wildcatter.tailings.pit.DraglineRopes.swing(swingRate, key, dt, share);
+		double nextSwing = swing() + sw[0];
+		Vec3 swung = bucketAt(nextSwing, bucketOut(), bucketUp());
+		BlockPos cell = BlockPos.containing(swung.x, swung.y + 1.5, swung.z);
+		if (sw[0] != 0 && !level.getBlockState(cell).getCollisionShape(level, cell).isEmpty()) {
+			swingRate = 0;
+			nextSwing = swing();
+		} else {
+			swingRate = sw[1];
+		}
+		if (key == 0 && before != 0 && swingRate == 0) {
+			level.playSound(null, blockPosition(), dev.wildcatter.tailings.TailingsSounds.DRAGLINE_SWING_BRAKE, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
+		}
+		// the ropes
+		double hoistSpeed = loaded ? dev.wildcatter.tailings.pit.DraglineRopes.HOIST_LOADED : dev.wildcatter.tailings.pit.DraglineRopes.HOIST_EMPTY;
+		double dragSpeed = digging ? dev.wildcatter.tailings.pit.DraglineRopes.DRAG_DIG : dev.wildcatter.tailings.pit.DraglineRopes.DRAG_FREE;
+		dev.wildcatter.tailings.pit.DraglineRopes.Bucket from = new dev.wildcatter.tailings.pit.DraglineRopes.Bucket(bucketOut(), bucketUp(), grounded);
+		dev.wildcatter.tailings.pit.DraglineRopes.Bucket to = dev.wildcatter.tailings.pit.DraglineRopes.move(from, hoist * hoistSpeed * share * dt, drag * dragSpeed * share * dt, ground);
+		if (digging) {
+			if (biteY == Integer.MIN_VALUE) {
+				biteY = (int) Math.floor(floorY() + ground) - 1;
+			}
+			int metre = (int) Math.floor(to.out());
+			if (metre != lastCut) {
+				lastCut = metre;
+				cut(level, nextSwing, to.out());
+			}
+			// it sits in its cut: the ground under it is the floor it bit to
+			to = new dev.wildcatter.tailings.pit.DraglineRopes.Bucket(to.out(), biteY - floorY(), true);
+		}
+		pose(nextSwing, to.out(), to.up());
+		if (sayIn-- <= 0) {
+			sayIn = 10;
+			tell(handReadout(level, hoist * hoistSpeed * share, drag * dragSpeed * share));
+		}
+	}
+
+	/** Cuts the row 5 wide across the bucket's path at {@code out}, from its bite layer up to its 4 m height. */
+	private void cut(ServerLevel level, double swingDeg, double out) {
+		double r = Math.toRadians(swingDeg);
+		Vec3 along = local(Math.sin(r), 0, Math.cos(r)).subtract(position());
+		Vec3 side = new Vec3(along.z, 0, -along.x);
+		Vec3 c = bucketAt(swingDeg, out, 0);
+		long quarterKg = PitMass.ROCK_KG / 4;
+		boolean hard = false, ore = false;
+		for (int w = -2; w <= 2; w++) {
+			for (int y = biteY + 3; y >= biteY; y--) {
+				if (bucketQuarters >= Dragline.BUCKET_BANK_QUARTERS || load.total() >= Dragline.BUCKET_KG) {
+					break;
+				}
+				BlockPos p = BlockPos.containing(c.x + side.x * w, y, c.z + side.z * w);
+				BlockState state = level.getBlockState(p);
+				if (state.isAir() || !state.getFluidState().isEmpty()) {
+					continue;
+				}
+				if (state.getBlock() == TailingsBlocks.MUCK && level.getBlockEntity(p) instanceof MuckBlockEntity muck) {
+					long before = load.total();
+					long room = Math.min(Dragline.BUCKET_KG - before, (long) (Dragline.BUCKET_BANK_QUARTERS - bucketQuarters) * quarterKg);
+					PitShovelEntity.takeQuarters(level, p, muck, load, before + room);
+					bucketQuarters += (int) Math.round((load.total() - before) / (double) quarterKg);
+					continue;
+				}
+				if (state.hasBlockEntity()) {
+					continue;   // never a machine's block
+				}
+				if (state.is(TailingsBlocks.TENSION_CRACK)) {
+					load.add("minecraft:dirt", PitMass.kg("minecraft:dirt"));
+					bucketQuarters += 4;
+					level.removeBlock(p, false);
+					continue;
+				}
+				String id = PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
+				if (ore(id)) {
+					ore = true;
+					continue;   // the seam is left for loaders and trucks
+				}
+				if (PitMass.soft(id)) {
+					long kg = PitMass.kg(id);
+					if (Dragline.fits(load.total(), bucketQuarters, kg, 4)) {
+						load.add(id, kg);
+						bucketQuarters += 4;
+						level.removeBlock(p, false);
+					}
+				} else if (state.canBeReplaced()) {
+					level.destroyBlock(p, false);
+				} else {
+					hard = true;
+				}
+			}
+		}
+		refreshLoad();
+		if (hard || ore) {
+			status = hard ? "HAND: the bucket skids on rock: hard, blast it first" : "HAND: the bucket rides over the seam: it is left for loaders and trucks";
+			tell(status);
+		}
+	}
+
+	/** Dumps the bucket where it hangs: it pours down and sets by the settle rule. */
+	private void dumpByHand(ServerLevel level, Vec3 at, double ground) {
+		int quarters = bucketQuarters;
+		BlockPos start = BlockPos.containing(at.x, floorY() + ground, at.z);
+		Vec3 lip = new Vec3(at.x, at.y + 0.5, at.z);
+		Vec3 land = new Vec3(at.x, floorY() + ground, at.z);
+		pour(level, load, new dev.wildcatter.tailings.pit.Pouring.Spec(start, lip, land, Math.max(3, Math.min(20, Dragline.DUMP_TICKS / divisor)), 30, 3.5F));
+		refreshLoad();
+		if (load.empty()) {
+			cycles++;
+			handCasts++;
+			bankQuarters += quarters;
+			bucketQuarters = 0;
+			dev.wildcatter.tailings.quest.Milestones.fire(level, start, dev.wildcatter.tailings.quest.Milestones.DRAGLINE_HAND_CAST);
+			if (stripId >= 0) {
+				dev.wildcatter.tailings.pit.Slopes.cast(level, stripId, start);
+			}
+			status = String.format(Locale.ROOT, "HAND: cast %d by hand at %s", handCasts, start.toShortString());
+		} else {
+			status = "HAND: some of the load found no room under the bucket";
+		}
+		level.playSound(null, start, dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 4F, 0.7F);
+	}
+
+	private String handReadout(ServerLevel level, double hoistSpeed, double dragSpeed) {
+		String slope = stripId >= 0 && dev.wildcatter.tailings.pit.Slopes.cracksNear(level, stripId, getX(), getZ(), Dragline.REACH_M) ? " | CRACKS" : "";
+		int pct = (int) Math.round(100.0 * Math.max(bucketQuarters / (double) Dragline.BUCKET_BANK_QUARTERS, load.total() / (double) Dragline.BUCKET_KG));
+		return String.format(Locale.ROOT, "HAND | swing %+.0f° | bucket %.0f m out, %+.0f m | %s %d%% | hoist %+.1f drag %+.1f m/s | %.0f kW%s", swing(), bucketOut(), bucketUp(),
+				load.tonnes(), pct, -hoistSpeed, -dragSpeed, handWatts / 1000, slope);
+	}
+
+	// ---- a slide (dragline-hand-control.md, Part 2) ---------------------------------------------------------------------------------
+
+	/**
+	 * After a slide near it: with a third or more of its tub's ground gone it goes down with the slide and is wrecked; with some, it
+	 * stops, GROUND GONE, until the ground under its tub is made up.
+	 */
+	public void groundCheck(ServerLevel level) {
+		int floor = floorY();
+		int gone = 0, all = 0;
+		double r = Dragline.TUB_M / 2;
+		BlockPos.MutableBlockPos at = new BlockPos.MutableBlockPos();
+		for (int dx = (int) -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+			for (int dz = (int) -Math.ceil(r); dz <= Math.ceil(r); dz++) {
+				if (dx * dx + dz * dz > r * r) {
+					continue;
+				}
+				all++;
+				at.set((int) Math.floor(getX()) + dx, floor - 1, (int) Math.floor(getZ()) + dz);
+				if (net.minecraft.world.level.block.FallingBlock.isFree(level.getBlockState(at))) {
+					gone++;
+				}
+			}
+		}
+		if (all > 0 && gone * 3 >= all) {
+			wreck(level);
+		} else if (gone > 0) {
+			groundGone = true;
+			hand = false;
+			cycleTick = -1;
+			walkTick = -1;
+			status = String.format(Locale.ROOT, "GROUND GONE: a slide took the ground from under %d of its tub's %d cells; make it up, then RUN", gone, all);
+		} else if (groundGone) {
+			groundGone = false;
+			status = "STOPPED: the ground under its tub is made up: RUN";
+			mode = Mode.STOPPED;
+		}
+	}
+
+	/** Wrecked by a slide: it breaks where it lands into every part, its cable and its bucket's load. Nothing is lost. */
+	public void wreck(ServerLevel level) {
+		double landY = groundUnder(level, position().add(0, 1, 0), 80);
+		setPos(getX(), landY, getZ());
+		for (DraglineLayout.Part part : DraglineLayout.Part.values()) {
+			spawnAtLocation(level, new ItemStack(TailingsBlocks.plantBlock(part.machine())));
+		}
+		for (java.util.Map.Entry<String, Integer> e : load.wholeBlocks().entrySet()) {
+			for (int left = e.getValue(); left > 0; left -= 64) {
+				spawnAtLocation(level, dev.wildcatter.tailings.block.Feeds.stack(e.getKey(), Math.min(64, left)));
+			}
+		}
+		load.clear();
+		dropCable(level);
+		for (net.minecraft.world.entity.Entity rider : java.util.List.copyOf(getPassengers())) {
+			if (rider instanceof net.minecraft.world.entity.LivingEntity living) {
+				living.stopRiding();
+				living.hurtServer(level, level.damageSources().fallingBlock(null), dev.wildcatter.tailings.pit.Slopes.SLIDE_DAMAGE);
+			}
+		}
+		Tailings.LOGGER.info("Tailings: a dragline went down with a slide at {} and was wrecked into its parts", blockPosition().toShortString());
+		level.playSound(null, blockPosition(), dev.wildcatter.tailings.TailingsSounds.HIGHWALL_SLIDE, net.minecraft.sounds.SoundSource.BLOCKS, 12F, 0.6F);
+		wrecked = true;
+		discard();
+	}
+
+	private boolean wrecked;
+
+	/** True once a slide has wrecked it (tests). */
+	public boolean wrecked() {
+		return wrecked;
+	}
+
 	// ---- RUN and STOP -------------------------------------------------------------------------------------------------------------
 
 	private void resume(String why) {
 		if (mode == Mode.DONE) {
+			return;
+		}
+		if (groundGone) {
+			status = "GROUND GONE: a slide took the ground from under its tub; make it up, then RUN";
 			return;
 		}
 		mode = Mode.RUNNING;
@@ -710,6 +1180,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	@Override
 	public void set(int i, int value, Player player) {
 		job.set(i, value);
+		if (stripId >= 0 && level() instanceof ServerLevel server) {
+			dev.wildcatter.tailings.pit.Slopes.job(server, stripId, job.width(), job.length(), batter(server));
+		}
 		say(player, job.describe());
 	}
 
@@ -780,6 +1253,11 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		bankQuarters = input.getLongOr("bank_quarters", 0);
 		steps = input.getIntOr("steps", 0);
 		divisor = Math.max(1, input.getIntOr("fast", 1));
+		hand = input.getBooleanOr("hand", false);
+		swingRate = input.getDoubleOr("swing_rate", 0);
+		handCasts = input.getLongOr("hand_casts", 0);
+		groundGone = input.getBooleanOr("ground_gone", false);
+		stripId = input.getLongOr("strip_id", -1);
 	}
 
 	@Override
@@ -811,5 +1289,10 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		output.putLong("bank_quarters", bankQuarters);
 		output.putInt("steps", steps);
 		output.putInt("fast", divisor);
+		output.putBoolean("hand", hand);
+		output.putDouble("swing_rate", swingRate);
+		output.putLong("hand_casts", handCasts);
+		output.putBoolean("ground_gone", groundGone);
+		output.putLong("strip_id", stripId);
 	}
 }

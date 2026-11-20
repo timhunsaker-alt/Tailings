@@ -55,15 +55,16 @@ final class AnswersGameTests {
 
 	/**
 	 * rules_new_world: the test server's world is made fresh, so its rules were made for a new world when the server started: every
-	 * rule on but {@code paste_wall_breach}, which is off even in a new world.
+	 * rule on but {@code paste_wall_breach} and {@code slope_failures}, which are off even in a new world.
 	 */
 	private static void newWorld(GameTestHelper helper) {
 		MinecraftServer server = helper.getLevel().getServer();
 		helper.assertTrue(OptInRules.newWorld(server), Component.literal("the test world is a new world"));
 		Map<String, Boolean> rules = OptInRules.all(server);
-		helper.assertTrue(rules.keySet().equals(OptInRules.NEW_WORLD.keySet()) && rules.size() == 6, Component.literal("six rules: " + rules));
-		rules.forEach((key, value) -> helper.assertTrue(value == !key.equals(OptInRules.PASTE_WALL_BREACH),
-				Component.literal(key + " should be " + !key.equals(OptInRules.PASTE_WALL_BREACH) + " in a new world: " + rules)));
+		helper.assertTrue(rules.keySet().equals(OptInRules.NEW_WORLD.keySet()) && rules.size() == 7, Component.literal("seven rules: " + rules));
+		// paste_wall_breach and slope_failures are off even in a new world (gaps2.md #5; dragline-hand-control.md #1)
+		rules.forEach((key, value) -> helper.assertTrue(value == !(key.equals(OptInRules.PASTE_WALL_BREACH) || key.equals(OptInRules.SLOPE_FAILURES)),
+				Component.literal(key + " has the wrong value in a new world: " + rules)));
 		helper.succeed();
 	}
 
@@ -97,7 +98,7 @@ final class AnswersGameTests {
 		CommandSourceStack op = server.createCommandSourceStack().withSuppressedOutput();
 		CommandSourceStack player = op.withPermission(PermissionSet.NO_PERMISSIONS);
 		boolean was = OptInRules.on(server, OptInRules.HEADFRAME_HOPPER);
-		helper.assertTrue(run(op, "tailings rule") == 6, Component.literal("the list names six rules"));
+		helper.assertTrue(run(op, "tailings rule") == 7, Component.literal("the list names seven rules"));
 		helper.assertTrue(run(op, "tailings rule headframe_hopper false") == 1 && !OptInRules.on(server, OptInRules.HEADFRAME_HOPPER), Component.literal("an operator sets it off"));
 		helper.assertTrue(run(player, "tailings rule headframe_hopper true") == -1 && !OptInRules.on(server, OptInRules.HEADFRAME_HOPPER),
 				Component.literal("a player with no permission may not set it"));

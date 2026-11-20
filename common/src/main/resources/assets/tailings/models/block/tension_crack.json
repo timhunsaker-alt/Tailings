@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "tailings:block/tension_crack",
+    "side": "minecraft:block/dirt",
+    "bottom": "minecraft:block/dirt"
+  }
+}

@@ -26,7 +26,16 @@ public final class TailingsCommands {
 						.executes(c -> show(c.getSource(), StringArgumentType.getString(c, "name")))
 						.then(Commands.argument("value", BoolArgumentType.bool())
 								.requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-								.executes(c -> set(c.getSource(), StringArgumentType.getString(c, "name"), BoolArgumentType.getBool(c, "value")))))));
+								.executes(c -> set(c.getSource(), StringArgumentType.getString(c, "name"), BoolArgumentType.getBool(c, "value"))))))
+				// an operator's look at the dragline slopes' factors of safety, which no crew can read (dragline-hand-control.md)
+				.then(Commands.literal("slope").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+						.executes(c -> slope(c.getSource()))));
+	}
+
+	private static int slope(CommandSourceStack source) {
+		java.util.List<String> lines = dev.wildcatter.tailings.pit.Slopes.describe(source.getLevel(), source.getPosition());
+		lines.forEach(line -> source.sendSuccess(() -> Component.literal(line), false));
+		return lines.size();
 	}
 
 	private static int list(CommandSourceStack source) {

@@ -45,6 +45,8 @@ public final class OptInRules extends SavedData {
 	public static final String PASTE_UNLOADED_CURE = "paste_unloaded_cure";
 	public static final String DRY_MILL_ALL_HMC = "dry_mill_all_hmc";
 	public static final String PASTE_WALL_BREACH = "paste_wall_breach";
+	/** The dragline's highwalls and spoil piles can fail (dragline-hand-control.md): off in every world, new ones too (Tim, 2026-11-19). */
+	public static final String SLOPE_FAILURES = "slope_failures";
 	/** The old files, read once when a world's rules are made. */
 	public static final String FILE = "tailings-rules.properties";
 	public static final String VENT_FILE = "tailings-ventilation.properties";
@@ -62,6 +64,7 @@ public final class OptInRules extends SavedData {
 		rules.put(PASTE_UNLOADED_CURE, true);
 		rules.put(DRY_MILL_ALL_HMC, true);
 		rules.put(PASTE_WALL_BREACH, false);
+		rules.put(SLOPE_FAILURES, false);
 		NEW_WORLD = java.util.Collections.unmodifiableMap(rules);
 	}
 
@@ -74,6 +77,7 @@ public final class OptInRules extends SavedData {
 			case PASTE_UNLOADED_CURE -> "paste makes up the time its chunk was unloaded";
 			case DRY_MILL_ALL_HMC -> "a filter with a dryer touching it sends all its heavy mineral concentrate to the dry mill";
 			case PASTE_WALL_BREACH -> "a solid wall removed beside wet paste spills it, as a broken bulkhead does";
+			case SLOPE_FAILURES -> "a dragline's highwall and spoil pile can crack and slide: watch them with survey prisms";
 			default -> "";
 		};
 	}

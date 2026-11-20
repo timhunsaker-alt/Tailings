@@ -129,6 +129,13 @@ public class SurveyBookItem extends Item {
 			}
 			return InteractionResult.SUCCESS;
 		}
+		if (level.getBlockState(pos).getBlock() instanceof dev.wildcatter.tailings.block.SlopePrismBlock) {
+			// a slope prism: how far and how fast it has moved (dragline-hand-control.md, Warnings)
+			if (level instanceof net.minecraft.server.level.ServerLevel server && context.getPlayer() != null) {
+				context.getPlayer().sendSystemMessage(dev.wildcatter.tailings.block.SlopePrismBlock.read(server, pos));
+			}
+			return InteractionResult.SUCCESS;
+		}
 		if (!(level.getBlockState(pos).getBlock() instanceof SurveyStakeBlock)) {
 			return InteractionResult.PASS;
 		}

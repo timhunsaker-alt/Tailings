@@ -63,10 +63,33 @@ public final class Dragline {
 		FILL, SWING_OUT, DUMP, SWING_BACK, WALK, IDLE
 	}
 
-	/** Its job as its screen sets it: settings 0 width, 1 length, 2 seam depth, 3 cast right (1) or left (0). */
+	/**
+	 * The highwall's batter on its panel (dragline-hand-control.md): 0 auto (2 in 1 with the world rule {@code slope_failures} on,
+	 * vertical with it off), 1 vertical, 2 two in one (63 degrees), 3 one in one (45), 4 one in two (27).
+	 */
+	public static final int BATTER_AUTO = 0, BATTER_VERTICAL = 1, BATTER_2_IN_1 = 2, BATTER_1_IN_1 = 3, BATTER_1_IN_2 = 4;
+	public static final String[] BATTER_NAMES = {"auto", "vertical", "2 in 1", "1 in 1", "1 in 2"};
+
+	/** Its job as its screen sets it: settings 0 width, 1 length, 2 seam depth, 3 cast right (1) or left (0), 4 highwall batter, 5 stop on cracks. */
 	public static final class Job {
 		private int width = WIDTH, length = LENGTH, seam = SEAM;
 		private boolean castRight = true;
+		private int batter = BATTER_AUTO;
+		private boolean stopOnCracks = true;
+
+		/** The highwall's batter as set (0 auto). */
+		public int batter() {
+			return batter;
+		}
+
+		/** The batter it digs: auto read with the world rule. */
+		public int batter(boolean slopeFailures) {
+			return batter == BATTER_AUTO ? (slopeFailures ? BATTER_2_IN_1 : BATTER_VERTICAL) : batter;
+		}
+
+		public boolean stopOnCracks() {
+			return stopOnCracks;
+		}
 
 		public int width() {
 			return width;
@@ -91,6 +114,8 @@ public final class Dragline {
 				case 1 -> length;
 				case 2 -> seam;
 				case 3 -> castRight ? 1 : 0;
+				case 4 -> batter;
+				case 5 -> stopOnCracks ? 1 : 0;
 				default -> 0;
 			};
 		}
@@ -101,19 +126,22 @@ public final class Dragline {
 				case 1 -> length = Math.max(LENGTH_MIN, Math.min(LENGTH_MAX, value));
 				case 2 -> seam = Math.max(SEAM_MIN, Math.min(SEAM_MAX, value));
 				case 3 -> castRight = value != 0;
+				case 4 -> batter = Math.max(BATTER_AUTO, Math.min(BATTER_1_IN_2, value));
+				case 5 -> stopOnCracks = value != 0;
 				default -> {
 				}
 			}
 		}
 
 		public void copy(Job other) {
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 6; i++) {
 				set(i, other.get(i));
 			}
 		}
 
 		public String describe() {
-			return String.format(java.util.Locale.ROOT, "strip %d x %d m to the seam %d m down, casting %s", width, length, seam, castRight ? "right" : "left");
+			return String.format(java.util.Locale.ROOT, "strip %d x %d m to the seam %d m down, casting %s; highwall %s%s", width, length, seam, castRight ? "right" : "left",
+					BATTER_NAMES[batter], stopOnCracks ? "" : ", digs on through cracks");
 		}
 	}
 
@@ -149,6 +177,27 @@ public final class Dragline {
 	/** True if a cell centred {@code across} out and {@code along} is in the strip. */
 	public static boolean inStrip(double across, double along, int width, int length) {
 		return across >= standoff() - 1e-6 && across < farEdge(width) - 1e-6 && along >= -1e-6 && along < length - 1e-6;
+	}
+
+	/**
+	 * How far into the strip its highwall's face stands {@code depth} metres under the crest (the tub's floor), for a batter (1-4): the
+	 * strip's width is at the crest, and the face leans into the strip as it goes down. 0 above the crest and for a vertical wall.
+	 */
+	public static int batterOffset(int batter, int depth) {
+		if (depth <= 0) {
+			return 0;
+		}
+		return switch (batter) {
+			case BATTER_2_IN_1 -> (depth - 1) / 2;
+			case BATTER_1_IN_1 -> depth - 1;
+			case BATTER_1_IN_2 -> 2 * (depth - 1);
+			default -> 0;
+		};
+	}
+
+	/** True if a cell centred {@code across} out and {@code along}, {@code depth} metres under the crest, is in the strip dug at {@code batter}. */
+	public static boolean inStrip(double across, double along, int width, int length, int batter, int depth) {
+		return inStrip(across - batterOffset(batter, depth), along, width, length) && across < farEdge(width) - 1e-6;
 	}
 
 	/** True if a point {@code dx, dz} metres from its centre is within its reach. */

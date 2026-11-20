@@ -48,7 +48,7 @@ final class DraglineGameTests {
 			case "dragline_built" -> new int[] {-1, 3, -1, 7};
 			case "dragline_walk" -> new int[] {-1, 6, -1, 7};
 			case "dragline_cycle", "dragline_strip", "dragline_hard", "dragline_plc" -> new int[] {-1, 6, -1, 5};
-			default -> QuestGameTests.reach(scene);
+			default -> java.util.Arrays.asList(DraglineHandGameTests.SCENES).contains(scene) ? DraglineHandGameTests.reach(scene) : QuestGameTests.reach(scene);
 		};
 	}
 

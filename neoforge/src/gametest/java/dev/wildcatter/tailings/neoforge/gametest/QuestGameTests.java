@@ -131,7 +131,7 @@ final class QuestGameTests {
 
 	// ---- scenes ------------------------------------------------------------------------------------------------------------------
 
-	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its eleven milestones. */
+	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its thirteen milestones. */
 	private static void questsValid(GameTestHelper helper) {
 		MinecraftServer server = helper.getLevel().getServer();
 		List<String> problems = QuestRules.problems(server);
@@ -141,7 +141,7 @@ final class QuestGameTests {
 		check(helper, chapter != null, "Tailings' chapter tailings:open_pit should load; chapters: " + book.chapters().stream().map(QuestBook.Chapter::id).toList());
 		check(helper, chapter.order() >= 100, "an add-on chapter is ordered 100 and up: " + chapter.order());
 		for (String quest : new String[] {"stamp_mill", "crusher_line", "flotation", "leach", "zircon", "ferrosilicon", "gyratory", "cabled_pit", "blasting",
-				"rope_shovel", "dragline"}) {
+				"rope_shovel", "dragline", "dragline_levers", "watch_the_wall"}) {
 			check(helper, book.quest(Identifier.fromNamespaceAndPath("tailings", quest)) != null, "the quest tailings:" + quest + " should load");
 		}
 		java.util.Set<String> keys = new java.util.HashSet<>();
@@ -155,8 +155,8 @@ final class QuestGameTests {
 		Set<String> fired = Set.of(Milestones.CRUSHER_RUNNING.toString(), Milestones.FLOTATION_RUNNING.toString(), Milestones.BLAST_FIRED.toString(),
 				Milestones.DRAGLINE_RUNNING.toString(), Milestones.GYRATORY_RUNNING.toString(), Milestones.SHOVEL_RUNNING.toString(),
 				Milestones.LEACH_RUNNING.toString(), Milestones.PIT_ENERGISED.toString(), Milestones.STAMP_MILL_RUNNING.toString(),
-				Milestones.DRY_MILL_RUNNING.toString(), Milestones.DMS_RUNNING.toString());
-		check(helper, keys.equals(fired), "the chapter's milestones should be the eleven Tailings fires: " + keys);
+				Milestones.DRY_MILL_RUNNING.toString(), Milestones.DMS_RUNNING.toString(), Milestones.DRAGLINE_HAND_CAST.toString(), Milestones.SLOPE_WATCHED.toString());
+		check(helper, keys.equals(fired), "the chapter's milestones should be the thirteen Tailings fires: " + keys);
 		log("quests_valid", "ok: " + book.chapters().size() + " chapters, " + book.quests().size() + " quests pass; Tailings' chapter has "
 				+ chapter.quests().size() + " quests");
 		helper.succeed();

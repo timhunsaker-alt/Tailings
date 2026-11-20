@@ -58,7 +58,10 @@ public class PitPanelMenu extends AbstractContainerMenu {
 				new Setting("Strip width m", dev.wildcatter.tailings.pit.Dragline.WIDTH_MIN, dev.wildcatter.tailings.pit.Dragline.WIDTH_MAX, 5, dev.wildcatter.tailings.pit.Dragline.WIDTH),
 				new Setting("Strip length m", dev.wildcatter.tailings.pit.Dragline.LENGTH_MIN, dev.wildcatter.tailings.pit.Dragline.LENGTH_MAX, 10, dev.wildcatter.tailings.pit.Dragline.LENGTH),
 				new Setting("Seam depth m", dev.wildcatter.tailings.pit.Dragline.SEAM_MIN, dev.wildcatter.tailings.pit.Dragline.SEAM_MAX, 1, dev.wildcatter.tailings.pit.Dragline.SEAM),
-				new Setting("Cast right", 0, 1, 1, 1)}, new String[] {"RUN", "STOP"});
+				new Setting("Cast right", 0, 1, 1, 1),
+				new Setting("Highwall", dev.wildcatter.tailings.pit.Dragline.BATTER_AUTO, dev.wildcatter.tailings.pit.Dragline.BATTER_1_IN_2, 1, dev.wildcatter.tailings.pit.Dragline.BATTER_AUTO,
+						dev.wildcatter.tailings.pit.Dragline.BATTER_NAMES),
+				new Setting("Stop on cracks", 0, 1, 1, 1)}, new String[] {"RUN", "STOP"});
 
 		private final String title;
 		private final Setting[] settings;
@@ -83,7 +86,19 @@ public class PitPanelMenu extends AbstractContainerMenu {
 		}
 	}
 
-	public record Setting(String label, int min, int max, int step, int initial) {
+	public record Setting(String label, int min, int max, int step, int initial, String[] names) {
+		public Setting(String label, int min, int max, int step, int initial) {
+			this(label, min, max, step, initial, new String[0]);
+		}
+
+		/** The value as the screen shows it: its name, yes or no, or the number. */
+		public String shown(int v) {
+			if (v - min >= 0 && v - min < names.length) {
+				return names[v - min];
+			}
+			return max == 1 && min == 0 ? (v == 1 ? "yes" : "no") : Integer.toString(v);
+		}
+
 		public int clamp(int v) {
 			return Math.max(min, Math.min(max, v));
 		}

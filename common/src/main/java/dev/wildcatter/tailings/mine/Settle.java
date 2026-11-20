@@ -21,6 +21,13 @@ public final class Settle {
 	public static final int MOST_ROLLS = 64;
 	/** The most a column may stand above the one {@code k} away, for k = 1 to 4: 1 in 1 near, 3 in 4 over a run. */
 	private static final int[] MOST_RISE = {0, 1, 2, 3, 3};
+	/** The settle rule's own rises, for callers that pass one: 37 degrees. */
+	public static final int[] MOST_RISE_37 = MOST_RISE;
+	/**
+	 * A slid spoil pile's wet rule (dragline-hand-control.md, The slide): a step of 2 to the next column, or 2 up over 2, 3 over 3 or 4,
+	 * rolls on; so the slid spoil stands at about 1 in 2 (27 degrees), as real failed spoil does.
+	 */
+	public static final int[] WET_RISE = {0, 1, 1, 2, 2};
 	/**
 	 * The draw-down's own rule, for a stockpile block on the pile's top as a reclaim feeder draws under it (P7a; Tim, 2026-11-10,
 	 * p7-pit-line.md #11). Real draw-down cones stand steeper than the angle of repose: here the drawn slopes stand at 1 in 1 over a

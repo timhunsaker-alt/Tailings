@@ -411,5 +411,13 @@
   "block.tailings.tank_cell": "Tank Cell",
   "block.tailings.column_cell": "Column Cell",
   "block.tailings.flotation_blower_large": "Large Flotation Blower",
-  "block.tailings.tailings_thickener_large": "Large Tailings Thickener"
+  "block.tailings.tailings_thickener_large": "Large Tailings Thickener",
+  "block.tailings.tension_crack": "Tension Crack",
+  "block.tailings.slope_prism": "Slope Prism",
+  "block.tailings.survey_station": "Survey Station",
+  "subtitles.tailings.highwall_creak": "Ground groans",
+  "subtitles.tailings.ravel": "Stones trickle",
+  "subtitles.tailings.highwall_slide": "Slope slides",
+  "subtitles.tailings.survey_alarm": "Survey station alarms",
+  "subtitles.tailings.dragline_swing_brake": "Dragline swing brake hisses"
 }

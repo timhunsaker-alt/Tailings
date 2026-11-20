@@ -55,6 +55,8 @@ public final class Tailings {
 		output.accept(new ItemStack(TailingsBlocks.MAIN_BEAM));
 		output.accept(new ItemStack(TailingsBlocks.TRACK_LAYER));
 		output.accept(new ItemStack(TailingsBlocks.CABLE_JUNCTION));
+		output.accept(new ItemStack(TailingsBlocks.SLOPE_PRISM));
+		output.accept(new ItemStack(TailingsBlocks.SURVEY_STATION));
 		for (var gantry : TailingsItems.GANTRIES.values()) {
 			output.accept(new ItemStack(gantry));
 		}

@@ -56,6 +56,7 @@ public final class TailingsNeoForge {
 		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(net.neoforged.neoforge.event.tick.LevelTickEvent.Post.class, event -> {
 			if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
 				dev.wildcatter.tailings.block.VentNetwork.tickPlayers(level);
+				dev.wildcatter.tailings.pit.Slopes.tick(level);   // the dragline's highwalls and spoil (dragline-hand-control.md)
 			}
 		});
 		// the world's rules (OptInRules): made at server start, before the first tick, and changed by /tailings rule

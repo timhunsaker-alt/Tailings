@@ -268,6 +268,8 @@ public class DraglineBlockEntity extends BlockEntity implements BigPartEntity, I
 		output.putInt("job_length", job.length());
 		output.putInt("job_seam", job.seam());
 		output.putBoolean("job_cast_right", job.castRight());
+		output.putInt("job_batter", job.batter());
+		output.putBoolean("job_stop_on_cracks", job.stopOnCracks());
 	}
 
 	public static void loadJob(ValueInput input, Dragline.Job job) {
@@ -275,6 +277,9 @@ public class DraglineBlockEntity extends BlockEntity implements BigPartEntity, I
 		job.set(1, input.getIntOr("job_length", Dragline.LENGTH));
 		job.set(2, input.getIntOr("job_seam", Dragline.SEAM));
 		job.set(3, input.getBooleanOr("job_cast_right", true) ? 1 : 0);
+		// a job saved before Wave B digs a vertical highwall, as it did
+		job.set(4, input.getIntOr("job_batter", Dragline.BATTER_VERTICAL));
+		job.set(5, input.getBooleanOr("job_stop_on_cracks", true) ? 1 : 0);
 	}
 
 	@Override

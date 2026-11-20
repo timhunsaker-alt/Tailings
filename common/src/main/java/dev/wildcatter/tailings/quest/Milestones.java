@@ -35,6 +35,11 @@ public final class Milestones {
 	/** The DMS cyclone module separating gravel against its ferrosilicon medium (2026-11-19, wave A). */
 	public static final Identifier DMS_RUNNING = Tailings.id("dms_running");
 
+	/** A bucket cast from the dragline by hand (dragline-hand-control.md, Wave B). */
+	public static final Identifier DRAGLINE_HAND_CAST = Tailings.id("dragline_hand_cast");
+	/** A survey station reading three or more slope prisms. */
+	public static final Identifier SLOPE_WATCHED = Tailings.id("slope_watched");
+
 	private Milestones() {
 	}
 

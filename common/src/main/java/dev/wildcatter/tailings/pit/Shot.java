@@ -295,6 +295,7 @@ public final class Shot {
 			return;
 		}
 		fired.add(h.collar());
+		Slopes.blasted(level, h.collar());   // a highwall near the hole is damaged, one farther off shaken (dragline-hand-control.md)
 		kgFired += kg;
 		boolean blowout = outcome == Blasting.Outcome.BLOWOUT;
 		Box box = box(level, hole, broken, blowout);

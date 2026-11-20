@@ -264,6 +264,40 @@
           "text": "Run the walking dragline"
         }
       ]
+    },
+    {
+      "id": "dragline_levers",
+      "title": "On the levers",
+      "icon": "tailings:dragline_bucket",
+      "text": "Sit in the dragline's cab and touch a key: it is yours. W drags the bucket in through the bank, A and D swing the house (it coasts: brake early), jump hoists, sprint lowers. Hoisted and loaded, S pays out the drag and the bucket tips. Get out, or hold sprint 2 s, and the job carries on.",
+      "requires": [
+        "dragline"
+      ],
+      "tasks": [
+        {
+          "milestone": "tailings:dragline_hand_cast",
+          "text": "Cast a bucket by hand"
+        }
+      ]
+    },
+    {
+      "id": "watch_the_wall",
+      "title": "Watch the wall",
+      "icon": "tailings:slope_prism",
+      "text": "A highwall cracks before it slides, and a prism on its bench moves before the cracks show. Place slope prisms on the dragline's bench and spoil, and a survey station that can see them; wire its ALARM to stop the dragline. With the world rule slope_failures on, it is what stands between you and a slide.",
+      "requires": [
+        "dragline"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:slope_prism",
+          "count": 3
+        },
+        {
+          "milestone": "tailings:slope_watched",
+          "text": "A survey station reading three prisms"
+        }
+      ]
     }
   ]
 }

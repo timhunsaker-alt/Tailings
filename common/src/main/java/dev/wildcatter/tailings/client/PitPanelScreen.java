@@ -72,7 +72,7 @@ public class PitPanelScreen extends AbstractContainerScreen<PitPanelMenu> {
 		int y = topPos + 24;
 		for (int i = 0; i < settings.length; i++) {
 			int v = menu.setting(i);
-			String value = settings[i].max() == 1 && settings[i].min() == 0 ? (v == 1 ? "yes" : "no") : Integer.toString(v);
+			String value = settings[i].shown(v);
 			graphics.text(font, Component.literal(settings[i].label() + ": " + value), leftPos + 8, y, 0xFF404040, false);
 			y += ROW;
 		}

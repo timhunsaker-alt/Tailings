@@ -74,6 +74,7 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		boolean plc;
 		boolean running;
 		boolean done;
+		boolean hand;
 		long cycles;
 		final int[] far = new int[3];
 		final int[] cable = {-1, -1, -1};
@@ -179,6 +180,11 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 	 * cycles it has worked, ever.
 	 */
 	public void reportPlc(int i, UUID machine, boolean running, boolean done, long cycles) {
+		reportPlc(i, machine, running, done, cycles, false);
+	}
+
+	/** As {@link #reportPlc(int, UUID, boolean, boolean, long)}, and whether a player has its levers (the dragline by hand, Wave B). */
+	public void reportPlc(int i, UUID machine, boolean running, boolean done, long cycles, boolean hand) {
 		Outlet o = outlets[i];
 		if (!machine.equals(o.machine)) {
 			return;
@@ -187,6 +193,7 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 		o.running = running;
 		o.done = done;
 		o.cycles = cycles;
+		o.hand = hand;
 	}
 
 	/** The PLC's RUN for the machine on outlet {@code i}: on or off while the selector is AUTO and the command fresh; null otherwise. */
@@ -509,12 +516,18 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 			out.add(new Point("OUTLET " + i + " MACHINE CYCLES", false, Signal.PULSE));
 			out.add(new Point("OUTLET " + i + " MACHINE POWER 4-20 mA, its peak", false, Signal.MA));
 		}
+		// a player at the machine's levers (Wave B): after every point before, so none changes its number
+		for (int i = 1; i <= PitPower.OUTLETS; i++) {
+			out.add(new Point("OUTLET " + i + " MACHINE HAND", false));
+		}
 		return out;
 	}
 
 	/** The first of the machines' points, and how many each outlet has. */
 	public static final int MACHINE_POINTS = PitPower.OUTLETS * 4 + 1;
 	public static final int POINTS_EACH = 5;
+	/** The first MACHINE HAND point, one an outlet. */
+	public static final int HAND_POINTS = MACHINE_POINTS + PitPower.OUTLETS * POINTS_EACH;
 
 	/** The outlet whose machine point {@code point} is, and which of its five (0 RUN, 1 RUNNING, 2 DONE, 3 CYCLES, 4 POWER); null for the house's own. */
 	private static int @Nullable [] machinePoint(int point) {
@@ -537,6 +550,10 @@ public class PitSwitchHouseBlockEntity extends BlockEntity implements BigPartEnt
 
 	@Override
 	public boolean readPoint(int point) {
+		if (point >= HAND_POINTS && point < HAND_POINTS + PitPower.OUTLETS) {
+			Outlet o = outlets[point - HAND_POINTS];
+			return plcOn(o) && o.hand;
+		}
 		int[] m = machinePoint(point);
 		if (m != null) {
 			Outlet o = outlets[m[0]];
