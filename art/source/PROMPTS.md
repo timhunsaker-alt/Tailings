@@ -144,3 +144,18 @@ picture, which averaged to flat grey at 16 px, so `tools/process_art.py` keeps i
 | File | Prompt |
 |---|---|
 | stockpile_rock (a) | Seamless flat texture, top-down orthographic view, even lighting: the surface of a crushed ore stockpile at a mine, angular light grey crushed rock pieces of fairly even size about a fist to a head across, sharp fresh fracture faces, a little pale grey dust between them, drier and lighter than blasted rock, plain, no text |
+
+## Wave B: the dragline by hand and slope failures (2026-11-19)
+Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations, the first (a) kept (1 credit each). Sounds: Ludo
+`createSoundEffect` (2 credits each), in `art/sound_source/`, made into one-shots by `tools/process_sounds.py`.
+
+| File | Kind | Prompt |
+|---|---|---|
+| tension_crack (a) | texture | Seamless flat texture, top-down orthographic view, even lighting: brown dirt ground with a dark open tension crack running straight across it, the crack a few centimetres wide and deep black inside, small crumbs of soil at its edges, plain, no text |
+| slope_prism (a) | item-icon | A single surveying prism reflector on a short steel pole: a round glass retro prism in an orange and white plastic holder with a target plate, mounted on a grey pole, game item icon, plain white background, no text, unbranded |
+| survey_station (a) | item-icon | A single robotic total station surveying instrument in yellow and grey, mounted on top of a short concrete pillar with a small solar panel, used for monitoring mine slopes, game item icon, plain white background, no text, unbranded |
+| highwall_creak.mp3 | sound, 4 s | a deep low ground groan and creak from a cracking earth wall at an open pit mine, rock and soil straining, a few small stones trickling, outdoors, no music, no voice |
+| ravel.mp3 | sound, 2 s | a short trickle of small stones and dry dirt rolling and bouncing down a steep earth bank, outdoors, no music |
+| highwall_slide.mp3 | sound, 9 s | a huge landslide at a mine: a long low rumbling roar of tons of earth and rock sliding down a cliff wall into a pit, rocks crashing, then dying away, outdoors, distant echo, no music |
+| survey_alarm.mp3 | sound, 3 s | an electronic two-tone alarm beep from a survey monitoring station, high then low tone, repeated three times, outdoors, no music, no voice |
+| dragline_swing_brake.mp3 | sound, 2 s | a large industrial air brake setting on a huge machine: a sharp pneumatic hiss and a heavy metallic clunk, no music |

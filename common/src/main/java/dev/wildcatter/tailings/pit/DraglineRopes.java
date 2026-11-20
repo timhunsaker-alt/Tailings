@@ -94,8 +94,13 @@ public final class DraglineRopes {
 	 */
 	public static Bucket move(Bucket from, double dHoist, double dDrag, double ground) {
 		double hoist = hoistLength(from.out(), from.up()), drag = dragLength(from.out(), from.up());
-		if (from.grounded() && dHoist > 0) {
-			dHoist = 0;   // lying on the ground the hoist is slack already: paying it out moves nothing
+		if (from.grounded() && dHoist >= 0) {
+			// lying on the ground its hoist rope is slack: it pays out as the drag pulls the bucket along, as an operator keeps it
+			Bucket along = hang(Double.MAX_VALUE / 4, drag + dDrag, ground);
+			if (along != null && along.grounded() && allowed(along.out(), along.up())) {
+				return along;
+			}
+			dHoist = 0;
 		}
 		Bucket both = hang(hoist + dHoist, drag + dDrag, ground);
 		if (both != null && allowed(both.out(), both.up())) {

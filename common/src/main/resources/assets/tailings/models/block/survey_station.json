@@ -2,7 +2,7 @@
   "parent": "minecraft:block/cross",
   "render_type": "minecraft:cutout",
   "textures": {
-    "cross": "tailings:item/survey_station",
-    "particle": "tailings:item/survey_station"
+    "cross": "tailings:block/survey_station",
+    "particle": "tailings:block/survey_station"
   }
 }

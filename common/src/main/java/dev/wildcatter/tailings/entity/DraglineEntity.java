@@ -896,11 +896,13 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		double hoistSpeed = loaded ? dev.wildcatter.tailings.pit.DraglineRopes.HOIST_LOADED : dev.wildcatter.tailings.pit.DraglineRopes.HOIST_EMPTY;
 		double dragSpeed = digging ? dev.wildcatter.tailings.pit.DraglineRopes.DRAG_DIG : dev.wildcatter.tailings.pit.DraglineRopes.DRAG_FREE;
 		dev.wildcatter.tailings.pit.DraglineRopes.Bucket from = new dev.wildcatter.tailings.pit.DraglineRopes.Bucket(bucketOut(), bucketUp(), grounded);
-		dev.wildcatter.tailings.pit.DraglineRopes.Bucket to = dev.wildcatter.tailings.pit.DraglineRopes.move(from, hoist * hoistSpeed * share * dt, drag * dragSpeed * share * dt, ground);
+		if (digging && biteY == Integer.MIN_VALUE) {
+			biteY = (int) Math.floor(floorY() + ground) - 1;
+		}
+		// digging, it runs along the floor it bit to, whatever the uncut ground under its next step
+		double along = digging ? biteY - floorY() : ground;
+		dev.wildcatter.tailings.pit.DraglineRopes.Bucket to = dev.wildcatter.tailings.pit.DraglineRopes.move(from, hoist * hoistSpeed * share * dt, drag * dragSpeed * share * dt, along);
 		if (digging) {
-			if (biteY == Integer.MIN_VALUE) {
-				biteY = (int) Math.floor(floorY() + ground) - 1;
-			}
 			int metre = (int) Math.floor(to.out());
 			if (metre != lastCut) {
 				lastCut = metre;

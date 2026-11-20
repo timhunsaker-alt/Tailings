@@ -159,6 +159,8 @@ for role, colour in FLAGS.items():
 blastholes(flag)
 for name in ITEMS:
 	save(icon(name), "item", name)
+for name in ("slope_prism", "survey_station"):   # drawn in the world as a cross of their icon: the block atlas needs its own copy
+	save(icon(name), "block", name)
 for name in VEHICLE_MATS:
 	save(tile(f"vehicle/{name}", VEHICLE), "vehicle", name, copy=False)
 save(dye(tile("vehicle/paint_white", VEHICLE), EMULSION_RED), "vehicle", "paint_red", copy=False)

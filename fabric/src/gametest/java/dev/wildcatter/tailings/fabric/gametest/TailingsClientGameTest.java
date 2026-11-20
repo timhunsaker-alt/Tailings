@@ -198,6 +198,10 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			if (only("belt_grade")) {
 				beltGrade(context, world, server);
 			}
+			// the dragline by hand and its slopes failing (dragline-hand-control.md, Wave B)
+			if (only("dragline_hand") || only("highwall_slide") || only("spoil_slide") || only("dragline_wrecked")) {
+				new SlopeScenes(context, server, y).run(only("dragline_hand"), only("highwall_slide"), only("spoil_slide"), only("dragline_wrecked"));
+			}
 		}
 		if (only("hand")) {
 			hand(context);
