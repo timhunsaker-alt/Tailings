@@ -574,6 +574,9 @@ blast, a wrecked truck and the plant's chutes still place at once. Scenes `pit_p
   assay carries its solids. Wildcatter's lined cell counts it as plain tails. A `THICKENED_TAILS` product is proposed for Wildcatter.
 - **Old P4 sounds:** the press and thickener reuse existing sounds; the hydraulic whine and the cake's thud are still for an art
   wave. The dozer has its own loop while it moves (wave A).
+- **`pit_dozer_cut` fails now and then in the full suite (since 2026-11-18):** in the whole run its dozer stops at 15-20 m reading
+  "at the crest" (the ground under its nose not solid two down); alone it passes. Seen on `flow-all` (2026-11-18) and in both wave A
+  full runs; not chased yet.
 - **The dozer is drawn level and its treads do not run (P4):** its idlers and sprockets turn as it moves; the tread boxes are still.
 - **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
   to its right; it halts and says so if it cannot loop within 3 minutes.
