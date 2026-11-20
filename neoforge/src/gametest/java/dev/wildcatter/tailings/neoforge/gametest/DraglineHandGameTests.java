@@ -35,14 +35,16 @@ import net.minecraft.world.phys.AABB;
  * the world rule {@code slope_failures} on (their own batch, {@link #RULE_ON}).
  */
 final class DraglineHandGameTests {
-	static final String[] HAND = {"dragline_hand_dig", "dragline_hand_limits", "dragline_hand_give_back", "dragline_hand_plc_stop", "slope_rule_off"};
+	static final String[] HAND = {"dragline_hand_dig", "dragline_hand_limits", "dragline_hand_give_back", "dragline_hand_plc_stop", "slope_rule_off", "dragline_hand_truck"};
 	static final String[] SLOPE = {"dragline_batter", "slope_highwall_creep", "slope_highwall_slide", "slope_water", "slope_blast", "slope_buttress", "slope_spoil",
-			"slope_dragline_wrecked", "slope_dragline_ground_gone", "slope_station_alarm", "slope_saved"};
+			"slope_dragline_wrecked", "slope_dragline_ground_gone", "slope_station_alarm", "slope_saved", "slope_slide_flow", "slope_runout_trucks", "slope_bucket_buried",
+			"slope_creep_steps"};
 	static final String[] SCENES = java.util.stream.Stream.of(HAND, SLOPE).flatMap(java.util.Arrays::stream).toArray(String[]::new);
 	/** The slope scenes run in a batch with slope_failures on. */
 	static final Set<String> RULE_ON = Set.of(SLOPE);
-	static final Map<String, Integer> TICKS = Map.of("slope_highwall_slide", 3600, "slope_spoil", 4800, "slope_dragline_wrecked", 1200, "slope_dragline_ground_gone", 1200,
-			"dragline_batter", 4000, "dragline_hand_dig", 1600, "dragline_hand_give_back", 2400, "dragline_hand_limits", 1600);
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("slope_highwall_slide", 3600), Map.entry("slope_spoil", 4800), Map.entry("slope_dragline_wrecked", 1200),
+			Map.entry("slope_dragline_ground_gone", 1200), Map.entry("dragline_batter", 4000), Map.entry("dragline_hand_dig", 1600), Map.entry("dragline_hand_give_back", 2400),
+			Map.entry("dragline_hand_limits", 1600), Map.entry("slope_creep_steps", 3600));
 
 	private static final double CX = 20.5, CZ = 30.5;
 
@@ -66,6 +68,11 @@ final class DraglineHandGameTests {
 		out.accept("slope_dragline_ground_gone", DraglineHandGameTests::groundGone);
 		out.accept("slope_station_alarm", DraglineHandGameTests::stationAlarm);
 		out.accept("slope_saved", DraglineHandGameTests::saved);
+		out.accept("dragline_hand_truck", DraglineHandGameTests::handTruck);
+		out.accept("slope_slide_flow", DraglineHandGameTests::slideFlow);
+		out.accept("slope_runout_trucks", DraglineHandGameTests::runoutTrucks);
+		out.accept("slope_bucket_buried", DraglineHandGameTests::bucketBuried);
+		out.accept("slope_creep_steps", DraglineHandGameTests::creepSteps);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -224,6 +231,41 @@ final class DraglineHandGameTests {
 					log("dragline_hand_limits", String.format(Locale.ROOT, "hoist limit %.1f m up; drag limit %.1f m out; coasted %.1f degrees", DraglineRopes.POINT_UP - DraglineRopes.HOIST_LIMIT,
 							DraglineRopes.DRAG_LIMIT_OUT, coast));
 					helper.assertTrue(Math.abs(coast - 40.5) < 1, Component.literal("about 40 degrees: " + coast));
+				})
+				.thenSucceed();
+	}
+
+	/** Hoisted and loaded over a haul truck, S dumps the bucket into the truck's body: the truck holds the load, nothing on the ground. */
+	static void handTruck(GameTestHelper helper) {
+		PitSwitchHouseBlockEntity[] h = new PitSwitchHouseBlockEntity[1];
+		DraglineEntity d = handScene(helper, h, 1);
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] truck = new dev.wildcatter.tailings.entity.HaulTruckEntity[1];
+		int[] sand = {0};
+		helper.startSequence()
+				.thenIdle(3)
+				.thenExecute(() -> helper.assertTrue(h[0].close(0) == null, Component.literal("its outlet should close")))
+				.thenIdle(5)
+				.thenExecute(() -> {
+					takeOver(d);
+					d.emptyBucket();
+					d.testFill("minecraft:sand", 20);
+					d.handPose(0, 45, 12);
+					net.minecraft.world.phys.Vec3 under = d.bucketAt(0, 45, 0);
+					truck[0] = TailingsEntities.HAUL_TRUCK.create(helper.getLevel(), EntitySpawnReason.COMMAND);
+					truck[0].setPos(under.x, dev.wildcatter.tailings.entity.PitVehicleEntity.groundUnder(helper.getLevel(), under.add(0, 5, 0), 40), under.z);
+					helper.getLevel().addFreshEntity(truck[0]);
+					sand[0] = count(helper, Blocks.SAND, 0, 90, DraglineGameTests.BENCH, 40, 0, 100);
+				})
+				.thenIdle(5)
+				.thenExecute(() -> d.testDrive(PAY_OUT))
+				.thenIdle(60)
+				.thenExecute(() -> {
+					long kg = truck[0].load().total();
+					int on = count(helper, Blocks.SAND, 0, 90, DraglineGameTests.BENCH, 40, 0, 100);
+					log("dragline_hand_truck", String.format(Locale.ROOT, "the truck holds %s; %d hand casts; sand on the ground %d (was %d); %s", truck[0].load().tonnes(), d.handCasts(), on, sand[0], d.status()));
+					helper.assertTrue(kg >= 20L * dev.wildcatter.tailings.pit.PitMass.kg("minecraft:sand") - 1 || truck[0].load().room() < dev.wildcatter.tailings.pit.PitMass.kg("minecraft:sand"),
+							Component.literal("the truck took the load: " + kg));
+					helper.assertTrue(d.handCasts() == 1 && on == sand[0], Component.literal("a cast, nothing spilt: " + d.handCasts() + ", " + on));
 				})
 				.thenSucceed();
 	}
@@ -453,6 +495,158 @@ final class DraglineHandGameTests {
 				.thenSucceed();
 	}
 
+	/** Dirt removed from the wedge's ground on line {@code z} (x 0-32): how deep the slide bit there. */
+	private static int bitten(GameTestHelper helper, int z, int crest) {
+		return 33 * (crest - 3) - count(helper, Blocks.DIRT, 0, 32, 3, crest - 1, z, z);
+	}
+
+	/**
+	 * 12 m of vertical dirt, FS 0.58: it slides within 10 s, and its ground runs: drawn by slide entities, each block leaving the face
+	 * and running down to the cut at the slide's 6 m/s over seconds, not set in one tick; the slide 2 m into each neighbouring section,
+	 * thinning (2/3, then 1/3), none of the wall beyond moved, and none lost.
+	 */
+	static void slideFlow(GameTestHelper helper) {
+		wall(helper, Blocks.DIRT, 3, 15, Dragline.BATTER_VERTICAL);
+		long id = strip(helper, 15, 30, 10);
+		int before = earth(helper);
+		long[] slidAt = {0};
+		int[] drawn = {0};
+		helper.startSequence()
+				.thenIdle(2)
+				.thenExecute(() -> Slopes.checkNow(helper.getLevel(), id, 0))
+				.thenWaitUntil(() -> helper.assertTrue(part(helper, id).stage() == Slope.Stage.SLID, Component.literal("slid: " + part(helper, id).stage())))
+				.thenExecute(() -> {
+					slidAt[0] = helper.getLevel().getGameTime();
+					for (dev.wildcatter.tailings.entity.SlideEntity e : helper.getLevel().getEntitiesOfClass(dev.wildcatter.tailings.entity.SlideEntity.class,
+							new AABB(helper.absolutePos(BlockPos.ZERO)).inflate(120))) {
+						drawn[0] += e.ways().size();
+					}
+				})
+				.thenIdle(20)
+				.thenExecute(() -> helper.assertTrue(Slopes.pending(helper.getLevel()) > 0, Component.literal("still running after 1 s: " + Slopes.pending(helper.getLevel()))))
+				.thenWaitUntil(() -> helper.assertTrue(Slopes.pending(helper.getLevel()) == 0, Component.literal("set: " + Slopes.pending(helper.getLevel()))))
+				.thenExecute(() -> {
+					long took = helper.getLevel().getGameTime() - slidAt[0];
+					// the section is z 31-40 (its strip starts at z 30.5); its tapers z 30, 29 and 41, 42
+					StringBuilder lines = new StringBuilder();
+					for (int z = 26; z <= 45; z++) {
+						lines.append(' ').append(z).append(':').append(bitten(helper, z, 15));
+					}
+					log("slope_slide_flow", "bitten by line:" + lines);
+					int mid = bitten(helper, 35, 15), in1 = bitten(helper, 30, 15), in2 = bitten(helper, 29, 15), out = bitten(helper, 28, 15);
+					int out2 = bitten(helper, 43, 15), in3 = bitten(helper, 42, 15);
+					int after = earth(helper), items = itemBlocks(helper);
+					log("slope_slide_flow", String.format(Locale.ROOT, "%d blocks drawn on their way; set over %d ticks; bitten: middle %d, 1 m in %d, 2 m in %d, beyond %d (far end %d, %d); %d dirt, %d after, %d items",
+							drawn[0], took, mid, in1, in2, out, in3, out2, before, after, items));
+					helper.assertTrue(drawn[0] > 300, Component.literal("its blocks drawn running: " + drawn[0]));
+					helper.assertTrue(took >= 40, Component.literal("it runs over seconds: " + took));
+					helper.assertTrue(mid > in1 && in1 > in2 && in2 > 0 && out == 0 && out2 == 0 && in3 > 0, Component.literal("tapered: " + mid + ", " + in1 + ", " + in2 + ", " + out));
+					helper.assertTrue(after + items == before, Component.literal("none lost: " + before + " -> " + after + " + " + items));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * A 20 m vertical dirt wall slides onto two haul trucks parked in the cut: the one against its toe is buried over half its height and
+	 * wrecked (its item dropped); the one farther out is reached by the run-out, pushed and stopped, BLOCKED; one far off is untouched.
+	 */
+	static void runoutTrucks(GameTestHelper helper) {
+		wall(helper, Blocks.DIRT, 3, 23, Dragline.BATTER_VERTICAL);
+		long id = strip(helper, 23, 30, 10);
+		dev.wildcatter.tailings.entity.HaulTruckEntity[] t = new dev.wildcatter.tailings.entity.HaulTruckEntity[3];
+		int[] xs = {37, 47, 85};
+		for (int n = 0; n < 3; n++) {
+			t[n] = TailingsEntities.HAUL_TRUCK.create(helper.getLevel(), EntitySpawnReason.COMMAND);
+			BlockPos at = helper.absolutePos(new BlockPos(xs[n], 3, 35));
+			t[n].setPos(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
+			t[n].setYRot(0);
+			helper.getLevel().addFreshEntity(t[n]);
+		}
+		net.minecraft.world.phys.Vec3[] was = {t[1].position(), t[2].position()};
+		helper.startSequence()
+				.thenIdle(2)
+				.thenExecute(() -> Slopes.checkNow(helper.getLevel(), id, 0))
+				.thenWaitUntil(() -> helper.assertTrue(part(helper, id).stage() == Slope.Stage.SLID, Component.literal("slid")))
+				.thenWaitUntil(() -> helper.assertTrue(Slopes.pending(helper.getLevel()) == 0, Component.literal("set")))
+				.thenIdle(5)
+				.thenExecute(() -> {
+					int trucks = 0;
+					for (ItemEntity item : helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(BlockPos.ZERO)).inflate(120))) {
+						if (item.getItem().is(dev.wildcatter.tailings.TailingsItems.HAUL_TRUCK)) {
+							trucks += item.getItem().getCount();
+						}
+					}
+					int reach = 0;
+					for (int x = 33; x <= 90; x++) {
+						if (count(helper, Blocks.DIRT, x, x, 3, 30, 20, 45) > 0) {
+							reach = x;
+						}
+					}
+					log("slope_runout_trucks", "the run-out reaches x " + reach);
+					log("slope_runout_trucks", String.format(Locale.ROOT, "toe truck removed %s (%d truck items); run-out truck %s moved %.1f m, %s; far truck moved %.1f m, %s", t[0].isRemoved(), trucks,
+							t[1].slideBlocked() ? "BLOCKED" : "free", t[1].position().distanceTo(was[0]), t[1].status(), t[2].position().distanceTo(was[1]), t[2].status()));
+					helper.assertTrue(t[0].isRemoved() && trucks == 1, Component.literal("the toe truck is wrecked: " + t[0].isRemoved() + ", " + trucks));
+					helper.assertTrue(t[1].isAlive() && t[1].status().startsWith("BLOCKED") && t[1].position().distanceTo(was[0]) > 1, Component.literal("pushed and BLOCKED: " + t[1].status()));
+					helper.assertTrue(t[2].isAlive() && !t[2].status().startsWith("BLOCKED"), Component.literal("the far truck untouched: " + t[2].status()));
+				})
+				.thenSucceed();
+	}
+
+	/** A dragline's bucket lying in the cut at the toe of a 13 m wall: the slide runs over it: BUCKET BURIED. */
+	static void bucketBuried(GameTestHelper helper) {
+		wall(helper, Blocks.DIRT, 10, 23, Dragline.BATTER_VERTICAL);
+		fill(helper, Blocks.DIRT, 0, 32, 10, 22, 10, 19);
+		DraglineEntity d = standing(helper, 23);
+		helper.startSequence()
+				.thenIdle(2)
+				.thenExecute(() -> {
+					d.handPose(-90, 14.5, -13);
+					Slopes.checkNow(helper.getLevel(), d.stripId(), 0);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(d.bucketBuried(), Component.literal("BUCKET BURIED: " + d.status() + "; " + part(helper, d.stripId()).stage())))
+				.thenExecute(() -> {
+					log("slope_bucket_buried", d.status() + "; ground gone " + d.groundGone());
+					helper.assertTrue(d.status().startsWith("BUCKET BURIED"), Component.literal(d.status()));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * Failing, the bench moves before it slides: 9 m of vertical dirt with a prism 4 m back from its crest; through its clock its crack
+	 * opens and the slab between the crack and the crest moves toward the face three times, a metre each, its prism with it; then it
+	 * slides. None lost.
+	 */
+	static void creepSteps(GameTestHelper helper) {
+		wall(helper, Blocks.DIRT, 3, 12, Dragline.BATTER_VERTICAL);
+		long id = strip(helper, 12, 30, 10);
+		helper.setBlock(29, 12, 35, TailingsBlocks.SLOPE_PRISM);
+		int before = earth(helper);
+		int[] prismX = {29};
+		int[] stepsSeen = {0};
+		helper.startSequence()
+				.thenIdle(2)
+				.thenExecute(() -> Slopes.checkNow(helper.getLevel(), id, 0))
+				.thenWaitUntil(() -> {
+					Slopes.Part p = part(helper, id);
+					stepsSeen[0] = Math.max(stepsSeen[0], p.steps());
+					for (int x = 25; x <= 33; x++) {
+						if (helper.getBlockState(new BlockPos(x, 12, 35)).is(TailingsBlocks.SLOPE_PRISM)) {
+							prismX[0] = Math.max(prismX[0], x);
+						}
+					}
+					helper.assertTrue(p.stage() == Slope.Stage.SLID, Component.literal("slid: " + p.stage() + ", steps " + p.steps()));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(Slopes.pending(helper.getLevel()) == 0, Component.literal("set")))
+				.thenExecute(() -> {
+					int after = earth(helper), items = itemBlocks(helper);
+					log("slope_creep_steps", String.format(Locale.ROOT, "steps %d; the prism went from x 29 to x %d; %d dirt, %d after, %d items", stepsSeen[0], prismX[0], before, after, items));
+					helper.assertTrue(stepsSeen[0] == 3, Component.literal("three steps: " + stepsSeen[0]));
+					helper.assertTrue(prismX[0] >= 31, Component.literal("the prism moved toward the face: " + prismX[0]));
+					helper.assertTrue(after + items == before, Component.literal("none lost: " + before + " -> " + after + " + " + items));
+				})
+				.thenSucceed();
+	}
+
 	/** A 40 m vertical rock wall stands; a blast 10 m behind its crest halves its cohesion and it fails. */
 	static void blast(GameTestHelper helper) {
 		wall(helper, Blocks.STONE, 3, 43, Dragline.BATTER_VERTICAL);
@@ -546,6 +740,10 @@ final class DraglineHandGameTests {
 					Slopes.checkNow(helper.getLevel(), d.stripId(), 0);
 					helper.assertTrue(part(helper, d.stripId()).stage() == Slope.Stage.FAILING, Component.literal("failing: " + part(helper, d.stripId()).fs()));
 				})
+				.thenWaitUntil(() -> helper.assertTrue(d.tipping(), Component.literal("it tips toward the cut: " + d.status())))
+				.thenExecute(() -> helper.assertTrue(!d.isRemoved() && d.status().startsWith("WRECKED"), Component.literal("it falls before it breaks: " + d.status())))
+				.thenIdle(DraglineEntity.TIP_TICKS / 2)
+				.thenExecute(() -> helper.assertTrue(!d.isRemoved(), Component.literal("still falling halfway")))
 				.thenWaitUntil(() -> helper.assertTrue(d.isRemoved(), Component.literal("it goes down with the slide: " + d.status())))
 				.thenExecute(() -> {
 					int houses = 0;
