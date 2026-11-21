@@ -208,6 +208,8 @@ final class Rtm01Scenes {
 	 */
 	static final class Card extends Screen {
 		static volatile String[] lines = new String[0];
+		/** If set, the card is sized for this text at the least, so it keeps its size while its lines change (episode 2). */
+		static volatile String widthOf = "";
 
 		Card() {
 			super(Component.literal("readout"));
@@ -228,7 +230,7 @@ final class Rtm01Scenes {
 			if (now.length == 0) {
 				return;
 			}
-			int widest = 1;
+			int widest = Math.max(1, font.width(widthOf));
 			for (String l : now) {
 				widest = Math.max(widest, font.width(text(l)));
 			}
