@@ -575,6 +575,9 @@ final class Rtm02Scenes {
 		if (size != null && level.getBlockEntity(cell) instanceof dev.wildcatter.block.MultiCableBlockEntity cable) {
 			cable.setSize(size);
 		}
+		// Set in its armless default state, a conductor sets itself again with its arms from onPlace, with no neighbour update,
+		// and the first set then skips its own: the run before it never hears of it. Tell it, so it grows its arm to this one.
+		level.updateNeighborsAt(cell, wc(id), null);
 	}
 
 	private static void lay(ServerLevel level, String id, dev.wildcatter.energy.ConductorSize size, List<BlockPos> cells) {

@@ -531,6 +531,9 @@ final class Rtm01Scenes {
 		if (size != null && level.getBlockEntity(cell) instanceof dev.wildcatter.block.MultiCableBlockEntity cable) {
 			cable.setSize(size);
 		}
+		// Set in its armless default state, a conductor sets itself again with its arms from onPlace, with no neighbour update,
+		// and the first set then skips its own: the run before it never hears of it. Tell it, so it grows its arm to this one.
+		level.updateNeighborsAt(cell, wc(id), null);
 	}
 
 	/** A set at {@code panel}, its skid west of it, facing north. Gas sets are 1 MW, diesel 500 kW, both at the industrial voltage. */

@@ -360,6 +360,7 @@ final class Trailer {
 		Block steel = BuiltInRegistries.BLOCK.getValue(Identifier.fromNamespaceAndPath("wildcatter", "gas_line"));
 		for (BlockPos pos : at) {
 			level.setBlock(pos, steel.defaultBlockState(), Block.UPDATE_ALL);
+			level.updateNeighborsAt(pos, steel, null);   // the length before it grows its arm to this one
 		}
 	}
 
