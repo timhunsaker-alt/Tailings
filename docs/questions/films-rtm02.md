@@ -2,7 +2,7 @@
 
 Decided while Tim was away, while filming episode 2 (branch `films-rtm02`, TAILINGS_ONLY=rtm02).
 
-### 1. The big mills' pinions move to the generator tier (needs you)
+### 1. The big mills' pinions move to the generator tier (accepted by Tim 2026-11-21)
 - **Found:** the SAG mill and the large ball mill could not run on real power at all. At the medium-voltage tier one 4.1 MW SAG pinion
   draws about 710 A running and 4,300 A starting, one 5.25 MW ball-mill pinion about 910 A running. The largest MV cable is the
   500 kcmil, rated 450 A, and Wildcatter's wire heat burns a conductor at 1.34 times its rating held: a direct start burns it in about
