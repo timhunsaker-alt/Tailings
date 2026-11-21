@@ -58,6 +58,9 @@ public final class Shaft {
 		return run(hoist).layout;
 	}
 
+	/** How long the skip's 3 t takes to pour out of its bottom door, s (proposed: a few seconds of the 10 s rest). */
+	static final double POUR_SECONDS = 4;
+
 	private static final String[] SIDE = {"west", "east"};
 
 	static final Stage HOIST = new Stage() {
@@ -103,7 +106,11 @@ public final class Shaft {
 					winder.brake();
 					part.say("STOPPED: the brakes hold the skips (" + (part.strength() > 0 ? "its motor is starting" : "no power to its motor") + ")");
 				} else {
-					winder.wind(DT, part.strength());
+					if (winder.wind(DT, part.strength()) && pours(layout, winder)) {
+						ShaftSkipEntity top = run.skips[winder.top()];
+						((ServerLevel) part.getLevel()).playSound(null, top.getX(), top.getY(), top.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP,
+								net.minecraft.sounds.SoundSource.BLOCKS, 3F, 0.8F);
+					}
 					part.say(String.format("WINDING at %.1f m/s, the %s skip coming up loaded", winder.speed(), SIDE[winder.bottom()]));
 				}
 				part.setChanged();
@@ -114,8 +121,52 @@ public final class Shaft {
 				ends(part, layout, winder, run);
 			}
 			place(layout, run.skips, winder);
+			pour(level, run.skips, winder, layout);
 		}
 	};
+
+	/** The top skip is at the dump with a load the bin has room for: its bottom door opens and it pours through the rest. */
+	private static boolean pours(ShaftLayout layout, Winder winder) {
+		RockLoad top = winder.load(winder.top());
+		return !winder.winding() && !top.isEmpty() && layout.bin != null && layout.bin.room() >= top.total() - 1e-6;
+	}
+
+	/**
+	 * The rock pouring out of the bottom of the skip at the dump into the bin under it, over the first {@link #POUR_SECONDS} of the
+	 * rest; the skip shows empty once it has poured. (Its load still goes into the bin's count at the rest's end, as before.)
+	 */
+	private static void pour(ServerLevel level, ShaftSkipEntity[] skips, Winder winder, ShaftLayout layout) {
+		if (!pours(layout, winder) || winder.rest() <= 0) {
+			return;
+		}
+		double poured = Hoisting.REST_SECONDS - winder.rest();
+		ShaftSkipEntity top = skips[winder.top()];
+		if (poured >= POUR_SECONDS) {
+			top.setLoaded(false);
+			return;
+		}
+		if (level.getGameTime() % 2 == 0) {
+			// out of its bottom door down the headframe's chute into the bin: aimed at the bin's top middle
+			net.minecraft.world.phys.Vec3 c = top.getBoundingBox().getCenter();
+			double y = top.getBoundingBox().minY - 0.2;
+			net.minecraft.core.Direction binFacing = layout.bin.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING);
+			net.minecraft.core.BlockPos mid = layout.bin.getBlockPos().offset(dev.wildcatter.tailings.block.TbmMachine.offset(binFacing, 2, 5, 2));
+			double tx = mid.getX() - c.x, ty = mid.getY() - y, tz = mid.getZ() - c.z;
+			double fall = Math.max(8, Math.sqrt(2 * Math.max(1, -ty) / 0.04));   // ticks to fall that far under a block particle's gravity
+			double vx = tx / fall, vz = tz / fall;
+			double heavy = 1 - poured / POUR_SECONDS;
+			var random = level.getRandom();
+			int n = (int) (8 + 22 * heavy);
+			for (int i = 0; i < n; i++) {
+				var rock = i % 3 == 0 ? net.minecraft.world.level.block.Blocks.GRAVEL : net.minecraft.world.level.block.Blocks.COBBLESTONE;
+				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, rock.defaultBlockState()),
+						c.x + (random.nextDouble() - 0.5) * 1.2, y + random.nextDouble() * 0.4, c.z + (random.nextDouble() - 0.5) * 1.2, 0,
+						vx * (0.8 + 0.4 * random.nextDouble()), -0.05 - 0.1 * random.nextDouble(), vz * (0.8 + 0.4 * random.nextDouble()), 1);
+			}
+			level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.FALLING_DUST,
+					net.minecraft.world.level.block.Blocks.GRAVEL.defaultBlockState()), c.x + tx * 0.3, y + ty * 0.3, c.z + tz * 0.3, (int) (4 + 8 * heavy), 0.8, 1.5, 0.8, 0);
+		}
+	}
 
 	/** At rest with the rest run out: the top skip dumps if the bin has room, the bottom one loads if the flask holds its 3 t, then it winds. */
 	private static void ends(PlantBlockEntity part, ShaftLayout layout, Winder winder, Run run) {

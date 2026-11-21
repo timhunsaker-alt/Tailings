@@ -42,6 +42,8 @@ public abstract class PitchedCellsRenderer<T extends Entity> extends EntityRende
 		/** The reel gantry's: its trailing cable as points from the entity's corner, {x, y, z} each, and how far the reel has turned. */
 		float[] cable = new float[0];
 		float reelTurn = Float.NaN;
+		/** While its machine works (the TBM cutting, the muck conveyor running): seconds of game time, for what moves; else NaN. */
+		float working = Float.NaN;
 	}
 
 	/** More to draw, turned to the grade with the cells ({@code pitched}) or as the world stands. */

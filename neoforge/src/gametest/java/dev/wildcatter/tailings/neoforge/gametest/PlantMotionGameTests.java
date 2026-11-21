@@ -9,12 +9,13 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 
 /**
- * The crushers' and apron feeders' moving parts (PlantRenderer) move while the part runs and stop when it stops: the state the
+ * The crushers', apron feeders', big mills', cells' froth and X-ray sorter's moving parts (PlantRenderer) move while the part runs and stop when it stops: the state the
  * renderer reads, {@link PlantBlockEntity#moving()}, and what the server sends the client of it. A part commanded on with no power
  * does not move; one running does, work or none; stopped, it does not.
  */
 final class PlantMotionGameTests {
-	static final String[] SCENES = {"jaw_moves", "gyratory_moves", "apron_feeder_moves", "primary_apron_moves", "reclaim_feeder_moves"};
+	static final String[] SCENES = {"jaw_moves", "gyratory_moves", "apron_feeder_moves", "primary_apron_moves", "reclaim_feeder_moves", "sag_mill_moves", "ball_mill_large_moves",
+			"tank_cell_froth_moves", "column_cell_froth_moves", "xrt_sorter_moves"};
 
 	private PlantMotionGameTests() {
 	}
@@ -25,6 +26,11 @@ final class PlantMotionGameTests {
 		out.accept("apron_feeder_moves", helper -> moves(helper, Machine.APRON_FEEDER));
 		out.accept("primary_apron_moves", helper -> moves(helper, Machine.PRIMARY_APRON_FEEDER));
 		out.accept("reclaim_feeder_moves", helper -> moves(helper, Machine.RECLAIM_FEEDER));
+		out.accept("sag_mill_moves", helper -> moves(helper, Machine.SAG_MILL));
+		out.accept("ball_mill_large_moves", helper -> moves(helper, Machine.BALL_MILL_LARGE));
+		out.accept("tank_cell_froth_moves", helper -> moves(helper, Machine.TANK_CELL));
+		out.accept("column_cell_froth_moves", helper -> moves(helper, Machine.COLUMN_CELL));
+		out.accept("xrt_sorter_moves", helper -> moves(helper, Machine.XRT_SORTER));
 	}
 
 	private static boolean sent(GameTestHelper helper, PlantBlockEntity part) {

@@ -429,6 +429,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	private double turned;
 	/** The game time (with the partial tick) the client last turned them at, or NaN. */
 	private double turnedAt = Double.NaN;
+	/** An X-ray sorter's product share last sent to the client (not saved). */
+	private float xrtShare = 0.5f;
 	private boolean grown;
 	private final NonNullList<ItemStack> slots = NonNullList.withSize(7, ItemStack.EMPTY);
 	/** The pressure filter's cake, paid out as nuggets. */
@@ -555,6 +557,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			sounding = now;
 			moving = go;
 			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		} else if (machine() == Machine.XRT_SORTER && level.getGameTime() % 20 == 0 && Math.abs(xrtShareNow() - xrtShare) > 0.05f) {
+			xrtShare = xrtShareNow();
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
 		}
 	}
 
@@ -603,7 +608,21 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
 		tag.putBoolean("sounding", sounding);
 		tag.putBoolean("moving", moving);
+		if (machine() == Machine.XRT_SORTER) {
+			tag.putFloat("xrtShare", xrtShareNow());
+		}
 		return tag;
+	}
+
+	/** An X-ray sorter's share of its rock sent to product so far (for the client's drawing of the pieces it ejects); half before any. */
+	private float xrtShareNow() {
+		double all = xrt == null ? 0 : xrt.productKg() + xrt.wasteKg();
+		return all <= 0 ? 0.5f : (float) (xrt.productKg() / all);
+	}
+
+	/** On the client: an X-ray sorter's product share, as the server last sent it. */
+	public float xrtShare() {
+		return xrtShare;
 	}
 
 	/** A hopper's item in the intake slot goes into the hold (or an ore bin's store) as soon as there is room. */
@@ -1608,6 +1627,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		super.loadAdditional(input);
 		sounding = input.getBooleanOr("sounding", false);
 		moving = input.getBooleanOr("moving", false);
+		xrtShare = input.getFloatOr("xrtShare", 0.5f);
 		grown = input.getBooleanOr("grown", false);
 		slots.clear();
 		loading = true;
