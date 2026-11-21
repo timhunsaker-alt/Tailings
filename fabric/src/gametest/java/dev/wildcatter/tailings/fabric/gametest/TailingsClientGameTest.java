@@ -88,6 +88,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new PitShorts(context).run();
 			return;
 		}
+		// Rock to Metal episode 1's films: their own real world, on real power, only when named
+		if ("rtm01".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Rtm01Scenes(context).run();
+			return;
+		}
 		// the trailer's shots: their own real world, only when named
 		if ("trailer".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Trailer(context).run();
