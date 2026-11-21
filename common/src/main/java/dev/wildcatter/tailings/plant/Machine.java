@@ -3,7 +3,8 @@ package dev.wildcatter.tailings.plant;
 /**
  * One true-size part of the plant or the dump station (docs/multiblocks/crushing-circuit.md, flotation-bank.md, dump-station.md).
  * Sizes are the spec's cells, W x H x L (1 block = 1 m). Watts are the real motor; 0 is unpowered steel. {@link Supply#MEDIUM} is
- * the 4.16 kV tier and {@link Supply#INDUSTRIAL} the 480 V tier, read from Wildcatter's tiers, never as a number.
+ * the 4.16 kV tier, {@link Supply#INDUSTRIAL} the 480 V tier and {@link Supply#GENERATOR} the 13.8 kV generator tier (the two big
+ * mills), read from Wildcatter's tiers, never as a number.
  */
 public enum Machine {
 	GRIZZLY("grizzly", "Grizzly", 3, 2, 4, 0, Supply.NONE),
@@ -165,11 +166,11 @@ public enum Machine {
 	 * The 9.75 m x 4.6 m (32 ft x 15 ft EGL) SAG mill and its trommel (sag-mill-line.md, P7b): 8.2 MW on a twin-pinion drive, two
 	 * 4.1 MW motors at the medium-voltage tier, their boxes on its west face. {@link #watts} is one motor.
 	 */
-	SAG_MILL("sag_mill", "SAG Mill", 11, 11, 14, dev.wildcatter.tailings.plant.PitLine.SAG_MOTOR_WATTS, Supply.MEDIUM),
+	SAG_MILL("sag_mill", "SAG Mill", 11, 11, 14, dev.wildcatter.tailings.plant.PitLine.SAG_MOTOR_WATTS, Supply.GENERATOR),
 	/** A 300 kW class cone crusher at a 12 mm closed side, crushing the SAG's pebbles (P7b, unverified). */
 	PEBBLE_CRUSHER("pebble_crusher", "Pebble Crusher", 4, 5, 4, 300_000, Supply.MEDIUM),
 	/** A 7.3 m x 11 m (24 ft x 36 ft) overflow ball mill on two 5.25 MW pinions (P7b, proposed). {@link #watts} is one motor. */
-	BALL_MILL_LARGE("ball_mill_large", "Large Ball Mill", 9, 9, 16, dev.wildcatter.tailings.plant.PitLine.BALL_MILL_MOTOR_WATTS, Supply.MEDIUM),
+	BALL_MILL_LARGE("ball_mill_large", "Large Ball Mill", 9, 9, 16, dev.wildcatter.tailings.plant.PitLine.BALL_MILL_MOTOR_WATTS, Supply.GENERATOR),
 	/** The cyclone feed sump and its 600 kW slurry pump, about 1 m³/s at 25 m head (P7b, proposed). */
 	CYCLONE_FEED_PUMP("cyclone_feed_pump", "Cyclone Feed Pump", 4, 4, 5, 600_000, Supply.MEDIUM),
 	/** Twelve 660 mm hydrocyclones on a ring manifold, ten running, cut at 150 µm; the pump drives them (P7b, proposed). */
@@ -205,7 +206,12 @@ public enum Machine {
 	public enum Supply {
 		NONE,
 		INDUSTRIAL,
-		MEDIUM
+		MEDIUM,
+		/**
+		 * The generator tier, for the two big mills' 4-5 MW pinions (docs/questions/films-rtm02.md #1): at the medium-voltage tier one
+		 * pinion draws more than the largest MV cable carries and burns it on its start. Fed on generator bus duct.
+		 */
+		GENERATOR
 	}
 
 	private final String id;

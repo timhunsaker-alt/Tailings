@@ -505,7 +505,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		super(TailingsBlocks.PLANT, pos, state);
 		Machine machine = machine();
 		if (machine.watts() > 0) {
-			Voltage voltage = machine.supply() == Machine.Supply.MEDIUM ? Voltage.MEDIUM : Voltage.INDUSTRIAL;
+			Voltage voltage = switch (machine.supply()) {
+				case MEDIUM -> Voltage.MEDIUM;
+				case GENERATOR -> Voltage.GENERATOR;
+				default -> Voltage.INDUSTRIAL;
+			};
 			motor = new Motor(true, voltage, machine.watts());
 			if (machine.motors() == 2) {
 				motor2 = new Motor(true, voltage, machine.watts());

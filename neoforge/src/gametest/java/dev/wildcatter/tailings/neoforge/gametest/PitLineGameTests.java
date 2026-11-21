@@ -698,7 +698,8 @@ final class PitLineGameTests {
 			if (machine.motors() == 2) {
 				BlockPos main = helper.absolutePos(pos);
 				Direction box = dev.wildcatter.tailings.block.TailingsPartBlock.boxFace(state);
-				var voltage = dev.wildcatter.energy.Voltage.MEDIUM;
+				var voltage = dev.wildcatter.energy.Voltage.GENERATOR;
+				helper.assertTrue(!part.hasPortAt(main, box, dev.wildcatter.circuit.Conductor.A, dev.wildcatter.energy.Voltage.MEDIUM), Component.literal(machine + ": its pinions are on the generator tier, not medium voltage"));
 				helper.assertTrue(part.hasPortAt(main, box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": the first pinion's box at its main cell"));
 				helper.assertTrue(part.hasPortAt(main.south(4), box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": the second pinion's box 4 m south"));
 				helper.assertTrue(!part.hasPortAt(main.south(2), box, dev.wildcatter.circuit.Conductor.A, voltage), Component.literal(machine + ": no box between them"));

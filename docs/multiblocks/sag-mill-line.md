@@ -122,6 +122,8 @@ Decisions in [../questions/p7-pit-line.md](../questions/p7-pit-line.md) (#20-#31
 - **Tests:** NeoForge `p7_sag_grind`, `p7_sag_overload`, `p7_pebble_off`, `p7_cyclones`, `p7b_parts`; unit tests `PitLineTest`,
   `MachineTest`; the client film `p7_line` (with P7a).
 - **Not built:** the spec's "Left out"; the mills' start interlock (#21).
+- **Changed 2026-11-21 (films-rtm02.md #1):** the SAG's and the large ball mill's pinions are on the generator tier, fed on generator bus
+  duct: at medium voltage one pinion drew more than the largest MV cable carries and burned it on its start.
 
 ## Sources
 - AG/SAG update survey (2015): the first gearless SAG mills were two **32' x 17' (15' EGL), 8,200 kW** mills for Chuquicamata (1986);

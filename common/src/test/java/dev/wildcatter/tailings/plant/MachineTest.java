@@ -128,12 +128,12 @@ class MachineTest {
 		assertEquals(0, Machine.GRIZZLY.watts());
 		assertEquals(96, Machine.BALL_MILL.cells());
 		assertEquals(192, Machine.THICKENER.cells());
-		// the big mills' twin-pinion drives: two motors each at the medium-voltage tier (sag-mill-line.md, P7b)
+		// the big mills' twin-pinion drives: two motors each at the generator tier (sag-mill-line.md, P7b; films-rtm02.md #1)
 		assertEquals(2, Machine.SAG_MILL.motors());
 		assertEquals(8_200_000, Machine.SAG_MILL.watts() * Machine.SAG_MILL.motors());
 		assertEquals(10_500_000, Machine.BALL_MILL_LARGE.watts() * Machine.BALL_MILL_LARGE.motors());
-		assertEquals(Machine.Supply.MEDIUM, Machine.SAG_MILL.supply());
-		assertEquals(Machine.Supply.MEDIUM, Machine.BALL_MILL_LARGE.supply());
+		assertEquals(Machine.Supply.GENERATOR, Machine.SAG_MILL.supply());
+		assertEquals(Machine.Supply.GENERATOR, Machine.BALL_MILL_LARGE.supply());
 		assertEquals(1, Machine.BALL_MILL.motors());
 		// pit flotation (pit-flotation.md, P7c): the blower on the medium-voltage tier, the rest on the industrial
 		assertEquals(160_000, Machine.TANK_CELL.watts());
