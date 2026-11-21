@@ -6,6 +6,16 @@ All notable changes are the merged pull requests on `main`. Dates are the merge 
 
 It requires Wildcatter 0.8.1.
 
+### Machines you can see working
+
+- **The TBM's cutterhead turns** while it cuts (a wheel of disc cutters on the face, 6 rpm), and muck rides its conveyor gantry's
+  belt back to the car.
+- **The SAG and large ball mills turn** at 75 % of critical speed, their liner bolt rows going round.
+- **Froth on the cells:** running tank cells and column cells show a grey froth, its bubbles crowding out to the launder.
+- **The X-ray sorter's rock:** pieces ride its belt; the ore is blown on to the product chute with a puff of air and the waste drops
+  aside, in the share it is sending each way.
+- **A skip pours** its 3 t into the headframe bin at the dump, with the sound of it.
+
 ### Slides you can watch
 
 - **Slides flow:** a failing highwall or spoil pile now runs into the cut block by block, each block sliding down the face and out

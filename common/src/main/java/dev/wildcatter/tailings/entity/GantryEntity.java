@@ -83,6 +83,11 @@ public class GantryEntity extends Entity implements SoundingEntity {
 		return entityData.get(DATA_PITCH);
 	}
 
+	/** On the client too: the machine it serves is driving (its conveyor runs). */
+	public boolean isWorking() {
+		return entityData.get(DATA_WORKING);
+	}
+
 	/** The machine it serves is driving. */
 	public void working() {
 		workHold = WORK_HOLD_TICKS;

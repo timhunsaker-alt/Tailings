@@ -120,6 +120,11 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 		return machine;
 	}
 
+	/** Cutting the face (on the client: as the server last said): the cutterhead turns. */
+	public boolean cutting() {
+		return entityData.get(DATA_CUTTING);
+	}
+
 	public Direction facing() {
 		return Direction.from3DDataValue(entityData.get(DATA_FACING));
 	}

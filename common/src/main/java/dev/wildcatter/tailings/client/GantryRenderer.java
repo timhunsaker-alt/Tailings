@@ -64,6 +64,7 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 	@Override
 	public void extractRenderState(GantryEntity entity, State state, float partialTick) {
 		super.extractRenderState(entity, state, partialTick);
+		state.working = entity.kind() == TbmGantry.CONVEYOR && entity.isWorking() ? (entity.tickCount + partialTick) / 20f : Float.NaN;
 		if (entity.kind() != TbmGantry.REEL) {
 			state.cable = new float[0];
 			state.reelTurn = Float.NaN;
@@ -135,6 +136,9 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 
 	@Override
 	protected void submitMore(State state, PoseStack pose, SubmitNodeCollector collector, int light, boolean pitched) {
+		if (pitched && !Float.isNaN(state.working)) {
+			muck(state, pose, collector, light);
+		}
 		if (Float.isNaN(state.reelTurn)) {
 			return;
 		}
@@ -165,6 +169,35 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 				}
 			}
 		});
+	}
+
+	/** The muck conveyor's belt speed, m/s (proposed: a 600 mm muck belt runs about 2 m/s). */
+	public static final float MUCK_BELT_SPEED = 2;
+	/** The muck conveyor's belt in its model (tools/models/tbm.py): across 2.2 to 3.8, its top 1.66 m up at the front, climbing 0.28 a metre to the tail at 8. */
+	private static final float BELT_X0 = 2.3f, BELT_X1 = 3.7f, BELT_TOP = 1.66f, BELT_CLIMB = 0.28f, BELT_LENGTH = 8f;
+
+	/** Lumps of muck riding the conveyor gantry's belt back to the tail while the machine drives, where they drop into the car. */
+	private static void muck(State state, PoseStack pose, SubmitNodeCollector collector, int light) {
+		Direction facing = state.facing;
+		float travel = state.working * MUCK_BELT_SPEED;
+		TextureAtlasSprite[] rock = {sprite("cobblestone"), sprite("gravel"), sprite("stone"), sprite("andesite")};
+		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (at, v) -> {
+			for (int k = 0; k < 40; k++) {
+				float along = ((k * 0.2f + travel) % BELT_LENGTH + BELT_LENGTH) % BELT_LENGTH;
+				int h = k * 0x9E3779B1;
+				h ^= h >>> 13;
+				float r = ((h & 0xFF) / 255f), r2 = (((h >>> 8) & 0xFF) / 255f);
+				float size = 0.14f + 0.14f * r;
+				float across = BELT_X0 + size / 2 + (BELT_X1 - BELT_X0 - size) * r2;
+				float up = BELT_TOP + BELT_CLIMB * along + size / 2;
+				float[] a = model(facing, across, up, along - size / 2), b = model(facing, across, up, along + size / 2);
+				rod(at, v, rock[(h >>> 16) & 3], a[0], a[1], a[2], b[0], b[1], b[2], size, light);
+			}
+		});
+	}
+
+	private static TextureAtlasSprite sprite(String name) {
+		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/" + name));
 	}
 
 	/** A square rod from one point to another. */

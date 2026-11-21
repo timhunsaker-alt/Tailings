@@ -38,7 +38,13 @@ import org.jspecify.annotations.Nullable;
  * <li>gyratory crusher (42-65 class): the eccentric at 150 rpm, its real speed; the mantle's head gyrates with it in the bowl (by
  * the little it does that high up, near the spider); the drive coupling is shown turning with the eccentric, a quarter of its real
  * 600 rpm, which strobes;</li>
- * <li>apron feeders (the primary, the reclaim and the dump's): the pans travel toward the head sprockets at 0.1 m/s.</li>
+ * <li>apron feeders (the primary, the reclaim and the dump's): the pans travel toward the head sprockets at 0.1 m/s;</li>
+ * <li>the SAG mill and the large ball mill: the shell between its heads turns at 75 % of critical speed, its liner bolt rows showing
+ * the turn;</li>
+ * <li>the tank and column cells: a froth over the slurry, its bubbles crowding out from the middle to the launder at the lip;</li>
+ * <li>the X-ray sorter: pieces ride its belt at 3 m/s through the X-ray cabinet; off the head pulley the ejectors' air blows the ones
+ * read as ore on to the product chute (south), with a puff at the manifold, and the rest drop to the waste chute (east), in the share
+ * the sorter is sending each way.</li>
  * </ul>
  */
 public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, PlantRenderer.State> {
@@ -52,6 +58,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float angle;
 		/** The light where the moving parts are. */
 		int light;
+		/** An X-ray sorter's product share. */
+		float share = 0.5f;
 	}
 
 	@Override
@@ -71,12 +79,18 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		state.machine = machine;
 		state.turns = BigParts.turns(plant.getBlockState());
 		state.angle = plant.getLevel() == null ? 0 : (float) plant.turned(plant.getLevel().getGameTime() + partialTick, rpm);
+		state.share = plant.xrtShare();
 		// lit as the cell the moving parts sit in, not the main cell under them
 		int[] at = switch (machine) {
 			case JAW -> new int[] {1, 2, 2};
 			case GYRATORY_CRUSHER -> new int[] {3, 9, 3};
 			case PRIMARY_APRON_FEEDER -> new int[] {1, 1, 6};
 			case RECLAIM_FEEDER -> new int[] {1, 1, 3};
+			case SAG_MILL -> new int[] {5, 10, 6};
+			case BALL_MILL_LARGE -> new int[] {4, 8, 7};
+			case TANK_CELL -> new int[] {3, 6, 3};
+			case COLUMN_CELL -> new int[] {2, 13, 2};
+			case XRT_SORTER -> new int[] {2, 3, 7};
 			default -> new int[] {1, 0, 2};
 		};
 		if (plant.getLevel() == null) {
@@ -106,7 +120,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 
 	/** NeoForge culls by this box: the whole of the largest part here, round the main cell whichever way it faces. */
 	public AABB getRenderBoundingBox(PlantBlockEntity plant) {
-		return new AABB(plant.getBlockPos()).inflate(13, 0, 13).expandTowards(0, 11, 0);
+		return new AABB(plant.getBlockPos()).inflate(13, 0, 13).expandTowards(0, 14, 0);
 	}
 
 	@Override
@@ -137,6 +151,11 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				case PRIMARY_APRON_FEEDER -> apron(at.last(), v, PRIMARY_APRON, angle, light);
 				case RECLAIM_FEEDER -> apron(at.last(), v, RECLAIM_APRON, angle, light);
 				case APRON_FEEDER -> apron(at.last(), v, DUMP_APRON, angle, light);
+					case SAG_MILL -> shell(at, v, angle, 5.5f, 5.9f, 4.85f, 4.55f, 8.3f, 8.7f, 8.85f, light);
+					case BALL_MILL_LARGE -> shell(at, v, angle, 4.5f, 4.8f, 3.65f, 3.75f, 11.4f, 11.8f, 12.25f, light);
+					case TANK_CELL -> froth(at.last(), v, angle, 3.5f, 3.5f, 3.15f, 5.65f, light);
+					case COLUMN_CELL -> froth(at.last(), v, angle, 2.0f, 2.0f, 1.85f, 12.75f, light);
+					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
 				default -> {
 				}
 			}
@@ -219,12 +238,136 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		}
 	}
 
+	/**
+	 * A mill's shell between its head flanges (z0 to z1, the girth gear's z gz0 to gz1 left to the model), turning about its axis along
+	 * z at (cx, cy): a 16-sided shell just over the model's octagon, eight rows of liner bolt heads along it, so the turn shows.
+	 */
+	private static void shell(PoseStack at, VertexConsumer v, float angle, float cx, float cy, float r, float z0, float gz0, float gz1, float z1, int light) {
+		at.pushPose();
+		at.translate(cx, cy, 0);
+		at.rotateDegrees(Axis.ZP, angle);
+		PoseStack.Pose p = at.last();
+		float rr = r * 1.01f;
+		for (float[] span : new float[][] {{z0, gz0}, {gz1, z1}}) {
+			cylinderZ(p, v, mat("green"), span[0], span[1], rr, 16, light);
+			for (int k = 0; k < 8; k++) {
+				PoseStack row = new PoseStack();
+				row.last().pose().set(p.pose());
+				row.last().normal().set(p.normal());
+				row.rotateDegrees(Axis.ZP, k * 45f + 11.25f);
+				for (float z = span[0] + 0.2f; z < span[1] - 0.2f; z += 0.45f) {
+					box(row.last(), v, mat("steel"), -0.14f, rr - 0.01f, z, 0.14f, rr + 0.12f, z + 0.28f, light);
+				}
+			}
+		}
+		at.popPose();
+	}
+
+	/** A round part along z about the pose's origin: {@code sides / 2} slabs each turned about the axis. */
+	private static void cylinderZ(PoseStack.Pose base, VertexConsumer v, TextureAtlasSprite s, float z0, float z1, float r, int sides, int light) {
+		float w = (float) (2 * r * Math.tan(Math.PI / sides));
+		for (int k = 0; k < sides / 2; k++) {
+			PoseStack at = new PoseStack();
+			at.last().pose().set(base.pose());
+			at.last().normal().set(base.normal());
+			at.rotateDegrees(Axis.ZP, k * 360f / sides);
+			box(at.last(), v, s, -w / 2, -r, z0, w / 2, r, z1, light);
+		}
+	}
+
+	/** A fixed pseudo-random 0 to 1 for bubble or piece {@code i}, draw {@code k}. */
+	private static float hash(int i, int k) {
+		int h = i * 0x9E3779B1 + k * 0x85EBCA77;
+		h ^= h >>> 15;
+		h *= 0x2C1B3C6D;
+		h ^= h >>> 12;
+		return (h & 0xFFFF) / 65536f;
+	}
+
+	private static final int BUBBLES = 70;
+
+	/**
+	 * A cell's froth: a grey mineral froth just over the model's slurry (at y), and bubbles riding out across it from the middle to the
+	 * launder at the lip, growing as they go, one cycle a turn.
+	 */
+	private static void froth(PoseStack.Pose p, VertexConsumer v, float angle, float cx, float cz, float r, float y, int light) {
+		TextureAtlasSprite base = vanilla("light_gray_concrete_powder"), bubble = vanilla("white_concrete_powder");
+		float step = 0.25f;
+		for (float z = cz - r; z < cz + r - 1e-4f; z += step) {
+			float z2 = Math.min(z + step, cz + r), d = Math.abs((z + z2) / 2 - cz);
+			float h = (float) Math.sqrt(Math.max(0, r * r - d * d));
+			box(p, v, base, cx - h, y, z, cx + h, y + 0.03f, z2, light);
+		}
+		float turn = angle / 360f;
+		for (int i = 0; i < BUBBLES; i++) {
+			float f = ((turn + hash(i, 0)) % 1f + 1f) % 1f;
+			double a = hash(i, 1) * Math.PI * 2;
+			float rad = 0.15f * r + 0.8f * r * f;
+			float size = (0.10f + 0.12f * hash(i, 2)) * (0.6f + 0.8f * f) * Math.min(1f, r / 2.5f + 0.3f);
+			float bx = cx + (float) Math.cos(a) * rad, bz = cz + (float) Math.sin(a) * rad;
+			box(p, v, bubble, bx - size / 2, y + 0.02f, bz - size / 2, bx + size / 2, y + 0.02f + size * 0.6f, bz + size / 2, light);
+		}
+	}
+
+	/** Pieces on the sorter's belt, one every half metre. */
+	private static final float PIECE_PITCH = 0.5f;
+	private static final float BELT_TAIL = 1.0f, BELT_HEAD = 7.0f, BELT_TOP = 2.25f;
+
+	/**
+	 * The X-ray sorter's pieces: each rides the belt from its tail (z 1) to its head (z 7) at 3 m/s, then flies: one read as ore is
+	 * blown on by the ejectors' air over the manifold toward the product chute out of the south face, a puff at the manifold as it
+	 * goes; one read as waste drops off the head and falls away east into the waste chute. {@code share} of them are ore.
+	 */
+	private static void xrt(PoseStack.Pose p, VertexConsumer v, float angle, float share, int light) {
+		float loop = PlantMotion.XRT_LOOP_METRES;
+		float travel = angle / 360f * loop;
+		int count = Math.round(loop / PIECE_PITCH);
+		TextureAtlasSprite ore = mat("brass"), waste = vanilla("andesite"), air = vanilla("white_concrete");
+		double speed = PlantMotion.XRT_BELT_SPEED;
+		for (int k = 0; k < count; k++) {
+			float along = ((k * PIECE_PITCH + travel) % loop + loop) % loop;   // metres from the tail
+			float size = 0.11f + 0.07f * hash(k, 3);
+			float x = 1.5f + 1.0f * hash(k, 4);
+			boolean isOre = hash(k, 5) < share;
+			float z = BELT_TAIL + along;
+			if (z <= BELT_HEAD) {
+				box(p, v, isOre ? ore : waste, x - size / 2, BELT_TOP, z - size / 2, x + size / 2, BELT_TOP + size * 0.8f, z + size / 2, light);
+				continue;
+			}
+			float t = (float) ((z - BELT_HEAD) / speed);   // seconds since it left the head pulley
+			float fx, fy, fz;
+			if (isOre) {
+				fz = BELT_HEAD + (float) speed * t * 1.15f;
+				fy = BELT_TOP + 0.6f * t - 4.9f * t * t;
+				fx = x;
+				if (t < 0.12f) {
+					float puff = 0.25f + 1.5f * t;
+					box(p, v, air, x - puff / 2, 1.95f, 7.35f - puff / 3, x + puff / 2, 1.95f + puff * 0.6f, 7.35f + puff * 0.8f, light);
+				}
+			} else {
+				fz = BELT_HEAD + 0.35f * t;
+				fy = BELT_TOP - 4.9f * t * t;
+				fx = x + 2.6f * t;
+			}
+			if (fy < 0.4f || fz > 8.6f || fx > 4.6f) {
+				continue;
+			}
+			box(p, v, isOre ? ore : waste, fx - size / 2, fy, fz - size / 2, fx + size / 2, fy + size * 0.8f, fz + size / 2, light);
+		}
+	}
+
+	private static TextureAtlasSprite vanilla(String name) {
+		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/" + name));
+	}
+
 	// ---- drawing, as the model tool draws: boxes, octagons and many-sided round parts ----------------------------------------------
 
 	private static TextureAtlasSprite mat(String name) {
 		String file = switch (name) {
 			case "iron" -> "mat_cast_iron";
 			case "blue" -> "mat_paint_ansi70";
+			case "green" -> "mat_paint_pad_green";
+			case "brass" -> "mat_brass";
 			default -> "mat_stainless";
 		};
 		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.fromNamespaceAndPath("wildcatter", "block/mat/" + file));
