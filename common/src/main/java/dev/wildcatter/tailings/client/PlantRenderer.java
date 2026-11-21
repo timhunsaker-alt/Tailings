@@ -255,8 +255,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				row.last().pose().set(p.pose());
 				row.last().normal().set(p.normal());
 				row.rotateDegrees(Axis.ZP, k * 45f + 11.25f);
-				for (float z = span[0] + 0.25f; z < span[1] - 0.1f; z += 0.5f) {
-					box(row.last(), v, mat("iron"), -0.09f, rr - 0.01f, z, 0.09f, rr + 0.07f, z + 0.18f, light);
+				for (float z = span[0] + 0.2f; z < span[1] - 0.2f; z += 0.45f) {
+					box(row.last(), v, mat("steel"), -0.14f, rr - 0.01f, z, 0.14f, rr + 0.12f, z + 0.28f, light);
 				}
 			}
 		}

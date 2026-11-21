@@ -2,6 +2,15 @@
 
 Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Shorts batch 4: the TBM, rock to concentrate, the hoist (2026-11-21, branch `films-batch4`)
+
+Drawing fixes so the machines read on camera (decisions in [docs/questions/films-batch4.md](docs/questions/films-batch4.md)): the
+TBM's cutter wheel turns while it cuts and muck rides its conveyor gantry; the SAG and large ball mills' shells turn; tank and column
+cells draw froth; the X-ray sorter's pieces ride its belt and leave it to product or waste; a skip pours into the headframe bin.
+NeoForge scenes `sag_mill_moves`, `ball_mill_large_moves`, `tank_cell_froth_moves`, `column_cell_froth_moves`, `xrt_sorter_moves`;
+client films `TAILINGS_ONLY=batch4` with `BATCH4_SET=tbm|ore|hoist` (real time, 2880 x 1620, a readout card in the middle 9:16).
+- **Known gaps:** the TBM has no thrust figure; its bore is square; the skip's load still counts into the bin at the rest's end.
+
 ## Finishing Wave B for the trailer (0.2.1, 2026-11-20, branch `finish-0.2`)
 
 The Wave B slope gaps closed (decisions 18-27 in [docs/questions/dragline-hand-control.md](docs/questions/dragline-hand-control.md)):

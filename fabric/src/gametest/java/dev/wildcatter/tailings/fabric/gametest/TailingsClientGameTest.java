@@ -88,6 +88,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new PitShorts(context).run();
 			return;
 		}
+		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
+		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Batch4Scenes(context).run();
+			return;
+		}
 		// the trailer's shots: their own real world, only when named
 		if ("trailer".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Trailer(context).run();

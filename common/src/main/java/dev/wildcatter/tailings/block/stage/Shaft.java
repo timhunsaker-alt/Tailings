@@ -145,7 +145,7 @@ public final class Shaft {
 			top.setLoaded(false);
 			return;
 		}
-		if (level.getGameTime() % 2 == 0) {
+		{
 			// out of its bottom door down the headframe's chute into the bin: aimed at the bin's top middle
 			net.minecraft.world.phys.Vec3 c = top.getBoundingBox().getCenter();
 			double y = top.getBoundingBox().minY - 0.2;
@@ -156,7 +156,7 @@ public final class Shaft {
 			double vx = tx / fall, vz = tz / fall;
 			double heavy = 1 - poured / POUR_SECONDS;
 			var random = level.getRandom();
-			int n = (int) (8 + 22 * heavy);
+			int n = (int) (20 + 50 * heavy);
 			for (int i = 0; i < n; i++) {
 				var rock = i % 3 == 0 ? net.minecraft.world.level.block.Blocks.GRAVEL : net.minecraft.world.level.block.Blocks.COBBLESTONE;
 				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, rock.defaultBlockState()),
