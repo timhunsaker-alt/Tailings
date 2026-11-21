@@ -13,7 +13,7 @@ Package root: `dev.wildcatter.tailings`. Mod id: `tailings`. Recovery, rock list
 | Plain mining and smelting | 25% | 1x | Vanilla or Wildcatter. Tailings does not change the drop. One drop is read as 25% |
 | Gravity or magnetic concentration | 50% | 2x | Shaking table and magnetic separator, on sand |
 | Flotation | 75% | 3x | A full flotation bank, on fines |
-| Full recovery | 95% | 4x | Not implemented. 95/25 is 3.8. The even 4x is the written exception. The mass paid will still be 95%, not 100% |
+| Full recovery | 95% | 4x | Scavenger cells, regrind and cleaners, then leach, CCD and electrowinning on the tails (multiblocks/full-recovery.md, Phase 4). 95/25 is 3.8. The even 4x is the written exception, paid at the cells. The mass paid is still 95%, not 100% |
 
 Vanilla iron and gold hold four ingots in the rock list, so plain smelting is one ingot and the 50% route is two. Vanilla copper holds fourteen (Tim, 2026-11-19; specs-tailings.md X-3): plain mining drops 2-5 raw copper, 3.5 on average, so its ladder is 3.5 / 7 / 10.5 / 14, paid through copper nuggets. The flotation bank pays three quarters of the block for copper and gold. Iron does not float. It is the magnetic mineral.
 

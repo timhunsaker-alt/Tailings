@@ -458,14 +458,15 @@ public final class PitLineStages {
 				part.say("NO FEED: no pile over its opening");
 				return;
 			}
-			if (weigher != null) {
-				weigher.pit().feederRan(part.getBlockPos().asLong(), now);
-			}
 			part.want();
 			if (!part.running()) {
 				part.setFeederTph(0);
 				part.say("waiting for its motor");
 				return;
+			}
+			// only a feeder whose motor runs shares the setpoint: one switched OFF (a spare) holding a block draws nothing
+			if (weigher != null) {
+				weigher.pit().feederRan(part.getBlockPos().asLong(), now);
 			}
 			double max = Math.min(PitLine.kgPerTick(target) * part.strength() * part.fast(), out.room(part.hold()));
 			if (max < 1e-6) {
