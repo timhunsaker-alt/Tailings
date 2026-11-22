@@ -2,6 +2,26 @@
 
 Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## The copper smelter line, and the by-product plant's feed (2026-11-22, branch `copper-smelter`)
+
+Spec [docs/copper-smelter.md](docs/copper-smelter.md); decisions [docs/questions/copper-smelter.md](docs/questions/copper-smelter.md).
+- **The by-product plant's feed (bug):** the filter packed pentlandite, molybdenite, cobaltite and platinum into concentrates that
+  were never registered, so the by-product plant never got pentlandite or molybdenite. The four are now registered, and every
+  concentrate of a Wildcatter mineral crafts one for one into it. Scenes `byproduct_pentlandite`, `byproduct_molybdenite`,
+  `filter_scheelite`.
+- **Concentrate to metal:** a concentrate dryer against the pressure filter, a small flash smelting furnace (silica sand, pipeline
+  gas, its off-gas as burner gas to Wildcatter's acid plant), a Peirce-Smith converter (its slag back to the furnace), an anode
+  furnace, an anode casting wheel (400 kg anodes) and an electrorefining tankhouse (72 cells, 20.5 kA; 57.1 kg cathodes). A blast
+  furnace melts a cathode to two copper ingots. 1.68 t/h of copper; the line pays 97.5 % of it.
+- **The shortcut:** in a new world (rule `copper_shortcut`) the filter pays its copper straight out at 85 %, a sold concentrate's
+  share; existing worlds are unchanged.
+- **Tests:** unit `SmelterTest`; NeoForge `smelter_shortcut`, `smelter_dryer`, `smelter_furnace`, `smelter_furnace_stops`,
+  `smelter_converter`, `smelter_anodes`, `smelter_tankhouse`, `smelter_acid`, and `smelter_line` (thickened concentrate to cathodes
+  and an ingot, every motor on three gas generator sets, two stepped up to medium voltage; the copper balances to the gram).
+- **Quest:** "Concentrate to metal", milestones `smelter_running` and `cathode_pulled`.
+- **Known gaps:** `copper_anode_placeholder` and `copper_cathode_placeholder` textures; no slag cleaning, oxygen, anode scrap or slimes;
+  continuous (not batch) converting; no client screenshot yet (the client was in use).
+
 ## Shorts batch 4: the TBM, rock to concentrate, the hoist (2026-11-21, branch `films-batch4`)
 
 Drawing fixes so the machines read on camera (decisions in [docs/questions/films-batch4.md](docs/questions/films-batch4.md)): the
