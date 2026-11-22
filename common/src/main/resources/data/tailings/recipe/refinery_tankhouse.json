@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "SRS",
+    "SKS"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "S": "wildcatter:steel_ingot",
+    "R": "minecraft:cauldron",
+    "K": "wildcatter:cable_mv"
+  },
+  "result": {
+    "id": "tailings:refinery_tankhouse",
+    "count": 1
+  }
+}

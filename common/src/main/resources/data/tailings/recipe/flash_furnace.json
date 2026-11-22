@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BFB",
+    "BSB",
+    "SKS"
+  ],
+  "key": {
+    "B": "minecraft:bricks",
+    "F": "minecraft:blast_furnace",
+    "S": "wildcatter:steel_ingot",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:flash_furnace",
+    "count": 1
+  }
+}

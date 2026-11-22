@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SHS",
+    "PFP",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "H": "minecraft:hopper",
+    "P": "wildcatter:gas_line",
+    "F": "minecraft:blast_furnace",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:concentrate_dryer",
+    "count": 1
+  }
+}

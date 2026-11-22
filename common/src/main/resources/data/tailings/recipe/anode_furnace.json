@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SBS",
+    "PFP",
+    "SKS"
+  ],
+  "key": {
+    "S": "wildcatter:steel_ingot",
+    "B": "minecraft:bricks",
+    "P": "wildcatter:gas_line",
+    "F": "minecraft:blast_furnace",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:anode_furnace",
+    "count": 1
+  }
+}

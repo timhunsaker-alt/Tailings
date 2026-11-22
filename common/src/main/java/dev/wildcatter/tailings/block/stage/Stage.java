@@ -135,6 +135,12 @@ public interface Stage {
 			case MEDIUM_RECOVERY -> DenseMediumStages.RECOVERY;
 			case XRT_SORTER -> Xrt.SORTER;
 			case SORTER_COMPRESSOR -> Xrt.COMPRESSOR;
+			case CONCENTRATE_DRYER -> SmelterStages.DRYER;
+			case FLASH_FURNACE -> SmelterStages.FURNACE;
+			case COPPER_CONVERTER -> SmelterStages.CONVERTER;
+			case ANODE_FURNACE -> SmelterStages.ANODE_FURNACE;
+			case ANODE_CASTING_WHEEL -> SmelterStages.WHEEL;
+			case REFINERY_TANKHOUSE -> SmelterStages.TANKHOUSE;
 			default -> Idle.INSTANCE;
 		};
 	}
