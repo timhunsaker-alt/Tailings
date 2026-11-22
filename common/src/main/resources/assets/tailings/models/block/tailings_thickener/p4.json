@@ -38,6 +38,8 @@
   "concrete": "wildcatter:block/mat/mat_concrete",
   "polymer": "wildcatter:block/mat/mat_polymer_grey",
   "padgreen": "wildcatter:block/mat/mat_paint_pad_green",
+  "slurry": "minecraft:block/mud",
+  "water": "minecraft:block/clay",
   "particle": "wildcatter:block/mat/mat_concrete"
  },
  "elements": [
@@ -157,6 +159,224 @@
     ],
     "axis": "y",
     "angle": 20.0
+   }
+  },
+  {
+   "from": [
+    12.633,
+    9.6,
+    9.0
+   ],
+   "to": [
+    16,
+    11.2,
+    11.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      4.8,
+      3.367,
+      6.4
+     ]
+    },
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      12.633,
+      4.8,
+      16,
+      6.4
+     ]
+    },
+    "west": {
+     "texture": "#concrete",
+     "uv": [
+      9.0,
+      4.8,
+      11.0,
+      6.4
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      12.633,
+      9.0,
+      16,
+      11.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      12.633,
+      5.0,
+      16,
+      7.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    7.8679,
+    9.6,
+    11.0
+   ],
+   "to": [
+    16,
+    11.2,
+    13.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      4.8,
+      8.1321,
+      6.4
+     ]
+    },
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      7.8679,
+      4.8,
+      16,
+      6.4
+     ]
+    },
+    "west": {
+     "texture": "#concrete",
+     "uv": [
+      11.0,
+      4.8,
+      13.0,
+      6.4
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      7.8679,
+      11.0,
+      16,
+      13.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      7.8679,
+      3.0,
+      16,
+      5.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    3.6101,
+    9.6,
+    13.0
+   ],
+   "to": [
+    16,
+    11.2,
+    15.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      4.8,
+      12.3899,
+      6.4
+     ]
+    },
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      3.6101,
+      4.8,
+      16,
+      6.4
+     ]
+    },
+    "west": {
+     "texture": "#concrete",
+     "uv": [
+      13.0,
+      4.8,
+      15.0,
+      6.4
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      3.6101,
+      13.0,
+      16,
+      15.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      3.6101,
+      1.0,
+      16,
+      3.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    9.6,
+    15.0
+   ],
+   "to": [
+    16,
+    11.2,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      0.0,
+      4.8,
+      16.0,
+      6.4
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      0.0,
+      15.0,
+      16.0,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      0.0,
+      0,
+      16.0,
+      1.0
+     ]
+    }
    }
   }
  ]

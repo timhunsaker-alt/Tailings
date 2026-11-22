@@ -8,7 +8,7 @@
 - tailings_pond_placeholder, 6 x 2 x 6: an earthen pond, its berms and the tails line, until Phase 4d's lined cell.
 """
 import tlib
-from tlib import disc, model, motor_box
+from tlib import disc, model, motor_box, pool
 
 # ---- the conditioning tank --------------------------------------------------------------------------------------------------------
 CT = model("conditioning_tank", 3, 4, 3, "grey")
@@ -62,7 +62,7 @@ for x in (1.0, 7.0):
 		TH.box((x - 0.15, 0.0, z - 0.15), (x + 0.15, 0.8, z + 0.15), "iron")  # its legs
 TH.cylinder("y", (4.0, 4.0), 0.7, 0.0, 0.8, "grey", 14)                      # the underflow cone
 TH.ring("y", (4.0, 4.0), 3.95, 0.8, 2.6, 0.08, "grey", sides=28)             # the 8 m tank
-disc(TH, 4.0, 4.0, 3.95, 2.35, 2.4, "dark")                                 # the concentrate, under its bridge
+pool(TH, 4.0, 4.0, 3.91, 0.8, 2.35)                                         # its floor; the concentrate under its bridge, clear water at the rim
 TH.box((0.3, 2.6, 3.65), (7.7, 2.8, 4.35), "grating")                       # the bridge
 TH.box((3.6, 2.8, 3.6), (4.4, 2.98, 4.4), "blue")                           # the 5.5 kW rake drive
 TH.pipe([(4.0, 0.5, 0.0), (4.0, 0.5, 0.8)], 4, "rubber")                    # concentrate slurry in, the front

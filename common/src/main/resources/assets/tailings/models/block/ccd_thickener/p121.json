@@ -38,6 +38,8 @@
   "concrete": "wildcatter:block/mat/mat_concrete",
   "polymer": "wildcatter:block/mat/mat_polymer_grey",
   "padgreen": "wildcatter:block/mat/mat_paint_pad_green",
+  "slurry": "minecraft:block/mud",
+  "water": "minecraft:block/clay",
   "particle": "wildcatter:block/mat/mat_paint_ansi61"
  },
  "elements": [
@@ -69,6 +71,56 @@
       0.0,
       16.0,
       16.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    15.9288,
+    4.0,
+    0
+   ],
+   "to": [
+    16,
+    5.6,
+    1.0
+   ],
+   "faces": {
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      15.9288,
+      10.4,
+      16,
+      12.0
+     ]
+    },
+    "west": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      10.4,
+      1.0,
+      12.0
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      15.9288,
+      0,
+      16,
+      1.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      15.9288,
+      15.0,
+      16,
+      16
      ]
     }
    }

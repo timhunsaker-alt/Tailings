@@ -11,6 +11,8 @@
   "iron": "wildcatter:block/mat/mat_cast_iron",
   "danger": "wildcatter:block/mat/decal_danger_hv",
   "pipe_water": "wildcatter:block/mat/decal_pipe_water",
+  "slurry": "minecraft:block/mud",
+  "water": "minecraft:block/clay",
   "particle": "wildcatter:block/mat/mat_concrete"
  },
  "elements": [
@@ -21,54 +23,154 @@
     0
    ],
    "to": [
+    8.7846,
+    9.44,
+    4.0
+   ],
+   "faces": {
+    "south": {
+     "texture": "#water",
+     "uv": [
+      0,
+      6.56,
+      8.7846,
+      7.2
+     ]
+    },
+    "east": {
+     "texture": "#water",
+     "uv": [
+      12.0,
+      6.56,
+      16,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#water",
+     "uv": [
+      0,
+      0,
+      8.7846,
+      4.0
+     ]
+    },
+    "down": {
+     "texture": "#water",
+     "uv": [
+      0,
+      12.0,
+      8.7846,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    8.8,
+    4.0
+   ],
+   "to": [
     9.2378,
-    9.6,
-    16
+    9.44,
+    12.0
    ],
    "faces": {
     "north": {
-     "texture": "#dark",
+     "texture": "#water",
      "uv": [
       6.7622,
-      6.4,
+      6.56,
       16,
       7.2
      ]
     },
     "south": {
-     "texture": "#dark",
+     "texture": "#water",
      "uv": [
       0,
-      6.4,
+      6.56,
       9.2378,
       7.2
      ]
     },
     "east": {
-     "texture": "#dark",
+     "texture": "#water",
      "uv": [
-      0.0,
-      6.4,
-      16.0,
+      4.0,
+      6.56,
+      12.0,
       7.2
      ]
     },
     "up": {
-     "texture": "#dark",
+     "texture": "#water",
      "uv": [
       0,
-      0.0,
+      4.0,
       9.2378,
-      16.0
+      12.0
      ]
     },
     "down": {
-     "texture": "#dark",
+     "texture": "#water",
      "uv": [
       0,
-      0.0,
+      4.0,
       9.2378,
-      16.0
+      12.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    8.8,
+    12.0
+   ],
+   "to": [
+    9.5095,
+    9.44,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#water",
+     "uv": [
+      6.4905,
+      6.56,
+      16,
+      7.2
+     ]
+    },
+    "east": {
+     "texture": "#water",
+     "uv": [
+      0,
+      6.56,
+      4.0,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#water",
+     "uv": [
+      0,
+      12.0,
+      9.5095,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#water",
+     "uv": [
+      0,
+      0,
+      9.5095,
+      4.0
      ]
     }
    }

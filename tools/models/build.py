@@ -42,7 +42,10 @@ def renamespace(path):
 	textures = data.get("textures", {})
 	changed = False
 	for key, ref in textures.items():
-		if isinstance(ref, str) and ref.startswith("tailings:") and not own_texture(ref):
+		if isinstance(ref, str) and ref.startswith("tailings:vanilla/"):
+			textures[key] = "minecraft:" + ref.split("vanilla/", 1)[1]   # a vanilla texture (tlib's slurry and water)
+			changed = True
+		elif isinstance(ref, str) and ref.startswith("tailings:") and not own_texture(ref):
 			textures[key] = "wildcatter:" + ref.split(":", 1)[1]
 			changed = True
 	if changed:

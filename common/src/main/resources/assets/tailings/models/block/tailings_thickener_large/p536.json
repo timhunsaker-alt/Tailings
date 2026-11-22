@@ -11,9 +11,170 @@
   "iron": "wildcatter:block/mat/mat_cast_iron",
   "danger": "wildcatter:block/mat/decal_danger_hv",
   "pipe_water": "wildcatter:block/mat/decal_pipe_water",
+  "slurry": "minecraft:block/mud",
+  "water": "minecraft:block/clay",
   "particle": "wildcatter:block/mat/mat_concrete"
  },
  "elements": [
+  {
+   "from": [
+    0,
+    0.0,
+    0
+   ],
+   "to": [
+    5.9552,
+    1.6,
+    4.0
+   ],
+   "faces": {
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      14.4,
+      5.9552,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#concrete",
+     "uv": [
+      12.0,
+      14.4,
+      16,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      0,
+      5.9552,
+      4.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      12.0,
+      5.9552,
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    0.0,
+    4.0
+   ],
+   "to": [
+    10.6871,
+    1.6,
+    12.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      5.3129,
+      14.4,
+      16,
+      16.0
+     ]
+    },
+    "south": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      14.4,
+      10.6871,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#concrete",
+     "uv": [
+      4.0,
+      14.4,
+      12.0,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      4.0,
+      10.6871,
+      12.0
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      4.0,
+      10.6871,
+      12.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    0.0,
+    12.0
+   ],
+   "to": [
+    15.1414,
+    1.6,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#concrete",
+     "uv": [
+      0.8586,
+      14.4,
+      16,
+      16.0
+     ]
+    },
+    "east": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      14.4,
+      4.0,
+      16.0
+     ]
+    },
+    "up": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      12.0,
+      15.1414,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#concrete",
+     "uv": [
+      0,
+      0,
+      15.1414,
+      4.0
+     ]
+    }
+   }
+  },
   {
    "from": [
     9.7979,

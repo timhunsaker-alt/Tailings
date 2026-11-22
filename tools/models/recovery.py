@@ -1,6 +1,6 @@
 """Phase 4's parts at true size (docs/multiblocks/full-recovery.md), each drawn facing north from its main cell."""
 import tlib
-from tlib import disc, model, motor_box
+from tlib import disc, model, motor_box, pool
 
 
 def tank(M, cx, cz, r, top, tex="grey"):
@@ -56,7 +56,8 @@ LT.collide((0.2, 0, 0.2), (4.8, 5.35, 4.8))
 
 CC = model("ccd_thickener", 12, 4, 12, "grey")
 CC.box((0, 0, 0), (12, 0.25, 12), "concrete")
-tank(CC, 6, 6, 5.7, 3.0, "grey")
+CC.ring("y", (6, 6), 5.7, 0.25, 3.0, 0.08, "grey", sides=18)              # the 12 m tank
+pool(CC, 6, 6, 5.66, 0.25, 2.7)                                             # its floor; the slurry, clear water at the rim
 CC.box((0.3, 3.0, 5.7), (11.7, 3.2, 6.3), "grating")
 CC.box((5.5, 3.2, 5.5), (6.5, 3.8, 6.5), "blue")
 motor_box(CC, 0.35, 0.15)

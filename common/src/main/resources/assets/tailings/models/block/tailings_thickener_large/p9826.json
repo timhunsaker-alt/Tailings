@@ -11,6 +11,8 @@
   "iron": "wildcatter:block/mat/mat_cast_iron",
   "danger": "wildcatter:block/mat/decal_danger_hv",
   "pipe_water": "wildcatter:block/mat/decal_pipe_water",
+  "slurry": "minecraft:block/mud",
+  "water": "minecraft:block/clay",
   "particle": "wildcatter:block/mat/mat_concrete"
  },
  "elements": [
@@ -23,20 +25,11 @@
    "to": [
     16,
     9.6,
-    16
+    4.0
    ],
    "faces": {
-    "north": {
-     "texture": "#dark",
-     "uv": [
-      0.0,
-      6.4,
-      16.0,
-      7.2
-     ]
-    },
     "south": {
-     "texture": "#dark",
+     "texture": "#slurry",
      "uv": [
       0.0,
       6.4,
@@ -45,21 +38,171 @@
      ]
     },
     "up": {
-     "texture": "#dark",
+     "texture": "#slurry",
      "uv": [
       0.0,
-      0.0,
+      0,
       16.0,
-      16.0
+      4.0
      ]
     },
     "down": {
-     "texture": "#dark",
+     "texture": "#slurry",
      "uv": [
       0.0,
-      0.0,
+      12.0,
       16.0,
-      16.0
+      16
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    8.8,
+    4.0
+   ],
+   "to": [
+    16,
+    9.6,
+    12.0
+   ],
+   "faces": {
+    "north": {
+     "texture": "#slurry",
+     "uv": [
+      0.0,
+      6.4,
+      16.0,
+      7.2
+     ]
+    },
+    "south": {
+     "texture": "#slurry",
+     "uv": [
+      0.0,
+      6.4,
+      16.0,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#slurry",
+     "uv": [
+      0.0,
+      4.0,
+      16.0,
+      12.0
+     ]
+    },
+    "down": {
+     "texture": "#slurry",
+     "uv": [
+      0.0,
+      4.0,
+      16.0,
+      12.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    2.3875,
+    8.8,
+    12.0
+   ],
+   "to": [
+    16,
+    9.6,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#slurry",
+     "uv": [
+      0,
+      6.4,
+      13.6125,
+      7.2
+     ]
+    },
+    "west": {
+     "texture": "#slurry",
+     "uv": [
+      12.0,
+      6.4,
+      16,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#slurry",
+     "uv": [
+      2.3875,
+      12.0,
+      16,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#slurry",
+     "uv": [
+      2.3875,
+      0,
+      16,
+      4.0
+     ]
+    }
+   }
+  },
+  {
+   "from": [
+    0,
+    8.8,
+    12.0
+   ],
+   "to": [
+    2.3875,
+    9.44,
+    16
+   ],
+   "faces": {
+    "north": {
+     "texture": "#water",
+     "uv": [
+      13.6125,
+      6.56,
+      16,
+      7.2
+     ]
+    },
+    "east": {
+     "texture": "#water",
+     "uv": [
+      0,
+      6.56,
+      4.0,
+      7.2
+     ]
+    },
+    "up": {
+     "texture": "#water",
+     "uv": [
+      0,
+      12.0,
+      2.3875,
+      16
+     ]
+    },
+    "down": {
+     "texture": "#water",
+     "uv": [
+      0,
+      0,
+      2.3875,
+      4.0
      ]
     }
    }

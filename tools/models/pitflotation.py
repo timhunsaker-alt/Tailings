@@ -18,7 +18,7 @@ cell (x east, y up, z south):
 import math
 import mlib
 import tlib
-from tlib import motor_box, disc
+from tlib import motor_box, disc, pool
 
 # vent.py adds the duct's own texture to tlib.TEX when every module is built in one run; these parts never use it
 TEX = {k: v for k, v in tlib.TEX.items() if k != "duct"}
@@ -145,10 +145,7 @@ def chord(r, zc):
 	return math.sqrt(r * r - d * d) if abs(d) < r else 0.0
 
 
-for k in range(45):
-	h = chord(INNER, k + 0.5)
-	if h > 0:
-		TL.box((C - h, SURFACE, k), (C + h, SURFACE + 0.05, k + 1), "dark")    # the slurry, a row at a time: one box to a cell
+pool(TL, C, C, INNER, 0.0, SURFACE, step=0.5)                               # its floor; the slurry over the bed, clear water at the rim
 TL.ring("y", (C, C), R - 0.2, 0.0, 5.0, 0.4, "concrete", sides=96)           # the 45 m tank wall
 TL.ring("y", (C, C), INNER - 0.4, 4.4, 4.9, 0.3, "galv", sides=96)           # the overflow launder inside the rim
 TL.ring("y", (C, C), 2.5, 3.6, 5.2, 0.1, "galv", sides=16)                   # the feedwell

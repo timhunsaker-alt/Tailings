@@ -100,7 +100,7 @@ from tlib import disc   # noqa: E402
 TT = model("tailings_thickener", 15, 5, 15, "concrete")
 disc(TT, 7.5, 7.5, 7.45, 0.0, 0.6, "concrete")               # the floor and its underflow cone
 TT.ring("y", (7.5, 7.5), 7.45, 0.6, 4.4, 0.12, "concrete", sides=36)       # the 15 m tank wall
-disc(TT, 7.5, 7.5, 7.3, 4.0, 4.05, "dark")                                  # the clear water over the bed
+tlib.pool(TT, 7.5, 7.5, 7.39, 0.6, 4.0)                                    # its floor; the slurry over the bed, clear water at the rim
 TT.ring("y", (7.5, 7.5), 7.2, 4.0, 4.3, 0.06, "galv", sides=36)            # the overflow launder round the rim
 TT.cylinder("y", (7.5, 7.5), 1.0, 2.8, 4.4, "galv", 14)                     # the feedwell
 TT.box((0.2, 4.4, 7.1), (14.8, 4.7, 7.9), "grating")                        # the bridge
