@@ -1031,9 +1031,9 @@ final class Rtm03Scenes {
 		placeTrain("minecraft:copper_ore", "minecraft:cobblestone", "minecraft:copper_ore", "minecraft:granite");
 		ticks(20);
 		showCard(true);
-		Cam a = cam(13, 9, 22, 0, 3, 8);
-		Cam b = cam(10, 7.5, 10, 0, 3, 2);
-		Cam e = cam(7, 7, 15, -2, 2, 8);
+		Cam a = cam(11, 7, -10, 0, 3, 3);
+		Cam b = cam(8, 6, -5, 0, 3, 2);
+		Cam e = cam(9, 8, 15, -2, 2, 8);
 		film("rtm03_dump", 1100, via(a, b, e, 1100), (level, t) -> {
 			if (t == PAD + 1000) {
 				log("dump film end: " + pocket.inspect().getString());

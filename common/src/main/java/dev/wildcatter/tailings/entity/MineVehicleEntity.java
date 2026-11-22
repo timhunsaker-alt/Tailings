@@ -183,6 +183,10 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		return reading;
 	}
 
+	/** Client side, for drawing the tip: whether the car was loaded when last drawn, and the game time it last tipped. */
+	public boolean clientWasLoaded;
+	public long clientTippedAt = Long.MIN_VALUE / 2;
+
 	public CarLoad load() {
 		return load;
 	}

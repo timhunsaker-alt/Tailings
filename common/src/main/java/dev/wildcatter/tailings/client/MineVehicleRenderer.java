@@ -92,6 +92,20 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		state.doorsOpen = entity.doorsOpen();
 		state.loaded = entity.loaded();
 		state.yaw = entity.getYRot(partialTick);
+		// a Granby car rolls over on its side as it tips at the ramp, and comes upright again (dump-station.md): seen here as its load
+		// goes, since the server sends only loaded or empty
+		state.roll = 0;
+		if (!state.locomotive && !state.bottomDump && entity.level() != null) {
+			long now = entity.level().getGameTime();
+			if (entity.clientWasLoaded && !state.loaded) {
+				entity.clientTippedAt = now;
+			}
+			entity.clientWasLoaded = state.loaded;
+			float t = (now - entity.clientTippedAt + partialTick) / TIP_TICKS;
+			if (t >= 0 && t < 1) {
+				state.roll = TIP_DEGREES * (float) Math.sin(Math.PI * t);
+			}
+		}
 		state.pitch = -entity.getXRot(partialTick);
 	}
 
@@ -100,6 +114,9 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		pose.pushPose();
 		pose.rotateDegrees(Axis.YP, 180.0F - state.yaw);
 		pose.rotateDegrees(Axis.XP, state.pitch);
+		if (state.roll != 0) {
+			pose.rotateDegrees(Axis.ZP, state.roll);
+		}
 		pose.scale(-1.0F, -1.0F, 1.0F);
 		pose.translate(0.0F, -MODEL_ROOT, 0.0F);
 		if (state.battery) {
@@ -129,5 +146,10 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		public boolean doorsOpen;
 		public float yaw;
 		public float pitch;
+		/** How far a tipping car is rolled over, degrees. */
+		public float roll;
 	}
+
+	/** A car's tip at the ramp: rolled this far over at the middle of it, over this many ticks. */
+	private static final float TIP_DEGREES = 42F, TIP_TICKS = 30F;
 }

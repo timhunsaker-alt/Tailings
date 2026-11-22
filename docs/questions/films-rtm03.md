@@ -30,3 +30,10 @@ on the best recommendation.
   filled that, none reached a whole block, and the run stopped for good.
 - **Done:** the allowance is now two blocks **of each rock and size** (`Belts.containerRoom`). One rock on a belt behaves exactly as
   before. `build` and all 283 NeoForge game tests pass. This is a fix to a stall, not to a rule; flagged here so Tim sees it.
+
+## 5. A Granby car now rolls over as it tips (fixed, small)
+- **Found:** a car tipping at the dump ramp kept level on camera; only its load vanished.
+- **Done:** the client draws the car rolled over on its side (42° at the middle of a 1.5 s tip) as its load goes, then upright again
+  (`MineVehicleRenderer`, from the synced loaded flag; no network or save change). It rolls to the car's left as drawn, which is away
+  from the ramp on the station as dump-station.md lays it (ramp east of a north-bound track). Bottom-dump cars and locomotives are
+  unchanged.
