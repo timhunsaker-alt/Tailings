@@ -44,7 +44,7 @@ Cobble and granite therefore do not make the same sand. Granite sand is a zircon
 - Magnetic separator: iron (vanilla iron ore, and the iron trace in country rock).
 - Shaking table: copper, gold, zircon, ilmenite, rutile, monazite, cassiterite, chromite, acanthite, scheelite.
 
-A concentrate that smelts is paid as the ingot (`phaseOneProductId`). Otherwise the machine pays `tailings:<mineral>_concentrate`. Those concentrate items are zircon, ilmenite, rutile, monazite, chromite, and scheelite. Cassiterite pays tin ingots, acanthite pays silver ingots, copper and gold pay their ingots.
+A concentrate that smelts is paid as the ingot (`phaseOneProductId`). Otherwise the machine pays `tailings:<mineral>_concentrate`. Those concentrate items are zircon, ilmenite, rutile, monazite, chromite, and scheelite, and (copper-smelter #1) pentlandite, molybdenite, cobaltite and platinum, the floating minerals with no ingot, which the pressure filter packs nine nuggets to one; the by-product plant takes pentlandite and molybdenite concentrate. A concentrate of a Wildcatter mineral crafts one for one into that Wildcatter mineral (the same mass). Cassiterite pays tin ingots, acanthite pays silver ingots, copper and gold pay their ingots.
 
 Country rock does not emit a whole ingot from a trace. The kilograms go into `NuggetBank`. A nugget is one ninth of a mineral item, and a mineral item is one quarter of the block (the 25% yield). Nine nuggets, shapeless, craft the mineral item. Iron and gold nuggets are vanilla. Every other nugget is `tailings:<mineral>_nugget`.
 
@@ -87,7 +87,7 @@ Since R3 every part is a Wildcatter big part (`block.TailingsPartBlock` extends 
 - activation tank: a selective bank's tails to conditioned slurry, freeing the held-down sphalerite for a second bank (`plant.Selective`, selective-flotation.md);
 - flotation bank: needs an air blower touching it, running (NO AIR); each floating mineral's 75 % (`RecoveryRoute.FLOTATION`) to concentrate slurry at 30 % solids out of its back cell at x 6, the rest of the feed to tails slurry at x 0;
 - concentrate thickener: to thickened concentrate at 60 % solids;
-- pressure filter: its cake (`plant.FilterCake`) pays a nugget for each nugget's worth, and nine of a mineral's nuggets are packed into the ladder's item (`Mineral.phaseOneProductId`) in its two output stacks, for a hopper under it or a hand (FULL: take the concentrate). **Bulk cake (plant-gaps):** the sphalerite a bank floats travels as `tailings:floated_sphalerite`; a filter whose feed holds it and galena together (lead and zinc concentrate piped into one thickener or filter) makes a bulk cake that pays the lead and loses that zinc to slag, as a bank fed both does, and reads "filtering a BULK cake". The scavengers' sphalerite is not a bank's and pays as before;
+- pressure filter (copper-smelter.md): with a `concentrate_dryer` touching it its copper goes to the dryer, not to nuggets; with none, in a world with the `copper_shortcut` rule, its copper is paid at 85 % (the shortcut). Otherwise its cake (`plant.FilterCake`) pays a nugget for each nugget's worth, and nine of a mineral's nuggets are packed into the ladder's item (`Mineral.phaseOneProductId`) in its two output stacks, for a hopper under it or a hand (FULL: take the concentrate). **Bulk cake (plant-gaps):** the sphalerite a bank floats travels as `tailings:floated_sphalerite`; a filter whose feed holds it and galena together (lead and zinc concentrate piped into one thickener or filter) makes a bulk cake that pays the lead and loses that zinc to slag, as a bank fed both does, and reads "filtering a BULK cake". The scavengers' sphalerite is not a bank's and pays as before;
 - tailings pond (placeholder): takes tails slurry off a pipe on any side, up to 3,400 t (FULL).
 
 **Parts (`plant.Machine`):**
@@ -1008,7 +1008,7 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 
 - **Sized:** four sizes times every `Rock` (8 country rocks, 3 vanilla metals, 27 ores).
 - **Nuggets:** one per mineral, except iron and gold, which use vanilla. Nine nuggets, shapeless, make the mineral item: a Wildcatter item, a vanilla ingot (copper), or a Tailings item for zircon, ilmenite, rutile, and monazite.
-- **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`. No crafting recipe. The 50% machines produce them.
+- **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`, `pentlandite_concentrate`, `molybdenite_concentrate`, `cobaltite_concentrate`, `platinum_concentrate`. The 50% machines and the pressure filter produce them. Each of a Wildcatter mineral crafts, shapeless, one for one into that mineral (`<mineral>_concentrate_to_mineral`), so chromite reaches Wildcatter's chromate kiln and pentlandite its fluid-bed roaster by hand.
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`.
 - **Blasting items (P3):** `cast_booster` (shapeless: 1 TNT makes 4), `detonator` (shapeless: TNT, copper ingot, redstone make 8),

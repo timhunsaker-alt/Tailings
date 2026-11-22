@@ -29,6 +29,8 @@ import org.jspecify.annotations.Nullable;
  * <li>{@code paste_unloaded_cure}: paste makes up the time its chunk was unloaded (gaps2.md #6);</li>
  * <li>{@code dry_mill_all_hmc}: a filter with a dryer touching it sends all its heavy mineral concentrate to the dry mill
  * (l6-dry-mill.md #3);</li>
+ * <li>{@code copper_shortcut}: a filter with no concentrate dryer touching it pays its copper at 85 %, as a concentrate sold to a smelter
+ * is paid; the copper smelter line pays 97.5 % (copper-smelter.md #5);</li>
  * <li>{@code paste_wall_breach}: a solid wall removed beside wet paste spills it, as a broken bulkhead does (gaps2.md #5). Off even in a
  * new world.</li>
  * </ul>
@@ -45,6 +47,8 @@ public final class OptInRules extends SavedData {
 	public static final String PASTE_UNLOADED_CURE = "paste_unloaded_cure";
 	public static final String DRY_MILL_ALL_HMC = "dry_mill_all_hmc";
 	public static final String PASTE_WALL_BREACH = "paste_wall_breach";
+	/** The filter's direct copper payout is the early-game shortcut, paid at a sold concentrate's 85 % (copper-smelter.md #5). */
+	public static final String COPPER_SHORTCUT = "copper_shortcut";
 	/** The dragline's highwalls and spoil piles can fail (dragline-hand-control.md): off in every world, new ones too (Tim, 2026-11-19). */
 	public static final String SLOPE_FAILURES = "slope_failures";
 	/** The old files, read once when a world's rules are made. */
@@ -63,6 +67,7 @@ public final class OptInRules extends SavedData {
 		rules.put(HEADFRAME_HOPPER, true);
 		rules.put(PASTE_UNLOADED_CURE, true);
 		rules.put(DRY_MILL_ALL_HMC, true);
+		rules.put(COPPER_SHORTCUT, true);
 		rules.put(PASTE_WALL_BREACH, false);
 		rules.put(SLOPE_FAILURES, false);
 		NEW_WORLD = java.util.Collections.unmodifiableMap(rules);
@@ -76,6 +81,7 @@ public final class OptInRules extends SavedData {
 			case HEADFRAME_HOPPER -> "a headframe bin with no belt under it feeds a hopper or chest under it";
 			case PASTE_UNLOADED_CURE -> "paste makes up the time its chunk was unloaded";
 			case DRY_MILL_ALL_HMC -> "a filter with a dryer touching it sends all its heavy mineral concentrate to the dry mill";
+			case COPPER_SHORTCUT -> "a filter with no concentrate dryer touching it pays its copper at 85 %, as a sold concentrate is paid; the smelter line pays 97.5 %";
 			case PASTE_WALL_BREACH -> "a solid wall removed beside wet paste spills it, as a broken bulkhead does";
 			case SLOPE_FAILURES -> "a dragline's highwall and spoil pile can crack and slide: watch them with survey prisms";
 			default -> "";

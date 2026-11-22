@@ -196,7 +196,27 @@ public enum Machine {
 	/** The mast standing at the deck's back end: the rotary head, the pull-down chains, the drill pipe and the 270 mm tricone bit. */
 	DRILL_MAST("drill_mast", "Drill Mast", 3, 20, 3, 0, Supply.NONE),
 	/** The dust collector beside the mast's foot, and the deck bushing's skirt round the collar. */
-	DRILL_DUST_COLLECTOR("drill_dust_collector", "Drill Dust Collector", 2, 3, 3, 0, Supply.NONE);
+	DRILL_DUST_COLLECTOR("drill_dust_collector", "Drill Dust Collector", 2, 3, 3, 0, Supply.NONE),
+	/** The copper smelter line (docs/copper-smelter.md): a 2.2 m x 14 m rotary drum dryer, its drum drive and exhaust fan 75 kW (proposed). */
+	CONCENTRATE_DRYER("concentrate_dryer", "Concentrate Dryer", 4, 5, 16, 75_000, Supply.INDUSTRIAL),
+	/** A small flash smelting furnace on preheated air: reaction shaft, settler, uptake; its process air and preheater fans 132 kW (proposed). */
+	FLASH_FURNACE("flash_furnace", "Flash Smelting Furnace", 7, 12, 16, 132_000, Supply.INDUSTRIAL),
+	/** A 3.0 m x 6.1 m Peirce-Smith converter; its blower 450 kW at the medium tier (proposed: about 250 Nm3/min at 120 kPa). */
+	COPPER_CONVERTER("copper_converter", "Peirce-Smith Converter", 5, 5, 9, 450_000, Supply.MEDIUM),
+	/** A 3.2 m x 7 m rotary anode furnace; its drive and combustion fan 55 kW (proposed). */
+	ANODE_FURNACE("anode_furnace", "Anode Furnace", 5, 5, 9, 55_000, Supply.INDUSTRIAL),
+	/** A single anode casting wheel of 16 moulds, 25 t/h; its drive and hydraulics 30 kW (proposed). */
+	ANODE_CASTING_WHEEL("anode_casting_wheel", "Anode Casting Wheel", 8, 3, 8, 30_000, Supply.INDUSTRIAL),
+	/** An electrorefining tankhouse section: 72 cells at 20.5 kA, 21.6 V DC; the rectifier's input and the pumps 490 kW at the medium tier (proposed). */
+	REFINERY_TANKHOUSE("refinery_tankhouse", "Electrorefining Tankhouse", 9, 3, 24, 490_000, Supply.MEDIUM);
+
+	/** One of the copper smelter line's parts (docs/copper-smelter.md). */
+	public boolean smelter() {
+		return switch (this) {
+			case CONCENTRATE_DRYER, FLASH_FURNACE, COPPER_CONVERTER, ANODE_FURNACE, ANODE_CASTING_WHEEL, REFINERY_TANKHOUSE -> true;
+			default -> false;
+		};
+	}
 
 	/** Motors on the part: the two pinions of the big mills' twin-pinion drives, one for every other part. */
 	public int motors() {

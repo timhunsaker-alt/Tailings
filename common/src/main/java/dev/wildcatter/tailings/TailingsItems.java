@@ -53,6 +53,9 @@ public final class TailingsItems {
 	public static Item CEMENT;
 	/** A 25 kg bag of milled 15 % Si ferrosilicon, the dense medium's make-up (dense-medium-separation.md, L7; a placeholder recipe). */
 	public static Item FERROSILICON;
+	/** The copper smelter line's anode (400 kg) and cathode (57.1 kg), docs/copper-smelter.md. */
+	public static Item COPPER_ANODE;
+	public static Item COPPER_CATHODE;
 	/** A 100 kg bag of moist heavy mineral concentrate, its assay kept (dry-mill.md, L6). */
 	public static Item HEAVY_MINERAL_CONCENTRATE;
 	public static final Map<TbmGantry, Item> GANTRIES = new EnumMap<>(TbmGantry.class);
@@ -105,6 +108,9 @@ public final class TailingsItems {
 		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
 		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
 		CEMENT = item("cement");
+		ResourceKey<Item> anode = ResourceKey.create(Registries.ITEM, Tailings.id("copper_anode"));
+		COPPER_ANODE = Registry.register(BuiltInRegistries.ITEM, anode, new Item(new Item.Properties().setId(anode).stacksTo(16)));
+		COPPER_CATHODE = item("copper_cathode");
 		FERROSILICON = item("ferrosilicon");
 		ResourceKey<Item> hmc = ResourceKey.create(Registries.ITEM, Tailings.id("heavy_mineral_concentrate"));
 		HEAVY_MINERAL_CONCENTRATE = Registry.register(BuiltInRegistries.ITEM, hmc, new dev.wildcatter.tailings.item.HeavyMineralConcentrateItem(new Item.Properties().setId(hmc)));
@@ -116,7 +122,9 @@ public final class TailingsItems {
 			if (mineral.mineralItemId().startsWith("tailings:")) {
 				registerOnce(seen, MINERALS, mineral.mineralItemId());
 			}
-			if (mineral.separator() != null && mineral.smeltedId() == null) {
+			// a floating mineral with no ingot (pentlandite, molybdenite, cobaltite, platinum) has a concentrate too, so the filter packs it
+			// and the by-product plant takes it (docs/questions/copper-smelter.md #1)
+			if ((mineral.separator() != null || mineral.floats()) && mineral.smeltedId() == null) {
 				registerOnce(seen, CONCENTRATES, mineral.concentrateId());
 			}
 		}

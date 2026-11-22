@@ -440,6 +440,15 @@ scenes `dragline_hand_dig`, `dragline_hand_limits`, `dragline_hand_give_back`, `
 `slope_dragline_wrecked`, `slope_dragline_ground_gone`, `slope_station_alarm`, `slope_saved`; client films `dragline_hand`,
 `highwall_slide`, `spoil_slide`, `dragline_wrecked`.
 
+## The copper smelter line (2026-11-22, branch `copper-smelter`)
+Spec [copper-smelter.md](copper-smelter.md); decisions [questions/copper-smelter.md](questions/copper-smelter.md). **Built:** the
+concentrate dryer, flash smelting furnace, Peirce-Smith converter, anode furnace, anode casting wheel and electrorefining tankhouse;
+copper anodes and cathodes; a cathode melted to ingots in a blast furnace; off-gas to Wildcatter's acid plant; the `copper_shortcut`
+rule (the filter's direct copper at 85 % in new worlds). **Later:** an electric slag-cleaning furnace; oxygen enrichment from
+Wildcatter's VPSA; anode scrap back to the anode furnace and anode slimes to a precious-metals plant; the electrolyte's bleed and
+heating; a cathode shaft furnace and casting machine; batch converting with ladles and a crane; granulated slag as an item; the
+tankhouse on Wildcatter's rectifier and DC bus; the electrowinning bank paying cathodes.
+
 ## Later, not scheduled
 - **Time scale (Tim, 2026-11-10): built 2026-11-19 (wave A).** Tailings reads Wildcatter's `timeScale` (1:1 to 50:1, spec
   `wildcatter/docs/time-scale.md`): the paste cure scales with it, and Tailings' rules are on the same World Rules screen (scenes
@@ -462,6 +471,9 @@ scenes `dragline_hand_dig`, `dragline_hand_limits`, `dragline_hand_give_back`, `
 
 ## Known gaps and stand-ins
 
+- **Copper smelter stand-ins (copper-smelter.md):** the converter and anode furnace work continuously, not in batches; the parts hand
+  on by touching (no ladles or crane); the slag is counted, not handled; the tankhouse's rectifier is a motor load; the anode and
+  cathode icons are `copper_anode_placeholder` and `copper_cathode_placeholder`.
 - **No reclaim tunnel part (P7a):** the tunnel is the player's own solid blocks with an opening over each feeder (p7-pit-line.md, 9).
 - **The stockpile is not counted (P7a):** the head counts tonnes stacked and the feeders tonnes drawn; nothing reads the pile's live
   and dead tonnes (p7-pit-line.md, 13).

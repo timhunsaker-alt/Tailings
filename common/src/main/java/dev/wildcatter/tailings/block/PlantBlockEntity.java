@@ -137,6 +137,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			// the paste pump's flow and line pressure (paste-backfill.md, L5)
 			out.add(new Point(String.format("FLOW 4-20 mA, %.0f m3/h", PASTE_FLOW_HIGH), false, Signal.MA));
 			out.add(new Point(String.format("PRESSURE 4-20 mA, %.0f MPa", PASTE_PRESSURE_HIGH / 1e6), false, Signal.MA));
+		} else if (machine() == Machine.FLASH_FURNACE || machine() == Machine.COPPER_CONVERTER) {
+			// its off-gas backed up: the acid plant cannot take it, so it has stopped rather than vent (copper-smelter.md)
+			out.add(new Point("OFF-GAS BACKED UP", false));
+		} else if (machine() == Machine.ANODE_CASTING_WHEEL) {
+			out.add(new Point("ANODE CAST", false));
+		} else if (machine() == Machine.REFINERY_TANKHOUSE) {
+			out.add(new Point("CATHODE PULLED", false));
 		} else if (dms != null) {
 			// the medium's density and a pulse a tonne floated (dense-medium-separation.md, L7)
 			out.add(new Point(String.format(java.util.Locale.ROOT, "DENSITY 4-20 mA, SG %.1f-%.1f", dev.wildcatter.tailings.plant.DenseMedium.SG_LOW, dev.wildcatter.tailings.plant.DenseMedium.SG_HIGH), false, Signal.MA));
@@ -156,6 +163,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		if (machine() == Machine.TAILINGS_FILTER && point == 6) {
 			return level != null && level.getGameTime() - droppedAt < CYCLE_BIT_TICKS;
+		}
+		if (machine().smelter() && point == 6) {
+			return machine() == Machine.FLASH_FURNACE || machine() == Machine.COPPER_CONVERTER ? smelter.gasBacked() : level != null && smelter.pulsing(level.getGameTime());
 		}
 		if (machine() == Machine.LOADOUT_FRAME && (point == 7 || point == 8)) {
 			return point == 7 ? loadoutBinFull() : status().startsWith("loading");
@@ -276,6 +286,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 						dev.wildcatter.tailings.plant.PlcScale.DENSITY_HIGH);
 			};
 		}
+		if (point == 5 && machine().smelter()) {
+			return 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.SmelterStages.fill(this));
+		}
 		if (point == 5 && machine() == Machine.HOIST_HOUSE) {
 			return 4 + 16 * Math.min(1.03, dev.wildcatter.tailings.block.stage.Shaft.binLevel(this));
 		}
@@ -306,6 +319,44 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return 0;
 		}
 		return point == 7 ? xrt.productPulses() : point == 8 ? xrt.wastePulses() : 0;
+	}
+
+	/** A copper smelter part's own state (copper-smelter.md); kept for every part, used by the smelter line's. */
+	private final dev.wildcatter.tailings.plant.SmelterState smelter = new dev.wildcatter.tailings.plant.SmelterState();
+
+	public dev.wildcatter.tailings.plant.SmelterState smelter() {
+		return smelter;
+	}
+
+	/** Silica sand for a flash furnace or converter: 1.6 t a block. */
+	private static boolean sand(ItemStack stack) {
+		return !stack.isEmpty() && (stack.is(net.minecraft.world.item.Items.SAND) || stack.is(net.minecraft.world.item.Items.RED_SAND));
+	}
+
+	private static boolean anode(ItemStack stack) {
+		return !stack.isEmpty() && stack.getItem() == dev.wildcatter.tailings.TailingsItems.COPPER_ANODE;
+	}
+
+	private boolean fluxed() {
+		return machine() == Machine.FLASH_FURNACE || machine() == Machine.COPPER_CONVERTER;
+	}
+
+	/** Takes a block of sand into a furnace's or converter's flux, or an anode into the tankhouse, if it has room. */
+	private boolean takeSmelterFeed(ItemStack in) {
+		if (fluxed() && sand(in) && dryKg + dev.wildcatter.tailings.plant.Smelter.SAND_BLOCK_KG <= dev.wildcatter.tailings.plant.Smelter.FLUX_HOLD_KG + 1e-6) {
+			in.shrink(1);
+			dryKg += dev.wildcatter.tailings.plant.Smelter.SAND_BLOCK_KG;
+			setChanged();
+			return true;
+		}
+		if (machine() == Machine.REFINERY_TANKHOUSE && anode(in)
+				&& smelter.copper() + dev.wildcatter.tailings.plant.Smelter.anodeKg() <= dev.wildcatter.tailings.plant.Smelter.TANKHOUSE_ANODES * dev.wildcatter.tailings.plant.Smelter.anodeKg() + 1e-6) {
+			in.shrink(1);
+			smelter.add(dev.wildcatter.tailings.plant.Smelter.anodeKg());
+			setChanged();
+			return true;
+		}
+		return false;
 	}
 
 	/** A pit-line part's own state (primary-gyratory-stockpile.md, sag-mill-line.md, P7); kept for every part, used by the pit line's. */
@@ -644,6 +695,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			if (hmcBag(in)) {
 				binHmc(in);
 			}
+			return;
+		}
+		if (machine().smelter()) {
+			takeSmelterFeed(in);
 			return;
 		}
 		if (machine() == Machine.MEDIUM_RECOVERY) {
@@ -1036,6 +1091,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	public boolean offer(ItemStack stack) {
+		if (machine().smelter()) {
+			if (takeSmelterFeed(stack)) {
+				return true;
+			}
+			say(fluxed() ? (sand(stack) ? "the flux hopper is full" : "silica sand only") : machine() == Machine.REFINERY_TANKHOUSE ? (anode(stack) ? "FULL: it holds "
+					+ dev.wildcatter.tailings.plant.Smelter.TANKHOUSE_ANODES + " anodes" : "copper anodes only") : "nothing goes in by hand");
+			return false;
+		}
 		if (machine() == Machine.PASTE_MIXER) {
 			// the mixer's hopper takes cement only, a 50 kg bag a click (paste-backfill.md, L5)
 			if (!cement(stack)) {
@@ -1163,7 +1226,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	/** The parts that pay out by the nuggets rule, with two output stacks. */
 	private boolean pays() {
-		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT || dev.wildcatter.tailings.plant.DryMill.separates(machine());
+		return machine() == Machine.FILTER || machine() == Machine.ELECTROWINNING_BANK || machine() == Machine.BYPRODUCT_PLANT || dev.wildcatter.tailings.plant.DryMill.separates(machine())
+				|| machine() == Machine.ANODE_CASTING_WHEEL || machine() == Machine.REFINERY_TANKHOUSE;
 	}
 
 	/** The stacks it pays into: two, or a separator's four. */
@@ -1519,6 +1583,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (!hmc.isEmpty()) {
 			held.append(String.format("; %.0f kg of %s HMC (%s)", hmc.total(), dev.wildcatter.tailings.plant.DryMill.separates(machine()) ? "dry" : "moist", hmc.describe()));
 		}
+		if (machine().smelter()) {
+			held.append(dev.wildcatter.tailings.block.stage.SmelterStages.readout(this));
+		}
 		if (gasM3 > 0) {
 			held.append(String.format("; %.2f m3 of gas burnt", gasM3));
 		}
@@ -1608,6 +1675,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		ContainerHelper.saveAllItems(output, slots);
 		output.putString("cake", cake.save());
 		output.putString("hmc", hmc.save());
+		if (machine().smelter()) {
+			output.putString("smelter", smelter.save());
+		}
 		output.putDouble("gas_m3", gasM3);
 		output.putString("reagents", reagents.save());
 		output.putString("status", status);
@@ -1663,6 +1733,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		remote.load(input);
 		cake.load(input.getStringOr("cake", ""));
 		hmc.load(input.getStringOr("hmc", ""));
+		smelter.load(input.getStringOr("smelter", ""));
 		gasM3 = input.getDoubleOr("gas_m3", 0);
 		reagents.load(input.getStringOr("reagents", ""));
 		// a tank saved by an older build may hold spent reagent items
@@ -1817,7 +1888,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	@Override
 	public int[] getSlotsForFace(Direction side) {
 		if (pays()) {
-			return side == Direction.UP ? new int[0] : outputs();
+			// the tankhouse takes its anodes from a hopper on top (copper-smelter.md)
+			return side == Direction.UP ? (machine() == Machine.REFINERY_TANKHOUSE ? new int[] {0} : new int[0]) : outputs();
 		}
 		// the top takes every reagent slot, the fifth too: a hopper must reach it, or a bulk tank's four reagents (copper sulfate among
 		// them) block the zinc sulfate a selective setting needs (selective-flotation.md, As built; found filming Rock to Metal episode 6)
@@ -1840,6 +1912,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		}
 		if (slot == 0 && machine() == Machine.FLUID_BED_DRYER) {
 			return hmcBag(stack) && slots.get(0).isEmpty();
+		}
+		if (slot == 0 && machine().smelter()) {
+			return slots.get(0).isEmpty() && (fluxed() ? sand(stack) : machine() == Machine.REFINERY_TANKHOUSE && anode(stack));
 		}
 		if (slot == 0) {
 			Feeds.Charge charge = Feeds.parse(stack);

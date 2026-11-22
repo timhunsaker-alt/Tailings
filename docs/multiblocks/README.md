@@ -42,6 +42,7 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [dry-mill.md](dry-mill.md) | L6 (DRAFT) | (new) dryer, magnetic and electrostatic separators for ilmenite, rutile, zircon, monazite |
 | [dense-medium-separation.md](dense-medium-separation.md) | L7 (DRAFT) | (new) DMS cyclone pre-concentration on the gravel face |
 | [xrt-ore-sorter.md](xrt-ore-sorter.md) | L8 (DRAFT) | (new) X-ray transmission ore sorter as its own machine |
+| [../copper-smelter.md](../copper-smelter.md) | copper-smelter (2026-11-22) | the pressure filter's direct copper ingots, now the early-game shortcut |
 
 ## Shared rules
 Wildcatter's apply unchanged: its `docs/multiblocks/README.md`, "Shared rules" and "Big parts". In short:
