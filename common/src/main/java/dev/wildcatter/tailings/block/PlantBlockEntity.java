@@ -1248,7 +1248,30 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 	}
 
 	public ReagentStock reagents() {
+		countHopperReagents();
 		return reagents;
+	}
+
+	/**
+	 * A hopper adds to a reagent slot that already holds that reagent by growing the stack in place, without setItem, so the tank never
+	 * counted those kilograms and trimReagents then took the items away. The tank holds exactly one item for each kilogram, or part of
+	 * one, it has counted, so any item over that came in by hopper since: count it.
+	 */
+	private void countHopperReagents() {
+		if (loading || !dosed()) {
+			return;
+		}
+		for (Reagent reagent : Reagent.values()) {
+			int held = 0;
+			for (int slot = 2; slot <= LAST_REAGENT_SLOT; slot++) {
+				if (reagent(slots.get(slot)) == reagent) {
+					held += slots.get(slot).getCount();
+				}
+			}
+			for (int extra = held - reagents.items(reagent); extra > 0; extra--) {
+				reagents.addKilogram(reagent);
+			}
+		}
 	}
 
 	public FilterCake cake() {

@@ -84,7 +84,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /** Headless scenes for the starter line. {@code ./gradlew :neoforge:runGameTestServer} */
 @Mod("tailings_gametest")
 public class TailingsGameTests {
-	private static final String[] SCENES = {"plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal",
+	private static final String[] SCENES = {"reagent_hopper", "plc_switch", "plc_signal", "plc_plant", "plc_tbm_go", "selective_float", "selective_no_reagent", "no_activation_tank", "bulk_loses_zinc", "bulk_one_mineral", "registers", "tails_to_cell", "cell_breached", "stamp", "magnet", "jaw_size", "crushing_circuit", "bin_feeds", "belt_drive", "flotation", "flotation_stops", "spiral_bank", "full_recovery", "leach_no_acid", "byproducts", "heap_leach", "dump_station", "dump_waits", "drill", "tbm_built", "drill_retired", "tbm_lift", "tbm_glide", "tbm_setdown", "tbm_park", "tbm_dismantle", "tbm_seat", "tbm_gantries", "tbm_muck", "tbm_train_loads", "tbm_cable_end", "tbm_gantry_missing", "tbm_uncoupled", "tbm_gantries_decline", "tbm_train_stops", "tbm_train_turns", "plant_sound", "drill_pause", "haul", "models", "train_runs", "train_turnout", "train_decline", "train_derail", "train_harm", "train_migrate", "traction_dc", "traction_trip", "traction_far", "traction_unfed", "train_tickets", "drill_blocked", "plant_drops", "part_break", "not_built", "terminal",
 			"belt_transit", "feed_face", "screen_gravel", "pocket_oversize", "dump_signal", "bulk_concentrate", "sorter_screen", "playthrough_crushing"};
 
 	/** Scenes where trains run the length of a track at their real speed. */
@@ -104,6 +104,7 @@ public class TailingsGameTests {
 			helper.register(id("belt_drive"), loaded(TailingsGameTests::beltDrive));
 			helper.register(id("flotation"), loaded(TailingsGameTests::flotation));
 			helper.register(id("flotation_stops"), loaded(TailingsGameTests::flotationStops));
+			helper.register(id("reagent_hopper"), loaded(TailingsGameTests::reagentHopper));
 			helper.register(id("dump_station"), loaded(TailingsGameTests::dumpStation));
 			helper.register(id("dump_waits"), loaded(TailingsGameTests::dumpWaits));
 			helper.register(id("drill"), loaded(TailingsGameTests::drill));
@@ -554,6 +555,24 @@ public class TailingsGameTests {
 		PlantBlockEntity source = plant(helper, Machine.CYCLONE, pos);
 		source.out().offer(Product.FINES_SLURRY, kg, dev.wildcatter.fluid.SlurryAssay.of(assay));
 		return source;
+	}
+
+	/**
+	 * Reagents by hopper on the tank's top (flotation-bank.md): every item the hopper passes is a kilogram in the tank, though a hopper
+	 * grows a stack already there in place rather than setting it.
+	 */
+	private static void reagentHopper(GameTestHelper helper) {
+		int y = 4;
+		PlantBlockEntity tank = plant(helper, Machine.CONDITIONER, new BlockPos(0, y, 3));
+		BlockPos hopper = new BlockPos(1, y + 4, 4);
+		helper.setBlock(hopper, Blocks.HOPPER);
+		var held = (net.minecraft.world.Container) helper.getBlockEntity(hopper, net.minecraft.world.level.block.entity.HopperBlockEntity.class);
+		held.setItem(0, new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id(Reagent.XANTHATE.id())), 5));
+		held.setItem(1, new ItemStack(BuiltInRegistries.ITEM.getValue(Tailings.id(Reagent.LIME.id())), 3));
+		helper.succeedWhen(() -> {
+			double xanthate = tank.reagents().kilograms(Reagent.XANTHATE).doubleValue(), lime = tank.reagents().kilograms(Reagent.LIME).doubleValue();
+			helper.assertTrue(xanthate == 5 && lime == 3, Component.literal("the tank should hold 5 kg of xanthate and 3 of lime from the hopper, got " + xanthate + " and " + lime));
+		});
 	}
 
 	static void reagents(GameTestHelper helper, PlantBlockEntity tank, Reagent... which) {
