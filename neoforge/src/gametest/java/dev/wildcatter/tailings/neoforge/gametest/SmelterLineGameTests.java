@@ -81,7 +81,7 @@ final class SmelterLineGameTests {
 	}
 
 	/** A 1 MW gas set at {@code panel} (relative), its skid west of it, on a stone floor; its absolute panel. */
-	private static BlockPos set(GameTestHelper helper, BlockPos panel) {
+	static BlockPos set(GameTestHelper helper, BlockPos panel) {
 		for (int x = -9; x <= 6; x++) {
 			for (int z = -5; z <= 9; z++) {
 				helper.setBlock(panel.offset(x, -1, z), Blocks.STONE);
@@ -93,14 +93,14 @@ final class SmelterLineGameTests {
 	}
 
 	/** A unit substation run backward east of a set's panel: the industrial voltage in, the medium voltage out. Its MV cell, absolute. */
-	private static BlockPos stepUp(GameTestHelper helper, BlockPos panel) {
+	static BlockPos stepUp(GameTestHelper helper, BlockPos panel) {
 		BlockPos main = panel.east(4);
 		helper.setBlock(main, wc("wildcatter:unit_substation").defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH));
 		BigParts.grow(helper.getLevel(), helper.absolutePos(main), helper.getLevel().getBlockState(helper.absolutePos(main)));
 		return helper.absolutePos(panel.east(5));
 	}
 
-	private static BlockPos box(PlantBlockEntity part) {
+	static BlockPos box(PlantBlockEntity part) {
 		return part.getBlockPos().relative(TailingsPartBlock.boxFace(part.getBlockState()));
 	}
 
@@ -116,6 +116,8 @@ final class SmelterLineGameTests {
 		PlantBlockEntity wheel = part(helper, Machine.ANODE_CASTING_WHEEL, new BlockPos(2, y, 55));
 		PlantBlockEntity tank = part(helper, Machine.REFINERY_TANKHOUSE, new BlockPos(14, y, 40));
 		tank.fastCycle(400);
+		// its Wildcatter rectifier set against its north end (copper-smelter.md #11): it takes the cells' 20.5 kA
+		var rectifier = rectifier(helper, new BlockPos(14, y, 36));
 		// pipeline gas to the dryer, the furnace's burners and the anode furnace, each at the east face of its front cells
 		SmelterGameTests.gas(helper, new BlockPos(2, y, 5), 4);
 		SmelterGameTests.gas(helper, new BlockPos(2, y, 21), 7);
@@ -145,13 +147,19 @@ final class SmelterLineGameTests {
 		for (PlantBlockEntity p : new PlantBlockEntity[] {dryer, furnace, conv, af, wheel, tank}) {
 			boxes.add(box(p));
 		}
+		boxes.add(rbox(helper, new BlockPos(14, y, 36)));
 		BlockPos lo = helper.absolutePos(new BlockPos(-20, y - 1, -6)), hi = helper.absolutePos(new BlockPos(45, y + 8, 70));
-		wire(level, BUS, a.east(), boxes, lo, hi, box(dryer), box(furnace), box(af), box(wheel));
+		wire(level, BUS, a.east(), boxes, lo, hi, box(dryer), box(furnace), box(af), box(wheel), box(tank));
 		wire(level, MV, mvB, boxes, lo, hi, box(conv));
-		wire(level, MV, mvC, boxes, lo, hi, box(tank));
+		wire(level, MV, mvC, boxes, lo, hi, rbox(helper, new BlockPos(14, y, 36)));
 		helper.runAfterDelay(30, () -> panels.forEach(p -> ((GensetControlPanelBlockEntity) level.getBlockEntity(p)).setWantRun(true)));
 		boolean[] melted = {false};
+		double[] dc = {0};
 		helper.onEachTick(() -> {
+			// the current while refining, the last reading (a cell closing onto the open-circuit 150 V overshoots until the regulator pulls back)
+			if (tank.status().startsWith("refining") && rectifier.dc().amps() > 1) {
+				dc[0] = rectifier.dc().amps();
+			}
 			offGas[0] += furnace.out().give(Product.BURNER_GAS, Double.MAX_VALUE);
 			offGas[1] += conv.out().give(Product.BURNER_GAS, Double.MAX_VALUE);
 			for (BlockPos p : panels) {
@@ -182,6 +190,8 @@ final class SmelterLineGameTests {
 				helper.assertTrue(set.breakerClosed(), Component.literal("every set on its bus: " + set.inspect().getString()));
 			}
 			helper.assertTrue(wheel.smelter().madeCount() >= 2, Component.literal("two anodes cast on power" + s));
+			helper.assertTrue(Math.abs(dc[0] - Smelter.CELL_KA * 1000) < Smelter.CELL_KA * 10, Component.literal("its rectifier held the cells' 20.5 kA: " + dc[0] + " A; "
+					+ rectifier.inspect().getString()));
 			int cathodes = tank.countIn(SmelterStages_OUT, new ItemStack(TailingsItems.COPPER_CATHODE)) + (melted[0] ? 1 : 0);
 			helper.assertTrue(cathodes >= 14, Component.literal("14 cathodes from two anodes, got " + cathodes + s));
 			helper.assertTrue(level.getBlockEntity(helper.absolutePos(blast)) instanceof Container bf && bf.getItem(2).is(Items.COPPER_INGOT) && bf.getItem(2).getCount() == 2,
@@ -200,11 +210,21 @@ final class SmelterLineGameTests {
 		});
 	}
 
+	/** A Wildcatter 4.16 kV rectifier facing north with its main cell at {@code at}. */
+	static dev.wildcatter.block.RectifierBlockEntity rectifier(GameTestHelper helper, BlockPos at) {
+		return TailingsGameTests.part(helper, wc("wildcatter:rectifier"), at, dev.wildcatter.block.RectifierBlockEntity.class);
+	}
+
+	/** The rectifier's AC box cell: west of its main cell (absolute). */
+	static BlockPos rbox(GameTestHelper helper, BlockPos at) {
+		return helper.absolutePos(at.west());
+	}
+
 	private static final int[] SmelterStages_OUT = dev.wildcatter.tailings.block.stage.SmelterStages.OUTPUT_SLOTS;
 
 	// ---- cable runs, as the client films lay them (Rtm05Scenes.route): through free cells, fewest turns, clear of other runs ----------
 
-	private static void wire(ServerLevel level, String id, BlockPos from, Set<BlockPos> boxes, BlockPos lo, BlockPos hi, BlockPos... to) {
+	static void wire(ServerLevel level, String id, BlockPos from, Set<BlockPos> boxes, BlockPos lo, BlockPos hi, BlockPos... to) {
 		Set<BlockPos> net = new HashSet<>();
 		BlockPos start = from;
 		for (BlockPos goal : to) {

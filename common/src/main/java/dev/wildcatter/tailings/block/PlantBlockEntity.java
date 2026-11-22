@@ -51,7 +51,7 @@ import org.jspecify.annotations.Nullable;
  * held in kg ({@link RockLoad}); slurry for the pipe in a Wildcatter {@link SlurryHold}, with its assay. Items exist only where the
  * player hands rock in or takes a product out.
  */
-public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
+public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wildcatter.block.Electrolysis.Part, Inspectable, WorldlyContainer, BigPartEntity, FluidNode, Assayed,
 		WaterUser, dev.wildcatter.kinetic.Sounding, dev.wildcatter.control.ControlDevice, dev.wildcatter.control.Measurable {
 	/** Its HAND / OFF / AUTO: HAND runs on its own work as it always has, OFF holds it, and AUTO runs it while a PLC keeps enabling it (Wildcatter's plc.md). */
 	private final dev.wildcatter.control.Remote remote = new dev.wildcatter.control.Remote(9);
@@ -319,6 +319,21 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 			return 0;
 		}
 		return point == 7 ? xrt.productPulses() : point == 8 ? xrt.wastePulses() : 0;
+	}
+
+	/**
+	 * The tankhouse's cells as Wildcatter's DC load (copper-smelter.md #11; Wildcatter dc-bus.md): 72 in series at 20.5 kA and 0.30 V,
+	 * their + over - terminals on the north face of its cells at x 4, z 0; a rectifier set against it joins it directly. Every other part
+	 * answers a cell of no rating, so a rectifier touching it keeps its own dial.
+	 */
+	private final dev.wildcatter.block.Electrolysis electrolysis = new dev.wildcatter.block.Electrolysis(new dev.wildcatter.circuit.DcCell(
+			dev.wildcatter.tailings.plant.Smelter.CELLS, dev.wildcatter.tailings.plant.Smelter.CELL_BACK_EMF, dev.wildcatter.tailings.plant.Smelter.CELL_VOLTS,
+			dev.wildcatter.tailings.plant.Smelter.CELL_KA * 1000), 4, 0, Direction.NORTH);
+	private static final dev.wildcatter.block.Electrolysis NO_CELLS = new dev.wildcatter.block.Electrolysis(new dev.wildcatter.circuit.DcCell(1, 0, 1, 0), 0, 0, Direction.NORTH);
+
+	@Override
+	public dev.wildcatter.block.Electrolysis electrolysis() {
+		return machine() == Machine.REFINERY_TANKHOUSE ? electrolysis : NO_CELLS;
 	}
 
 	/** A copper smelter part's own state (copper-smelter.md); kept for every part, used by the smelter line's. */
@@ -1527,6 +1542,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public void build(Circuit circuit) {
+		if (machine() == Machine.REFINERY_TANKHOUSE) {
+			electrolysis.build(circuit, this);
+		}
 		if (motor != null) {
 			motor.build(circuit, worldPosition, List.of(TailingsPartBlock.boxFace(getBlockState())));
 			if (motor2 != null) {
@@ -1537,6 +1555,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 
 	@Override
 	public void apply(Circuit circuit, int ticks) {
+		if (machine() == Machine.REFINERY_TANKHOUSE) {
+			electrolysis.apply(circuit);
+		}
 		if (motor != null) {
 			// a started motor runs on through a gap in its feed instead of stopping and starting again on the next few kilograms
 			boolean runningOn = runOn > 0 && motor.state() != dev.wildcatter.circuit.Motor.State.STOPPED;

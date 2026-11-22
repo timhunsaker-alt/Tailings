@@ -9,7 +9,7 @@
     "C": "minecraft:copper_ingot",
     "S": "wildcatter:steel_ingot",
     "R": "minecraft:cauldron",
-    "K": "wildcatter:cable_mv"
+    "K": "wildcatter:cable_industrial"
   },
   "result": {
     "id": "tailings:refinery_tankhouse",

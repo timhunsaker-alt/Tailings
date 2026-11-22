@@ -77,7 +77,7 @@ the medium tier (4.16 kV or 3.3 kV).
 | `copper_converter` | 5 x 5 x 9 | A **Peirce-Smith converter, 3.0 m x 6.1 m**, on its riding rings, with its tuyere line, hood and the air main from its blower. It blows the matte's iron to slag and its sulfur to SO2, leaving blister copper. **450 kW at MV**: the converter blower *(proposed: about 250 Nm3/min at 120 kPa)*. Matte from the furnace touching it, and its slag back into that furnace; silica sand by a hopper on top; **off-gas out of the east face of its back cell, top layer** |
 | `anode_furnace` | 5 x 5 x 9 | A **3.2 m x 7 m rotary anode furnace**: air through tuyeres to take the sulfur to about 0.002 %, then natural gas to take the oxygen to about 0.15 % *(textbook)*. **55 kW at LV**: the drive and the combustion fan *(proposed)*. Blister from the converter touching it; pipeline gas on the east face of its front cells |
 | `anode_casting_wheel` | 8 x 3 x 8 | A **single casting wheel of 16 copper moulds**, 25 t/h, with its tundish, ladle and take-off crane, and the cooling sprays. **30 kW at LV**: the wheel drive and hydraulics *(proposed)*. Anode copper from the anode furnace touching it; **copper anodes** to a hopper under it or a hand |
-| `refinery_tankhouse` | 9 x 3 x 24 | An **electrorefining tankhouse section: 72 cells in series**, in four rows of 18, at **20.5 kA** and **0.30 V a cell**: **21.6 V, 443 kW DC**. At 96 % current efficiency and Faraday's 1.186 g of copper an ampere-hour that is **1.68 t/h** (derived). **490 kW at MV**: the rectifier's input and the electrolyte circulation pumps *(proposed)*. Copper anodes by a hopper on top or a hand; **copper cathodes** to a hopper under it or a hand |
+| `refinery_tankhouse` | 9 x 3 x 24 | An **electrorefining tankhouse section: 72 cells in series**, in four rows of 18, at **20.5 kA** and **0.30 V a cell**: **21.6 V, 443 kW DC**. At 96 % current efficiency and Faraday's 1.186 g of copper an ampere-hour that is **1.68 t/h** (derived). **On a Wildcatter `rectifier` (4.16 kV, 12-pulse) set against it** (Tim, 2026-11-22, #11): the rectifier takes the cells' 20.5 kA rating and drives them, about 457 kW from MV at its 97 %. Wildcatter's rectifier is re-rated for it (its `dc-bus.md`, 2026-11-22: up to 25 kA for a cell set against it, within its 2.4 MW). The tankhouse's own motor is the **electrolyte circulation pumps, 45 kW at LV** *(proposed)*. NO DC with no rectifier against it. Copper anodes by a hopper on top or a hand; **copper cathodes** to a hopper under it or a hand |
 
 ### Items
 - `tailings:copper_anode`: 400 kg of anode copper, a whole ore block's copper (14 ingots). It stacks to 16.
@@ -122,8 +122,9 @@ the medium tier (4.16 kV or 3.3 kV).
 - **Removing a part** stops what needs it. What a part holds is kept with the part, and lost if it is broken.
 
 ## Power
-- **1.23 MW installed:** 292 kW at LV (dryer, furnace, anode furnace, casting wheel) and 940 kW at MV (converter, tankhouse). The
-  converter's blower and the tankhouse's rectifier each want a 1 MW set or better, stepped up to MV. A real smelter of this size
+- **About 1.24 MW:** 337 kW at LV (dryer, furnace, anode furnace, casting wheel, the tankhouse's pumps), the converter's 450 kW at MV
+  and the tankhouse's rectifier, about 457 kW from MV. The converter's blower and the rectifier each want a 1 MW set or better, stepped
+  up to MV. A real smelter of this size
   also runs an oxygen plant, which this one does without (#7).
 
 ## Pays better than the shortcut
@@ -153,7 +154,7 @@ the medium tier (4.16 kV or 3.3 kV).
   on its own, forced on, fed what it takes, giving what it gives; the stops (NO FLUX, NO GAS, OFF-GAS HAS NOWHERE TO GO).
 - `smelter_shortcut`: the filter pays copper at 85 % with no dryer touching it, and sends it all to a dryer touching it.
 - `smelter_line`: thickened concentrate to cathodes and ingots through all six parts, every motor on Wildcatter generator sets
-  (the LV parts on one, the converter and tankhouse each on their own set stepped up to MV), the off-gas into a stock tank, and the
+  (the LV parts on one, the converter and the tankhouse's rectifier each on their own set stepped up to MV), the off-gas into a stock tank, and the
   copper balance checked: cathodes plus what is held plus the slag's copper equals the copper fed.
 - Unit test `SmelterTest`: the chemistry and the rates.
 

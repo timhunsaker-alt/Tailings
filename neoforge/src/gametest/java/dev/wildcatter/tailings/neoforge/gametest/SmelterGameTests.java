@@ -198,12 +198,27 @@ final class SmelterGameTests {
 	}
 
 	/**
-	 * smelter_tankhouse: two anodes by hand and one by a hopper on top refine to twenty-one 57.1 kg cathodes; it takes anodes only; a blast furnace melts a cathode to
+	 * smelter_tankhouse: on a Wildcatter rectifier set against it (on a gas set), two anodes by hand and one by a hopper on top refine to twenty-one 57.1 kg cathodes; it takes anodes only; a blast furnace melts a cathode to
 	 * two copper ingots.
 	 */
 	private static void tankhouse(GameTestHelper helper) {
 		PlantBlockEntity t = part(helper, Machine.REFINERY_TANKHOUSE, new BlockPos(2, 4, 0));
 		t.fastCycle(400);
+		// its rectifier against its north end, on a gas set stepped up to the medium tier (copper-smelter.md #11)
+		var rectifier = SmelterLineGameTests.rectifier(helper, new BlockPos(2, 4, -4));
+		BlockPos panel = new BlockPos(-6, 4, -10);
+		BlockPos set = SmelterLineGameTests.set(helper, panel);
+		BlockPos mv = SmelterLineGameTests.stepUp(helper, panel);
+		SmelterLineGameTests.wire(helper.getLevel(), "wildcatter:cable_mv", mv, java.util.Set.of(), helper.absolutePos(new BlockPos(-15, 3, -15)), helper.absolutePos(new BlockPos(14, 10, 26)),
+				SmelterLineGameTests.rbox(helper, new BlockPos(2, 4, -4)));
+		helper.runAfterDelay(30, () -> ((dev.wildcatter.block.GensetControlPanelBlockEntity) helper.getLevel().getBlockEntity(set)).setWantRun(true));
+		helper.onEachTick(() -> ((dev.wildcatter.block.GensetControlPanelBlockEntity) helper.getLevel().getBlockEntity(set)).setGasForTest(200));
+		double[] ka = {0};
+		helper.onEachTick(() -> {
+			if (t.status().startsWith("refining") && rectifier.dc().amps() > 1) {
+				ka[0] = rectifier.dc().amps() / 1000;   // the last reading while refining (closing onto 150 V overshoots at first)
+			}
+		});
 		check(helper, t.offer(new ItemStack(TailingsItems.COPPER_ANODE, 2)) && t.offer(new ItemStack(TailingsItems.COPPER_ANODE)), "it takes anodes");
 		check(helper, !t.offer(new ItemStack(Items.COPPER_INGOT)), "and nothing else");
 		// a third anode from a hopper on its top
@@ -219,6 +234,7 @@ final class SmelterGameTests {
 			int cathodes = t.countIn(OUT, new ItemStack(TailingsItems.COPPER_CATHODE));
 			check(helper, cathodes == 21 && t.smelter().copper() < 1e-6, "three anodes (two by hand, one by hopper) make 21 cathodes, got " + cathodes + all(t));
 			check(helper, t.status().startsWith("NO ANODES"), "then it waits for anodes: " + t.status());
+			check(helper, Math.abs(ka[0] - Smelter.CELL_KA) < 0.2, "its rectifier held the cells' 20.5 kA: " + ka[0] + " kA; " + rectifier.inspect().getString());
 		});
 	}
 

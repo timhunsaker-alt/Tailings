@@ -323,7 +323,10 @@ public final class SmelterStages {
 		}
 	};
 
-	/** The tankhouse: anodes in; their copper plated at 72 cells and 20.5 kA, a 57.1 kg cathode out for each cathode's worth. */
+	/**
+	 * The tankhouse: anodes in; their copper plated by the DC its Wildcatter rectifier drives through its 72 cells (20.5 kA rated), a
+	 * 57.1 kg cathode out for each cathode's worth. Its own motor is the electrolyte pumps: no circulation, no plating.
+	 */
 	static final Stage TANKHOUSE = new Stage() {
 		@Override
 		public void tick(PlantBlockEntity part) {
@@ -331,6 +334,7 @@ public final class SmelterStages {
 			double cathode = Smelter.cathodeKg();
 			if (s.plated() >= cathode - 1e-6) {
 				if (!part.emitTo(OUTPUT_SLOTS, new ItemStack(TailingsItems.COPPER_CATHODE))) {
+					part.electrolysis().setDrawing(part.getLevel(), false);
 					part.say("FULL: take the cathodes");
 					return;
 				}
@@ -340,19 +344,27 @@ public final class SmelterStages {
 				part.setChanged();
 			}
 			if (s.copper() < 1e-9) {
+				part.electrolysis().setDrawing(part.getLevel(), false);
 				part.say("NO ANODES: copper anodes by a hopper on top");
 				return;
 			}
 			part.want();
 			if (!part.running()) {
-				part.say("waiting for its rectifier");
+				part.electrolysis().setDrawing(part.getLevel(), false);
+				part.say("waiting for its electrolyte pumps");
 				return;
 			}
-			double kg = s.take(Math.min(rate(part, Smelter.tankhouseKgh() / 3600 / 20), cathode - s.plated()));
+			part.electrolysis().setDrawing(part.getLevel(), true);
+			double amps = part.electrolysis().amps();
+			if (amps < 1) {
+				part.say("NO DC: set a " + dev.wildcatter.energy.Voltage.MEDIUM.label() + " rectifier against it (its cells want " + String.format(Locale.ROOT, "%.1f kA", Smelter.CELL_KA) + ")");
+				return;
+			}
+			double kg = s.take(Math.min(Smelter.platedKgs(amps) / 20 * part.fast(), cathode - s.plated()));
 			s.plate(kg);
 			s.count(kg, 0, 0, 0);
 			part.setChanged();
-			part.say(String.format(Locale.ROOT, "refining: %d cells at %.1f kA, %.1f V DC", Smelter.CELLS, Smelter.CELL_KA * part.strength(), Smelter.tankhouseVolts()));
+			part.say(String.format(Locale.ROOT, "refining: %d cells at %.1f kA, %.1f V DC from its rectifier", Smelter.CELLS, amps / 1000, part.electrolysis().volts()));
 		}
 	};
 
