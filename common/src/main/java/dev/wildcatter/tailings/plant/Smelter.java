@@ -47,6 +47,13 @@ public final class Smelter {
 	public static final double CELL_VOLTS = 0.30;
 	public static final double CURRENT_EFFICIENCY = 0.96;
 	public static final double G_PER_AH = 63.546 / (2 * 26.801);
+	/** A copper refining cell's back-EMF: the anode dissolves what the cathode plates, so only its overpotentials, about 0.05 V (proposed). */
+	public static final double CELL_BACK_EMF = 0.05;
+
+	/** kg of copper the tankhouse plates a second at {@code amps} through its cells in series. */
+	public static double platedKgs(double amps) {
+		return amps * CELLS * G_PER_AH * CURRENT_EFFICIENCY / 1000 / 3600;
+	}
 
 	/** Copper held: the dryer's bin, the matte at the converter, the blister at the anode furnace, the wheel's tundish, the tankhouse's anodes. */
 	public static final double DRYER_HOLD_KG = 3000;

@@ -207,8 +207,11 @@ public enum Machine {
 	ANODE_FURNACE("anode_furnace", "Anode Furnace", 5, 5, 9, 55_000, Supply.INDUSTRIAL),
 	/** A single anode casting wheel of 16 moulds, 25 t/h; its drive and hydraulics 30 kW (proposed). */
 	ANODE_CASTING_WHEEL("anode_casting_wheel", "Anode Casting Wheel", 8, 3, 8, 30_000, Supply.INDUSTRIAL),
-	/** An electrorefining tankhouse section: 72 cells at 20.5 kA, 21.6 V DC; the rectifier's input and the pumps 490 kW at the medium tier (proposed). */
-	REFINERY_TANKHOUSE("refinery_tankhouse", "Electrorefining Tankhouse", 9, 3, 24, 490_000, Supply.MEDIUM);
+	/**
+	 * An electrorefining tankhouse section: 72 cells at 20.5 kA, 21.6 V DC, on a Wildcatter rectifier set against it (Tim, 2026-11-22,
+	 * copper-smelter.md #11); its own motor is the electrolyte circulation pumps, 45 kW (proposed).
+	 */
+	REFINERY_TANKHOUSE("refinery_tankhouse", "Electrorefining Tankhouse", 9, 3, 24, 45_000, Supply.INDUSTRIAL);
 
 	/** One of the copper smelter line's parts (docs/copper-smelter.md). */
 	public boolean smelter() {

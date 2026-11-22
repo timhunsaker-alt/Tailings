@@ -32,6 +32,9 @@ alternatives. The spec is [`docs/copper-smelter.md`](../copper-smelter.md).
   loose and have the plant take nuggets (nine clicks an item, unlike every other concentrate).
 
 ### 3. Scheelite (and chromite) packed to a dead-end item
+- **Accepted by Tim 2026-11-22:** "yes, give Wildcatter's moly roaster a hopper". Built on Wildcatter branch `scheelite-hopper`: the
+  roaster takes `#wildcatter:molybdenite_feed` and `#wildcatter:scheelite_feed` items by a hopper on top (kg files as the zircon feed);
+  Tailings fills both tags with its concentrates (19.875 kg and 47.125 kg an item). Scene `scheelite_hopper`.
 - **Chosen:** keep `tailings:scheelite_concentrate`, and add the one-for-one recipe to `wildcatter:scheelite`. Chromite gets the same,
   and for chromite that fully fixes it: Wildcatter's chromate kiln takes `wildcatter:chromite`. **Scheelite still has no item route
   into Wildcatter:** its moly roaster takes scheelite and molybdenite only by pipe, as thickened concentrate on its east side (it dries
@@ -56,6 +59,7 @@ alternatives. The spec is [`docs/copper-smelter.md`](../copper-smelter.md).
   to Wildcatter's 2 t/h nickel smelter (a third of this rate).
 
 ### 5. The filter's direct ingots: keep, label, or pay less?
+- **Accepted by Tim 2026-11-22:** keep the shortcut at 85 % in new worlds.
 - **Chosen:** label it as the early-game shortcut, and in a **new world** pay it at **85 %**. This is a new world rule,
   `copper_shortcut`, on in new worlds and off in existing ones, like `dry_mill_all_hmc`. A world saved before the rule pays exactly as
   before. The filter says "copper paid as ingots, the shortcut (85 %; a smelter line pays 97.5 %)". With a concentrate dryer touching
@@ -109,6 +113,10 @@ alternatives. The spec is [`docs/copper-smelter.md`](../copper-smelter.md).
 - **Alternatives:** matte, blister and anode copper as items (ladles) carried by the player or a crane.
 
 ### 11. Motor sizes and tiers
+- **Accepted by Tim 2026-11-22:** "move the tankhouse onto Wildcatter's rectifier, as a real tankhouse does". Built (branch
+  `tankhouse-rectifier`): the tankhouse is a Wildcatter DC cell load (72 cells, 20.5 kA, 0.30 V) and a Wildcatter 4.16 kV rectifier set
+  against it drives it; its own motor is now the 45 kW electrolyte pumps at LV. The rectifier was rated 16 kA, so it is re-rated in
+  Wildcatter (`dc-bus.md`, branch `tankhouse-rectifier`) to 25 kA for a cell set against it, within its unchanged 2.4 MW. See #18.
 - **Chosen:** dryer 75 kW, furnace 132 kW, anode furnace 55 kW and casting wheel 30 kW on the industrial tier; converter blower
   450 kW and tankhouse 490 kW (rectifier input and pumps) on the medium tier. All are read from Wildcatter's tiers, never as numbers.
   The tankhouse's rectifier is modelled as a motor load, as the electrowinning bank's already is.
@@ -140,6 +148,7 @@ alternatives. The spec is [`docs/copper-smelter.md`](../copper-smelter.md).
   copper round a loop.
 
 ### 15. No Field Manual pages
+- **Accepted by Tim 2026-11-22:** noted; nothing to do.
 - **Chosen:** Tailings has no Field Manual (ROADMAP: "There is no Field Manual yet"). Wildcatter's Manual is a fixed list with no
   hook for an add-on. The line is explained by its quest text, each part's readout and the spec.
 - **Alternatives:** a Tailings field manual (its own book item); pages added to Wildcatter's Manual (a Wildcatter change).
@@ -154,3 +163,22 @@ alternatives. The spec is [`docs/copper-smelter.md`](../copper-smelter.md).
 - **Chosen:** no client screenshot. The client lock was held by the filming agent (`rtm06`), so I did not take it. The models
   were checked from the model tool's previews (`build/model-previews/`), and the parts were checked by the NeoForge scenes.
   **Episode 9 should be screenshotted when the client is free.**
+
+## Part 3: building Tim's answers (2026-11-22)
+
+### 18. How the rectifier carries 20.5 kA
+- **Chosen:** the 4.16 kV rectifier is re-rated, not replaced. Its bridge and bars take up to 25 kA for a cell set against it, and its
+  DC power stays at the transformer's 2.4 MW, so above 16 kA its volts are held under 2.4 MW / setpoint (117 V at 20.5 kA, against the
+  tankhouse's 21.6 V). Its dial and PLC scale still stop at 16 kA, so nothing that ran before changes.
+- **Why:** this is one rectifier transformer with a low-voltage, high-current duty, which is what a copper refinery rectifier is.
+  The old code already held any touching cell's rating with no ceiling, so the change makes the nameplate honest and adds the power
+  limit.
+- **Alternatives:** a new tankhouse rectifier part in Wildcatter (tens of kA at 30-60 V: truest, but a new model and part); keep the
+  16 kA rectifier and rebuild the tankhouse at 16 kA with 92 cells (no Wildcatter change, but against the answer); two rectifiers in
+  parallel at 10 kA each.
+
+### 19. Tailings runs on the released Wildcatter 0.8.1
+- **Chosen:** Tailings builds against Wildcatter 0.8.1, whose rectifier already holds a touching cell's 20.5 kA. So the
+  `tankhouse-rectifier` branch works and passes on 0.8.1 without the re-rating, and the re-rating (and the roaster's hopper) arrive with
+  the next Wildcatter release. Tailings' feed tags and kg files are plain data, and an older Wildcatter ignores them.
+- **Alternatives:** bump Tailings' `wildcatter_version` to a local build now (it would not resolve for anyone else until a release).

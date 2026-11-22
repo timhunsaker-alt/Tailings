@@ -2,6 +2,13 @@
 
 Newest first. Everything below is on `main` and ships in 0.1.0, the first public release (2026-11-19); the full status, including stand-ins, is [docs/ROADMAP.md](docs/ROADMAP.md). How the systems work is [docs/DESIGN.md](docs/DESIGN.md).
 
+## Tim's answers on the smelter: the tankhouse on Wildcatter's rectifier, concentrate feed tags (2026-11-22, branch `tankhouse-rectifier`)
+
+The tankhouse is a Wildcatter DC cell load (72 cells, 20.5 kA, 21.6 V) driven by a Wildcatter 4.16 kV rectifier set against it; its own
+motor is the 45 kW electrolyte pumps. `smelter_tankhouse` and `smelter_line` run it on a rectifier on a gas set stepped up to medium
+voltage. Tailings' molybdenite and scheelite concentrates are in Wildcatter's `#wildcatter:molybdenite_feed` and `scheelite_feed` (the
+moly roaster's new hopper, Wildcatter branch `scheelite-hopper`). Decisions 18-19 in docs/questions/copper-smelter.md.
+
 ## The copper smelter line, and the by-product plant's feed (2026-11-22, branch `copper-smelter`)
 
 Spec [docs/copper-smelter.md](docs/copper-smelter.md); decisions [docs/questions/copper-smelter.md](docs/questions/copper-smelter.md).
