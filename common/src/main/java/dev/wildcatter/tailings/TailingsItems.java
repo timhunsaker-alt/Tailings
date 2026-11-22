@@ -116,7 +116,9 @@ public final class TailingsItems {
 			if (mineral.mineralItemId().startsWith("tailings:")) {
 				registerOnce(seen, MINERALS, mineral.mineralItemId());
 			}
-			if (mineral.separator() != null && mineral.smeltedId() == null) {
+			// a floating mineral with no ingot (pentlandite, molybdenite, cobaltite, platinum) has a concentrate too, so the filter packs it
+			// and the by-product plant takes it (docs/questions/copper-smelter.md #1)
+			if ((mineral.separator() != null || mineral.floats()) && mineral.smeltedId() == null) {
 				registerOnce(seen, CONCENTRATES, mineral.concentrateId());
 			}
 		}

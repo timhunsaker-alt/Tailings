@@ -44,7 +44,7 @@ Cobble and granite therefore do not make the same sand. Granite sand is a zircon
 - Magnetic separator: iron (vanilla iron ore, and the iron trace in country rock).
 - Shaking table: copper, gold, zircon, ilmenite, rutile, monazite, cassiterite, chromite, acanthite, scheelite.
 
-A concentrate that smelts is paid as the ingot (`phaseOneProductId`). Otherwise the machine pays `tailings:<mineral>_concentrate`. Those concentrate items are zircon, ilmenite, rutile, monazite, chromite, and scheelite. Cassiterite pays tin ingots, acanthite pays silver ingots, copper and gold pay their ingots.
+A concentrate that smelts is paid as the ingot (`phaseOneProductId`). Otherwise the machine pays `tailings:<mineral>_concentrate`. Those concentrate items are zircon, ilmenite, rutile, monazite, chromite, and scheelite, and (copper-smelter #1) pentlandite, molybdenite, cobaltite and platinum, the floating minerals with no ingot, which the pressure filter packs nine nuggets to one; the by-product plant takes pentlandite and molybdenite concentrate. A concentrate of a Wildcatter mineral crafts one for one into that Wildcatter mineral (the same mass). Cassiterite pays tin ingots, acanthite pays silver ingots, copper and gold pay their ingots.
 
 Country rock does not emit a whole ingot from a trace. The kilograms go into `NuggetBank`. A nugget is one ninth of a mineral item, and a mineral item is one quarter of the block (the 25% yield). Nine nuggets, shapeless, craft the mineral item. Iron and gold nuggets are vanilla. Every other nugget is `tailings:<mineral>_nugget`.
 
@@ -1008,7 +1008,7 @@ Sized rock, nuggets, concentrates, and reagents are registered from the enums in
 
 - **Sized:** four sizes times every `Rock` (8 country rocks, 3 vanilla metals, 27 ores).
 - **Nuggets:** one per mineral, except iron and gold, which use vanilla. Nine nuggets, shapeless, make the mineral item: a Wildcatter item, a vanilla ingot (copper), or a Tailings item for zircon, ilmenite, rutile, and monazite.
-- **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`. No crafting recipe. The 50% machines produce them.
+- **Concentrates:** `tailings:zircon_concentrate`, `ilmenite_concentrate`, `rutile_concentrate`, `monazite_concentrate`, `chromite_concentrate`, `scheelite_concentrate`, `pentlandite_concentrate`, `molybdenite_concentrate`, `cobaltite_concentrate`, `platinum_concentrate`. The 50% machines and the pressure filter produce them. Each of a Wildcatter mineral crafts, shapeless, one for one into that mineral (`<mineral>_concentrate_to_mineral`), so chromite reaches Wildcatter's chromate kiln and pentlandite its fluid-bed roaster by hand.
 - **Reagents:** `lime`, `xanthate`, `mibc`, `copper_sulfate`. Recipes are in the concentrator section.
 - **Haulage items:** `mine_locomotive`, `mine_car`.
 - **Blasting items (P3):** `cast_booster` (shapeless: 1 TNT makes 4), `detonator` (shapeless: TNT, copper ingot, redstone make 8),
