@@ -23,8 +23,8 @@ import net.minecraft.world.item.ItemStack;
  * crafts into the Wildcatter mineral its plants take.
  */
 final class ByproductRouteGameTests {
-	static final String[] SCENES = {"byproduct_pentlandite", "byproduct_molybdenite", "filter_scheelite"};
-	static final Set<String> LONG = Set.of("byproduct_pentlandite", "byproduct_molybdenite", "filter_scheelite");
+	static final String[] SCENES = {"byproduct_pentlandite", "byproduct_molybdenite", "filter_scheelite", "byproduct_hopper"};
+	static final Set<String> LONG = Set.of("byproduct_pentlandite", "byproduct_molybdenite", "filter_scheelite", "byproduct_hopper");
 	private static final int[] OUT = {1, 2};
 
 	private ByproductRouteGameTests() {
@@ -34,6 +34,28 @@ final class ByproductRouteGameTests {
 		out.accept("byproduct_pentlandite", helper -> route(helper, Mineral.PENTLANDITE, "tailings:cobalt"));
 		out.accept("byproduct_molybdenite", helper -> route(helper, Mineral.MOLYBDENITE, "tailings:rhenium"));
 		out.accept("filter_scheelite", ByproductRouteGameTests::scheelite);
+		out.accept("byproduct_hopper", ByproductRouteGameTests::hopper);
+	}
+
+	/**
+	 * byproduct_hopper: a hopper on the by-product plant's top feeds it lead ingots, as a hand does (Rock to Metal episode 7 found only a
+	 * hand could); it gives them back with their silver; a hopper under it takes them out; a cobblestone in the hopper stays there.
+	 */
+	private static void hopper(GameTestHelper helper) {
+		PlantBlockEntity plant = TailingsGameTests.plant(helper, Machine.BYPRODUCT_PLANT, new BlockPos(0, 4, 0));
+		plant.forceRunning();
+		BlockPos top = new BlockPos(2, 4 + Machine.BYPRODUCT_PLANT.height(), 2);
+		helper.setBlock(top, net.minecraft.world.level.block.Blocks.HOPPER);
+		var hopper = helper.getBlockEntity(top, net.minecraft.world.level.block.entity.HopperBlockEntity.class);
+		hopper.setItem(0, Feeds.stack("wildcatter:lead_ingot", 3));
+		hopper.setItem(1, new ItemStack(net.minecraft.world.item.Items.COBBLESTONE, 1));
+		helper.succeedWhen(() -> {
+			int back = plant.countIn(OUT, Feeds.stack("wildcatter:lead_ingot", 1));
+			double silver = plant.byproducts().getOrDefault("wildcatter:silver_ingot", 0.0) + 10 * plant.countIn(OUT, Feeds.stack("wildcatter:silver_ingot", 1));
+			helper.assertTrue(hopper.getItem(0).isEmpty(), Component.literal("the hopper should feed its lead ingots in, still holds " + hopper.getItem(0) + "; " + outputs(plant)));
+			helper.assertTrue(back >= 1 && silver > 0, Component.literal("and the plant give them back with silver: " + outputs(plant)));
+			helper.assertTrue(hopper.getItem(1).is(net.minecraft.world.item.Items.COBBLESTONE), Component.literal("cobblestone is not its feed"));
+		});
 	}
 
 	/** A filter with {@code kg} of thickened concentrate on its inlet, carrying one item's worth of {@code mineral}. */

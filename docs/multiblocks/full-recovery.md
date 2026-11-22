@@ -59,7 +59,7 @@ electrowinning bank. It is the first use for the waste bin. **Tim, 2026-11-06:**
 | Pentlandite | cobalt 3 % | Nickel matte refining |
 | Heavy mineral sand | monazite rare earths | Already a concentrate; a rare-earth oxide item |
 
-- A **`byproduct_plant`** (5 x 5 x 8, 250 kW at 480 V *(proposed)*) takes the item the ladder pays for a mineral, 20 s an item *(proposed)*, and gives it back with what it carried. A by-product item is 10 kg *(proposed)*.
+- A **`byproduct_plant`** (5 x 5 x 8, 250 kW at 480 V *(proposed)*) takes the item the ladder pays for a mineral, 20 s an item *(proposed)*, and gives it back with what it carried. A by-product item is 10 kg *(proposed)*. It takes its items by hand or from a hopper on its top (2026-11-22; NeoForge `byproduct_hopper`), and a hopper under it takes them out.
 - Real grades are too small to feel in play, so they are scaled ×10 as ores.md scales grades *(proposed)*.
 - **Tim, 2026-11-06:** new by-product items from one plant (cadmium, indium, rhenium, rare earth oxide), and Wildcatter's silver.
 

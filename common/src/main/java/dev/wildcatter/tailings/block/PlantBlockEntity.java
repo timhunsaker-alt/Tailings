@@ -1909,8 +1909,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	@Override
 	public int[] getSlotsForFace(Direction side) {
 		if (pays()) {
-			// the tankhouse takes its anodes from a hopper on top (copper-smelter.md)
-			return side == Direction.UP ? (machine() == Machine.REFINERY_TANKHOUSE ? new int[] {0} : new int[0]) : outputs();
+			// the tankhouse takes its anodes from a hopper on top (copper-smelter.md); the by-product plant its items, as a hand puts them in
+			// (found filming Rock to Metal episode 7: only a hand could feed it)
+			return side == Direction.UP ? (machine() == Machine.REFINERY_TANKHOUSE || machine() == Machine.BYPRODUCT_PLANT ? new int[] {0} : new int[0]) : outputs();
 		}
 		// the top takes every reagent slot, the fifth too: a hopper must reach it, or a bulk tank's four reagents (copper sulfate among
 		// them) block the zinc sulfate a selective setting needs (selective-flotation.md, As built; found filming Rock to Metal episode 6)
