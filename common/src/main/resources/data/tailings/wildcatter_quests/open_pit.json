@@ -116,6 +116,36 @@
       ]
     },
     {
+      "id": "copper_smelter",
+      "title": "Concentrate to metal",
+      "icon": "tailings:flash_furnace",
+      "text": "Set a concentrate dryer against the pressure filter and its copper goes to the smelter, not straight to ingots. The dryer feeds a flash smelting furnace (silica sand by hopper, pipeline gas), which makes matte for a Peirce-Smith converter on medium voltage. Pipe both furnaces' off-gas to an acid plant's converter: a smelter must not vent. The anode furnace fire refines the blister, the casting wheel casts 400 kg anodes, and the tankhouse refines them to cathodes. A blast furnace melts a cathode to two ingots. The line pays 97.5 % of the copper; the filter's direct ingots pay 85 %.",
+      "requires": [
+        "flotation",
+        "wildcatter:acid_plant"
+      ],
+      "tasks": [
+        {
+          "item": "tailings:flash_furnace",
+          "count": 1
+        },
+        {
+          "milestone": "tailings:smelter_running",
+          "text": "Smelt concentrate in the flash furnace"
+        },
+        {
+          "milestone": "tailings:cathode_pulled",
+          "text": "Pull a cathode from the tankhouse"
+        }
+      ],
+      "rewards": [
+        {
+          "item": "minecraft:sand",
+          "count": 8
+        }
+      ]
+    },
+    {
       "id": "zircon",
       "title": "Zircon for the chlorinator",
       "icon": "tailings:zircon_concentrate",

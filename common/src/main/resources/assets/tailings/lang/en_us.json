@@ -198,6 +198,10 @@
   "item.tailings.monazite_concentrate": "Monazite Concentrate",
   "item.tailings.chromite_concentrate": "Chromite Concentrate",
   "item.tailings.scheelite_concentrate": "Scheelite Concentrate",
+  "item.tailings.pentlandite_concentrate": "Pentlandite Concentrate",
+  "item.tailings.molybdenite_concentrate": "Molybdenite Concentrate",
+  "item.tailings.cobaltite_concentrate": "Cobaltite Concentrate",
+  "item.tailings.platinum_concentrate": "Platinum Concentrate",
   "block.tailings.grizzly": "Grizzly",
   "block.tailings.jaw_crusher": "Jaw Crusher",
   "block.tailings.cone_crusher": "Cone Crusher",
@@ -420,5 +424,13 @@
   "subtitles.tailings.ravel": "Stones trickle",
   "subtitles.tailings.highwall_slide": "Slope slides",
   "subtitles.tailings.survey_alarm": "Survey station alarms",
-  "subtitles.tailings.dragline_swing_brake": "Dragline swing brake hisses"
+  "subtitles.tailings.dragline_swing_brake": "Dragline swing brake hisses",
+  "block.tailings.concentrate_dryer": "Concentrate Dryer",
+  "block.tailings.flash_furnace": "Flash Smelting Furnace",
+  "block.tailings.copper_converter": "Peirce-Smith Converter",
+  "block.tailings.anode_furnace": "Anode Furnace",
+  "block.tailings.anode_casting_wheel": "Anode Casting Wheel",
+  "block.tailings.refinery_tankhouse": "Electrorefining Tankhouse",
+  "item.tailings.copper_anode": "Copper Anode",
+  "item.tailings.copper_cathode": "Copper Cathode"
 }

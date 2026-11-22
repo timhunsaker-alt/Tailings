@@ -169,6 +169,9 @@ public class TailingsGameTests {
 			ShaftGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			PasteGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			DryMillGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			ByproductRouteGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			SmelterGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
+			SmelterLineGameTests.register((name, scene) -> helper.register(id(name), scene));
 			DmsGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			XrtGameTests.register((name, scene) -> helper.register(id(name), loaded(scene)));
 			PitLineGameTests.register((name, scene) -> helper.register(id(name), scene));
@@ -265,13 +268,13 @@ public class TailingsGameTests {
 			Holder<TestEnvironmentDefinition<?>> ruleScenes = event.registerEnvironment(id("rule_scenes"), new RulesEnvironment(dev.wildcatter.tailings.OptInRules.NEW_WORLD));
 			// the dragline's slope scenes, with slope_failures on (off in every world otherwise, dragline-hand-control.md #1)
 			Holder<TestEnvironmentDefinition<?>> slopeScenes = event.registerEnvironment(id("slope_scenes"), new RulesEnvironment(DraglineHandGameTests.ruleOn()));
-			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitPourGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, Gaps2GameTests.SCENES, AnswersGameTests.SCENES, BeltSlopeGameTests.SCENES, PlantMotionGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, DraglineHandGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES, QuestGameTests.SCENES).flatMap(java.util.Arrays::stream)
+			for (String scene : java.util.stream.Stream.of(SCENES, TbmGapsGameTests.SCENES, PlcSignalGameTests.SCENES, PitGameTests.SCENES, PitPourGameTests.SCENES, PitHaulGameTests.SCENES, PitDispatchGameTests.SCENES, PitDryStackGameTests.SCENES, TrainsGameTests.SCENES, ShaftGameTests.SCENES, VentGameTests.SCENES, PasteGameTests.SCENES, DryMillGameTests.SCENES, ByproductRouteGameTests.SCENES, SmelterGameTests.SCENES, SmelterLineGameTests.SCENES, DmsGameTests.SCENES, XrtGameTests.SCENES, Gaps2GameTests.SCENES, AnswersGameTests.SCENES, BeltSlopeGameTests.SCENES, PlantMotionGameTests.SCENES, PitBlastGameTests.SCENES, PitBigGameTests.SCENES, DraglineGameTests.SCENES, DraglineHandGameTests.SCENES, PitLineGameTests.SCENES, PitFlotationGameTests.SCENES, QuestGameTests.SCENES).flatMap(java.util.Arrays::stream)
 					// TAILINGS_SCENES=a,b (or TAILINGS_ONLY) runs only those scenes, for working on a few
 					.filter(TailingsGameTests::chosen).toList()) {
 				event.registerTest(id(scene), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, id(scene)),
 						// the plant's parts are true size: padding keeps each scene clear of the next
-						new TestData<>(DraglineHandGameTests.RULE_ON.contains(scene) ? slopeScenes : AnswersGameTests.EXISTING_WORLD.contains(scene) ? existing : AnswersGameTests.RULE_SCENES.contains(scene) ? ruleScenes : plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), DraglineHandGameTests.ticks(scene, PitPourGameTests.ticks(scene, QuestGameTests.ticks(scene, PitFlotationGameTests.ticks(scene, PitLineGameTests.ticks(scene, AnswersGameTests.ticks(scene, Gaps2GameTests.ticks(scene, PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) || Gaps2GameTests.LONG.contains(scene) || AnswersGameTests.LONG.contains(scene) ? 1600 : 400)))))))))))), 1, true,
-								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, java.util.Arrays.asList(DraglineHandGameTests.SCENES).contains(scene) ? 160 : QuestGameTests.padding(scene, PitFlotationGameTests.padding(scene, PitLineGameTests.padding(scene, VentGameTests.padding(scene, TrainsGameTests.padding(scene, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40))))))))));
+						new TestData<>(DraglineHandGameTests.RULE_ON.contains(scene) ? slopeScenes : AnswersGameTests.EXISTING_WORLD.contains(scene) ? existing : AnswersGameTests.RULE_SCENES.contains(scene) ? ruleScenes : plain, net.minecraft.world.level.Level.OVERWORLD, Identifier.withDefaultNamespace("empty"), SmelterLineGameTests.ticks(scene, DraglineHandGameTests.ticks(scene, PitPourGameTests.ticks(scene, QuestGameTests.ticks(scene, PitFlotationGameTests.ticks(scene, PitLineGameTests.ticks(scene, AnswersGameTests.ticks(scene, Gaps2GameTests.ticks(scene, PasteGameTests.ticks(scene, VentGameTests.ticks(scene, ShaftGameTests.ticks(scene, TrainsGameTests.ticks(scene, PitHaulGameTests.ticks(scene, LONG.contains(scene) || PitGameTests.LONG.contains(scene) || TbmGapsGameTests.LONG.contains(scene) || PlcSignalGameTests.LONG.contains(scene) || TrainsGameTests.LONG.contains(scene) || ShaftGameTests.LONG.contains(scene) || VentGameTests.LONG.contains(scene) || PasteGameTests.LONG.contains(scene) || DryMillGameTests.LONG.contains(scene) || ByproductRouteGameTests.LONG.contains(scene) || SmelterGameTests.LONG.contains(scene) || DmsGameTests.LONG.contains(scene) || XrtGameTests.LONG.contains(scene) || Gaps2GameTests.LONG.contains(scene) || AnswersGameTests.LONG.contains(scene) ? 1600 : 400))))))))))))), 1, true,
+								net.minecraft.world.level.block.Rotation.NONE, false, 1, 1, false, java.util.Arrays.asList(DraglineHandGameTests.SCENES).contains(scene) ? 160 : SmelterLineGameTests.padding(scene, QuestGameTests.padding(scene, PitFlotationGameTests.padding(scene, PitLineGameTests.padding(scene, VentGameTests.padding(scene, TrainsGameTests.padding(scene, PitHaulGameTests.padding(scene, TbmGapsGameTests.padding(scene, 40)))))))))));
 			}
 		});
 	}
@@ -629,8 +632,9 @@ public class TailingsGameTests {
 		helper.succeedWhen(() -> {
 			int ingots = filter.countIn(new int[] {1, 2}, new ItemStack(Items.COPPER_INGOT));
 			double tailCopper = pond.back().assayOf(Product.TAILS_SLURRY).get("minecraft:copper_ingot") * pond.back().held(Product.TAILS_SLURRY);
-			// the block's 14 ingots (Tim, 2026-11-19): 10.5 by flotation, 10 ingots and the half in nuggets
-			helper.assertTrue(ingots == 10, Component.literal("the filter should pay 10 copper ingots, got " + ingots + " (tank " + tank.status()
+			// the block's 14 ingots (Tim, 2026-11-19): 10.5 by flotation; in a new world the filter alone is the shortcut and pays 85 % of
+			// them (copper-smelter.md #5), 8.9: 8 ingots and the rest in nuggets
+			helper.assertTrue(ingots == 8, Component.literal("the filter should pay 8 copper ingots (the shortcut's 85 % of 10.5), got " + ingots + " (tank " + tank.status()
 					+ "; bank " + bank.status() + "; thickener " + thickener.status() + "; filter " + filter.status() + ")"));
 			helper.assertTrue(Math.abs(tailCopper - copper * 0.25) < 0.1, Component.literal("the tails should carry the rest of the copper, got "
 					+ tailCopper + " (pond " + pond.status() + ")"));

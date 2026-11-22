@@ -6,6 +6,16 @@ All notable changes are the merged pull requests on `main`. Dates are the merge 
 
 It requires Wildcatter 0.8.1.
 
+### Concentrate to metal
+
+- **A copper smelter line:** concentrate dryer, flash smelting furnace, Peirce-Smith converter, anode furnace, anode casting wheel and
+  electrorefining tankhouse, from the pressure filter's copper to 400 kg anodes and 57 kg cathodes; a blast furnace melts a cathode
+  to two copper ingots. The furnaces' off-gas goes by pipe to Wildcatter's acid plant. It pays 97.5 % of the copper.
+- **The filter's direct copper is the shortcut:** in a new world it pays 85 % (world rule `copper_shortcut`); existing worlds are
+  unchanged.
+- **Fixed:** the by-product plant could never get pentlandite or molybdenite concentrate (it was never made); the filter now packs
+  them, and cobaltite and platinum, and each concentrate of a Wildcatter mineral crafts into that mineral.
+
 ### Machines you can see working
 
 - **The TBM's cutterhead turns** while it cuts (a wheel of disc cutters on the face, 6 rpm), and muck rides its conveyor gantry's

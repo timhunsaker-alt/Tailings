@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CCC",
+    "SPS",
+    "SKS"
+  ],
+  "key": {
+    "C": "minecraft:copper_block",
+    "S": "wildcatter:steel_ingot",
+    "P": "minecraft:piston",
+    "K": "wildcatter:cable_industrial"
+  },
+  "result": {
+    "id": "tailings:anode_casting_wheel",
+    "count": 1
+  }
+}

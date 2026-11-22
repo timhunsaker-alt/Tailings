@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    "tailings:platinum_concentrate"
+  ],
+  "result": {
+    "id": "wildcatter:platinum",
+    "count": 1
+  }
+}

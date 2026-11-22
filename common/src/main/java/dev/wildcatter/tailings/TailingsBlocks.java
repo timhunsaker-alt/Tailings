@@ -157,6 +157,13 @@ public final class TailingsBlocks {
 	public static final Block MEDIUM_RECOVERY = plant(Machine.MEDIUM_RECOVERY, MapColor.COLOR_BLUE);
 	public static final Block XRT_SORTER = plant(Machine.XRT_SORTER, MapColor.COLOR_YELLOW);
 	public static final Block SORTER_COMPRESSOR = plant(Machine.SORTER_COMPRESSOR, MapColor.COLOR_BLUE);
+	/** The copper smelter line (docs/copper-smelter.md). */
+	public static final Block CONCENTRATE_DRYER = plant(Machine.CONCENTRATE_DRYER, MapColor.COLOR_GRAY);
+	public static final Block FLASH_FURNACE = plant(Machine.FLASH_FURNACE, MapColor.COLOR_RED);
+	public static final Block COPPER_CONVERTER = plant(Machine.COPPER_CONVERTER, MapColor.COLOR_GRAY);
+	public static final Block ANODE_FURNACE = plant(Machine.ANODE_FURNACE, MapColor.COLOR_GRAY);
+	public static final Block ANODE_CASTING_WHEEL = plant(Machine.ANODE_CASTING_WHEEL, MapColor.COLOR_ORANGE);
+	public static final Block REFINERY_TANKHOUSE = plant(Machine.REFINERY_TANKHOUSE, MapColor.COLOR_ORANGE);
 	/** The walking dragline's parts (dragline.md, P6). */
 	public static final Block DRAGLINE_TUB = plant(Machine.DRAGLINE_TUB, MapColor.COLOR_GRAY);
 	public static final Block DRAGLINE_HOUSE = plant(Machine.DRAGLINE_HOUSE, MapColor.COLOR_ORANGE);
@@ -216,7 +223,8 @@ public final class TailingsBlocks {
 					DRILL_DECK, DRILL_MAST, DRILL_DUST_COLLECTOR,
 					GYRATORY_CRUSHER, ROCK_BREAKER, SURGE_POCKET, PRIMARY_APRON_FEEDER, HEAVY_CONVEYOR_DRIVE, STOCKPILE_HEAD, RECLAIM_FEEDER, BELT_WEIGHER,
 					SAG_MILL, PEBBLE_CRUSHER, BALL_MILL_LARGE, CYCLONE_FEED_PUMP, CYCLONE_CLUSTER_LARGE,
-					CONDITIONING_TANK_LARGE, TANK_CELL, COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE));
+					CONDITIONING_TANK_LARGE, TANK_CELL, COLUMN_CELL, FLOTATION_BLOWER_LARGE, TAILINGS_THICKENER_LARGE,
+					CONCENTRATE_DRYER, FLASH_FURNACE, COPPER_CONVERTER, ANODE_FURNACE, ANODE_CASTING_WHEEL, REFINERY_TANKHOUSE));
 	public static final Block LINING = course("lining", props -> new LiningBlock(props.mapColor(MapColor.COLOR_GRAY).strength(3.0F, 9.0F).sound(SoundType.STONE)));
 	public static final Block SLOPE = course("slope", props -> new SlopeBlock(props.mapColor(MapColor.STONE).strength(2.0F, 6.0F).sound(SoundType.STONE)
 			.noOcclusion().isSuffocating((state, getter, pos) -> false)));
@@ -409,6 +417,12 @@ public final class TailingsBlocks {
 			case MEDIUM_RECOVERY -> MEDIUM_RECOVERY;
 			case XRT_SORTER -> XRT_SORTER;
 			case SORTER_COMPRESSOR -> SORTER_COMPRESSOR;
+			case CONCENTRATE_DRYER -> CONCENTRATE_DRYER;
+			case FLASH_FURNACE -> FLASH_FURNACE;
+			case COPPER_CONVERTER -> COPPER_CONVERTER;
+			case ANODE_FURNACE -> ANODE_FURNACE;
+			case ANODE_CASTING_WHEEL -> ANODE_CASTING_WHEEL;
+			case REFINERY_TANKHOUSE -> REFINERY_TANKHOUSE;
 			case DRAGLINE_TUB -> DRAGLINE_TUB;
 			case DRAGLINE_HOUSE -> DRAGLINE_HOUSE;
 			case DRAGLINE_SHOE -> DRAGLINE_SHOE;

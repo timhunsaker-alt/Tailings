@@ -295,8 +295,25 @@ final class Flotation {
 				part.say("FULL: take the concentrate");
 				return;
 			}
-			Slurry.Taken taken = use(part, Product.THICKENED_CONCENTRATE, Math.min(FEED_PER_TICK * part.strength(), waiting));
+			double max = Math.min(FEED_PER_TICK * part.strength(), waiting);
+			// a concentrate dryer touching it takes the copper for the smelter line (copper-smelter.md); the filter waits while its bin is full
+			PlantBlockEntity dryer = part.touching(Machine.CONCENTRATE_DRYER);
+			if (dryer != null) {
+				double perKg = Selective.cake(part.back().assayOf(Product.THICKENED_CONCENTRATE)).get(dev.wildcatter.tailings.plant.Smelter.COPPER);
+				double room = dev.wildcatter.tailings.plant.Smelter.DRYER_HOLD_KG - dryer.smelter().copper();
+				if (perKg > 0 && room < perKg * max) {
+					max = room / perKg;
+					if (max < 1e-6) {
+						part.say("FULL: the concentrate dryer's bin is full");
+						return;
+					}
+				}
+			}
+			Slurry.Taken taken = use(part, Product.THICKENED_CONCENTRATE, max);
 			SlurryAssay cake = Selective.cake(taken.assay());
+			// with no dryer, the copper is the early-game shortcut: in a world with the copper_shortcut rule it is paid at a sold concentrate's
+			// 85 % (copper-smelter.md #5)
+			boolean shortcut = dryer == null && dev.wildcatter.tailings.OptInRules.on(part.getLevel().getServer(), dev.wildcatter.tailings.OptInRules.COPPER_SHORTCUT);
 			// the world's dry_mill_all_hmc rule (on in new worlds): with a dryer touching it, the spiral bank's heavy minerals are HMC too,
 			// paid by the separators at the filter's own 1.0 a kg (l6-dry-mill.md #3); off, or with no dryer, they are paid here as before
 			boolean allHmc = part.touching(Machine.FLUID_BED_DRYER) != null
@@ -306,13 +323,17 @@ final class Flotation {
 				if (mineral != null && allHmc && dev.wildcatter.tailings.plant.DryMill.takes(mineral)) {
 					double kg = cake.get(id) * taken.kg();
 					part.hmc().add(mineral, kg, kg * dev.wildcatter.tailings.plant.DryMill.PRIMARY_PAY);
+				} else if (mineral == Mineral.COPPER && dryer != null) {
+					dryer.smelter().add(cake.get(id) * taken.kg());
+					dryer.setChanged();
 				} else if (mineral != null) {
-					part.cake().addKg(mineral, cake.get(id) * taken.kg());
+					part.cake().addKg(mineral, cake.get(id) * taken.kg() * (mineral == Mineral.COPPER && shortcut ? dev.wildcatter.tailings.plant.Smelter.SHORTCUT_PAYABLE : 1));
 				}
 			}
 			// the scavenger spirals' share is kept as heavy mineral concentrate for the dry mill, not paid here (dry-mill.md, L6-2)
 			part.hmc().add(dev.wildcatter.tailings.plant.DryMill.hmcIn(cake, taken.kg()));
-			part.say(Selective.mixed(taken.assay()) ? "filtering a BULK cake: lead and zinc concentrate mixed, the zinc goes to slag" : "filtering");
+			part.say(Selective.mixed(taken.assay()) ? "filtering a BULK cake: lead and zinc concentrate mixed, the zinc goes to slag"
+					: dryer != null ? "filtering: its copper to the concentrate dryer" : shortcut && cake.get(dev.wildcatter.tailings.plant.Smelter.COPPER) > 0 ? "filtering: copper paid as ingots, the shortcut (85 %; a smelter line pays 97.5 %)" : "filtering");
 			part.setChanged();
 		}
 	};

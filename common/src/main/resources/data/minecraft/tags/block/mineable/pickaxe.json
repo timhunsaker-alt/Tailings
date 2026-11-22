@@ -126,6 +126,12 @@
     "tailings:tank_cell",
     "tailings:column_cell",
     "tailings:flotation_blower_large",
-    "tailings:tailings_thickener_large"
+    "tailings:tailings_thickener_large",
+    "tailings:concentrate_dryer",
+    "tailings:flash_furnace",
+    "tailings:copper_converter",
+    "tailings:anode_furnace",
+    "tailings:anode_casting_wheel",
+    "tailings:refinery_tankhouse"
   ]
 }
