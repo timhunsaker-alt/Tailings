@@ -64,6 +64,7 @@ public final class TailingsNeoForgeClient {
 			event.registerEntityRenderer(TailingsEntities.HYDRAULIC_SHOVEL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.BELT, context -> new dev.wildcatter.tailings.client.BeltRenderer());
 			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.PLANT, context -> new dev.wildcatter.tailings.client.PlantRenderer());
+			event.registerBlockEntityRenderer(dev.wildcatter.tailings.TailingsBlocks.DUMP, context -> new dev.wildcatter.tailings.client.DumpRenderer());
 		});
 		modBus.addListener(FMLClientSetupEvent.class, event -> Tailings.LOGGER.info("Tailings client ready"));
 	}

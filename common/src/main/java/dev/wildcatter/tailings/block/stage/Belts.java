@@ -188,7 +188,7 @@ final class Belts {
 					BeltTravel.transitSeconds(scan.run().size(), PlantRates.BELT_METRES_PER_SECOND)));
 			return false;
 		}
-		double room = sink != null ? sink.room(part.hold()) : Math.max(0, 2 * PlantRates.BLOCK_KG - part.made().total());
+		double room = sink != null ? sink.room(part.hold()) : containerRoom(part);
 		double max = Math.min(Math.min(drive.kgPerTick() * part.strength() * (drive.heavy() ? part.fast() : 1), room), ready);
 		if (max < 1e-6) {
 			part.say(box != null ? "FULL: the container at its head end is full" : "FULL: what the head end feeds is full");
@@ -205,6 +205,25 @@ final class Belts {
 		part.say(String.format("carrying %.0f kg of %s", part.hold().total(), Crushing.main(part.hold())));
 		part.setChanged();
 		return false;
+	}
+
+	/**
+	 * How much more a run may drop at its head end into a container: the part blocks it keeps there, waiting to make a whole item, stay
+	 * under two blocks of each rock and size. Counted per rock and size, not in all, so a mixed load never stalls with every kind short of
+	 * a whole block (films-rtm03.md #4: five rocks on one belt filled the old two-block total with part blocks and the run stopped).
+	 */
+	private static double containerRoom(PlantBlockEntity part) {
+		double total = part.hold().total();
+		if (total <= 0) {
+			return 0;
+		}
+		double[] room = {Double.MAX_VALUE};
+		part.hold().forEach((rock, size, kg) -> {
+			if (kg > 0) {
+				room[0] = Math.min(room[0], Math.max(0, 2 * PlantRates.BLOCK_KG - part.made().kg(rock, size)) * total / kg);
+			}
+		});
+		return room[0] == Double.MAX_VALUE ? 0 : room[0];
 	}
 
 	/** A hopper or chest at the head end, which takes the run's rock as whole items (a block's worth of one rock and size each). */

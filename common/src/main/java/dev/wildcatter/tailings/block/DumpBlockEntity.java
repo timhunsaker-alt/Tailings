@@ -190,6 +190,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		});
 		if (!pit()) {
 			grizzly(load, sum);
+			showBars();
 		}
 		setChanged();
 		return true;
@@ -249,6 +250,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		}
 		held.merge(id, 1, Integer::sum);
 		setChanged();
+		showBars();
 		return id;
 	}
 
@@ -257,7 +259,47 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		Map<String, Integer> out = new LinkedHashMap<>(oversize);
 		oversize.clear();
 		setChanged();
+		showBars();
 		return out;
+	}
+
+	/** The oversize on the bars as the client draws it: one item id a piece, up to {@link #DRAWN} pieces. */
+	public java.util.List<String> barsDrawn() {
+		java.util.List<String> out = new java.util.ArrayList<>();
+		oversize.forEach((id, n) -> {
+			for (int i = 0; i < n && out.size() < DRAWN; i++) {
+				out.add(id);
+			}
+		});
+		return out;
+	}
+
+	/** The most pieces of oversize drawn on the bars: a choke and a few over. */
+	public static final int DRAWN = Haul.GRIZZLY_CHOKE + 8;
+
+	private int barsSent = -1;
+
+	/** Tells the client what lies on the bars when that changes, so the pieces are drawn there (dump-station.md, Oversize). */
+	private void showBars() {
+		if (level != null && !level.isClientSide() && oversize() != barsSent) {
+			barsSent = oversize();
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		}
+	}
+
+	@Override
+	public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
+		return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+	}
+
+	/** All the client needs of a pocket: the oversize on its bars. */
+	@Override
+	public net.minecraft.nbt.CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+		net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+		StringBuilder bars = new StringBuilder();
+		oversize.forEach((id, n) -> bars.append(bars.length() == 0 ? "" : ",").append(id).append('=').append(n));
+		tag.putString("oversize", bars.toString());
+		return tag;
 	}
 
 	/** Draws up to {@code max} items off the pocket's bottom, oldest type first. */

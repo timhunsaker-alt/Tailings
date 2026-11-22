@@ -98,6 +98,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Rtm02Scenes(context).run();
 			return;
 		}
+		// Rock to Metal episode 3's films: the dump station, the crushing circuit, DMS and the X-ray sorter, only when named
+		if ("rtm03".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Rtm03Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

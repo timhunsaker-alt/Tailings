@@ -402,7 +402,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		box(p, v, s, cx - c, y0, cz - c, cx + c, y1, cz + c, light);
 	}
 
-	private static void box(PoseStack.Pose p, VertexConsumer v, TextureAtlasSprite s, float x0, float y0, float z0, float x1, float y1, float z1, int light) {
+	static void box(PoseStack.Pose p, VertexConsumer v, TextureAtlasSprite s, float x0, float y0, float z0, float x1, float y1, float z1, int light) {
 		if (x1 - x0 < 1e-4f || y1 - y0 < 1e-4f || z1 - z0 < 1e-4f) {
 			return;
 		}
