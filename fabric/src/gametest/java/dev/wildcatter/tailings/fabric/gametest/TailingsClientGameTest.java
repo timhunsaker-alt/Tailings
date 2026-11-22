@@ -113,6 +113,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Rtm05Scenes(context).run();
 			return;
 		}
+		// Rock to Metal episode 6's films: selective lead-zinc flotation and the same feed on a plain bank, on generator sets, only when named
+		if ("rtm06".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Rtm06Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

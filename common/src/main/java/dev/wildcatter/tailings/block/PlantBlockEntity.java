@@ -1819,7 +1819,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, Inspec
 		if (pays()) {
 			return side == Direction.UP ? new int[0] : outputs();
 		}
-		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5} : new int[] {1};
+		// the top takes every reagent slot, the fifth too: a hopper must reach it, or a bulk tank's four reagents (copper sulfate among
+		// them) block the zinc sulfate a selective setting needs (selective-flotation.md, As built; found filming Rock to Metal episode 6)
+		return side == Direction.UP ? new int[] {0, 2, 3, 4, 5, LAST_REAGENT_SLOT} : new int[] {1};
 	}
 
 	@Override

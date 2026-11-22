@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Component;
  */
 final class PlantMotionGameTests {
 	static final String[] SCENES = {"jaw_moves", "gyratory_moves", "apron_feeder_moves", "primary_apron_moves", "reclaim_feeder_moves", "sag_mill_moves", "ball_mill_large_moves",
-			"tank_cell_froth_moves", "column_cell_froth_moves", "xrt_sorter_moves"};
+			"tank_cell_froth_moves", "column_cell_froth_moves", "flotation_bank_froth_moves", "xrt_sorter_moves"};
 
 	private PlantMotionGameTests() {
 	}
@@ -30,6 +30,7 @@ final class PlantMotionGameTests {
 		out.accept("ball_mill_large_moves", helper -> moves(helper, Machine.BALL_MILL_LARGE));
 		out.accept("tank_cell_froth_moves", helper -> moves(helper, Machine.TANK_CELL));
 		out.accept("column_cell_froth_moves", helper -> moves(helper, Machine.COLUMN_CELL));
+		out.accept("flotation_bank_froth_moves", helper -> moves(helper, Machine.FLOTATION_BANK));
 		out.accept("xrt_sorter_moves", helper -> moves(helper, Machine.XRT_SORTER));
 	}
 

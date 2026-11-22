@@ -66,7 +66,7 @@ public final class PlantMotion {
 			case APRON_FEEDER -> DUMP_APRON.rpm();
 			case SAG_MILL -> SAG_RPM;
 			case BALL_MILL_LARGE -> BALL_MILL_LARGE_RPM;
-			case TANK_CELL, COLUMN_CELL -> FROTH_RPM;
+			case TANK_CELL, COLUMN_CELL, FLOTATION_BANK -> FROTH_RPM;
 			case XRT_SORTER -> XRT_RPM;
 			default -> 0;
 		};

@@ -42,6 +42,7 @@ import org.jspecify.annotations.Nullable;
  * <li>the SAG mill and the large ball mill: the shell between its heads turns at 75 % of critical speed, its liner bolt rows showing
  * the turn;</li>
  * <li>the tank and column cells: a froth over the slurry, its bubbles crowding out from the middle to the launder at the lip;</li>
+ * <li>the flotation bank: the same froth on each of its eight 20 m3 cells (flotation.py's two rows of four);</li>
  * <li>the X-ray sorter: pieces ride its belt at 3 m/s through the X-ray cabinet; off the head pulley the ejectors' air blows the ones
  * read as ore on to the product chute (south), with a puff at the manifold, and the rest drop to the waste chute (east), in the share
  * the sorter is sending each way.</li>
@@ -90,6 +91,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			case BALL_MILL_LARGE -> new int[] {4, 8, 7};
 			case TANK_CELL -> new int[] {3, 6, 3};
 			case COLUMN_CELL -> new int[] {2, 13, 2};
+			case FLOTATION_BANK -> new int[] {3, 3, 6};
 			case XRT_SORTER -> new int[] {2, 3, 7};
 			default -> new int[] {1, 0, 2};
 		};
@@ -155,6 +157,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case BALL_MILL_LARGE -> shell(at, v, angle, 4.5f, 4.8f, 3.65f, 3.75f, 11.4f, 11.8f, 12.25f, light);
 					case TANK_CELL -> froth(at.last(), v, angle, 3.5f, 3.5f, 3.15f, 5.65f, light);
 					case COLUMN_CELL -> froth(at.last(), v, angle, 2.0f, 2.0f, 1.85f, 12.75f, light);
+					case FLOTATION_BANK -> bankFroth(at.last(), v, angle, light);
 					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
 				default -> {
 				}
@@ -306,6 +309,15 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			float size = (0.10f + 0.12f * hash(i, 2)) * (0.6f + 0.8f * f) * Math.min(1f, r / 2.5f + 0.3f);
 			float bx = cx + (float) Math.cos(a) * rad, bz = cz + (float) Math.sin(a) * rad;
 			box(p, v, bubble, bx - size / 2, y + 0.02f, bz - size / 2, bx + size / 2, y + 0.02f + size * 0.6f, bz + size / 2, light);
+		}
+	}
+
+	/** The bank's eight cells (flotation.py: rows at x 1.75 and 5.25, cells every 3.25 m from z 1.65, 1.6 m across), each its own froth. */
+	private static void bankFroth(PoseStack.Pose p, VertexConsumer v, float angle, int light) {
+		for (float cx : new float[] {1.75f, 5.25f}) {
+			for (int i = 0; i < 4; i++) {
+				froth(p, v, angle + 90 * i + (cx > 3 ? 45 : 0), cx, 1.65f + 3.25f * i, 1.5f, 3.06f, light);
+			}
 		}
 	}
 
