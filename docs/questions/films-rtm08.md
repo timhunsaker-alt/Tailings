@@ -20,7 +20,11 @@ Made 2026-11-22 while Tim was away. Each is my best recommendation; all are reve
 6. **Line pressure is said, not shown:** the pump reads 5.0 MPa on 640 m (friction 8 kPa/m less 19.6 kPa/m for the 6 m fall); LINE
    PRESSURE past about 1 km on the flat is the tested rule (`paste_line_pressure`), narrated as the rule.
 7. **The legacy pond is narrated, not filmed** (older worlds only).
-8. **Two films drew at half speed and play at 2x (real time):** `rtm08_drop` both times it was filmed (56 s by ticks, 112 s by the
+8. **One film drew at half speed and plays at 2x (real time):** `rtm08_drop`, both times it was filmed (56 s by ticks, 112 s by the
    clock); other films in the same runs were real time, and a 6 GB client heap (env `CLIENT_XMX`, added to
    `fabric/build.gradle`, off unless set) did not change it. Cause not found.
-9. **Narration length:** 1,188 words, under the brief's 1,400-1,700, as episodes 6 and 7 were.
+9. **Narration length:** 1,294 words, under the brief's 1,400-1,700, as episodes 6 and 7 were; the episode runs 8:17.
+10. **Weak:** the press drops its cake into the bin, out of sight (the card and the sound carry it), and the filmed cycle was the first
+   after start-up, 6.2 t; the pond, line pressure, a broken bulkhead and a breached liner are said, not shown.
+
+Tests: `build` passes; the full NeoForge suite passes (301 of 301, `byproduct_hopper` included).
