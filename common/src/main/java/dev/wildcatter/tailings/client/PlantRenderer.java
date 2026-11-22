@@ -43,6 +43,7 @@ import org.jspecify.annotations.Nullable;
  * the turn;</li>
  * <li>the tank and column cells: a froth over the slurry, its bubbles crowding out from the middle to the launder at the lip;</li>
  * <li>the flotation bank: the same froth on each of its eight 20 m3 cells (flotation.py's two rows of four);</li>
+ * <li>the scavenger and cleaner banks: the same froth on each of their four cells (recovery.py);</li>
  * <li>the X-ray sorter: pieces ride its belt at 3 m/s through the X-ray cabinet; off the head pulley the ejectors' air blows the ones
  * read as ore on to the product chute (south), with a puff at the manifold, and the rest drop to the waste chute (east), in the share
  * the sorter is sending each way.</li>
@@ -92,6 +93,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			case TANK_CELL -> new int[] {3, 6, 3};
 			case COLUMN_CELL -> new int[] {2, 13, 2};
 			case FLOTATION_BANK -> new int[] {3, 3, 6};
+			case SCAVENGER_BANK -> new int[] {2, 3, 4};
+			case CLEANER_BANK -> new int[] {2, 2, 3};
 			case XRT_SORTER -> new int[] {2, 3, 7};
 			default -> new int[] {1, 0, 2};
 		};
@@ -158,6 +161,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case TANK_CELL -> froth(at.last(), v, angle, 3.5f, 3.5f, 3.15f, 5.65f, light);
 					case COLUMN_CELL -> froth(at.last(), v, angle, 2.0f, 2.0f, 1.85f, 12.75f, light);
 					case FLOTATION_BANK -> bankFroth(at.last(), v, angle, light);
+					case SCAVENGER_BANK -> scavengerFroth(at.last(), v, angle, light);
+					case CLEANER_BANK -> cleanerFroth(at.last(), v, angle, light);
 					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
 				default -> {
 				}
@@ -317,6 +322,23 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		for (float cx : new float[] {1.75f, 5.25f}) {
 			for (int i = 0; i < 4; i++) {
 				froth(p, v, angle + 90 * i + (cx > 3 ? 45 : 0), cx, 1.65f + 3.25f * i, 1.5f, 3.06f, light);
+			}
+		}
+	}
+
+	/** The scavenger bank's four 20 m3 cells (recovery.py: in a row at x 2.5, z 1.2 to 7.8, 1.05 m across, slurry at 2.85 m). */
+	private static void scavengerFroth(PoseStack.Pose p, VertexConsumer v, float angle, int light) {
+		float[] zs = {1.2f, 3.4f, 5.6f, 7.8f};
+		for (int i = 0; i < zs.length; i++) {
+			froth(p, v, angle + 90 * i, 2.5f, zs[i], 0.98f, 2.86f, light);
+		}
+	}
+
+	/** The cleaner bank's four 3 m3 cells (recovery.py: x 1.1 and 2.9, z 1.5 and 4.5, 0.8 m across, slurry at 1.85 m). */
+	private static void cleanerFroth(PoseStack.Pose p, VertexConsumer v, float angle, int light) {
+		for (float cx : new float[] {1.1f, 2.9f}) {
+			for (float cz : new float[] {1.5f, 4.5f}) {
+				froth(p, v, angle + 90 * cz + (cx > 2 ? 45 : 0), cx, cz, 0.74f, 1.86f, light);
 			}
 		}
 	}
