@@ -32,8 +32,11 @@ import net.minecraft.world.level.block.Blocks;
 final class AnswersGameTests {
 	static final String[] SCENES = {"rules_new_world", "rules_existing_world", "rules_command", "raw_ore_refused", "rules_on_world_rules_screen", "paste_cure_time_scale"};
 	static final Set<String> LONG = Set.of();
-	/** Scenes of a world saved before the rules: their batch runs with every rule off. */
-	static final Set<String> EXISTING_WORLD = Set.of("rules_existing_world", "vent_default_off", "dry_mill_ladder");
+	/**
+	 * Scenes of a world saved before the rules: their batch runs with every rule off. p7_tank_row measures the pit row's recovery by the
+	 * filter's copper nuggets, so it runs without the copper_shortcut rule's 85 % (copper-smelter.md #5).
+	 */
+	static final Set<String> EXISTING_WORLD = Set.of("rules_existing_world", "vent_default_off", "dry_mill_ladder", "p7_tank_row");
 	/** Scenes that turn a rule off and on and set it back: their batch runs apart from every other scene. */
 	static final Set<String> RULE_SCENES = Set.of("rules_command", "gaps_headframe_hopper", "gaps_paste_wall_breach", "gaps_paste_catch_up");
 
@@ -61,7 +64,7 @@ final class AnswersGameTests {
 		MinecraftServer server = helper.getLevel().getServer();
 		helper.assertTrue(OptInRules.newWorld(server), Component.literal("the test world is a new world"));
 		Map<String, Boolean> rules = OptInRules.all(server);
-		helper.assertTrue(rules.keySet().equals(OptInRules.NEW_WORLD.keySet()) && rules.size() == 7, Component.literal("seven rules: " + rules));
+		helper.assertTrue(rules.keySet().equals(OptInRules.NEW_WORLD.keySet()) && rules.size() == 8, Component.literal("eight rules (copper_shortcut, copper-smelter.md #5): " + rules));
 		// paste_wall_breach and slope_failures are off even in a new world (gaps2.md #5; dragline-hand-control.md #1)
 		rules.forEach((key, value) -> helper.assertTrue(value == !(key.equals(OptInRules.PASTE_WALL_BREACH) || key.equals(OptInRules.SLOPE_FAILURES)),
 				Component.literal(key + " has the wrong value in a new world: " + rules)));
@@ -98,7 +101,7 @@ final class AnswersGameTests {
 		CommandSourceStack op = server.createCommandSourceStack().withSuppressedOutput();
 		CommandSourceStack player = op.withPermission(PermissionSet.NO_PERMISSIONS);
 		boolean was = OptInRules.on(server, OptInRules.HEADFRAME_HOPPER);
-		helper.assertTrue(run(op, "tailings rule") == 7, Component.literal("the list names seven rules"));
+		helper.assertTrue(run(op, "tailings rule") == 8, Component.literal("the list names eight rules"));
 		helper.assertTrue(run(op, "tailings rule headframe_hopper false") == 1 && !OptInRules.on(server, OptInRules.HEADFRAME_HOPPER), Component.literal("an operator sets it off"));
 		helper.assertTrue(run(player, "tailings rule headframe_hopper true") == -1 && !OptInRules.on(server, OptInRules.HEADFRAME_HOPPER),
 				Component.literal("a player with no permission may not set it"));
