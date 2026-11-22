@@ -25,6 +25,8 @@ Made 2026-11-22 while Tim was away. Each is my best recommendation; all are reve
    not filmed. No cathodes: the cells pay nuggets and ingots.
 8. **The heap's liquor joins the same cells** (a pipe to the cells' inlet). Its copper is a trace: andesite pays about a fifth of a
    nugget a block, at 5 t/h.
-9. **Narration length:** 1,183 words, under the brief's 1,400-1,700, as episode 6 was; not padded.
+9. **Narration length:** 1,231 words, under the brief's 1,400-1,700, as episode 6 was; the episode runs 8:08 with the cards.
 10. **Weak:** in the no-acid film the broken length of pipe is mostly hidden between the leach tank and its acid tank; the card carries
    the NO ACID reading.
+
+Tests: `build` passes; the full NeoForge suite passes (300 of 300, the two new froth scenes included), on the branch with main 39a4b6f5 merged.
