@@ -37,7 +37,7 @@ ITEMS = ("survey_book", "haul_truck", "wheel_loader", "indium", "rhenium", "coba
 	"copper_sulfate", "lime", "mibc", "xanthate", "zinc_sulfate", "blasthole_drill", "emulsion_truck", "cast_booster", "detonator",
 	"blast_logger", "blasting_key", "track_dozer", "trailing_cable", "ultra_haul_truck", "hydraulic_shovel", "battery_locomotive",
 	"bottom_dump_car", "loco_battery", "vent_duct_cassette", "gas_detector", "cement", "heavy_mineral_concentrate", "ferrosilicon",
-	"slope_prism", "survey_station")
+	"slope_prism", "survey_station", "copper_anode", "copper_cathode")
 VEHICLE_MATS = ("paint_yellow", "rubber_tread", "steel_dark", "steel_worn", "steel_rust", "paint_white")
 # each blasthole collar's tag colour by state, as the placeholder collars had them (BlastholeBlock)
 COLLARS = {"drilled": (235, 235, 230), "primed": (232, 200, 40), "charged": (226, 120, 30), "stemmed": (128, 128, 128),

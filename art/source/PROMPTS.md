@@ -159,3 +159,12 @@ Ludo `createImage`, model klimt, `Photorealistic 3D`, 2 variations, the first (a
 | highwall_slide.mp3 | sound, 9 s | a huge landslide at a mine: a long low rumbling roar of tons of earth and rock sliding down a cliff wall into a pit, rocks crashing, then dying away, outdoors, distant echo, no music |
 | survey_alarm.mp3 | sound, 3 s | an electronic two-tone alarm beep from a survey monitoring station, high then low tone, repeated three times, outdoors, no music, no voice |
 | dragline_swing_brake.mp3 | sound, 2 s | a large industrial air brake setting on a huge machine: a sharp pneumatic hiss and a heavy metallic clunk, no music |
+
+## Copper smelter items (2026-11-22, Rock to Metal episode 9)
+The anode and cathode had script-drawn placeholders (copper-smelter.md #13). Ludo `createImage`, model klimt, `Photorealistic 3D`,
+`item-icon`, 2 variations, the first (a) kept (1 credit each); returned on transparency:
+
+| File | Prompt |
+|---|---|
+| copper_anode (a) | A single cast copper anode plate for an electrorefinery: a thick flat rectangular slab of fire-refined copper with two lugs (ears) sticking out sideways at the top, dull reddish-orange cast copper surface with a faint oxide bloom, game item icon, plain white background, no text |
+| copper_cathode (a) | A single electrorefined copper cathode sheet: a thin flat square plate of bright salmon-pink pure copper with a slightly nodular crystalline plated surface and a clean straight top edge, game item icon, plain white background, no text |

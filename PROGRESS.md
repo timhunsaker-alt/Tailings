@@ -26,7 +26,7 @@ Spec [docs/copper-smelter.md](docs/copper-smelter.md); decisions [docs/questions
   `smelter_converter`, `smelter_anodes`, `smelter_tankhouse`, `smelter_acid`, and `smelter_line` (thickened concentrate to cathodes
   and an ingot, every motor on three gas generator sets, two stepped up to medium voltage; the copper balances to the gram).
 - **Quest:** "Concentrate to metal", milestones `smelter_running` and `cathode_pulled`.
-- **Known gaps:** `copper_anode_placeholder` and `copper_cathode_placeholder` textures; no slag cleaning, oxygen, anode scrap or slimes;
+- **Known gaps:** no slag cleaning, oxygen, anode scrap or slimes;
   continuous (not batch) converting; no client screenshot yet (the client was in use).
 
 ## Shorts batch 4: the TBM, rock to concentrate, the hoist (2026-11-21, branch `films-batch4`)

@@ -471,8 +471,7 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
 ## Known gaps and stand-ins
 
 - **Copper smelter stand-ins (copper-smelter.md):** the converter and anode furnace work continuously, not in batches; the parts hand
-  on by touching (no ladles or crane); the slag is counted, not handled; the anode and
-  cathode icons are `copper_anode_placeholder` and `copper_cathode_placeholder`.
+  on by touching (no ladles or crane); the slag is counted, not handled.
 - **No reclaim tunnel part (P7a):** the tunnel is the player's own solid blocks with an opening over each feeder (p7-pit-line.md, 9).
 - **The stockpile is not counted (P7a):** the head counts tonnes stacked and the feeders tonnes drawn; nothing reads the pile's live
   and dead tonnes (p7-pit-line.md, 13).
