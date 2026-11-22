@@ -1050,7 +1050,9 @@ final class Rtm05Scenes {
 	private String[] frothCard() {
 		PlantBlockEntity c = cells[0];
 		int a = airPoint(c);
-		return new String[] {"^TANK CELL 1 · ROUGHER · 160 m³", rd(c, "Cell 1", "160 kW"), "  " + brief(c.status()), "AIR point: " + (a < 0 ? "-" : f1(c.readMa(a)) + " mA"),
+		String st = brief(c.status());
+		int cut = st.indexOf(" (");   // the status's bracketed tail ran off the card's edge at "(rou": the card says it below
+		return new String[] {"^TANK CELL 1 · ROUGHER · 160 m³", rd(c, "Cell 1", "160 kW"), "  " + (cut > 0 ? st.substring(0, cut) : st), "AIR point: " + (a < 0 ? "-" : f1(c.readMa(a)) + " mA"),
 				"Its share: 35 % of the copper in the feed", "The row's eight: 35 15 8 5 4 3 3 2 = 75 %"};
 	}
 
