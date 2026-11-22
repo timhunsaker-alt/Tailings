@@ -124,6 +124,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Rtm07Scenes(context).run();
 			return;
 		}
+		// Rock to Metal episode 8's films: where the tails go, the small plant's dry stack and paste fill and the pit plant's 45 m
+		// thickener to a lined cell, on generator sets, only when named
+		if ("rtm08".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Rtm08Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

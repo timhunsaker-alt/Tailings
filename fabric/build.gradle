@@ -42,3 +42,11 @@ sourceSets.configureEach {
 		}
 	}
 }
+
+// Long client films (Rock to Metal episode 8) slowed to half speed once a 3 GB heap filled: CLIENT_XMX=6G gives the client more.
+tasks.matching { it.name == 'runClientGameTest' }.configureEach {
+	def xmx = providers.environmentVariable('CLIENT_XMX').getOrNull()
+	if (xmx) {
+		jvmArgs "-Xmx${xmx}"
+	}
+}
