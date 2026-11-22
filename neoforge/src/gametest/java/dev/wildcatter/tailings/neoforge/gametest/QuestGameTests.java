@@ -131,7 +131,7 @@ final class QuestGameTests {
 
 	// ---- scenes ------------------------------------------------------------------------------------------------------------------
 
-	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its thirteen milestones. */
+	/** Every chapter passes Wildcatter's check with Tailings loaded; Tailings' chapter has its quests and its fifteen milestones (the smelter's two, copper-smelter.md). */
 	private static void questsValid(GameTestHelper helper) {
 		MinecraftServer server = helper.getLevel().getServer();
 		List<String> problems = QuestRules.problems(server);
@@ -155,8 +155,9 @@ final class QuestGameTests {
 		Set<String> fired = Set.of(Milestones.CRUSHER_RUNNING.toString(), Milestones.FLOTATION_RUNNING.toString(), Milestones.BLAST_FIRED.toString(),
 				Milestones.DRAGLINE_RUNNING.toString(), Milestones.GYRATORY_RUNNING.toString(), Milestones.SHOVEL_RUNNING.toString(),
 				Milestones.LEACH_RUNNING.toString(), Milestones.PIT_ENERGISED.toString(), Milestones.STAMP_MILL_RUNNING.toString(),
-				Milestones.DRY_MILL_RUNNING.toString(), Milestones.DMS_RUNNING.toString(), Milestones.DRAGLINE_HAND_CAST.toString(), Milestones.SLOPE_WATCHED.toString());
-		check(helper, keys.equals(fired), "the chapter's milestones should be the thirteen Tailings fires: " + keys);
+				Milestones.DRY_MILL_RUNNING.toString(), Milestones.DMS_RUNNING.toString(), Milestones.DRAGLINE_HAND_CAST.toString(), Milestones.SLOPE_WATCHED.toString(),
+				Milestones.SMELTER_RUNNING.toString(), Milestones.CATHODE_PULLED.toString());
+		check(helper, keys.equals(fired), "the chapter's milestones should be the fifteen Tailings fires: " + keys);
 		log("quests_valid", "ok: " + book.chapters().size() + " chapters, " + book.quests().size() + " quests pass; Tailings' chapter has "
 				+ chapter.quests().size() + " quests");
 		helper.succeed();
