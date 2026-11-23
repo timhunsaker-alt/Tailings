@@ -127,6 +127,12 @@ public final class WorldGround implements GroundGrid {
 		level.setBlock(new BlockPos(x, y, z), state, 3);
 	}
 
+	@Override
+	public void placeLiningCorner(int x, int y, int z, int towardX, int towardZ) {
+		Direction toward = Direction.getNearest(towardX, 0, towardZ, Direction.NORTH);
+		level.setBlock(new BlockPos(x, y, z), ((LiningBlock) TailingsBlocks.LINING).corner(toward), 3);
+	}
+
 	private static BlockState stone(Ground material) {
 		return switch (material) {
 			case STONE -> Blocks.STONE.defaultBlockState();

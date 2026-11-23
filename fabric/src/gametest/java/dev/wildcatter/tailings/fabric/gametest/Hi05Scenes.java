@@ -112,6 +112,8 @@ final class Hi05Scenes {
 	private volatile boolean section;
 	/** For the wheel film: the whole face ahead cleared 6 m, so the wheel shows whole. */
 	private volatile boolean fullFace;
+	/** For the cab film: the bore's east shoulder and crown cut away along the machine too, so nothing stands between the camera and the seat. */
+	private volatile boolean shoulder;
 	private volatile double front;
 	private BlockPos junction;
 	private String note = "";
@@ -159,6 +161,10 @@ final class Hi05Scenes {
 			try {
 				stage();
 				power();
+				if (!System.getenv().getOrDefault("HI05_PROBE", "").isBlank()) {
+					probe();
+					return;
+				}
 				portalFilm();
 				startFilm();
 				powerFilm();
@@ -364,6 +370,7 @@ final class Hi05Scenes {
 
 	private void film(String id, int move, IntFunction<Cam> path, Beat beat) {
 		boolean want = wanted(id);
+		server.runCommand("kill @e[type=minecraft:item]");   // anything the section cut knocked loose
 		for (String mob : new String[] {"cow", "pig", "sheep", "chicken", "horse", "donkey", "rabbit", "llama", "goat", "fox", "wolf", "cat", "frog", "bee", "armadillo", "turtle", "parrot"}) {
 			server.runCommand("kill @e[type=minecraft:" + mob + "]");
 		}
@@ -946,11 +953,11 @@ final class Hi05Scenes {
 	private void cutSection(ServerLevel level) {
 		int fz = (int) Math.floor(Trailer.tbmFront(level, c)) - c.getZ();
 		for (int z = fz - 40; z <= Math.min(0, fz + 40); z++) {
-			for (int x = z < fz ? (fullFace && z >= fz - 6 ? 0 : 4) : 7; x < EAST; x++) {
+			for (int x = z < fz ? (fullFace && z >= fz - 6 ? 0 : 4) : shoulder ? 5 : 7; x < EAST; x++) {
 				for (int y = z < fz ? 0 : -1; y <= 9; y++) {   // ahead of the face, never the ground under the floor to come
 					BlockPos at = c.offset(x, y, z);
 					BlockState s = level.getBlockState(at);
-					if (!s.isAir() && !s.is(TailingsBlocks.MINE_RAIL) && !(z >= fz && x < 7)) {
+					if (!s.isAir() && !s.is(TailingsBlocks.MINE_RAIL) && !(z >= fz && x < (shoulder && y >= 6 ? 5 : 7))) {
 						level.setBlock(at, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
 					}
 				}
@@ -999,8 +1006,9 @@ final class Hi05Scenes {
 
 	/** hi05_power: the two gas sets and their substations, the MV run to the junction, the trailing cable to the reel. */
 	private void powerFilm() {
-		Cam a = Cam.of(c, -4, 10, 34, -16, 1, 13);
-		Cam b = Cam.of(c, 6, 6, 26, -4, 1, 14);
+		// nearer than the first take's (-4, 10, 34) to (6, 6, 26), so the episode needs no hard crop (fix-weak-spots-hi05)
+		Cam a = Cam.of(c, -7.5, 7.5, 27.5, -16, 1, 13);
+		Cam b = Cam.of(c, 0.5, 5.0, 23.0, -4, 1, 14);   // west of the gantries (their frames span x 1-6)
 		film("hi05_power", 800, move(a, b, 800), beat());
 	}
 
@@ -1023,7 +1031,8 @@ final class Hi05Scenes {
 	/** hi05_face: from ahead of the face on the cut-away side: the wheel turning against the rock, the machine creeping on. */
 	private void faceFilm() {
 		front = server.computeOnServer(srv -> Trailer.tbmFront(srv.overworld(), c));
-		film("hi05_face", 1000, t -> at(15.5, 5.5, -9.5 - t * 0.004, 3.8, 4.0, 0.5), beat());
+		// nearer than the first take's (15.5, 5.5, -9.5), for no hard crop; the chips and dust off the face show
+		film("hi05_face", 1000, t -> at(11.5, 5.0, -7.0 - t * 0.003, 3.8, 4.0, 0.5), beat());
 	}
 
 	/** hi05_wheel: close on the wheel: its spokes, disc cutters and muck buckets turning together at 6 rpm. */
@@ -1032,7 +1041,7 @@ final class Hi05Scenes {
 		server.runOnServer(srv -> cutSection(srv.overworld()));
 		film("hi05_wheel", 700, t -> {
 			double k = ease(t / 700.0);
-			return at(7.5 - 2.5 * k, 4.2, -7.5 + 1.5 * k, 4.0, 4.0, 0);
+			return at(6.5 - 2.0 * k, 4.2, -6.5 + 1.3 * k, 4.0, 4.0, 0);   // nearer than the first take's, for no hard crop
 		}, beat());
 		fullFace = false;
 	}
@@ -1047,11 +1056,17 @@ final class Hi05Scenes {
 		film("hi05_floor", 700, t -> at(11.0, 3.2, 14.0, 3.0, 1.0, 9.0), beat());
 	}
 
-	/** hi05_cab: a villager on the cab's roof at the seat, held there by the scene as the machine bores (a rider on the seat sits low). */
+	/**
+	 * hi05_cab: a villager riding the cab's seat on its roof, put there by the scene. The first take's villager looked sunk into the roof:
+	 * the game draws a rider right (the probe: server and client both put it at the roof, y +5), but the section cut left the bore's east
+	 * shoulder and crown at the camera's eye height, hiding all but its feet. Here they are cut away along the machine too, and the
+	 * camera is nearer (fix-weak-spots-hi05).
+	 */
 	private void cabFilm() {
-		UUID[] vid = {null};
+		shoulder = true;
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
+			cutSection(level);
 			TbmEntity m = machine(level);
 			var v = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, EntitySpawnReason.COMMAND);
 			if (v != null && m != null) {
@@ -1060,27 +1075,86 @@ final class Hi05Scenes {
 				v.addTag("hi05b");
 				v.setPos(m.getX() + 4, m.getY() + 5, m.getZ() + 10.5);
 				level.addFreshEntity(v);
-				// what the seat does with a rider, for the record: ride, read where it is put, get off
 				boolean rode = v.startRiding(m);
-				log(String.format(Locale.ROOT, "seat test: rode %s; machine y %.2f, the rider set at y %.2f (the cab's roof at %.2f)", rode, m.getY(), v.getY(), m.getY() + 5));
-				v.stopRiding();
-				vid[0] = v.getUUID();
+				log(String.format(Locale.ROOT, "seat: rode %s; machine y %.2f, the rider at y %.2f (the cab's roof at %.2f)", rode, m.getY(), v.getY(), m.getY() + 5));
 			}
 		});
 		ticks(20);
-		Beat inner = beat();
 		film("hi05_cab", 800, t -> {
 			double k = ease(t / 800.0);
-			return at(10.5 - 1.5 * k, 6.6, 7.5 + k, 4.0, 6.0, 10.5);
-		}, (level, t) -> {
-			TbmEntity m = machine(level);
-			if (m != null && vid[0] != null && level.getEntity(vid[0]) instanceof net.minecraft.world.entity.Entity v) {
-				v.setPos(m.getX() + 4, m.getY() + 5, m.getZ() + 10.5);   // held on the roof at the seat by the scene
-				v.setYRot(180);
-			}
-			inner.at(level, t);
-		});
+			return at(8.6 - 1.2 * k, 6.5, 8.5 + k, 4.0, 5.8, 9.0 + k);   // the seat left of the card
+		}, beat());
 		server.runCommand("kill @e[tag=hi05b]");
+		shoulder = false;
+	}
+
+	/**
+	 * HI05_PROBE: no films, a check of the fixes in stills (in {@code hi05probe/}): a villager riding the cab's seat and one stood on
+	 * the beam, their server and client heights logged; the lined bore from inside; the face cutting, from the cut-away side.
+	 */
+	private void probe() {
+		server.runOnServer(srv -> ((DrillBlockEntity) srv.overworld().getBlockEntity(c.offset(3, 3, 3))).press(10, null));
+		ticks(60);
+		forward(14);
+		int[] ids = {-1, -1, -1};
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			TbmEntity m = machine(level);
+			ids[0] = m.getId();
+			var v = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, EntitySpawnReason.COMMAND);
+			v.setNoAi(true);
+			v.addTag("hi05b");
+			v.setPos(m.getX() + 4, m.getY() + 5, m.getZ() + 10.5);
+			level.addFreshEntity(v);
+			log("probe: rode " + v.startRiding(m) + "; machine y " + m.getY() + ", rider y " + v.getY());
+			ids[1] = v.getId();
+			var w = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, EntitySpawnReason.COMMAND);
+			w.setNoAi(true);
+			w.addTag("hi05b");
+			w.setPos(m.getX() + 4, m.getY() + 5, m.getZ() + 6.5);
+			level.addFreshEntity(w);
+			ids[2] = w.getId();
+			log("probe: stood villager y " + w.getY());
+		});
+		ticks(40);
+		String client = context.computeOnClient(cl -> {
+			StringBuilder b = new StringBuilder();
+			for (int id : ids) {
+				var e = cl.level.getEntity(id);
+				b.append(e == null ? "missing" : e.getClass().getSimpleName() + " y " + e.getY() + " vehicle " + e.getVehicle() + " bb " + e.getBoundingBox()).append("; ");
+			}
+			return b.toString();
+		});
+		log("probe client: " + client);
+		server.runOnServer(srv -> {
+			for (int id : ids) {
+				var e = srv.overworld().getEntity(id);
+				log("probe server: " + (e == null ? "missing" : e.getClass().getSimpleName() + " y " + e.getY() + " vehicle " + e.getVehicle()));
+			}
+		});
+		front = server.computeOnServer(srv -> Trailer.tbmFront(srv.overworld(), c));
+		showCard(false);
+		shot("seat", at(6.6, 6.2, 13.5, 4.0, 6.0, 9.0));
+		server.runCommand("effect give @p minecraft:night_vision infinite 0 true");
+		shot("bore", Cam.of(c, 3.5, 4.0, 4, 3.5, 4.2, -20));
+		shot("bore_up", Cam.of(c, 3.5, 3.0, 2, 3.5, 6.5, -6));
+		server.runCommand("effect clear @p");
+		openSection();
+		front = server.computeOnServer(srv -> Trailer.tbmFront(srv.overworld(), c));
+		shot("face", at(12.0, 5.0, -7.0, 3.8, 4.0, 0.5));
+		shot("cab_section", at(8.5, 6.4, 8.5, 4.0, 6.0, 10.5));
+	}
+
+	private void shot(String name, Cam cam) {
+		cam(cam, true);
+		settle(40);
+		cam(cam, true);
+		context.waitTicks(10);
+		hideCursor();
+		java.nio.file.Path out = java.nio.file.Path.of("hi05probe").toAbsolutePath();
+		context.takeScreenshot(net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptions.of(name).withSize(W * 2, H * 2)
+				.withDestinationDir(out).disableCounterPrefix());
+		log("probe shot " + name + " to " + out);
 	}
 
 	/** hi05_belt: the conveyor gantry's belt carrying the muck back and dropping it into the car under its tail. */

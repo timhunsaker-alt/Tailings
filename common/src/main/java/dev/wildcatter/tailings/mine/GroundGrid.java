@@ -20,6 +20,14 @@ public interface GroundGrid {
 		set(x, y, z, material == null ? Ground.LINING : material);
 	}
 
+	/**
+	 * A crafted segment at one of the ring's two upper corners, drawn rounded, its solid corner toward ({@code towardX},
+	 * {@code towardZ}) and up. The tests keep it a plain segment.
+	 */
+	default void placeLiningCorner(int x, int y, int z, int towardX, int towardZ) {
+		placeLining(x, y, z, null);
+	}
+
 	default void placeFloor(int x, int y, int z, FloorPiece piece, Ground rock) {
 		set(x, y, z, Ground.FLOOR);
 	}

@@ -266,6 +266,9 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 		super.tick();
 		if (!(level() instanceof ServerLevel server)) {
 			SoundingEntity.Hook.start.accept(this);
+			if (cutting()) {
+				faceDust();
+			}
 			return;
 		}
 		// the quench tank rides the pump gantry: its water comes in for this tick's work and goes back after
@@ -275,6 +278,40 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 		} finally {
 			TbmBackup.storeTank(pump, core);
 		}
+	}
+
+	/**
+	 * While it cuts (client only): rock chips and dust off the face in front of the wheel, and chips falling at the bottom of the wheel
+	 * where the muck buckets scoop them, so the cutting shows. The chips are of the rock just ahead (stone where it is open).
+	 */
+	private void faceDust() {
+		var random = getRandom();
+		Direction facing = facing();
+		for (int i = 0; i < 9; i++) {
+			boolean scoop = i >= 6;   // the last three: at the bottom of the wheel, falling into the buckets
+			double angle = scoop ? Math.PI * (1.25 + random.nextDouble() * 0.5) : random.nextDouble() * Math.PI * 2;
+			double r = scoop ? 3.0 + random.nextDouble() * 0.7 : Math.sqrt(random.nextDouble()) * 3.7;
+			double across = 4 + Math.cos(angle) * r, up = 4 + Math.sin(angle) * r, along = -0.25 - random.nextDouble() * 0.3;
+			Vec3 at = facePoint(facing, across, up, along);
+			BlockState rock = level().getBlockState(BlockPos.containing(facePoint(facing, across, up, -0.7)));
+			if (rock.isAir() || !rock.getFluidState().isEmpty()) {
+				rock = net.minecraft.world.level.block.Blocks.STONE.defaultBlockState();
+			}
+			Vec3 out = facePoint(facing, across, up, along - 1).subtract(at);   // a unit step ahead, off the face
+			double kick = scoop ? 0 : 0.04 + random.nextDouble() * 0.05;
+			level().addParticle(new net.minecraft.core.particles.BlockParticleOption(i % 3 == 2 && !scoop
+					? net.minecraft.core.particles.ParticleTypes.FALLING_DUST : net.minecraft.core.particles.ParticleTypes.BLOCK, rock),
+					at.x, at.y, at.z, out.x * kick, scoop ? -0.05 : 0.02, out.z * kick);
+		}
+	}
+
+	/** A point on the cutterhead's frame (across, up, along back from the face) in the world, turned to the machine's facing and grade. */
+	private Vec3 facePoint(Direction facing, double across, double up, double along) {
+		double p = Math.toRadians(pitch());
+		double u = up * Math.cos(p) + along * Math.sin(p), a = -up * Math.sin(p) + along * Math.cos(p);
+		BlockPos ax = TbmMachine.offset(facing, 1, 0, 0), az = TbmMachine.offset(facing, 0, 0, 1);
+		double x = across - 0.5, z = a - 0.5;
+		return new Vec3(getX() + x * ax.getX() + z * az.getX() + 0.5, getY() + u, getZ() + x * ax.getZ() + z * az.getZ() + 0.5);
 	}
 
 	private void serverTick(ServerLevel server) {

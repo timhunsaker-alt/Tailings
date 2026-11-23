@@ -332,7 +332,14 @@ public final class TunnelDrill {
 				if (DriveCourse.isLining(across, up)) {
 					Ground material = pendingRing == null || lined >= pendingRing.length ? null : pendingRing[lined];
 					lined++;
-					ground.placeLining(worldX(across, ringAhead), worldY(up, ringAhead), worldZ(across, ringAhead), material);
+					int x = worldX(across, ringAhead), y = worldY(up, ringAhead), z = worldZ(across, ringAhead);
+					int out = DriveCourse.roundedCorner(across, up);
+					if (material == null && out != 0) {
+						// an upper corner of the ring, drawn rounded: its solid corner toward the outer side
+						ground.placeLiningCorner(x, y, z, worldX(across + out, ringAhead) - x, worldZ(across + out, ringAhead) - z);
+					} else {
+						ground.placeLining(x, y, z, material);
+					}
 				} else if (DriveCourse.isOutside(across, up)) {
 					// the annulus behind the ring: the ground put back, or grouted
 					Ground back = pendingCorners != null && corner < pendingCorners.length && pendingCorners[corner] != null ? pendingCorners[corner] : Ground.COBBLE;
