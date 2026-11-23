@@ -70,3 +70,9 @@ Decisions in [../questions/l2-l3-trains.md](../questions/l2-l3-trains.md) (#14-#
   snap open and shut rather than swing; the pocket is turned east or west to run 4 m along the grizzly.
 - **Tests:** NeoForge `bottom_dump_on_move` (three cars over the grizzly at 2.7 m/s, all dumped, doors open and shut),
   `bottom_dump_full`, `bottom_dump_mixed`, `train_models_l2_l3`; the client film `battery_bottom_dump`.
+- **The dump takes a second (2026-11-23, Heavy Iron ep 6 weak spots):** the rule is unchanged (the pocket takes a car's whole load
+  or none, checked as its doors open), but the load now falls out over `Haul.DUMP_TICKS` (20 ticks, after 2 for the doors): the most
+  at first, the last trickling, the car's count dropping and the pocket's rising as it lands (`MineVehicleEntity.dumpThrough`,
+  `DumpBlockEntity.reserve`/`receive`; room is kept in the pocket for a load still falling). At 3 m/s that is about 3 m, inside the
+  4 m grizzly. The pocket's fill is drawn under its bars, rising over its stepped floor (`DumpRenderer`). `bottom_dump_on_move`
+  checks the cars are seen part empty with their doors open.

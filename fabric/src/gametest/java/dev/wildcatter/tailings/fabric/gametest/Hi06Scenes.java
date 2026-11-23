@@ -74,7 +74,10 @@ final class Hi06Scenes {
 
 	private final ClientGameTestContext context;
 	private TestServerContext server;
-	/** The track's origin: x 0 is the rail, z 0 the portal, y 0 the yard's rail. */
+	/**
+	 * The track's origin: x 0 is the rail, z 0 the portal, y 0 the yard's surface. The rail block is the floor's own cell (as the TBM
+	 * lays it, gravel under it), so its top, and the train's wheels, are level with the yard and the drive's floor.
+	 */
 	private BlockPos c;
 	private final List<String> summary = new ArrayList<>();
 	private long filmStart;
@@ -411,7 +414,10 @@ final class Hi06Scenes {
 
 	// ---- the site -----------------------------------------------------------------------------------------------------------------
 
-	/** The rail's height at {@code z}: the yard and top level at 0, the 1-in-2 decline, the lower level at -DROP. */
+	/**
+	 * The floor's height at {@code z} (the cell over the floor, where the train stands): the yard and top level at 0, the 1-in-2
+	 * decline, the lower level at -DROP. The rail block is the cell under it, {@link #rail}.
+	 */
 	private static int railY(int z) {
 		if (z > TOP) {
 			return 0;
@@ -422,9 +428,14 @@ final class Hi06Scenes {
 		return -((TOP - z) / 2);
 	}
 
+	/** The rail block's cell at {@code z}: the floor's own cell. */
+	private BlockPos rail(int z) {
+		return d(0, railY(z) - 1, z);
+	}
+
 	/** The section's floor east of the drive at {@code z}: under the top level's pocket, then down with the decline. */
 	private static int floorY(int z) {
-		return Math.min(-6, railY(z) - 1);
+		return Math.min(-7, railY(z) - 2);
 	}
 
 	private void stage() {
@@ -460,19 +471,29 @@ final class Hi06Scenes {
 					}
 				}
 			}
-			// the drive, 4 m wide (x -2 to 1) and 4 m high over the rail, its east side open to the section
+			// the drive, 4 m wide (x -2 to 1) and 4 m high over the rail, its east side open to the section; its floor graded with the
+			// rail on the decline, gravel under the rail
 			for (int z = LOW_END - 1; z <= 0; z++) {
 				int r = railY(z);
 				for (int x = -2; x <= 1; x++) {
-					for (int y = r; y <= r + 4; y++) {
+					for (int y = r; y <= r + 3; y++) {
 						level.setBlock(d(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
 					}
-					level.setBlock(d(x, r - 1, z), (x == 0 ? Blocks.GRAVEL : Blocks.STONE).defaultBlockState(), Block.UPDATE_CLIENTS);
+					BlockState floor = Blocks.STONE.defaultBlockState();
+					if (z <= TOP && z > TOP - 2 * DROP && x != 0) {
+						floor = TailingsBlocks.SLOPE.defaultBlockState().setValue(dev.wildcatter.tailings.block.SlopeBlock.FACING, Direction.NORTH)
+								.setValue(dev.wildcatter.tailings.block.SlopeBlock.HALF, (TOP - z) % 2 == 0 ? dev.wildcatter.tailings.block.SlopeHalf.UPPER
+										: dev.wildcatter.tailings.block.SlopeHalf.LOWER);
+					}
+					level.setBlock(d(x, r - 1, z), floor, Block.UPDATE_CLIENTS);
+					if (x == 0) {
+						level.setBlock(d(x, r - 2, z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
 				}
 			}
-			// the yard's track bed to the bay
+			// the yard's track bed to the bay: gravel under the rail, and past its end
 			for (int z = 1; z <= BAY_END + 2; z++) {
-				level.setBlock(d(0, -1, z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_CLIENTS);
+				level.setBlock(d(0, z > BAY_END ? -1 : -2, z), Blocks.GRAVEL.defaultBlockState(), Block.UPDATE_CLIENTS);
 			}
 			// the rails, one track along x 0 heading north; the decline's steps graded and racked as the TBM lays them
 			BlockState flat = TailingsBlocks.MINE_RAIL.defaultBlockState().setValue(MineRailBlock.FACING, Direction.NORTH);
@@ -484,29 +505,31 @@ final class Hi06Scenes {
 				if (z <= TOP && z > TOP - 2 * DROP) {
 					rail = flat.setValue(MineRailBlock.GRADE, (TOP - z) % 2 == 0 ? RailGrade.UPPER : RailGrade.LOWER).setValue(MineRailBlock.RACK, true);
 				}
-				level.setBlock(d(0, railY(z), z), rail, Block.UPDATE_ALL);
+				level.setBlock(rail(z), rail, Block.UPDATE_ALL);
 			}
-			// the bottom-dump station: the track grizzly under the rails, the cam rail beside it, the pocket under it along the track
+			// the bottom-dump station, all in the floor: the track grizzly under the rails, the cam rail beside them in the open floor
+			// (its top under the rail head, where the doors' rollers run), the pocket under the grizzly along the track
 			for (int x = 0; x <= 4; x++) {
 				for (int z = GRIZ - 1; z <= GRIZ + 4; z++) {
-					for (int y = -5; y <= -1; y++) {
-						if (x > 0 || y == -1) {
+					for (int y = -6; y <= -1; y++) {
+						if (x > 0 || y == -2) {
 							level.setBlock(d(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
 						}
 					}
 				}
 			}
-			part(level, TailingsBlocks.TRACK_GRIZZLY, d(0, -1, GRIZ), Direction.NORTH);
-			part(level, TailingsBlocks.DUMP_CAM_RAIL, d(1, 0, GRIZ), Direction.NORTH);
-			pocketAt = d(1, -4, GRIZ);
+			part(level, TailingsBlocks.TRACK_GRIZZLY, d(0, -2, GRIZ), Direction.NORTH);
+			part(level, TailingsBlocks.DUMP_CAM_RAIL, d(1, -1, GRIZ), Direction.NORTH);
+			pocketAt = d(1, -5, GRIZ);
 			part(level, TailingsBlocks.DUMP_POCKET, pocketAt, Direction.EAST);
-			Trailer.fillBox(level, c, Blocks.STONE, 0, 4, -6, -6, GRIZ - 1, GRIZ + 4);
+			Trailer.fillBox(level, c, Blocks.STONE, 0, 4, -7, -7, GRIZ - 1, GRIZ + 4);
 			for (int k = 0; k < 4; k++) {
-				level.setBlock(d(0, 0, GRIZ + k), flat.setValue(MineRailBlock.BRIDGE, true), Block.UPDATE_ALL);
+				level.setBlock(d(0, -1, GRIZ + k), flat.setValue(MineRailBlock.BRIDGE, true), Block.UPDATE_ALL);
 			}
 			log("pocket cells " + BigParts.cells(pocketAt, level.getBlockState(pocketAt)).stream().map(BlockPos::toShortString).toList()
-					+ "; the grizzly finds it: " + (DumpBlockEntity.grizzlyUnder(level, d(0, 0, GRIZ + 1)) != null));
-			log("site: origin " + c.toShortString() + ", rail at the decline's foot " + d(0, railY(TOP - 2 * DROP), TOP - 2 * DROP).toShortString());
+					+ "; the grizzly finds it: " + (DumpBlockEntity.grizzlyUnder(level, d(0, -1, GRIZ + 1)) != null));
+			log("site: origin " + c.toShortString() + ", rail at the decline's foot " + rail(TOP - 2 * DROP).toShortString() + "; the yard's grass at "
+					+ level.getBlockState(d(3, -1, 10)).getBlock() + ", the rail there " + level.getBlockState(rail(10)).getBlock());
 		});
 		context.waitTicks(40);
 	}
@@ -603,7 +626,7 @@ final class Hi06Scenes {
 				v.discard();
 			}
 			cars.clear();
-			MineVehicleEntity l = MineVehicleEntity.placeLocomotive(level, d(0, railY(z), z), heading, TailingsEntities.BATTERY_LOCOMOTIVE);
+			MineVehicleEntity l = MineVehicleEntity.placeLocomotive(level, rail(z), heading, TailingsEntities.BATTERY_LOCOMOTIVE);
 			require(l != null, "the battery locomotive on the rail at z " + z);
 			l.setBatteryWh(Battery.USABLE_WH * share);
 			l.setRunning(false);
@@ -613,7 +636,7 @@ final class Hi06Scenes {
 			for (int i = 0; i < 3; i++) {
 				double slot = l.getZ() + sign * Haul.carOffset(i);
 				int cz = (int) Math.floor(slot);
-				MineVehicleEntity car = MineVehicleEntity.placeCar(level, d(0, railY(cz - c.getZ()), cz - c.getZ()), heading, TailingsEntities.BOTTOM_DUMP_CAR);
+				MineVehicleEntity car = MineVehicleEntity.placeCar(level, rail(cz - c.getZ()), heading, TailingsEntities.BOTTOM_DUMP_CAR);
 				require(car != null, "car " + i + " on the rail at z " + cz);
 				if (loaded) {
 					car.load().add(loads[i], Haul.CAR_ITEMS);   // loaded by the scene
@@ -741,16 +764,17 @@ final class Hi06Scenes {
 		showCard(true);
 		showCharger = true;
 		double lz = BAY_END - 2.5;
-		Cam a = Cam.of(c, 9, 4.5, lz + 12, 0.5, 1.0, lz - 2);
-		Cam b = Cam.of(c, 4.2, 2.6, lz - 1.5, 0.5, 1.9, lz - 0.6);
+		// the train's wheels at the yard's surface (y 0), the rail in the ground
+		Cam a = Cam.of(c, 9, 4.0, lz + 12, 0.5, 0.2, lz - 2);
+		Cam b = Cam.of(c, 4.2, 1.8, lz - 1.5, 0.5, 1.0, lz - 0.6);
 		film("hi06_scale", 900, move(a, b, 900), null);
 	}
 
 	/** hi06_charge: the charger on the bay's wall, the receptacle and its cable, the locomotive charging where it stands. */
 	private void chargeFilm() {
 		double lz = BAY_END - 2.5;
-		Cam a = Cam.of(c, 3.8, 2.4, 17.5, -2, 1.0, 21.5);
-		Cam b = Cam.of(c, 4.6, 2.8, 26.5, -1.5, 0.8, 21.0);
+		Cam a = Cam.of(c, 3.8, 2.0, 17.5, -2, 0.8, 21.5);
+		Cam b = Cam.of(c, 4.6, 2.4, 26.5, -1.5, 0.6, 21.0);
 		film("hi06_charge", 700, move(a, b, 700), null);
 		removeVillager();
 	}
@@ -767,8 +791,8 @@ final class Hi06Scenes {
 	private void swapFilm() {
 		showSupply = false;
 		double lz = BAY_END - 2.5;
-		Cam a = Cam.of(c, 4.5, 3.6, lz + 3.5, 0.0, 1.6, lz - 1.5);
-		Cam b = Cam.of(c, 4.0, 3.4, lz + 1.0, -0.5, 1.6, lz - 2.0);
+		Cam a = Cam.of(c, 4.5, 2.6, lz + 3.5, 0.0, 0.6, lz - 1.5);
+		Cam b = Cam.of(c, 4.0, 2.4, lz + 1.0, -0.5, 0.6, lz - 2.0);
 		film("hi06_swap", 700, move(a, b, 700), (level, t) -> {
 			MineVehicleEntity l = loco(level);
 			BatteryChargerBlockEntity ch = charger(level);
@@ -847,23 +871,47 @@ final class Hi06Scenes {
 	/** hi06_dump: from the top of the decline, the train runs over the track grizzly and every car drops its load on the move. */
 	private void dumpFilm() {
 		showPocket = true;
-		// the rail block is a full bed: the rail's top, and the train, are a metre over the track's cell
-		Cam a = Cam.of(c, 5.0, 2.0, GRIZ + 0.5, 0.5, 0.4, GRIZ + 2.5);
+		// the rail's top and the train at the floor (y 0); the pocket's fill seen under its bars in the open floor beside the track
+		Cam a = Cam.of(c, 5.0, 1.2, GRIZ + 0.5, 0.5, -0.8, GRIZ + 2.5);
 		film("hi06_dump", 800, t -> a, (level, t) -> {
 			MineVehicleEntity l = loco(level);
 			if (t == PAD + 10) {
 				l.setRunning(true);
 				event("run toward the grizzly");
 			}
-			for (UUID id : cars) {
-				if (level.getEntity(id) instanceof MineVehicleEntity car && car.doorsOpen() && car.addTag("opened")) {
-					event(String.format(Locale.ROOT, "doors open over the grizzly at %.1f m/s", l.speed()));
-				}
-			}
+			dumpEvents(level, l);
 			if (l.status().startsWith("at the end")) {
 				l.setRunning(false);
 			}
 		});
+	}
+
+	/** Logs each car's doors opening, its load falling (its count each half second) and the car empty. */
+	private final java.util.Set<String> marks = new java.util.HashSet<>();
+
+	private boolean mark(MineVehicleEntity car, String what) {
+		return marks.add(car.getUUID() + what);
+	}
+
+	private void dumpEvents(ServerLevel level, MineVehicleEntity l) {
+		int n = 0;
+		for (UUID id : cars) {
+			n++;
+			if (level.getEntity(id) instanceof MineVehicleEntity car) {
+				if (car.doorsOpen() && mark(car, "opened")) {
+					event(String.format(Locale.ROOT, "car %d: doors open over the grizzly at %.1f m/s, %d items in it", n, l.speed(), car.load().total()));
+				}
+				if (car.dumping() && ft % 10 == 0) {
+					event(String.format(Locale.ROOT, "car %d: %d items left, pocket %d", n, car.load().total(), pocket(level).pocket() + pocket(level).oversize()));
+				}
+				if (marks.contains(car.getUUID() + "opened") && car.load().total() == 0 && mark(car, "empty")) {
+					event(String.format(Locale.ROOT, "car %d: empty; pocket %d", n, pocket(level).pocket() + pocket(level).oversize()));
+				}
+				if (!car.doorsOpen() && marks.contains(car.getUUID() + "empty") && mark(car, "shut")) {
+					event("car " + n + ": doors shut");
+				}
+			}
+		}
 	}
 
 	/** hi06_grizzly: a second run, closer: the doors swing open over the grizzly and shut at the closing ramp. */
@@ -871,10 +919,11 @@ final class Hi06Scenes {
 		waitFor(600, level -> loco(level).standing());
 		placeTrain(TOP + 4, Heading.SOUTH, true, 0.9);
 		// from above and ahead, looking back along the track down onto the grizzly as the cars come over it
-		Cam a = Cam.of(c, 2.6, 3.6, GRIZ + 8.5, 0.5, 0.6, GRIZ + 1.5);
-		Cam b = Cam.of(c, 2.2, 3.2, GRIZ + 7.0, 0.5, 0.6, GRIZ + 1.8);
+		Cam a = Cam.of(c, 2.6, 2.6, GRIZ + 8.5, 0.5, -0.4, GRIZ + 1.5);
+		Cam b = Cam.of(c, 2.2, 2.2, GRIZ + 7.0, 0.5, -0.4, GRIZ + 1.8);
 		film("hi06_grizzly", 600, move(a, b, 600), (level, t) -> {
 			MineVehicleEntity l = loco(level);
+			dumpEvents(level, l);
 			if (t == PAD) {
 				l.setRunning(true);
 				event("run toward the grizzly (placed and loaded by the scene)");
@@ -896,7 +945,7 @@ final class Hi06Scenes {
 			}
 			cars.clear();
 			int z = TOP - 2 * DROP - 3;
-			MineVehicleEntity l = MineVehicleEntity.placeLocomotive(level, d(0, railY(z), z), Heading.SOUTH, TailingsEntities.BATTERY_LOCOMOTIVE);
+			MineVehicleEntity l = MineVehicleEntity.placeLocomotive(level, rail(z), Heading.SOUTH, TailingsEntities.BATTERY_LOCOMOTIVE);
 			require(l != null, "the lone locomotive");
 			l.setBatteryWh(160);   // all but flat, set by the scene
 			l.setRunning(false);

@@ -40,6 +40,24 @@ public final class CarLoad {
 		kilograms.clear();
 	}
 
+	/** Takes up to {@code count} items out, the first loaded first, and returns them. */
+	public Map<String, Integer> take(int count) {
+		Map<String, Integer> out = new LinkedHashMap<>();
+		var it = kilograms.entrySet().iterator();
+		while (count > 0 && it.hasNext()) {
+			Map.Entry<String, Integer> e = it.next();
+			int n = Math.min(count, e.getValue());
+			out.put(e.getKey(), n);
+			count -= n;
+			if (n == e.getValue()) {
+				it.remove();
+			} else {
+				e.setValue(e.getValue() - n);
+			}
+		}
+		return out;
+	}
+
 	public String save() {
 		StringBuilder out = new StringBuilder();
 		for (Map.Entry<String, Integer> entry : kilograms.entrySet()) {

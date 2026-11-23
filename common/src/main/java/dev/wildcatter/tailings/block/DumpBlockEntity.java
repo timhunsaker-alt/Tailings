@@ -29,6 +29,14 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	/** The pit hopper's part blocks: what a truck tipped under a whole block of each ore, kept for the next load (Tim, 2026-11-09). */
 	private final dev.wildcatter.tailings.pit.PitLoad part = new dev.wildcatter.tailings.pit.PitLoad(Long.MAX_VALUE);
 	private boolean grown;
+	/**
+	 * Bottom-dump cars whose loads this pocket has taken and that are still falling through their doors, by car: the items still to
+	 * come and the game time the car last fed it. Room is kept for them; a car that has not fed it for a second keeps none.
+	 */
+	private final Map<java.util.UUID, long[]> falling = new java.util.HashMap<>();
+	/** Client side: how full the pocket is (0 to 1) and its commonest rock, for drawing its fill under the bars. */
+	private float clientFill;
+	private String clientRock = "";
 
 	/** The truck dump's hopper (docs/multiblocks/open-pit.md): 400 t. */
 	public static final int PIT_HOPPER_KG = 400_000;
@@ -198,7 +206,57 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 
 	/** True when a car's load of {@code items} would tip now: there is room, and the grizzly is not choked with oversize. */
 	public boolean takes(int items) {
-		return !choked() && pocket() + items <= capacity();
+		return !choked() && pocket() + falling() + items <= capacity();
+	}
+
+	/** Items bottom-dump cars have dropped that are still falling in. */
+	private int falling() {
+		long now = level == null ? 0 : level.getGameTime();
+		falling.values().removeIf(f -> f[0] <= 0 || now - f[1] > 20);
+		long n = 0;
+		for (long[] f : falling.values()) {
+			n += f[0];
+		}
+		return (int) n;
+	}
+
+	/**
+	 * A bottom-dump car's doors open over the grizzly (bottom-dump-cars.md): the pocket takes its whole load of {@code items}, or none of
+	 * it, as {@link #offer} does, but the load then falls in over {@link Haul#DUMP_TICKS} through {@link #receive}. False when there
+	 * is no room or the grizzly is choked.
+	 */
+	public boolean reserve(java.util.UUID car, int items) {
+		if (items <= 0 || !takes(items)) {
+			return false;
+		}
+		falling.put(car, new long[] {items, level == null ? 0 : level.getGameTime()});
+		return true;
+	}
+
+	/** Part of a load {@link #reserve reserved} for {@code car}, landing: into the pocket, its oversize on the bars. */
+	public void receive(java.util.UUID car, Map<String, Integer> part) {
+		long[] f = falling.get(car);
+		int sum = 0;
+		for (Map.Entry<String, Integer> e : part.entrySet()) {
+			if (e.getValue() > 0) {
+				held.merge(e.getKey(), e.getValue(), Integer::sum);
+				sum += e.getValue();
+			}
+		}
+		if (f != null) {
+			f[0] -= sum;
+			f[1] = level == null ? 0 : level.getGameTime();
+			if (f[0] <= 0) {
+				falling.remove(car);
+			}
+		}
+		if (sum > 0) {
+			if (!pit()) {
+				grizzly(part, sum);
+			}
+			setChanged();
+			showBars();
+		}
 	}
 
 	/** The share of a load that is over the bars' 300 mm stays on them, taken from the load's commonest rock (dump-station.md). */
@@ -277,14 +335,44 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	/** The most pieces of oversize drawn on the bars: a choke and a few over. */
 	public static final int DRAWN = Haul.GRIZZLY_CHOKE + 8;
 
-	private int barsSent = -1;
+	private int barsSent = -1, fillSent = -1;
+	/** Steps the fill is drawn in: a new level is sent to the client only when it moves a step. */
+	private static final int FILL_STEPS = 64;
 
-	/** Tells the client what lies on the bars when that changes, so the pieces are drawn there (dump-station.md, Oversize). */
+	/**
+	 * Tells the client what lies on the bars and how full the pocket is when either changes, so the pieces and the fill are drawn
+	 * there (dump-station.md, Oversize).
+	 */
 	private void showBars() {
-		if (level != null && !level.isClientSide() && oversize() != barsSent) {
+		int fill = (int) ((long) pocket() * FILL_STEPS / Math.max(1, capacity()));
+		if (level != null && !level.isClientSide() && (oversize() != barsSent || fill != fillSent)) {
 			barsSent = oversize();
+			fillSent = fill;
 			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
 		}
+	}
+
+	/** Client side: how full the pocket is, 0 to 1, as last sent. */
+	public float fillDrawn() {
+		return clientFill;
+	}
+
+	/** Client side: the commonest rock in the pocket, as last sent. */
+	public String rockDrawn() {
+		return clientRock;
+	}
+
+	/** The item the pocket holds most of, or "". */
+	private String commonest() {
+		String most = "";
+		int count = 0;
+		for (Map.Entry<String, Integer> e : held.entrySet()) {
+			if (e.getValue() > count) {
+				most = e.getKey();
+				count = e.getValue();
+			}
+		}
+		return most;
 	}
 
 	@Override
@@ -299,6 +387,8 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		StringBuilder bars = new StringBuilder();
 		oversize.forEach((id, n) -> bars.append(bars.length() == 0 ? "" : ",").append(id).append('=').append(n));
 		tag.putString("oversize", bars.toString());
+		tag.putFloat("fill", Math.min(1f, pocket() / (float) Math.max(1, capacity())));
+		tag.putString("rock", commonest());
 		return tag;
 	}
 
@@ -319,6 +409,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		}
 		if (!out.isEmpty()) {
 			setChanged();
+			showBars();
 		}
 		return out;
 	}
@@ -330,6 +421,7 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 		held.clear();
 		held.putAll(first);
 		setChanged();
+		showBars();
 	}
 
 	@Override
@@ -381,6 +473,8 @@ public class DumpBlockEntity extends BlockEntity implements BigPartEntity, Inspe
 	protected void loadAdditional(ValueInput input) {
 		super.loadAdditional(input);
 		grown = input.getBooleanOr("grown", false);
+		clientFill = input.getFloatOr("fill", 0f);
+		clientRock = input.getStringOr("rock", "");
 		held.clear();
 		oversize.clear();
 		oversizeDue = input.getDoubleOr("oversizeDue", 0);

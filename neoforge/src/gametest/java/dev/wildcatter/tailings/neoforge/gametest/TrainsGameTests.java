@@ -390,6 +390,8 @@ final class TrainsGameTests {
 		}
 		double[] slowest = {9};
 		boolean[] opened = {false};
+		// the load falls out over a second (Haul.DUMP_TICKS), not in one tick: a car is seen part empty, its doors open
+		int[] partEmpty = {0};
 		helper.onEachTick(() -> {
 			for (MineVehicleEntity car : cars) {
 				double z = relZ(helper, car);
@@ -397,6 +399,9 @@ final class TrainsGameTests {
 					slowest[0] = Math.min(slowest[0], loco.speed());
 				}
 				opened[0] |= car.doorsOpen();
+				if (car.doorsOpen() && car.load().total() > 0 && car.load().total() < 200) {
+					partEmpty[0]++;
+				}
 			}
 		});
 		helper.succeedWhen(() -> {
@@ -405,6 +410,7 @@ final class TrainsGameTests {
 			helper.assertTrue(pocket.pocket() + pocket.oversize() == 600, Component.literal("into the pocket under it, got " + pocket.pocket()));
 			helper.assertTrue(slowest[0] > 2.0, Component.literal("without stopping: slowest " + slowest[0] + " m/s over the grizzly"));
 			helper.assertTrue(opened[0], Component.literal("the cam rail should open the doors"));
+			helper.assertTrue(partEmpty[0] >= 3 * 5, Component.literal("each load should fall out over several ticks, seen part empty on " + partEmpty[0]));
 			helper.assertTrue(cars.stream().noneMatch(c -> relZ(helper, c) < 21.5 && c.doorsOpen()), Component.literal("and the closing ramp shut them past it"));
 		});
 	}

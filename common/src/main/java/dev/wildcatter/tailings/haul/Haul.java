@@ -21,6 +21,14 @@ public final class Haul {
 	public static final double OVERSIZE_SHARE = 0.01;
 	/** Oversize on the bars that chokes the grizzly: no car tips until it is broken or lifted off (proposed: about a car's floor of slabs). */
 	public static final int GRIZZLY_CHOKE = 32;
+	/**
+	 * A bottom-dump car's load falls out over this many ticks once its doors are open (bottom-dump-cars.md): the most at first, the
+	 * last of it trickling. The pocket takes the whole load or none when the doors open; only the falling takes time. 20 ticks keep
+	 * it within the 4 m grizzly at the 3 m/s top speed.
+	 */
+	public static final int DUMP_TICKS = 20;
+	/** Ticks from the doors starting to open to the rock starting to fall. */
+	public static final int DUMP_OPENING = 2;
 	/** How many items the drill hands a waiting car in one tick, one face of muck. */
 	public static final int TRANSFER = 64;
 

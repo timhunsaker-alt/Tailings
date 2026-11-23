@@ -682,7 +682,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 			MineVehicleEntity car = train.get(i);
 			BlockPos rail = RailView.pos(path.stepAt(carPlace(i - 1)).cell());
 			DumpBlockEntity pocket = DumpBlockEntity.under(server, rail, car.bottomDump());
-			if (pocket != null && car.load.total() > 0 && !pocket.takes(car.load.total())) {
+			if (pocket != null && car.load.total() > 0 && !car.dumping() && !pocket.takes(car.load.total())) {
 				return pocket.choked() ? "waiting at the dump: the grizzly is choked with oversize" : "waiting at the dump: the pocket is full";
 			}
 			dev.wildcatter.tailings.block.TbmCore drill = dev.wildcatter.tailings.block.TbmCore.loadingAt(server, rail);
@@ -705,7 +705,8 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		int loaded = 0, bottomLoaded = 0;
 		for (int i = 1; i < train.size(); i++) {
 			if (train.get(i).bottomDump()) {
-				bottomLoaded += train.get(i).load.total();
+				// a car already dropping its load has its room in the pocket
+				bottomLoaded += train.get(i).dumping() ? 0 : train.get(i).load.total();
 			} else {
 				loaded += train.get(i).load.total();
 			}
@@ -889,41 +890,70 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	}
 
 	/**
-	 * A car over a dump pocket beside a ramp tips on the move; a bottom-dump car over a track grizzly beside a cam rail drops its load
-	 * through its doors, which stay open while it is over the grizzly and shut as it leaves (the drill loads the car standing at its
-	 * loading point itself). A car whose load the pocket cannot take does not tip or open.
+	 * A car over a dump pocket beside a ramp tips on the move; a bottom-dump car over a track grizzly beside a cam rail opens its doors
+	 * and drops its load through them, which stay open while it is over the grizzly and shut as it leaves (the drill loads the car
+	 * standing at its loading point itself). A car whose load the pocket cannot take does not tip or open.
 	 */
 	private void tipAndLoad(ServerLevel server, MineVehicleEntity car) {
 		int index = cars.indexOf(car.getUUID());
 		BlockPos rail = RailView.pos(path.stepAt(carPlace(index)).cell());
 		DumpBlockEntity pocket = DumpBlockEntity.under(server, rail, car.bottomDump());
+		if (car.bottomDump()) {
+			car.dumpThrough(server, pocket);
+			return;
+		}
 		if (pocket != null && car.load.total() > 0 && pocket.offer(car.load.contents())) {
-			if (car.bottomDump()) {
-				dropThrough(server, car);
-			}
 			car.load.clear();
 			car.refreshLoad();
 			server.playSound(null, car.getX(), car.getY(), car.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
 		}
-		if (car.bottomDump()) {
-			car.setDoors(pocket != null && car.load.total() == 0);
-			if (car.doorsOpen() && car.dumpRock != null) {
-				// the last of it still falling through the doors while they hang open over the grizzly
-				car.shower(server, car.dumpRock, 14, 0.08);
-			} else if (!car.doorsOpen()) {
-				car.dumpRock = null;
-			}
-		}
 	}
 
 	/**
-	 * A bottom-dump car's load seen falling out through its open doors, between the rails into the pocket: a shower of its commonest
-	 * rock's pieces under the car, spread along its 2 m (bottom-dump-cars.md). The load goes into the pocket at once; this draws it.
+	 * A bottom-dump car's tick at the dump (bottom-dump-cars.md). Over the grizzly with a load the pocket can take, the pocket takes
+	 * the whole load (or none, as before), the doors open, and the rock falls out over {@link Haul#DUMP_TICKS}: the most at first, the
+	 * last trickling, the car's count dropping and the pocket's rising as it lands. The doors shut once it is empty and off the bars.
 	 */
-	private static void dropThrough(ServerLevel server, MineVehicleEntity car) {
+	private void dumpThrough(ServerLevel server, @Nullable DumpBlockEntity pocket) {
+		if (dumpingInto != null && (dumpingInto.isRemoved() || load.total() == 0)) {
+			dumpingInto = null;
+		}
+		if (dumpingInto == null && pocket != null && load.total() > 0 && pocket.reserve(getUUID(), load.total())) {
+			dumpingInto = pocket;
+			dumpFrom = load.total();
+			dumpAge = 0;
+			dumpRock = commonestRock();
+			server.playSound(null, getX(), getY(), getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
+		}
+		if (dumpingInto != null) {
+			dumpAge++;
+			double s = Math.max(0, Math.min(1, (dumpAge - Haul.DUMP_OPENING) / (double) Haul.DUMP_TICKS));
+			int left = (int) Math.round(dumpFrom * (1 - s) * (1 - s));
+			int fall = load.total() - left;
+			Map<String, Integer> part = fall > 0 ? load.take(fall) : Map.of();
+			dumpingInto.receive(getUUID(), part);
+			if (fall > 0) {
+				refreshLoad();
+				shower(server, dumpRock, 6 + (int) Math.round(220.0 * fall / dumpFrom), 0.12);
+			}
+			if (load.total() == 0) {
+				dumpingInto = null;
+			}
+		}
+		setDoors(dumpingInto != null || (pocket != null && load.total() == 0));
+		if (doorsOpen() && dumpingInto == null && dumpRock != null) {
+			// the last of it still falling through the doors while they hang open over the grizzly
+			shower(server, dumpRock, 14, 0.08);
+		} else if (!doorsOpen()) {
+			dumpRock = null;
+		}
+	}
+
+	/** The block of the rock the car holds most of, for the pieces seen falling; cobblestone for one with no block. */
+	private net.minecraft.world.level.block.state.BlockState commonestRock() {
 		String most = null;
 		int count = 0;
-		for (Map.Entry<String, Integer> e : car.load.contents().entrySet()) {
+		for (Map.Entry<String, Integer> e : load.contents().entrySet()) {
 			if (e.getValue() > count) {
 				most = e.getKey();
 				count = e.getValue();
@@ -937,12 +967,19 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 				rock = block.defaultBlockState();
 			}
 		}
-		car.dumpRock = rock;
-		car.shower(server, rock, 120, 0.15);
+		return rock;
 	}
 
 	/** The rock a bottom-dump car dropped, while its doors hang open over the grizzly; null once they shut. */
 	private net.minecraft.world.level.block.state.@Nullable BlockState dumpRock;
+	/** The pocket a bottom-dump car's load is falling into, while it falls; how much it held when its doors opened; ticks since. */
+	private @Nullable DumpBlockEntity dumpingInto;
+	private int dumpFrom, dumpAge;
+
+	/** True while a bottom-dump car's load is falling out through its doors. */
+	public boolean dumping() {
+		return dumpingInto != null;
+	}
 
 	/** {@code count} pieces of {@code rock} falling from under the car, spread along its 2 m. */
 	private void shower(ServerLevel server, net.minecraft.world.level.block.state.BlockState rock, int count, double speed) {

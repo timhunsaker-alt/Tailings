@@ -69,9 +69,9 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 The trolley locomotive's sound borrowed by the battery locomotive is moot here: the episodes use no game audio.
 
 ## Weak on camera, left as is
-- The mine rail is a full ballast block, so the track stands a metre proud of the yard's grass, like an embankment.
-- The dump itself is one tick: the load leaves the car at once as the doors open; the falling rock is drawn, not simulated.
-- The pocket does not show its rock rising; the card gives its count.
+- The mine rail is a full ballast block, so the track stands a metre proud of the yard's grass, like an embankment. *(2026-11-23: the scene's fault, fixed, "Fixed after release" 1.)*
+- The dump itself is one tick: the load leaves the car at once as the doors open; the falling rock is drawn, not simulated. *(2026-11-23: the load now falls over about a second, "Fixed after release" 2.)*
+- The pocket does not show its rock rising; the card gives its count. *(2026-11-23: the fill is drawn, "Fixed after release" 3.)*
 - The aerial's far edge shows unrendered sections after about 45 s (not used).
 
 ## Needs Tim
@@ -86,3 +86,37 @@ The trolley locomotive's sound borrowed by the battery locomotive is moot here: 
 `build` passes. The full NeoForge suite on this branch (the bridge rail, the swinging doors, the rock shower and the battery-out
 model in): all 306 required tests passed. The client scenes (TAILINGS_ONLY=hi06) ran three times; films kept
 from runs 2 and 3 (`videos/footage/films-hi06/NOTES.md`).
+
+
+## Fixed after release (2026-11-23)
+Branch `fix-weak-spots-hi06` (off main 6a054d2e). Tim: "Let's keep fixing weak spots as we find them." Decided on the best
+recommendation while Tim was away; each is open for review. All ten films re-filmed in one client run (fix run 1, every film real
+time) and episode 6 rebuilt in English and Spanish with the narration unchanged. Footage notes: `videos/footage/films-hi06/NOTES.md`.
+
+1. **The track stood a metre above the ground because of the scene, not the rail model.** The mine rail is meant to be the floor's
+   own cell: the game counts it as floor (`WorldGround`, `Ground.FLOOR`) and the TBM lays it in the floor with gravel under it
+   (`tunnel-boring-machine.md`, "Gravel ballast"). `Hi06Scenes` had laid it one cell up, on a gravel bed on top of the yard and the
+   drive floor. Now the rail is in the floor (`Hi06Scenes.rail(z)`, gravel under it), so the rail head and the wheels are level with
+   the grass and the drive's floor; the drive floor beside the decline is graded with slope blocks to match the rail; the dump station
+   (track grizzly, pocket, cam rail) is one metre lower with it, the cam rail in the open floor beside the bridge rail, its top under
+   the rail head; the drive's clear height over the rail stays 4 m; the static cameras are a metre lower. No change to the rail
+   block or its model. A player who lays mine rail on top of grass still gets a raised bed, as before: the block is a floor block.
+2. **The dump runs over about a second, the rule unchanged.** As before, the pocket takes a car's whole load or none, checked as the
+   doors open; it now keeps room for that load (`DumpBlockEntity.reserve`) while it falls out over `Haul.DUMP_TICKS` (20 ticks,
+   after 2 for the doors to start): most at first, the last trickling, the car's count dropping and the pocket's rising as it lands
+   (`MineVehicleEntity.dumpThrough`, `DumpBlockEntity.receive`, `CarLoad.take`). The falling rock is drawn in step with what leaves
+   the car. On camera each car empties in 1.1 s (576 to 0) at 2.6-3.0 m/s, about 3 m, inside the 4 m grizzly, and the cars overlap.
+   Chosen at 1.1 s rather than 2 s so the whole load still drops while the car is over the grizzly at top speed, as narrated
+   (paragraph 26). A car mid-dump is not held by the "pocket full" check and its load does not count again at the dump's signal;
+   a car that stops feeding the pocket for a second gives up its room. The fall is not saved: a world saved mid-dump keeps the
+   rest in the car. NeoForge `bottom_dump_on_move` now also checks the cars are seen part empty with their doors open.
+3. **The pocket's fill is drawn.** The pocket sends its share full and commonest rock to the client when it moves a 64th
+   (`DumpBlockEntity.showBars`), and `DumpRenderer` draws that rock over the pocket's stepped steel floor up to the level that
+   volume reaches, with a slightly rough top (full is just under the bars). It shows through the bars in `hi06_dump` (empty steel
+   steps at the start; copper ore over the lower steps at 1,728 items). This applies to every rail dump pocket, side dump included.
+4. **The length stays** (Tim: do not pad it).
+5. **Every film re-filmed and kept at full 2880 x 1620** (CRF 17, as episode 5's fix), since the raised track showed in all of them.
+   The events landed within 0.3 s of the first takes (doors 12.3, 13.3, 14.1 s; FLAT at 19.8 s; the climb 0.5 m/s at 51.8 kW), so the
+   in-points are unchanged.
+6. **Tests:** `build` passes; the full NeoForge suite on this branch: all 306 required tests passed.
+

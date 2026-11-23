@@ -24,12 +24,15 @@ import org.jspecify.annotations.Nullable;
 /**
  * The oversize on a rail dump pocket's 300 mm grizzly bars (dump-station.md, Oversize): each piece the bars hold back is drawn as a
  * boulder lying on them, on the side away from the track where the cars tip, in the rock it is, heaped up as they gather. 32 pieces
- * choke the grizzly; a pickaxe breaks them through one by one and they go. Drawn in the pocket's own frame (facing north: 4 wide, 3
- * high, 3 long; the track over x 1, the ramp over x 2), turned with it.
+ * choke the grizzly; a pickaxe breaks them through one by one and they go. Under the bars, the rock the pocket holds is drawn as a
+ * fill rising over its stepped steel floor as it fills, in its commonest rock (to just under the bars when full). Drawn in the
+ * pocket's own frame (facing north: 4 wide, 3 high, 3 long; the track over x 1, the ramp over x 2), turned with it.
  */
 public class DumpRenderer implements BlockEntityRenderer<DumpBlockEntity, DumpRenderer.State> {
 	public static class State extends BlockEntityRenderState {
 		final List<String> pieces = new ArrayList<>();
+		float fill;
+		String rock = "";
 		int turns;
 		int light;
 	}
@@ -47,6 +50,8 @@ public class DumpRenderer implements BlockEntityRenderer<DumpBlockEntity, DumpRe
 			return;
 		}
 		state.pieces.addAll(pocket.barsDrawn());
+		state.fill = pocket.fillDrawn();
+		state.rock = pocket.rockDrawn();
 		state.turns = BigParts.turns(pocket.getBlockState());
 		state.light = pocket.getLevel() == null ? state.lightCoords : LightCoordsUtil.getLightCoords(pocket.getLevel(), pocket.getBlockPos().above(3));
 	}
@@ -58,16 +63,31 @@ public class DumpRenderer implements BlockEntityRenderer<DumpBlockEntity, DumpRe
 
 	@Override
 	public void submit(State state, PoseStack pose, SubmitNodeCollector collector, CameraRenderState camera) {
-		if (state.pieces.isEmpty()) {
+		if (state.pieces.isEmpty() && state.fill <= 0) {
 			return;
 		}
 		List<String> pieces = List.copyOf(state.pieces);
 		int light = state.light;
+		float level = fillLevel(state.fill);
+		TextureAtlasSprite rock = state.fill > 0 ? sprite(state.rock.isEmpty() ? "minecraft:cobblestone" : state.rock) : null;
 		pose.pushPose();
 		pose.translate(0.5f, 0, 0.5f);
 		pose.rotateDegrees(Axis.YP, -90f * state.turns);
 		pose.translate(-0.5f, 0, -0.5f);
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (p, v) -> {
+			if (rock != null) {
+				// the fill: over each step of the floor, one box a metre (or less) across, its top a little rough
+				for (int step = 0; step < STEP_TOP.length; step++) {
+					float z0 = STEP_Z + step * STEP_LONG, z1 = z0 + STEP_LONG;
+					for (int k = 0; k < WALLS.length - 1; k++) {
+						long h = ((step * 7L + k) * 0x9E3779B97F4A7C15L) >>> 40;
+						float top = Math.min(BARS - 0.06f, level + ((h & 0xFF) / 255f - 0.5f) * 0.08f);
+						if (top > STEP_TOP[step] + 0.01f) {
+							PlantRenderer.box(p, v, rock, WALLS[k], STEP_TOP[step], z0, WALLS[k + 1], top, z1, light);
+						}
+					}
+				}
+			}
 			for (int i = 0; i < pieces.size(); i++) {
 				// two across the free cell beside the track, six along the pocket, then the next layer up, each a little turned
 				int layer = i / 12, k = i % 12;
@@ -88,6 +108,41 @@ public class DumpRenderer implements BlockEntityRenderer<DumpBlockEntity, DumpRe
 			}
 		});
 		pose.popPose();
+	}
+
+	/** The pocket's inside, in its frame (the model's concrete walls and steel floor): across, the walls' faces split at whole metres. */
+	private static final float[] WALLS = {0.30f, 1f, 2f, 3f, 3.70f};
+	/** Its stepped steel floor, high at the front: five steps 0.48 m long from z 0.30, each step's top. */
+	private static final float STEP_Z = 0.30f, STEP_LONG = 0.48f;
+	private static final float[] STEP_TOP = {2.13f, 1.79f, 1.45f, 1.11f, 0.77f};
+	/** The underside of the grizzly's bars. */
+	private static final float BARS = 2.80f;
+
+	/** The fill's level for a share of the pocket full, by the room over the stepped floor: a full pocket fills it to under the bars. */
+	static float fillLevel(float share) {
+		if (share <= 0) {
+			return 0;
+		}
+		float lo = STEP_TOP[STEP_TOP.length - 1], hi = BARS - 0.1f;
+		float want = Math.min(1, share) * room(hi);
+		for (int i = 0; i < 24; i++) {
+			float mid = (lo + hi) / 2;
+			if (room(mid) < want) {
+				lo = mid;
+			} else {
+				hi = mid;
+			}
+		}
+		return (lo + hi) / 2;
+	}
+
+	/** The room over the floor up to a level, per metre across. */
+	private static float room(float level) {
+		float a = 0;
+		for (float top : STEP_TOP) {
+			a += Math.max(0, level - top) * STEP_LONG;
+		}
+		return a;
 	}
 
 	/** The piece's own rock: its block's texture, or cobblestone for a rock with no block of its own. */
