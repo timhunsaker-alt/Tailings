@@ -290,7 +290,7 @@ public class RopeShovelModel extends EntityModel<PitVehicleRenderer.PitState> {
 	/** The teeth, out along the handle from the saddle and below its line, and the hoist ropes' bail, at no crowd. */
 	public static final float TEETH_ALONG = 16.74F - IN_BY, TEETH_BELOW = 2.56F;
 	public static final float BAIL_ALONG = 14.2F - IN_BY, BAIL_UP = 2.2F;
-	/** Where its teeth go through a pass (out, up): the toe of the face, the top of the face, over the truck. */
+	/** Where its teeth go through a pass (out, up): the toe of the face, the top of the face, over the truck (RopeShovelEntity.teethUp cuts by these heights). */
 	private static final float[] TOE = {16.5F, 0.8F}, TOP = {22.0F, 13.0F}, OVER_TRUCK = {21.0F, 11.5F};
 
 	private static float ease(float t) {

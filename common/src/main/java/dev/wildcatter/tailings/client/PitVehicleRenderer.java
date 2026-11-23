@@ -189,7 +189,9 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	 */
 	private void ground(PitVehicleEntity entity, PitState state, float partialTick) {
 		net.minecraft.world.level.Level level = entity.level();
-		double ox = entity.getX(partialTick), oy = entity.getY(partialTick), oz = entity.getZ(partialTick);
+		// where it is drawn this frame (getX(double) is x plus the box's width times its argument, not a lerp)
+		net.minecraft.world.phys.Vec3 at = entity.getPosition(partialTick);
+		double ox = at.x, oy = at.y, oz = at.z;
 		double yaw = Math.toRadians(state.yaw);
 		double fx = -Math.sin(yaw), fz = Math.cos(yaw), rx = -Math.cos(yaw), rz = -Math.sin(yaw);
 		double front = -1e9, rear = -1e9, left = -1e9, right = -1e9;
@@ -240,8 +242,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 
 	/**
 	 * Its trailing cable's points, from the entity: off the switch house's coupler, down to the ground, then a point every metre along the
-	 * straight line to the machine, lying on whatever ground is there, and up to its reel at its back (P5a; the path it has driven is
-	 * counted, not drawn).
+	 * straight line to the machine, lying on whatever ground is there (over a berm, down a bench's face and along the pit floor), and up to
+	 * its reel at its back (P5a; the path it has driven is counted, not drawn).
 	 */
 	private static float[] cable(PitVehicleEntity entity, net.minecraft.core.BlockPos house, float partialTick) {
 		net.minecraft.world.level.Level level = entity.level();
@@ -249,7 +251,9 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		if (!(hs.getBlock() instanceof dev.wildcatter.tailings.block.PlantMachineBlock)) {
 			return NO_CABLE;
 		}
-		double ox = entity.getX(partialTick), oy = entity.getY(partialTick), oz = entity.getZ(partialTick);
+		// where it is drawn this frame (getX(double) is x plus the box's width times its argument, not a lerp)
+		net.minecraft.world.phys.Vec3 at = entity.getPosition(partialTick);
+		double ox = at.x, oy = at.y, oz = at.z;
 		net.minecraft.world.phys.Vec3 from = dev.wildcatter.tailings.block.PitSwitchHouseBlockEntity.coupler(house, hs, entity.cableOutlet());
 		double yaw = Math.toRadians(entity.getYRot(partialTick));
 		double back = entity.spec().length() / 2 - 0.5;
@@ -265,7 +269,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		double floor = from.y;
 		for (int m = 1; m <= metres; m++) {
 			double wx = from.x + dx / run * m, wz = from.z + dz / run * m;
-			floor = GantryRenderer.floorAt(level, wx, wz, floor);
+			floor = groundAt(level, wx, wz, floor);
 			out[n++] = (float) (wx - ox);
 			out[n++] = (float) (floor + 0.06 - oy);
 			out[n++] = (float) (wz - oz);
@@ -274,6 +278,42 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		out[n++] = 1.0f;
 		out[n++] = (float) (rz - oz);
 		return java.util.Arrays.copyOf(out, n);
+	}
+
+	/** Cable climbs and drops this many metres a step at most: a berm or a bench's full face, the pit's depth. */
+	private static final int CLIMB = 16, DROP = 64;
+
+	/**
+	 * The top of the ground under a point of the cable, from the last point's height: up through solid ground (a berm, the toe of a bench)
+	 * or down through air (off a crest to the floor below), so the cable lies on the ground and hangs down a face instead of running
+	 * straight through the air from the rim.
+	 */
+	private static double groundAt(net.minecraft.world.level.Level level, double x, double z, double last) {
+		net.minecraft.core.BlockPos.MutableBlockPos at = new net.minecraft.core.BlockPos.MutableBlockPos();
+		int y = (int) Math.floor(last + 0.01);
+		if (top(level, at.set(x, y, z)) >= 0) {
+			for (int k = 0; k < CLIMB; k++) {
+				if (top(level, at.set(x, y + 1, z)) < 0) {
+					break;
+				}
+				y++;
+			}
+			return y + top(level, at.set(x, y, z));
+		}
+		for (int k = 0; k < DROP; k++) {
+			y--;
+			double t = top(level, at.set(x, y, z));
+			if (t >= 0) {
+				return y + t;
+			}
+		}
+		return last;
+	}
+
+	/** The top of a cell's collision shape, 0 to 1; -1 with none. */
+	private static double top(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+		net.minecraft.world.phys.shapes.VoxelShape shape = level.getBlockState(pos).getCollisionShape(level, pos);
+		return shape.isEmpty() ? -1 : shape.max(net.minecraft.core.Direction.Axis.Y);
 	}
 
 	@Override
