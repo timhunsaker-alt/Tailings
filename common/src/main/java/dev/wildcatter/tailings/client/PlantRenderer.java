@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.plant.Machine;
+import dev.wildcatter.tailings.pit.DryStack;
 import dev.wildcatter.tailings.plant.PlantMotion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -47,6 +48,11 @@ import org.jspecify.annotations.Nullable;
  * <li>the X-ray sorter: pieces ride its belt at 3 m/s through the X-ray cabinet; off the head pulley the ejectors' air blows the ones
  * read as ore on to the product chute (south), with a puff at the manifold, and the rest drop to the waste chute (east), in the share
  * the sorter is sending each way.</li>
+ * <li>the tailings filter: its 78 plates, moving tail and ram rod, drawn closed through filling, squeezing and blowing; in the cycle's
+ * last 7.5 minutes the tail draws back half a metre and the plates are shifted one at a time from the tail end to the head, each
+ * cake dropping through the floor into the trough as its chamber opens, the last as the cycle ends and the game counts the cake into
+ * the bin; the press closes again over the next cycle's first 20 s. Timed by the cycle the server sends
+ * ({@link PlantBlockEntity#pressSeconds}).</li>
  * </ul>
  */
 public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, PlantRenderer.State> {
@@ -62,6 +68,9 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		int light;
 		/** An X-ray sorter's product share. */
 		float share = 0.5f;
+		/** A tailings filter's seconds into its cycle (-1: not known), and whether it has ever dropped a cake. */
+		float press = -1;
+		boolean pressed;
 	}
 
 	@Override
@@ -73,6 +82,14 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	public void extractRenderState(PlantBlockEntity plant, State state, float partialTick, Vec3 cameraPos, ModelFeatureRenderer.@Nullable CrumblingOverlay crumbling) {
 		BlockEntityRenderState.extractBase(plant, state, crumbling);
 		Machine machine = plant.machine();
+		if (machine == Machine.TAILINGS_FILTER) {
+			state.machine = machine;
+			state.turns = BigParts.turns(plant.getBlockState());
+			state.press = plant.getLevel() == null ? -1 : (float) plant.pressSeconds(plant.getLevel().getGameTime() + partialTick);
+			state.pressed = plant.cycles() > 0;
+			state.light = plant.getLevel() == null ? state.lightCoords : lightAt(plant, state.turns, new int[] {3, 5, 12});
+			return;
+		}
 		float rpm = PlantMotion.rpm(machine);
 		if (rpm <= 0) {
 			state.machine = null;
@@ -102,9 +119,14 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			state.light = state.lightCoords;
 			return;
 		}
-		BlockPos there = cell(plant.getBlockPos(), state.turns, at);
+		state.light = lightAt(plant, state.turns, at);
+	}
+
+	/** The light at a cell in the part's frame, or the one over it if brighter. */
+	private static int lightAt(PlantBlockEntity plant, int turns, int[] at) {
+		BlockPos there = cell(plant.getBlockPos(), turns, at);
 		int in = LightCoordsUtil.getLightCoords(plant.getLevel(), there), over = LightCoordsUtil.getLightCoords(plant.getLevel(), there.above());
-		state.light = Math.max(in & 0xFFFF, over & 0xFFFF) | Math.max(in >>> 16, over >>> 16) << 16;
+		return Math.max(in & 0xFFFF, over & 0xFFFF) | Math.max(in >>> 16, over >>> 16) << 16;
 	}
 
 	/** A cell in the part's own frame, in the world. */
@@ -125,7 +147,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 
 	/** NeoForge culls by this box: the whole of the largest part here, round the main cell whichever way it faces. */
 	public AABB getRenderBoundingBox(PlantBlockEntity plant) {
-		return new AABB(plant.getBlockPos()).inflate(13, 0, 13).expandTowards(0, 14, 0);
+		int reach = plant.machine() == Machine.TAILINGS_FILTER ? 25 : 13;
+		return new AABB(plant.getBlockPos()).inflate(reach, 0, reach).expandTowards(0, 14, 0);
 	}
 
 	@Override
@@ -145,6 +168,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		pose.translate(-0.5f, 0, -0.5f);
 		Machine machine = state.machine;
 		float angle = state.angle;
+		float press = state.press;
+		boolean pressed = state.pressed;
 		int light = state.light;
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (p, v) -> {
 			PoseStack at = new PoseStack();
@@ -164,6 +189,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case SCAVENGER_BANK -> scavengerFroth(at.last(), v, angle, light);
 					case CLEANER_BANK -> cleanerFroth(at.last(), v, angle, light);
 					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
+					case TAILINGS_FILTER -> press(at.last(), v, press, pressed, light);
 				default -> {
 				}
 			}
@@ -390,6 +416,111 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		}
 	}
 
+	// ---- the tailings filter's plates (tools/models/pit.py leaves them out) ------------------------------------------------------------
+
+	private static final int PLATES = 78;
+	/** The first plate's head-side face, the plates' pitch and thickness (the cake chambers between them 5 cm), m along z. */
+	private static final float PLATE_Z0 = 2.1f, PLATE_PITCH = 0.25f, PLATE_T = 0.2f;
+	/** The tail's closed head-side face; how far it draws back, and each shifted plate goes; the cylinder's end stand. */
+	private static final float TAIL_Z = 21.8f, OPEN = 0.5f, STAND_Z = 23.2f;
+	/** A cake stands in its opened chamber this long before it falls. */
+	private static final float CAKE_HANG = 1.0f;
+	/**
+	 * Seconds: opening starts when blowing ends; the tail draws back over 20 s; then the plates are shifted one at a time, 2.5 s each,
+	 * the last (by the head) starting so its cake falls just before the cycle ends, when the game counts the whole cake into the bin.
+	 */
+	private static final float OPEN_AT = DryStack.FILL_SECONDS + DryStack.SQUEEZE_SECONDS + DryStack.BLOW_SECONDS, TAIL_MOVE = 20f, SHIFT_MOVE = 2.5f;
+	private static final float LAST_SHIFT = DryStack.CYCLE_SECONDS - CAKE_HANG - 0.6f;
+	private static final float SHIFT_EVERY = (LAST_SHIFT - OPEN_AT - TAIL_MOVE) / (PLATES - 1);
+
+	private static float smooth(float t) {
+		t = Math.max(0, Math.min(1, t));
+		return t * t * (3 - 2 * t);
+	}
+
+	/** When plate k (0 at the head) starts its shift, s into the cycle: from the tail end to the head. */
+	private static float shiftAt(int k) {
+		return OPEN_AT + TAIL_MOVE + (PLATES - 1 - k) * SHIFT_EVERY;
+	}
+
+	/** Where the cake trough's bottom is under z (pit.py: stepping down from each end to the chute). */
+	private static float troughAt(float z) {
+		if (z < 5.0f || z >= 19.5f) {
+			return 2.6f;
+		}
+		if (z < 7.5f || z >= 16.5f) {
+			return 1.8f;
+		}
+		if (z < 9.6f || z >= 14.4f) {
+			return 1.0f;
+		}
+		return 0.6f;
+	}
+
+	/**
+	 * The press at {@code s} seconds into its cycle (-1: closed): the plates, the moving tail and the ram's rod, and the cakes standing
+	 * in their opened chambers or falling into the trough.
+	 */
+	private static void press(PoseStack.Pose p, VertexConsumer v, float s, boolean pressed, int light) {
+		float tail = 0;
+		float[] off = new float[PLATES];
+		if (s >= OPEN_AT) {
+			tail = OPEN * smooth((s - OPEN_AT) / TAIL_MOVE);
+			for (int k = 0; k < PLATES; k++) {
+				off[k] = OPEN * smooth((s - shiftAt(k)) / SHIFT_MOVE);
+			}
+		} else if (s >= 0 && s < TAIL_MOVE && pressed) {
+			// closing: the ram pushes the tail and the shifted plates back up to the head
+			tail = OPEN * (1 - smooth(s / TAIL_MOVE));
+			java.util.Arrays.fill(off, tail);
+		}
+		TextureAtlasSprite plate = mat("polymer"), blue = mat("blue"), steel = mat("steel");
+		for (int k = 0; k < PLATES; k++) {
+			float z = PLATE_Z0 + k * PLATE_PITCH + off[k];
+			box(p, v, plate, 1.75f, 4.1f, z, 4.25f, 5.8f, z + PLATE_T, light);
+			box(p, v, steel, 0.9f, 5.55f, z + 0.04f, 1.75f, 5.75f, z + PLATE_T - 0.04f, light);   // its arms on the side beams
+			box(p, v, steel, 4.25f, 5.55f, z + 0.04f, 5.1f, 5.75f, z + PLATE_T - 0.04f, light);
+		}
+		box(p, v, blue, 0.9f, 4.0f, TAIL_Z + tail, 5.1f, 5.9f, TAIL_Z + 0.8f + tail, light);
+		PoseStack rod = new PoseStack();
+		rod.last().pose().set(p.pose());
+		rod.last().normal().set(p.normal());
+		rod.translate(3.0f, 5.0f, 0);
+		cylinderZ(rod.last(), v, steel, TAIL_Z + 0.8f + tail, STAND_Z, 0.12f, 8, light);   // the ram's rod
+		if (s < OPEN_AT) {
+			return;
+		}
+		TextureAtlasSprite cake = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.fromNamespaceAndPath("tailings", "block/dry_tails"));
+		for (int k = 0; k <= PLATES; k++) {
+			// chamber k: between plate k-1 (or the head) and plate k (or the tail), opened as plate k (or the tail) moves off
+			float opened = k == PLATES ? OPEN_AT : shiftAt(k);
+			float t = s - opened;
+			if (t < 0 || t > CAKE_HANG + 1.2f) {
+				continue;
+			}
+			float z = k == 0 ? 2.05f : k == PLATES ? PLATE_Z0 + (PLATES - 1) * PLATE_PITCH + PLATE_T + 0.07f : PLATE_Z0 + k * PLATE_PITCH - 0.025f;
+			if (t < CAKE_HANG) {
+				box(p, v, cake, 1.95f, 4.15f, z - 0.04f, 4.05f, 5.75f, z + 0.04f, light);   // standing in its opened chamber
+				continue;
+			}
+			for (int j = 0; j < 5; j++) {
+				// as it falls it breaks into lumps, the lowest first, each tumbling a little out of the chamber's plane
+				float fall = Math.max(0, t - CAKE_HANG - 0.05f * (j % 3));
+				float drop = 4.9f * fall * fall;
+				float grow = Math.min(1, fall / 0.15f);
+				float half = 0.04f + 0.13f * grow * (0.7f + 0.6f * hash(k, j + 7));
+				float wide = 0.28f + 0.14f * hash(k, j + 13);
+				float x = 1.95f + wide + (2.1f - 2 * wide) * hash(k, j + 3);
+				float y0 = 4.15f + 0.3f * j - drop, y1 = y0 + 0.3f + 0.15f * hash(k, j + 21);
+				if (y0 < troughAt(z) + 0.2f) {
+					continue;
+				}
+				float dz = (OPEN / 2 + (hash(k, j + 31) - 0.5f) * 0.12f) * grow;   // into the middle of the opened gap
+				box(p, v, cake, x - wide, y0, z + dz - half, x + wide, y1, z + dz + half, light);
+			}
+		}
+	}
+
 	private static TextureAtlasSprite vanilla(String name) {
 		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/" + name));
 	}
@@ -402,6 +533,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			case "blue" -> "mat_paint_ansi70";
 			case "green" -> "mat_paint_pad_green";
 			case "brass" -> "mat_brass";
+			case "polymer" -> "mat_polymer_grey";
 			default -> "mat_stainless";
 		};
 		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.fromNamespaceAndPath("wildcatter", "block/mat/" + file));

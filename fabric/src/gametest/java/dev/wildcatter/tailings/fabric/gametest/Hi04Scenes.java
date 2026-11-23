@@ -121,6 +121,16 @@ final class Hi04Scenes {
 	private double engineKw;
 	private String lastStatus = "";
 	private String note = "";
+	/**
+	 * The press is sized for 60 t/h and the thickener works the plant's 50 t/h, so with no buffer a batch ends at 12.5 t. As a plant runs
+	 * a press bigger than its feed, the scene holds it (its selector to OFF) once it has closed after each drop, until the thickener's
+	 * cone holds its 20 t of underflow, then runs it again: every batch after that is a full 15 t cake.
+	 */
+	private boolean pressHeld;
+	private volatile int fullBatch = -1;
+	private int heldAfter = -1;
+	/** The thickener's cone: the underflow it holds for the press (DryStackStages.UNDERFLOW_HOLD). */
+	private static final double CONE_KG = 20_000;
 
 	private static final Mineral CU = Mineral.COPPER;
 	/** Copper in a kg of the fines slurry (as Rtm08Scenes.RICH); the tails carry the quarter flotation leaves. */
@@ -918,7 +928,8 @@ final class Hi04Scenes {
 		if (s1.out().held(Product.TAILS_SLURRY) < 400) {
 			s1.out().offer(Product.TAILS_SLURRY, 400 - s1.out().held(Product.TAILS_SLURRY), tails());   // as if from the flotation bank
 		}
-		solids(thick);   // the underflow's solids as last seen on the pipe, so the card has it from the first frame
+		solids(thick);   // the underflow's solids as last seen, so the card has it from the first frame
+		holdPress(level);
 		for (BlockPos at : tanks) {
 			if (level.getBlockEntity(at) instanceof DayTankBlockEntity tank) {
 				drained += tank.waterLevel() * 1000;
@@ -1028,10 +1039,35 @@ final class Hi04Scenes {
 		return st.length() > 30 ? st.substring(0, 30) : st;
 	}
 
+	/** Once a second: hold the press after it has closed from a drop until the thickener's cone is full, then run it (see pressHeld). */
+	private void holdPress(ServerLevel level) {
+		if (filter == null || thick == null) {
+			return;
+		}
+		if (pressHeld) {
+			if (thick.out().held(Product.TAILS_SLURRY) >= CONE_KG - 300) {
+				setHoa(filter, "HAND");
+				pressHeld = false;
+				fullBatch = filter.cycles();
+				log(String.format(Locale.ROOT, "press run again: the cone holds %.1f t of underflow", thick.out().held(Product.TAILS_SLURRY) / 1000));
+			}
+		} else if (filter.cycles() >= 1 && filter.cycles() > heldAfter && filter.cycle() / 20 >= 25 && filter.cycle() / 20 < 100) {
+			setHoa(filter, "OFF");
+			pressHeld = true;
+			heldAfter = filter.cycles();
+			log(String.format(Locale.ROOT, "press held after drop %d until the cone fills (%.1f t in it)", filter.cycles(), thick.out().held(Product.TAILS_SLURRY) / 1000));
+		}
+	}
+
 	private final Map<BlockPos, Double> lastSolids = new java.util.HashMap<>();
 
+	/**
+	 * The thickener's underflow solids, as marked on the thickened tails: on its outlet while the cone holds some, else in the press's
+	 * feed, the same slurry piped up to it. (The press draws the outlet empty as fast as it is made, and the thickener's own buffer is
+	 * its 35 % feed, so reading only the thickener read 0 %.)
+	 */
 	private double solids(PlantBlockEntity part) {
-		double now = Math.max(part.out().assayOf(Product.TAILS_SLURRY).get(DryStack.SOLIDS_KEY), part.back().assayOf(Product.TAILS_SLURRY).get(DryStack.SOLIDS_KEY)) * 100;
+		double now = Math.max(part.out().assayOf(Product.TAILS_SLURRY).get(DryStack.SOLIDS_KEY), filter == null ? 0 : filter.back().assayOf(Product.TAILS_SLURRY).get(DryStack.SOLIDS_KEY)) * 100;
 		if (now > 0) {
 			lastSolids.put(part.getBlockPos(), now);
 		}
@@ -1055,7 +1091,7 @@ final class Hi04Scenes {
 		int sec = (int) (filter.cycle() / 20);
 		List<String> l = new ArrayList<>(List.of("^TAILINGS FILTER · BATCH PRESS", rd(filter, "Filter press", "150 kW"),
 				String.format(Locale.ROOT, "  cycle %d:%02d of 15:00 (%s)", sec / 60, sec % 60, DryStack.phase(sec)), String.format(Locale.ROOT, "  in the press: %.1f t", filter.dryKg() / 1000),
-				"Cakes dropped: " + filter.cycles() + " (15 t each, 85 % solids)", String.format(Locale.ROOT, "Load-out bin under it: %.1f t (holds 400 t)", bin.dryKg() / 1000),
+				"Cakes dropped: " + filter.cycles() + " (up to 15 t each, 85 % solids)", String.format(Locale.ROOT, "Load-out bin under it: %.1f t (holds 400 t)", bin.dryKg() / 1000),
 				setLine(level, 0, "Diesel set")));
 		if (!note.isEmpty()) {
 			l.add(note);
@@ -1344,7 +1380,8 @@ final class Hi04Scenes {
 
 	/** hi04_dump: a slow turn over the dump from the air: the berm, the face and the new tip, the dozer, the ultra. */
 	private void dumpWideFilm() {
-		film("hi04_dump", 1200, orbitAround(o, 10, -4, 0, 70, 38, 200, 50, 1200), null);
+		// nearer and lower than the first take (70 m out, 38 m up), so the face, the talus and the berm on the crest read
+		film("hi04_dump", 1200, orbitAround(o, 14, -2, 4, 42, 12, 200, 40, 1200), null);
 	}
 
 	// ---- the dry stack's films ------------------------------------------------------------------------------------------------------
@@ -1361,11 +1398,18 @@ final class Hi04Scenes {
 		if (!wanted("hi04_press")) {
 			return;
 		}
-		// a full cycle (the first after start-up began with little feed): squeezing, after a cake has dropped
-		boolean ok = waitFor(24000, level -> filter.cycles() >= 1 && filter.cycle() / 20 >= 150 && filter.cycle() / 20 <= 260);
+		// a full batch (run again after the hold with the thickener's cone full), squeezing
+		boolean ok = waitFor(40000, level -> fullBatch >= 0 && filter.cycles() == fullBatch && !pressHeld && filter.cycle() / 20 >= 150 && filter.cycle() / 20 <= 260);
 		log("press squeezing a full batch: " + ok + ", " + filter.status());
 		showCard(true);
-		film("hi04_press", 1000, move(qcam(38, 22, 48, 18, 16, 61), qcam(40, 18, 72, 18, 15, 61), 1000), (level, k) -> card(pressCard(level)));
+		// above the press's floor, east of it, down its length from the fixed head to the moving tail
+		film("hi04_press", 1000, move(qcam(30, 25, 60, 20, 21.5, 64), qcam(31, 24.5, 76, 20, 21.5, 74), 1000), (level, k) -> {
+			if (k == PAD + 10) {
+				note = HELD;
+			}
+			card(pressCard(level));
+		});
+		note = "";
 		showCard(false);
 	}
 
@@ -1389,6 +1433,12 @@ final class Hi04Scenes {
 			return t != null && (t.getZ() - q.getZ() > 47 || t.status().startsWith("waiting to load") || t.status().startsWith("loading"));
 		});
 		log("truck at the lane's mouth: " + in);
+		// it creeps the last metres to the gate for over a minute (the first take's first 80 s): start the film about 8 s before it stops
+		boolean near = waitFor(1400, level -> {
+			HaulTruckEntity t = truck(level);
+			return t == null || t.status().startsWith("loading") || t.status().startsWith("waiting to load");
+		});
+		log("truck near the gate: " + near);
 		showCard(true);
 		int[] full = {-1};
 		film("hi04_loadout", 4000, move(qcam(36, 9, 44, 19, 3, 62), qcam(34, 8, 50, 19, 3, 62), 4000), (level, k) -> {
@@ -1503,19 +1553,23 @@ final class Hi04Scenes {
 		showCard(false);
 	}
 
+	private static final String HELD = "-Held by the scene till the thickener's cone is full";
+
 	/** hi04_drop: the end of a cycle in real time: the press opens and drops its cake into the bin. */
 	private void dropFilm() {
 		if (!wanted("hi04_drop")) {
 			return;   // it waits up to a whole press cycle for the drop
 		}
-		int startCycles = server.computeOnServer(srv -> filter.cycles());
-		boolean ok = waitFor(20000, level -> filter.cycles() > startCycles || filter.cycle() / 20 >= 875);
-		log("press near the end of its cycle: " + ok + ", " + filter.status());
+		// the last plates shifted at the head end, the drop, and the press closing (the hold comes 25 s into the next cycle)
+		boolean ok = waitFor(60000, level -> fullBatch >= 0 && filter.cycles() == fullBatch && !pressHeld && filter.cycle() / 20 >= 866);
+		log("press near the end of a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		int[] seen = {-1};
-		film("hi04_drop", 1000, move(qcam(36, 17, 54, 19.5, 14, 66), qcam(38, 14, 76, 19.5, 13, 66), 1000), (level, k) -> {
+		// from just south-east of the head at the plates' height, looking into the last chambers as they open (the head behind them)
+		film("hi04_drop", 1000, move(qcam(28, 23, 64, 20, 21.5, 61.2), qcam(27.5, 22.8, 62.8, 20, 21.4, 61.2), 1000), (level, k) -> {
 			if (seen[0] < 0) {
 				seen[0] = filter.cycles();
+				note = HELD;
 			}
 			if (filter.cycles() > seen[0] && !note.startsWith("+")) {
 				note = "+The cake dropped into the bin";
@@ -1529,6 +1583,8 @@ final class Hi04Scenes {
 
 	/** hi04_stackwide: from the air over the dry stack: the lift and its new edge, the dozer, the load-out and press, the thickener. */
 	private void stackWideFilm() {
-		film("hi04_stackwide", 1200, orbitAround(q, 20, 0, 10, 75, 40, 300, 50, 1200), null);
+		// from north of the lift's edge, low (the first take was 75 m out and 40 m up): the lift and its new strip in front, the dozer on
+		// it, the load-out, the press and the thickener beyond the road
+		film("hi04_stackwide", 1200, orbitAround(q, 19, 0, -28, 30, 9, 160, 45, 1200), null);
 	}
 }

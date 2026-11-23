@@ -541,6 +541,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	private long droppedAt = Long.MIN_VALUE / 2;
 	/** A game test's shorter press cycle (not saved). */
 	private int fast = 1;
+	/** On the client: a tailings filter's cycle length in ticks and the game time its cycle was last sent, for drawing its plates. */
+	private double cycleTicksSent = Double.NaN;
+	private double cycleSentAt = Double.NaN;
 	private Motor motor;
 	/** The second pinion's motor of a twin-pinion mill (sag-mill-line.md, P7b), its box on the west face 4 m south of the main cell; else null. */
 	private @Nullable Motor motor2;
@@ -634,6 +637,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			sounding = now;
 			moving = go;
 			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		} else if (machine() == Machine.TAILINGS_FILTER && (level.getGameTime() % 40 == 0 || level.getGameTime() == droppedAt)) {
+			// the press's place in its cycle, for the client's drawing of its plates (every 2 s, and at each drop)
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
 		} else if (machine() == Machine.XRT_SORTER && level.getGameTime() % 20 == 0 && Math.abs(xrtShareNow() - xrtShare) > 0.05f) {
 			xrtShare = xrtShareNow();
 			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
@@ -688,7 +694,28 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		if (machine() == Machine.XRT_SORTER) {
 			tag.putFloat("xrtShare", xrtShareNow());
 		}
+		if (machine() == Machine.TAILINGS_FILTER) {
+			tag.putDouble("cycle", cycle);
+			tag.putDouble("dry_kg", dryKg);
+			tag.putInt("cycles", cycles);
+			tag.putDouble("cycle_ticks", dev.wildcatter.tailings.pit.DryStack.CYCLE_SECONDS * 20.0 / fast);
+		}
 		return tag;
+	}
+
+	/**
+	 * On the client: a tailings filter's seconds into its 15-minute cycle at game time {@code now}, from what the server last sent, run
+	 * on while its motor runs with a batch in it (as the server's cycle runs); -1 before the server has sent one.
+	 */
+	public double pressSeconds(double now) {
+		if (Double.isNaN(cycleTicksSent) || cycleTicksSent <= 0) {
+			return -1;
+		}
+		double ticks = cycle;
+		if (moving && !Double.isNaN(cycleSentAt)) {
+			ticks += Math.max(0, Math.min(200, now - cycleSentAt));
+		}
+		return Math.min(1, ticks / cycleTicksSent) * dev.wildcatter.tailings.pit.DryStack.CYCLE_SECONDS;
 	}
 
 	/** An X-ray sorter's share of its rock sent to product so far (for the client's drawing of the pieces it ejects); half before any. */
@@ -1788,6 +1815,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		dryKg = input.getDoubleOr("dry_kg", 0);
 		cakeOut = input.getDoubleOr("cake_out", 0);
 		cycle = input.getDoubleOr("cycle", 0);
+		cycleTicksSent = input.getDoubleOr("cycle_ticks", Double.NaN);
+		cycleSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		waterOut = input.getDoubleOr("water_out", 0);
 		waterReturned = input.getDoubleOr("water_returned", 0);
 		cycles = input.getIntOr("cycles", 0);
