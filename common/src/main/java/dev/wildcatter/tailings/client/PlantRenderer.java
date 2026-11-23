@@ -76,6 +76,9 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		/** A raise borer's pilot bit and reamer face, metres below its base (NaN: not in the hole), and their light. */
 		float pilot = Float.NaN, reamer = Float.NaN;
 		int deepLight;
+		/** A measuring flask's fill (0 to 1) and its commonest rock's block (heavy-iron ep 7 fix). */
+		float flaskFill;
+		String flaskRock = "";
 	}
 
 	@Override
@@ -117,8 +120,18 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			state.pilot = (float) tools[0];
 			state.reamer = (float) tools[1];
 			state.light = lightAt(plant, state.turns, new int[] {2, 2, 3});
-			float deep = Float.isNaN(state.reamer) ? state.pilot : state.reamer + 1.5f;
+			// lit as the open cell under the bit (the drive, as it breaks through) or under the reamer, not the rock round the string
+			float deep = Float.isNaN(state.reamer) ? state.pilot + 1 : state.reamer + 1.5f;
 			state.deepLight = Float.isNaN(deep) ? state.light : lightAt(plant, state.turns, new int[] {2, -(int) Math.ceil(deep), 3});
+			return;
+		}
+		if (machine == Machine.MEASURING_FLASK) {
+			state.machine = machine;
+			state.turns = BigParts.turns(plant.getBlockState());
+			state.flaskFill = plant.flaskFill();
+			state.flaskRock = plant.flaskRock();
+			state.light = plant.getLevel() == null ? state.lightCoords
+					: Math.max(lightAt(plant, state.turns, new int[] {-1, 1, 0}), Math.max(lightAt(plant, state.turns, new int[] {2, 1, 1}), lightAt(plant, state.turns, new int[] {1, 1, 2})));
 			return;
 		}
 		float rpm = PlantMotion.rpm(machine);
@@ -208,6 +221,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		int light = state.light;
 		float rope0 = state.rope0, rope1 = state.rope1, pilot = state.pilot, reamer = state.reamer;
 		int deepLight = state.deepLight;
+		float flaskFill = state.flaskFill;
+		String flaskRock = state.flaskRock;
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (p, v) -> {
 			PoseStack at = new PoseStack();
 			at.last().pose().set(p.pose());
@@ -232,6 +247,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case VENT_FAN -> impeller(at, v, angle, 1.5f, 1.5f, 0.75f, 0.85f, 8, 0.3f, light);
 					case BOOSTER_FAN -> impeller(at, v, angle, 1.0f, 1.0f, 0.38f, 0.65f, 6, 0.24f, light);
 					case RAISE_BORER -> raiseTools(at, v, angle, pilot, reamer, light, deepLight);
+					case MEASURING_FLASK -> flask(at.last(), v, flaskFill, flaskRock, light);
 				default -> {
 				}
 			}
@@ -704,7 +720,22 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			box(p.last(), v, iron, -0.15f, -pilot - 0.05f, -0.15f, 0.15f, -pilot + 0.35f, 0.15f, deepLight);
 			return;
 		}
-		// the reamer head under its cutting face: a body, a round plate 4.8 m across, and its cutters in rows on top, turning
+		// the reamer head under its cutting face: a body, a round plate 4.8 m across, and its cutters in rows on top, turning. Seen
+		// from the drive under it, so its underside is lit as if from below (lit for the camera, as the raise is), and three yellow
+		// arms under the plate show it turning (heavy-iron ep 7 fix: from below it read as a dim disc)
+		UNDERLIT = true;
+		try {
+			reamer(p, v, reamer, steel, iron, paint, deepLight);
+		} finally {
+			UNDERLIT = false;
+		}
+	}
+
+	/** Downward faces lit as if they faced up: a part seen only from below (the reamer from the drive). Render thread only. */
+	private static boolean UNDERLIT;
+
+	private static void reamer(PoseStack p, VertexConsumer v, float reamer, TextureAtlasSprite steel, TextureAtlasSprite iron, TextureAtlasSprite paint, int deepLight) {
+		TextureAtlasSprite yellow = vanilla("yellow_concrete");
 		float face = -reamer;
 		box(p.last(), v, paint, -0.6f, face - 1.4f, -0.6f, 0.6f, face - 0.3f, 0.6f, deepLight);
 		for (int k = 0; k < 4; k++) {
@@ -723,7 +754,75 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			for (float r = 0.4f + (k % 2) * 0.5f; r < 2.3f; r += 1.0f) {
 				box(q.last(), v, iron, r - 0.18f, face - 0.2f, -0.13f, r + 0.18f, face, 0.13f, deepLight);
 			}
+			// the gauge cutters round the rim, standing out past the plate's edge
+			box(q.last(), v, steel, 2.3f, face - 0.4f, -0.16f, 2.48f, face, 0.16f, deepLight);
 		}
+		// the stabiliser arms under the plate, out from the body to the rim: three, so the turn reads
+		for (int k = 0; k < 3; k++) {
+			PoseStack q = new PoseStack();
+			q.last().pose().set(p.last().pose());
+			q.last().normal().set(p.last().normal());
+			q.rotateDegrees(Axis.YP, k * 120f);
+			box(q.last(), v, yellow, 0.55f, face - 0.75f, -0.16f, 2.3f, face - 0.45f, 0.16f, deepLight);
+		}
+		// the stem's nut under the body, yellow on one side
+		box(p.last(), v, iron, -0.35f, face - 1.7f, -0.35f, 0.35f, face - 1.4f, 0.35f, deepLight);
+		box(p.last(), v, yellow, 0.35f, face - 1.7f, -0.12f, 0.6f, face - 1.4f, 0.12f, deepLight);
+	}
+
+	/** Where a measuring flask's body is in its frame (shaft.py: x and z 0.15 to 1.85, y 1.2 to 2.6), and its sight windows. */
+	private static final float FLASK_LO = 0.15f, FLASK_HI = 1.85f, WIN_Y0 = 1.3f, WIN_Y1 = 2.5f, WIN_A = 0.45f, WIN_B = 1.55f;
+
+	/**
+	 * A measuring flask's sight windows (heavy-iron ep 7 fix: its fill showed only on the readout): on its west, east and south faces
+	 * (the north one carries its load cell readout), a dark window with the flask's rock risen to its fill, a yellow mark at its 3 t.
+	 */
+	private static void flask(PoseStack.Pose p, VertexConsumer v, float fill, String rockId, int light) {
+		TextureAtlasSprite dark = vanilla("black_concrete"), yellow = vanilla("yellow_concrete"), frame = mat("iron"), rock = blockSprite(rockId);
+		float top = WIN_Y0 + (WIN_Y1 - WIN_Y0) * Math.max(0, Math.min(1, fill));
+		for (int side = 0; side < 3; side++) {
+			// each window as boxes standing proud of the face: d0 the face, out the way out
+			for (float[] layer : new float[][] {{0.005f, 0}, {0.012f, 1}, {0.03f, 2}}) {
+				float d = layer[0];
+				int what = (int) layer[1];
+				if (what == 1 && fill <= 0.005f) {
+					continue;
+				}
+				float y0 = what == 2 ? WIN_Y0 - 0.06f : WIN_Y0, y1 = what == 0 ? WIN_Y1 : what == 1 ? top : WIN_Y1 + 0.06f;
+				if (what == 2) {
+					// the frame: four bars, and the yellow 3 t mark across the top
+					flaskBox(p, v, frame, side, WIN_A - 0.06f, WIN_A, y0, y1, d, light);
+					flaskBox(p, v, frame, side, WIN_B, WIN_B + 0.06f, y0, y1, d, light);
+					flaskBox(p, v, frame, side, WIN_A, WIN_B, y0, WIN_Y0, d, light);
+					flaskBox(p, v, yellow, side, WIN_A, WIN_B, WIN_Y1 - 0.03f, WIN_Y1 + 0.06f, d, light);
+				} else {
+					flaskBox(p, v, what == 0 ? dark : rock, side, WIN_A, WIN_B, y0, y1, d, light);
+				}
+			}
+		}
+	}
+
+	/** A thin box on one face of the flask (0 west, 1 east, 2 south), across {@code a} to {@code b}, standing {@code out} proud of it. */
+	private static void flaskBox(PoseStack.Pose p, VertexConsumer v, TextureAtlasSprite s, int side, float a, float b, float y0, float y1, float out, int light) {
+		float t = 0.004f;
+		switch (side) {
+			case 0 -> box(p, v, s, FLASK_LO - out - t, y0, a, FLASK_LO - out, y1, b, light);
+			case 1 -> box(p, v, s, FLASK_HI + out, y0, a, FLASK_HI + out + t, y1, b, light);
+			default -> box(p, v, s, a, y0, FLASK_HI + out, b, y1, FLASK_HI + out + t, light);
+		}
+	}
+
+	/** A block's own texture by its id, or cobblestone. */
+	private static TextureAtlasSprite blockSprite(String blockId) {
+		Identifier id = blockId == null || blockId.isEmpty() ? null : Identifier.tryParse(blockId);
+		var atlas = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS);
+		if (id != null) {
+			TextureAtlasSprite s = atlas.getSprite(Identifier.fromNamespaceAndPath(id.getNamespace(), "block/" + id.getPath()));
+			if (!s.contents().name().getPath().equals("missingno")) {
+				return s;
+			}
+		}
+		return atlas.getSprite(Identifier.withDefaultNamespace("block/cobblestone"));
 	}
 
 	private static TextureAtlasSprite vanilla(String name) {
@@ -806,6 +905,9 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		if (n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0) {
 			q = new float[][] {a, d, c, b};
 			n = new float[] {-n[0], -n[1], -n[2]};
+		}
+		if (UNDERLIT && n[1] < 0) {
+			n = new float[] {0, len, 0};
 		}
 		float la = Math.min(1, norm(sub(q[1], q[0]))), lb = Math.min(1, norm(sub(q[3], q[0])));
 		float[][] uv = {{0, 0}, {la, 0}, {la, lb}, {0, lb}};

@@ -546,6 +546,14 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	/** On the client: when the raise borer's progress was last sent, and its speed-up then (films-hi07). */
 	private double raiseSentAt = Double.NaN;
 	private int raiseFast = 1;
+	/** On the client: the reamer's face as last drawn, m below the base, and the game time then (eased up to each new layer). */
+	private double reamDrawn = Double.NaN, reamDrawnAt = Double.NaN;
+	/** A measuring flask's fill (0 to 1) and its commonest rock's block, as last sent to the client (films-hi07 fix). */
+	private float flaskFill;
+	private String flaskRock = "";
+	/** On the server: the fill step and rock last sent. */
+	private int flaskStepSent = -1;
+	private String flaskRockSent = "";
 	private double cycleSentAt = Double.NaN;
 	private Motor motor;
 	/** The second pinion's motor of a twin-pinion mill (sag-mill-line.md, P7b), its box on the west face 4 m south of the main cell; else null. */
@@ -702,6 +710,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			tag.putString("raise", raise.save());
 			tag.putInt("raise_fast", fast);
 		}
+		if (machine() == Machine.MEASURING_FLASK) {
+			// the flask's fill drawn in its sight windows (heavy-iron ep 7 fix)
+			tag.putFloat("flask_fill", (float) Math.min(1, hold.total() / dev.wildcatter.tailings.shaft.Hoisting.FLASK_KG));
+			tag.putString("flask_rock", flaskRockNow());
+		}
 		if (machine() == Machine.TAILINGS_FILTER) {
 			tag.putDouble("cycle", cycle);
 			tag.putDouble("dry_kg", dryKg);
@@ -720,9 +733,57 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		double run = moving && !Double.isNaN(raiseSentAt) ? Math.max(0, Math.min(200, now - raiseSentAt)) / 20.0 * raiseFast : 0;
 		return switch (p.phase()) {
 			case PILOT -> new double[] {p.pilot() + Math.min(1, (p.into() + run) / dev.wildcatter.tailings.shaft.RaiseBoring.PILOT_SECONDS_PER_M), Double.NaN};
-			case REAM -> new double[] {Double.NaN, p.drive() - 1 - p.reamed() - Math.min(1, (p.into() + run) / dev.wildcatter.tailings.shaft.RaiseBoring.REAM_SECONDS_PER_M)};
+			case REAM -> {
+				// the layer being cut stands until its metre is done, so the reamer is drawn tight under it, its cutters biting a little
+				// way in as the metre goes, and pulled up to the next layer over about half a second when the layer comes away
+				double into = Math.min(1, (p.into() + run) / dev.wildcatter.tailings.shaft.RaiseBoring.REAM_SECONDS_PER_M);
+				double want = p.drive() - 1 - p.reamed() - REAM_BITE * into;
+				if (Double.isNaN(reamDrawn) || Math.abs(want - reamDrawn) > 3 || Double.isNaN(reamDrawnAt)) {
+					reamDrawn = want;
+				} else {
+					double step = REAM_PULL_M_PER_TICK * Math.max(0, Math.min(20, now - reamDrawnAt));
+					reamDrawn = want < reamDrawn ? Math.max(want, reamDrawn - step) : want;
+				}
+				reamDrawnAt = now;
+				yield new double[] {Double.NaN, reamDrawn};
+			}
 			default -> new double[] {Double.NaN, Double.NaN};
 		};
+	}
+
+	/** How far the reamer's cutters are drawn into the layer they cut by the end of its metre, m (its plate stays under the rock). */
+	private static final double REAM_BITE = 0.18;
+	/** How fast the reamer is drawn pulled up to the next layer, m a tick. */
+	private static final double REAM_PULL_M_PER_TICK = 0.1;
+
+	/** On the client: a measuring flask's fill, 0 to 1, as last sent. */
+	public float flaskFill() {
+		return flaskFill;
+	}
+
+	/** On the client: the block of the commonest rock in a measuring flask, as last sent ("" for none). */
+	public String flaskRock() {
+		return flaskRock;
+	}
+
+	/** The block id of the rock the flask holds most of, or "". */
+	private String flaskRockNow() {
+		dev.wildcatter.tailings.rock.Rock main = hold.main();
+		return main == null ? "" : dev.wildcatter.tailings.block.Feeds.blockId(main);
+	}
+
+	/** On the server: tells the client a measuring flask's fill when it moves a 24th, or its rock changes (heavy-iron ep 7 fix). */
+	public void showFlask() {
+		if (level == null || level.isClientSide()) {
+			return;
+		}
+		int step = (int) Math.round(Math.min(1, hold.total() / dev.wildcatter.tailings.shaft.Hoisting.FLASK_KG) * 24);
+		String rock = flaskRockNow();
+		if (step != flaskStepSent || !rock.equals(flaskRockSent)) {
+			flaskStepSent = step;
+			flaskRockSent = rock;
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		}
 	}
 
 	/**
@@ -1840,6 +1901,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		cycleTicksSent = input.getDoubleOr("cycle_ticks", Double.NaN);
 		cycleSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		raiseFast = Math.max(1, input.getIntOr("raise_fast", 1));
+		flaskFill = input.getFloatOr("flask_fill", 0f);
+		flaskRock = input.getStringOr("flask_rock", "");
 		raiseSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		waterOut = input.getDoubleOr("water_out", 0);
 		waterReturned = input.getDoubleOr("water_returned", 0);

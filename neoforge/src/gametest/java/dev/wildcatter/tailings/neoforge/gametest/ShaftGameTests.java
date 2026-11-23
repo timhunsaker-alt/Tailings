@@ -277,6 +277,10 @@ final class ShaftGameTests {
 				}
 			}
 			helper.assertTrue(cobble == 25 * 18, Component.literal("its cuttings in the drive: " + cobble + " cobblestone"));
+			// each layer's rock falls from where it was cut, down the raise (heavy-iron ep 7 fix): none is left hanging in it
+			helper.assertTrue(helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+					new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(0, driveY + 2, 1))).expandTowards(5, 17, 5)).isEmpty(),
+					Component.literal("its cuttings all fallen into the drive"));
 		});
 	}
 
@@ -327,6 +331,10 @@ final class ShaftGameTests {
 			helper.assertTrue(flask.hold().total() >= Hoisting.FLASK_KG - 1e-6, Component.literal("the flask measures 3 t, holds " + flask.hold().total() + " (" + feeder.status() + ")"));
 			helper.assertTrue(flask.hold().kg(Rock.GRANITE, null) > 0, Component.literal("of the car's granite"));
 			helper.assertTrue(pocket.pocket() + pocket.oversize() < 8, Component.literal("drawn from the pocket"));
+			// the client is told its fill and rock, for the sight windows drawn on it (heavy-iron ep 7 fix)
+			var tag = flask.getUpdateTag(helper.getLevel().registryAccess());
+			helper.assertTrue(Math.abs(tag.getFloatOr("flask_fill", 0f) - 1f) < 1e-3, Component.literal("the client is told it is full: " + tag));
+			helper.assertTrue(tag.getStringOr("flask_rock", "").equals("minecraft:granite"), Component.literal("and that it holds granite: " + tag));
 		});
 	}
 

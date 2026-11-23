@@ -71,8 +71,8 @@ Decided while Tim was away, on the best recommendation; each is open for review.
    headframe; the flask's call looked the whole shaft). Both now look down the whole shaft, 200 m. `shaft_cage_button` runs at 60 m.
 
 ## Weak on camera, left as is
-- The ream from below is a dark disc rising up a lit shaft; a section of the raise is not possible (the ream grouts any open cell round it).
-- The flask is a block model: its 3 t shows on the card, not in the flask.
+- The ream from below is a dark disc rising up a lit shaft; a section of the raise is not possible (the ream grouts any open cell round it). *(2026-11-23: the reamer was drawn inside the rock; fixed, "Fixed after release" 3.)*
+- The flask is a block model: its 3 t shows on the card, not in the flask. *(2026-11-23: sight windows drawn, "Fixed after release" 2.)*
 - The cage moves with the skips standing, so no drum turns for it.
 
 ## Needs Tim
@@ -86,3 +86,57 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 ## Tests
 `build` passes. The full NeoForge suite on this branch (all the fixes above in, and the new `shaft_cage_button`): all 307 required
 tests passed. The client scenes (TAILINGS_ONLY=hi07) ran six times; films kept from runs 3 to 6 (`videos/footage/films-hi07/NOTES.md`).
+
+
+## Fixed after release (2026-11-23)
+Branch `fix-weak-spots-hi07` (off main 07a459a0). Tim: "Let's keep fixing weak spots as we find them." Decided on the best
+recommendation while Tim was away; each is open for review. Seven films re-filmed in one client run (fix run, every film real time
+except the ream at 20x, as before) and episode 7 rebuilt in English and Spanish with the narration unchanged. Footage notes:
+`videos/footage/films-hi07/NOTES.md` ("Fix run").
+
+1. **The pilot rod could not be seen going into the ground.** `Hi07Scenes.pilotFilm` now cuts the rock away east of the hole for the
+   camera (a trench 3 m wide and 9 m deep, open to the pilot's column; the pad kept under the baseplate) and puts it back after the
+   film; the camera comes down from the rig into the cut, where the drill string, its tool joints and the bit are seen going down a
+   metre in 10 s. Labelled "Rock cut away". The pilot's string is now lit as the open cell under its bit, not the rock round it, so it
+   reads in the cut and as it breaks into the drive (`PlantRenderer`).
+2. **The flask's fill showed only on the card.** The measuring flask now has sight windows on its west, east and south faces (the
+   north carries its load cell readout), drawn with its rock risen to its fill and a yellow mark at its 3 t (`PlantRenderer.flask`).
+   The flask sends its fill and commonest rock to the client when it moves a 24th (`PlantBlockEntity.showFlask`, update tag
+   `flask_fill`, `flask_rock`). On camera it empties into the skip at 22 s and fills again over 8 s. NeoForge `shaft_flask_feed` now
+   checks the client is told it is full of granite.
+3. **The ream from below was a dim disc, and mostly not even that.** The reamer was drawn rising through the layer it cuts, and the
+   game takes that layer away only when its metre is done, so for most of each metre the plate was inside the rock and only its body
+   showed. It is now drawn tight under the standing layer, its cutters biting 0.18 m in as the metre goes, and pulled up to the next
+   layer over half a second when the layer comes away (`PlantBlockEntity.raiseTools`). Seen from the drive, its underside is lit as if
+   from below (lit for the camera), with three yellow stabiliser arms that show it turning, gauge cutters round its rim, and chips
+   falling from the rim while it cuts (drawn only). **One rule change, small:** each reamed layer's rock now falls from where it was
+   cut, down the raise into the drive, rather than being put on the drive's floor (`Shaft.ream`); the same items land in the same
+   drive. NeoForge `shaft_raise_bore` now also checks none of it is left in the raise. At breakthrough the roof's rock is seen to fall
+   round the bit (particles only).
+4. **The first raise borer shot carried the whole readout over the sky for 6 s.** It is now cropped clear of the card for its whole
+   length (the 300 mm is the paragraph's figure on screen); every other evidence shot is 3 s of full frame, then the crop
+   (`ep07/tools/shots.py` CARD): the ream, the fan, the face, the train, the flask and the wind.
+5. **The shots up the raise and the shaft read dim.** Lights in all four corners of the raise every 3 m (were two corners every 4 m);
+   the break filmed closer under the spot; the wind ridden 6.5 m from the skip (was 11 m), so it fills more of the grey section.
+6. **The 4 m/s figure covered the cage.** The ride is filmed 6 m from the cage with it right of centre, and the cage shots are cropped
+   from the right (x 0.3 to 0.97), so the figure, which always sits left of centre, has the left third to itself. The riding camera
+   lags the cage as it starts down, so paragraph 26 cuts from the collar (1-8 s) to the cage mid-shaft (18 s on), where the figure
+   comes up; paragraph 27 (the call button and the bell) is now the collar's call film from its start, and paragraph 28 the ride
+   from 31 s to the bottom.
+7. **The Spanish cut showed the English readouts (fan, shaft bottom) in full for 5-7 s.** With the evidence at 3 s they are brief, as
+   the episode's description says ("Las lecturas del juego se muestran en inglés"). Game text not translated.
+8. **The flask shots re-cut to the window:** paragraph 18 now ends on the flask filling (23.5 s on), paragraph 19 shows it full,
+   emptying into the skip at 22 s and starting to fill.
+9. **Length unchanged** (the narration is unchanged; no new voice).
+
+### Needs Tim (unchanged)
+- The 120 m shaft (150 m would not fit under a yard at y 78), the ream at a metre a minute (about 120 times a real 5.5 m reamer), and
+  the cage riding on the hoist's second rope with no drum of its own: game rules, not film fixes.
+
+### Still weak on camera
+- The break: the 300 mm bit is small in a 4 m drive even from closer; it reads by the reamer appearing and the roof's rock falling.
+- The pilot cut shows only the first 4 m of the 112 m pilot (35 s at the game's rate).
+- The shaft section is a big grey wall; the skip and the cage are small in it on a phone even ridden closer.
+
+### Tests
+`build` passes; the full NeoForge suite on this branch (the flask sync, the reamer drawing and the falling cuttings in): all 307 required tests passed, first run. `shaft_flask_feed` and `shaft_raise_bore` gained the checks above.

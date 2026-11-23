@@ -351,9 +351,21 @@ public final class Shaft {
 					net.minecraft.core.BlockPos collar = at(part, CENTRE_X, 0, CENTRE_Z);
 					level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,
 							level.getBlockState(at(part, CENTRE_X, -p.pilot(), CENTRE_Z))), collar.getX() + 0.5, collar.getY() + 0.2, collar.getZ() + 0.5, 12, 0.3, 0.1, 0.3, 0.05);
+					if (p.phase() != dev.wildcatter.tailings.shaft.RaiseBoring.Phase.PILOT) {
+						// broken through: the roof's rock round the bit falls into the drive (drawn only)
+						net.minecraft.core.BlockPos roof = at(part, CENTRE_X, -p.drive() + 1, CENTRE_Z);
+						level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,
+								level.getBlockState(roof)), roof.getX() + 0.5, roof.getY() - 0.1, roof.getZ() + 0.5, 60, 0.4, 0.1, 0.4, 0.1);
+					}
 				} else {
 					ream(level, part, p);
 				}
+			}
+			if (p.phase() == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.REAM && level.getGameTime() % 4 == 0) {
+				// chips off the cutters, falling from under the reamer's rim as it cuts (drawn only: the layer's rock comes away whole)
+				net.minecraft.core.BlockPos face = at(part, CENTRE_X, -p.drive() + p.reamed() + 1, CENTRE_Z);
+				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,
+						level.getBlockState(face)), face.getX() + 0.5, face.getY() - 0.6, face.getZ() + 0.5, 8, 1.6, 0.1, 1.6, 0.05);
 			}
 			part.setChanged();
 			part.say(p.readout());
@@ -363,7 +375,6 @@ public final class Shaft {
 	/** One reamed layer: its rock falls into the drive as items; open or flooded cells round it grouted. */
 	private static void ream(ServerLevel level, PlantBlockEntity part, dev.wildcatter.tailings.shaft.RaiseBoring.Progress p) {
 		int y = -p.drive() + p.reamed();
-		net.minecraft.core.BlockPos floor = at(part, CENTRE_X, -p.drive(), CENTRE_Z);
 		var random = level.getRandom();
 		for (int x = SHAFT_X - 1; x <= SHAFT_X + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT; x++) {
 			for (int z = SHAFT_Z - 1; z <= SHAFT_Z + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT; z++) {
@@ -380,8 +391,9 @@ public final class Shaft {
 					continue;
 				}
 				for (net.minecraft.world.item.ItemStack drop : net.minecraft.world.level.block.Block.getDrops(s, level, pos, null)) {
+					// the layer's rock falls from where it was cut, down the raise into the drive (heavy-iron ep 7 fix: it was put on the floor)
 					net.minecraft.world.entity.item.ItemEntity item = new net.minecraft.world.entity.item.ItemEntity(level,
-							floor.getX() + 0.5 + (random.nextDouble() - 0.5) * 4, floor.getY() + 0.3, floor.getZ() + 0.5 + (random.nextDouble() - 0.5) * 4, drop);
+							pos.getX() + 0.2 + random.nextDouble() * 0.6, pos.getY() + 0.1, pos.getZ() + 0.2 + random.nextDouble() * 0.6, drop);
 					level.addFreshEntity(item);
 				}
 				level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
@@ -406,6 +418,7 @@ public final class Shaft {
 				part.hold().add(part.made().take(Math.min(room, Hoisting.FLASK_FILL_KG_PER_SECOND * DT)));
 				part.setChanged();
 			}
+			part.showFlask();
 			if (part.hold().total() >= Hoisting.FLASK_KG - 1e-6) {
 				part.say("FULL: 3 t measured for the next skip");
 			} else if (part.made().isEmpty()) {

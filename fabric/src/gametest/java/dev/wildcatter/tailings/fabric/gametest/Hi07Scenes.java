@@ -487,10 +487,12 @@ final class Hi07Scenes {
 			// the drive north of the section, 4 m wide and 5 m high over its bed, to the face
 			fill(level, Blocks.AIR, -2, 1, b + 4, b + 8, FACE_Z, SZ0 - 1);
 			fill(level, Blocks.STONE, -2, 1, b + 3, b + 3, FACE_Z, SZ0 - 1);
-			// lit for the camera: lights up the raise's line in its far corner (the reamer leaves them: they cannot be broken), and in the drive's crown
-			for (int y = -4; y > b + 8; y -= 4) {
-				level.setBlock(d(2, y, RAISE_Z + 2), Blocks.LIGHT.defaultBlockState(), Block.UPDATE_ALL);
-				level.setBlock(d(-2, y - 2, RAISE_Z + 2), Blocks.LIGHT.defaultBlockState(), Block.UPDATE_ALL);
+			// lit for the camera: lights up the raise's four corners every 3 m (the reamer leaves them: they cannot be broken); the fix
+			// for episode 7 doubled them from two corners every 4 m, as the shots up the raise read dim
+			for (int y = -4; y > b + 8; y -= 3) {
+				for (int[] k : new int[][] {{2, 2}, {-2, 2}, {2, -2}, {-2, -2}}) {
+					level.setBlock(d(k[0], y, RAISE_Z + k[1]), Blocks.LIGHT.defaultBlockState(), Block.UPDATE_ALL);
+				}
 			}
 			// lit for the camera: lights in the drive's crown
 			for (int z = FACE_Z; z < SZ0; z += 3) {
@@ -828,10 +830,35 @@ final class Hi07Scenes {
 		showCard(true);
 		require(waitFor(600, level -> borer(level).raise().phase() == RaiseBoring.Phase.PILOT && borer(level).running()), "the borer drilling: "
 				+ server.computeOnServer(srv -> borer(srv.overworld()).status()));
-		// from the east, across the guide columns to the drive head and the rod going down the hole
-		Cam a = Cam.of(c, 6.5, 4.2, -61.5, 0.5, 2.4, -62.5);
-		Cam b = Cam.of(c, 4.2, 2.4, -63.8, 0.5, 1.0, -62.5);
-		film("hi07_pilot", 700, move(a, b, 700), null);
+		// the rock cut away east of the hole for the camera (heavy-iron ep 7 fix: the rod could not be seen going in): a trench 3 m wide
+		// and 9 m deep from the pad's east edge, open to the pilot's column, so the string and the bit show going down; put back after
+		java.util.Map<BlockPos, BlockState> cut = new java.util.LinkedHashMap<>();
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = 0; x <= 5; x++) {
+				for (int z = RAISE_Z - 1; z <= RAISE_Z + 1; z++) {
+					if (x == 0 && z != RAISE_Z) {
+						continue;
+					}
+					// the pad stays under the baseplate (x 1 and west at y -1); the trench is open to the sky east of it
+					for (int y = x <= 1 ? -2 : -1; y >= -9; y--) {
+						BlockPos p = d(x, y, z);
+						cut.put(p, level.getBlockState(p));
+						level.setBlock(p, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+					}
+				}
+			}
+			log("rock cut away beside the pilot: " + cut.size() + " cells; " + borer(level).status());
+		});
+		// from the east over the trench, wide on the rig and down into the cut: the drill string and its bit going down
+		Cam a = Cam.of(c, 10.0, 6.0, -57.0, 0.5, -0.5, -63.0);
+		Cam b = Cam.of(c, 6.6, 0.8, -61.2, 0.5, -3.2, -63.0);
+		film("hi07_pilot", 700, move(a, b, 560), null);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			cut.forEach((p, st) -> level.setBlock(p, st, Block.UPDATE_ALL));
+			log("the rock put back beside the pilot");
+		});
 	}
 
 	/** hi07_break: from the drive under it, the pilot bit breaking through its roof (its last 2 m at the game's rate). */
@@ -847,8 +874,9 @@ final class Hi07Scenes {
 			log("pilot " + borer(srv.overworld()).raise().pilot() + " of " + k + " m, into the drive's roof next");
 		});
 		int b = bot();
-		Cam a = Cam.of(c, -1.2, b + 5.6, RAISE_Z + 7.5, 0.3, b + 9.5, RAISE_Z + 0.5);
-		Cam e = Cam.of(c, -1.0, b + 5.4, RAISE_Z + 6.5, 0.3, b + 9.0, RAISE_Z + 0.5);
+		// closer under the spot it breaks through (heavy-iron ep 7 fix: the bit was a dot far down the drive)
+		Cam a = Cam.of(c, -1.4, b + 5.4, RAISE_Z + 4.6, 0.5, b + 9.0, RAISE_Z + 0.5);
+		Cam e = Cam.of(c, -1.2, b + 5.2, RAISE_Z + 3.6, 0.5, b + 8.8, RAISE_Z + 0.5);
 		boolean[] flag = {false};
 		film("hi07_break", 560, move(a, e, 560), (level, t) -> {
 			if (borer(level).raise().phase() == RaiseBoring.Phase.REAM && !flag[0]) {
@@ -864,8 +892,8 @@ final class Hi07Scenes {
 		int b = bot();
 		mode = "borer";
 		// under the raise, looking up it: the reamer's underside rising, the cuttings falling past
-		Cam a = Cam.of(c, 0.3, b + 5.0, RAISE_Z + 3.2, 0.5, b + 30, RAISE_Z + 0.3);
-		Cam e = Cam.of(c, 0.4, b + 5.4, RAISE_Z + 2.6, 0.5, b + 40, RAISE_Z + 0.4);
+		Cam a = Cam.of(c, 0.0, b + 4.8, RAISE_Z + 3.4, 0.5, b + 24, RAISE_Z + 0.0);
+		Cam e = Cam.of(c, 0.2, b + 5.2, RAISE_Z + 2.8, 0.5, b + 34, RAISE_Z + 0.2);
 		film("hi07_ream", 800, move(a, e, 800), (level, t) -> {
 			if (t % 200 == 0) {
 				event(borer(level).status());
@@ -998,8 +1026,9 @@ final class Hi07Scenes {
 	private void flaskFilm() {
 		mode = "flask";
 		int b = bot();
-		Cam a = Cam.of(c, -6.5, b + 3.2, 10.5, 0.5, b + 1.6, 4.5);
-		Cam e = Cam.of(c, -5.0, b + 4.6, 9.0, 1.5, b + 3.0, 4.0);
+		// close on the flask's west face, its sight window filling (heavy-iron ep 7 fix: it showed only on the card), the feeder over it
+		Cam a = Cam.of(c, -4.6, b + 3.4, 8.6, 0.2, b + 2.0, 3.6);
+		Cam e = Cam.of(c, -3.4, b + 2.8, 7.4, 0.2, b + 1.9, 4.2);
 		boolean[] flag = {false};
 		film("hi07_flask", 900, move(a, e, 900), (level, t) -> {
 			Winder w = hoist(level).winder();
@@ -1030,7 +1059,8 @@ final class Hi07Scenes {
 		double z = followSkip == 0 ? 3.5 : 3.5;
 		double sx = followSkip == 0 ? 2.5 : 5.5;
 		long[] wound = {-1};
-		film("hi07_wind", 1000, riding(-11, z + 1.0, 2.5, sx, z, 1.8, bot() + 2, 22), (level, t) -> {
+		// nearer the skip than the first take's 11 m out in the section (heavy-iron ep 7 fix: the skip read small on the grey wall)
+		film("hi07_wind", 1000, riding(-6.5, z + 1.0, 2.0, sx, z, 1.8, bot() + 2, 22), (level, t) -> {
 			Winder w = hoist(level).winder();
 			if (w.winding() && wound[0] < 0) {
 				wound[0] = t;
@@ -1125,7 +1155,10 @@ final class Hi07Scenes {
 		server.runOnServer(srv -> track(srv.overworld()));
 		// the button pressed in the skips' rest, as they stand (a call waits for the wind in hand to end)
 		atRestEnd();
-		film("hi07_ride", 1000, riding(-4.5, 9.0, 1.6, 3.5, 5.5, 1.4, bot() + 2, 12), (level, t) -> {
+		// the cage right of the frame's centre, the left clear for the episode's figure (heavy-iron ep 7 fix: the card covered it)
+		double[] at = server.computeOnServer(srv -> new double[] {cage(srv.overworld()).getX() - c.getX(), cage(srv.overworld()).getZ() - c.getZ()});
+		log(String.format(Locale.ROOT, "the cage at x %.1f, z %.1f from the headframe", at[0], at[1]));
+		film("hi07_ride", 1000, riding(Math.min(-2.0, at[0] - 6.0), at[1] + 1.2, 1.6, at[0], at[1] - 2.4, 1.4, bot() + 2, 12), (level, t) -> {
 			if (t == PAD + 10) {
 				press(level, d(-1, bot() + 1, 6));
 				event("the bottom landing's button pressed: " + hoist(level).status());
