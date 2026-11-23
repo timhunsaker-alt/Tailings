@@ -16,17 +16,19 @@ import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 
 /**
- * Draws the running machine, every part's cells where they stand in it; while it cuts, the cutterhead's wheel turning on the face in
- * front of its shield: a rim, six spokes and the disc cutters along them, at {@link #CUTTERHEAD_RPM}.
+ * Draws the running machine, every part's cells where they stand in it, and the cutterhead's wheel on the face in front of its shield:
+ * a rim, six spokes, the disc cutters along them and the muck buckets round the rim, all turning together at {@link #CUTTERHEAD_RPM}
+ * while it cuts. The head's model behind the wheel is a plain face plate, so nothing on the face stands still while the wheel turns.
  */
 public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
-	/** The cutterhead's speed, rpm (proposed: an 8 m hard-rock head turns about 5 to 8 rpm). */
+	/** The cutterhead's speed, rpm: an 8.02 m main-beam machine's head turns 0 to 6.87 rpm (its spec table, WTC 2023). */
 	public static final float CUTTERHEAD_RPM = 6;
 	/** The wheel's centre on the face, across and up from the cutterhead's main cell corner, and its radius, m. */
 	private static final float CX = 4f, CY = 4f, R = 3.8f;
 	/** How far in front of the shield the wheel stands (the face is at 0, ahead negative). */
 	private static final float FRONT = -0.12f;
 	private static final int SPOKES = 6;
+	private static final int BUCKETS = 8;
 
 	private final java.util.Map<Integer, Float> lastTurn = new java.util.HashMap<>();
 
@@ -34,35 +36,13 @@ public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
 		super(context);
 	}
 
-	private static final java.util.Map<Direction, List<TbmMachine.Cell>> ROUND = new java.util.EnumMap<>(Direction.class);
-
 	/**
-	 * The machine's cells, but for the cutterhead's and the tail shield's corners outside the round bore (heavy-iron-fixes): the head and
-	 * shield are drawn as the 8 m circle they are, block by block, and the wheel turns on the round face.
+	 * The machine's cells. The cutterhead and the tail shield are drawn round in their own models (an 8 m circle in level strips,
+	 * tools/models/tbm.py), so the head reads round running or set down as blocks, and their corner cells are empty.
 	 */
 	@Override
 	protected List<TbmMachine.Cell> cells(TbmEntity entity) {
-		return ROUND.computeIfAbsent(entity.facing(), f -> {
-			List<TbmMachine.Cell> out = new java.util.ArrayList<>();
-			for (TbmMachine.Cell cell : TbmMachine.cells(f)) {
-				if (!outside(cell)) {
-					out.add(cell);
-				}
-			}
-			return out;
-		});
-	}
-
-	/** A cutterhead or erector cell in a corner outside the circle: found from its piece's place in the part, unturned. */
-	private static boolean outside(TbmMachine.Cell cell) {
-		net.minecraft.world.level.block.Block block = cell.state().getBlock();
-		boolean round = block == dev.wildcatter.tailings.TailingsBlocks.tbmBlock(dev.wildcatter.tailings.mine.TbmPart.CUTTERHEAD)
-				|| block == dev.wildcatter.tailings.TailingsBlocks.tbmBlock(dev.wildcatter.tailings.mine.TbmPart.SEGMENT_ERECTOR);
-		if (!round || !(block instanceof dev.wildcatter.block.BigPartBlock part)) {
-			return false;
-		}
-		int[] at = part.footprint().offset(cell.state().getValue(part.piece()), 0);
-		return dev.wildcatter.tailings.mine.DriveCourse.isOutside(Math.abs(at[0]), Math.abs(at[1]));
+		return TbmMachine.cells(entity.facing());
 	}
 
 	@Override
@@ -93,7 +73,7 @@ public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
 		Direction facing = state.facing;
 		double turn = state.working * CUTTERHEAD_RPM / 60.0 * Math.PI * 2;
 		TextureAtlasSprite steel = sprite("wildcatter", "block/mat/mat_cast_iron"), disc = sprite("wildcatter", "block/mat/mat_stainless"),
-				hub = sprite("wildcatter", "block/mat/mat_paint_crane_yellow");
+				hub = sprite("wildcatter", "block/mat/mat_paint_crane_yellow"), bucket = sprite("wildcatter", "block/mat/mat_oil_dark");
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (at, v) -> {
 			// the rim: 24 straight pieces round the wheel
 			for (int k = 0; k < 24; k++) {
@@ -108,6 +88,11 @@ public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
 					double side = a + 0.22 / r;
 					line(at, v, disc, side, r - 0.12, side, r + 0.12, 0.2f, light, facing, FRONT - 0.18f);
 				}
+			}
+			// the muck buckets round the rim, scooping the cut rock up to the muck ring as the wheel turns
+			for (int k = 0; k < BUCKETS; k++) {
+				double a = turn + (k + 0.5) * Math.PI * 2 / BUCKETS;
+				line(at, v, bucket, a, R - 0.55, a, R - 0.05, 0.5f, light, facing);
 			}
 			// the hub
 			for (int k = 0; k < 8; k++) {

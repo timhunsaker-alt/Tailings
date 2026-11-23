@@ -38,105 +38,64 @@
   "concrete": "wildcatter:block/mat/mat_concrete",
   "polymer": "wildcatter:block/mat/mat_polymer_grey",
   "padgreen": "wildcatter:block/mat/mat_paint_pad_green",
-  "particle": "wildcatter:block/mat/mat_stainless"
+  "particle": "wildcatter:block/mat/mat_paint_ansi61"
  },
  "elements": [
   {
    "from": [
-    0,
-    0,
-    5.6
+    13.7113,
+    0.0,
+    4.8
    ],
    "to": [
-    14.4,
-    14.4,
-    16.0
+    16,
+    4.0,
+    11.2
    ],
    "faces": {
     "north": {
-     "texture": "#grey",
-     "uv": [
-      1.6,
-      1.6,
-      16,
-      16
-     ]
-    },
-    "south": {
-     "texture": "#grey",
+     "texture": "#galv",
      "uv": [
       0,
-      1.6,
-      14.4,
-      16
-     ]
-    },
-    "east": {
-     "texture": "#grey",
-     "uv": [
-      0.0,
-      1.6,
-      10.4,
-      16
-     ]
-    },
-    "up": {
-     "texture": "#grey",
-     "uv": [
-      0,
-      5.6,
-      14.4,
+      12.0,
+      2.2887,
       16.0
      ]
-    }
-   }
-  },
-  {
-   "from": [
-    0,
-    0,
-    1.6
-   ],
-   "to": [
-    11.2,
-    11.2,
-    5.6
-   ],
-   "faces": {
-    "north": {
-     "texture": "#steel",
-     "uv": [
-      4.8,
-      4.8,
-      16,
-      16
-     ]
     },
     "south": {
-     "texture": "#steel",
+     "texture": "#galv",
      "uv": [
-      0,
-      4.8,
-      11.2,
-      16
+      13.7113,
+      12.0,
+      16,
+      16.0
      ]
     },
-    "east": {
-     "texture": "#steel",
+    "west": {
+     "texture": "#galv",
      "uv": [
-      10.4,
       4.8,
-      14.4,
-      16
+      12.0,
+      11.2,
+      16.0
      ]
     },
     "up": {
-     "texture": "#steel",
+     "texture": "#galv",
      "uv": [
-      0,
-      1.6,
-      11.2,
-      5.6
+      13.7113,
+      4.8,
+      16,
+      11.2
+     ]
+    },
+    "down": {
+     "texture": "#galv",
+     "uv": [
+      13.7113,
+      4.8,
+      16,
+      11.2
      ]
     }
    }

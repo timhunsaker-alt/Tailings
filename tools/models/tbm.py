@@ -13,37 +13,60 @@ import math
 import tlib
 from tlib import model
 
+# ---- round parts: an 8 m circle drawn in level strips, so the head and the tail shield read round as blocks too -----------------
+CX, CY = 4.0, 4.0
+STRIP = 0.25
+
+
+def _half(r, y0, y1):
+	"""Half the chord of a circle of radius r (about CY) across the strip y0..y1, at its middle."""
+	d = (y0 + y1) / 2 - CY
+	return math.sqrt(r * r - d * d) if abs(d) < r else 0.0
+
+
+def round_disc(M, r, z0, z1, tex):
+	"""A solid disc of radius r about (CX, CY), from z0 to z1 along the heading."""
+	n = int(round(8 / STRIP))
+	for i in range(n):
+		y0, y1 = i * STRIP, (i + 1) * STRIP
+		h = _half(r, y0, y1)
+		if h > 0.02:
+			M.box((CX - h, y0, z0), (CX + h, y1, z1), tex)
+
+
+def round_ring(M, outer, inner, z0, z1, tex, collide=False):
+	"""A hoop between two radii about (CX, CY), from z0 to z1: in each strip the whole chord, or its two ends where it crosses the hole."""
+	n = int(round(8 / STRIP))
+	for i in range(n):
+		y0, y1 = i * STRIP, (i + 1) * STRIP
+		ho, hi = _half(outer, y0, y1), _half(inner, y0, y1)
+		if ho <= 0.02:
+			continue
+		parts = [(CX - ho, CX + ho)] if hi <= 0.02 else [(CX - ho, CX - hi), (CX + hi, CX + ho)]
+		for a, b in parts:
+			M.box((a, y0, z0), (b, y1, z1), tex)
+			if collide:
+				M.collide((a, y0, z0), (b, y1, z1))
+
+
 # ---- the cutterhead ---------------------------------------------------------------------------------------------------------------
+# the head in its round shield; its wheel of spokes, disc cutters and muck buckets is drawn turning on the face by TbmRenderer
 CH = model("cutterhead", 8, 8, 1, "steel")
-CH.box((0.1, 0.1, 0.35), (7.9, 7.9, 1.0), "grey")                           # the shield and the head's back plate
-CH.box((0.3, 0.3, 0.1), (7.7, 7.7, 0.35), "steel")                          # the face plate
-for ring, count in ((1.0, 6), (2.0, 12), (3.1, 18)):
-	for i in range(count):
-		a = 2 * math.pi * i / count + ring
-		x, y = 4.0 + ring * math.cos(a), 4.0 + ring * math.sin(a)
-		CH.box((x - 0.14, y - 0.14, -0.05), (x + 0.14, y + 0.14, 0.1), "iron")   # a disc cutter in its housing
-for i in range(8):
-	a = 2 * math.pi * i / 8 + 0.2
-	x, y = 4.0 + 3.6 * math.cos(a), 4.0 + 3.6 * math.sin(a)
-	CH.box((x - 0.3, y - 0.3, 0.0), (x + 0.3, y + 0.3, 0.35), "dark")      # a muck bucket at the rim
+round_disc(CH, 3.95, 0.35, 1.0, "grey")                                      # the shield and the head's back plate
+round_disc(CH, 3.75, 0.1, 0.35, "dark")                                      # the face plate, behind the turning wheel
 CH.box((3.6, 3.6, -0.15), (4.4, 4.4, 0.1), "iron")                          # the centre cone
-CH.collide((0.0, 0.0, 0.0), (8.0, 8.0, 1.0))
+for i in range(8):
+	y0, y1 = float(i), float(i + 1)
+	h = math.sqrt(max(0.0, 3.95 ** 2 - min((y0 - CY) ** 2, (y1 - CY) ** 2))) if not (y0 <= CY <= y1) else 3.95
+	CH.collide((max(0.0, CX - h), y0, 0.0), (min(8.0, CX + h), y1, 1.0))
 
 # ---- the segment erector ----------------------------------------------------------------------------------------------------------
 SE = model("segment_erector", 8, 8, 2, "grey")
-SE.box((0.0, 0.0, 0.0), (8.0, 0.4, 2.0), "grey")                            # the tail shield: floor, roof and walls
-SE.box((0.0, 7.6, 0.0), (8.0, 8.0, 2.0), "grey")
-SE.box((0.0, 0.4, 0.0), (0.4, 7.6, 2.0), "grey")
-SE.box((7.6, 0.4, 0.0), (8.0, 7.6, 2.0), "grey")
-for (x1, y1, x2, y2) in ((0.6, 0.6, 7.4, 1.0), (0.6, 7.0, 7.4, 7.4), (0.6, 1.0, 1.0, 7.0), (7.0, 1.0, 7.4, 7.0)):
-	SE.box((x1, y1, 1.3), (x2, y2, 1.7), "galv")                            # the erector's slewing ring
+round_ring(SE, 3.95, 3.55, 0.0, 2.0, "grey", collide=True)                  # the round tail shield
+round_ring(SE, 3.35, 3.0, 1.3, 1.7, "galv")                                 # the erector's slewing ring
 SE.box((3.5, 3.5, 0.2), (4.5, 4.5, 1.8), "blue")                            # the erector's hub on the beam
 SE.box((3.8, 4.5, 0.6), (4.2, 6.6, 1.0), "blue")                            # its arm
 SE.box((2.6, 6.6, 0.5), (5.4, 7.0, 1.6), "concrete")                        # a lining segment on its grip
-SE.collide((0.0, 0.0, 0.0), (8.0, 0.4, 2.0))
-SE.collide((0.0, 7.6, 0.0), (8.0, 8.0, 2.0))
-SE.collide((0.0, 0.4, 0.0), (0.4, 7.6, 2.0))
-SE.collide((7.6, 0.4, 0.0), (8.0, 7.6, 2.0))
 SE.collide((3.5, 3.5, 0.2), (4.5, 4.5, 1.8))
 
 # ---- the main beam ----------------------------------------------------------------------------------------------------------------
