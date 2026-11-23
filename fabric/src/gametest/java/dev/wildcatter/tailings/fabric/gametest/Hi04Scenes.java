@@ -177,11 +177,11 @@ final class Hi04Scenes {
 				tipFilm();
 				dumpWideFilm();
 				thickenerFilm();
-				pressFilm();
 				loadoutFilm();
 				stackFilm();
 				spreadFilm();
 				powerFilm();
+				pressFilm();
 				dropFilm();
 				stackWideFilm();
 			} catch (RuntimeException | AssertionError ex) {
@@ -918,6 +918,7 @@ final class Hi04Scenes {
 		if (s1.out().held(Product.TAILS_SLURRY) < 400) {
 			s1.out().offer(Product.TAILS_SLURRY, 400 - s1.out().held(Product.TAILS_SLURRY), tails());   // as if from the flotation bank
 		}
+		solids(thick);   // the underflow's solids as last seen on the pipe, so the card has it from the first frame
 		for (BlockPos at : tanks) {
 			if (level.getBlockEntity(at) instanceof DayTankBlockEntity tank) {
 				drained += tank.waterLevel() * 1000;
@@ -1092,7 +1093,11 @@ final class Hi04Scenes {
 		waitFor(400, level -> Math.abs(dozer(level).speed()) < 0.01);
 		if (server.computeOnServer(srv -> dozer(srv.overworld()).bladeBlocks() > 0)) {
 			// off camera: a touch of reverse leaves what the blade still carries where it stands, as a player empties it
-			server.runOnServer(srv -> dozer(srv.overworld()).testDrive(new Input(false, true, false, false, false, false, false)));
+			server.runOnServer(srv -> {
+				TrackDozerEntity dz = dozer(srv.overworld());
+				dz.setBlade(TrackDozerEntity.Blade.CARRY);   // a load is left by reversing in CARRY
+				dz.testDrive(new Input(false, true, false, false, false, false, false));
+			});
 			waitFor(200, level -> dozer(level).bladeBlocks() == 0);
 			server.runOnServer(srv -> dozer(srv.overworld()).testDrive(Input.EMPTY));
 			waitFor(400, level -> Math.abs(dozer(level).speed()) < 0.01);
@@ -1205,7 +1210,7 @@ final class Hi04Scenes {
 		placeDozer(-39.5, 30.5, 180, TrackDozerEntity.Blade.CARRY);
 		showCard(true);
 		int[] over = {-1};
-		film("hi04_push", 1200, move(dcam(-62, 3, -14, -40, -1, 8), dcam(-60, 2, -17, -40, -3, 3), 1200), (level, t) -> {
+		film("hi04_push", 1200, move(dcam(-54, 3, -9, -40, -1, 7), dcam(-53, 2, -11, -40, -2, 3), 1200), (level, t) -> {
 			TrackDozerEntity dz = dozer(level);
 			if (t == PAD) {
 				keys(dz, FORWARD);
@@ -1353,6 +1358,12 @@ final class Hi04Scenes {
 
 	/** hi04_press: the batch press over the load-out bin and frame, mid-cycle. */
 	private void pressFilm() {
+		if (!wanted("hi04_press")) {
+			return;
+		}
+		// a full cycle (the first after start-up began with little feed): squeezing, after a cake has dropped
+		boolean ok = waitFor(24000, level -> filter.cycles() >= 1 && filter.cycle() / 20 >= 150 && filter.cycle() / 20 <= 260);
+		log("press squeezing a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		film("hi04_press", 1000, move(qcam(38, 22, 48, 18, 16, 61), qcam(40, 18, 72, 18, 15, 61), 1000), (level, k) -> card(pressCard(level)));
 		showCard(false);
@@ -1449,7 +1460,10 @@ final class Hi04Scenes {
 				event("dozer forward, SPREAD");
 				state[0] = 1;
 			}
-			if (state[0] == 1 && dz != null && (dz.status().startsWith("spreading: blade empty") || dz.getZ() - q.getZ() < LIFT_EDGE - 12 || dz.status().startsWith("at the crest"))) {
+			if (dz != null && dz.bladeBlocks() > 0) {
+				placed0[0] = 1;   // it has the load on its blade
+			}
+			if (state[0] == 1 && dz != null && (placed0[0] > 0 && dz.status().startsWith("spreading: blade empty") || dz.getZ() - q.getZ() < LIFT_EDGE - 12 || dz.status().startsWith("at the crest"))) {
 				keys(dz, Input.EMPTY);
 				state[0] = 2;
 				state[1] = k;
@@ -1491,6 +1505,9 @@ final class Hi04Scenes {
 
 	/** hi04_drop: the end of a cycle in real time: the press opens and drops its cake into the bin. */
 	private void dropFilm() {
+		if (!wanted("hi04_drop")) {
+			return;   // it waits up to a whole press cycle for the drop
+		}
 		int startCycles = server.computeOnServer(srv -> filter.cycles());
 		boolean ok = waitFor(20000, level -> filter.cycles() > startCycles || filter.cycle() / 20 >= 875);
 		log("press near the end of its cycle: " + ok + ", " + filter.status());

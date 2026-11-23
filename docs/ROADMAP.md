@@ -607,12 +607,11 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
   assay carries its solids. Wildcatter's lined cell counts it as plain tails. A `THICKENED_TAILS` product is proposed for Wildcatter.
 - **Old P4 sounds:** the press and thickener reuse existing sounds; the hydraulic whine and the cake's thud are still for an art
   wave. The dozer has its own loop while it moves (wave A).
-- **`pit_dozer_cut` fails now and then in the full suite (since 2026-11-18):** in the whole run its dozer stops at 15-20 m reading
-  "at the crest" (the ground under its nose not solid two down); alone it passes. Seen on `flow-all` (2026-11-18) and in both wave A
-  full runs; not chased yet.
+- **`pit_dozer_cut` fixed (films-hi04):** cutting on a grade, the dozer read its own cut, two blocks under its tracks before its
+  box came down into the last step, as a crest; the crest is now looked for under its own cut's floor (questions/films-hi04.md, Fixed).
 - **The dozer's tracks (heavy-iron-fixes):** its track shoes' grousers slide along both runs as it rolls and it is drawn pitched and
   rolled on the ground under its tracks; turning on the spot, its tracks do not counter-rotate, and its box (as every pit machine's) is
-  still level. No compaction: spreading lays 1 m lifts, but nothing counts passes or firms the stack (questions/heavy-iron-fixes.md, 7).
+  still level; each shoe's end is drawn on the track's side, so it is seen running from beside the machine (films-hi04). No compaction: spreading lays 1 m lifts, but nothing counts passes or firms the stack (questions/heavy-iron-fixes.md, 7).
 - **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
   to its right; it halts and says so if it cannot loop within 3 minutes.
 - **Loads are tipped where the truck stops (P4):** a DUMP POINT stake is moved by the player as the crest advances; nothing moves it.
