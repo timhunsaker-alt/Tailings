@@ -149,7 +149,7 @@ Each gantry is placed on the two tracks behind the machine, as a car is placed o
 **Power:**
 - The reel's fixed end is wired to a Wildcatter 4.16 kV cable at the point where the machine was started. That point is a
   `cable_junction` block, a terminal box placed there *(proposed)*.
-- The reel holds **300 m of cable** *(proposed; real reels hold 300-500 m)*. More cable items in the cab's cable slot add length.
+- The reel holds **300 m of cable** *(proposed; a tunnelling cable-reel maker lists reeling lengths up to 500 m)*. More cable items in the cab's cable slot add length.
 - The main beam draws its 1 MW through the reel. The pump and conveyor draw through the gantry transformer.
 - When the cable is all paid out, the machine stops: "cable end".
 
@@ -313,9 +313,18 @@ Episode 5 of Heavy Iron films the TBM (../questions/heavy-iron-fixes.md, 9-11).
   shoulders; the invert's two corners are the floor's own pieces, as before. A ring of crafted segments is 18; a ring cut from rock
   takes 18 of it. The clear section is 32 cells; the airflow keeps its 36 m² (a 6.8 m bore's area).
 - **Muck:** a block of advance in stone makes 48 muck, not 60 (the 12 corners stay in the ground).
-- **The head is drawn round:** the running machine's cutterhead and tail-shield cells outside the circle are not drawn, so its head and
-  shield are the 8 m circle; the wheel of spokes and disc cutters is drawn always on the face and turns at 6 rpm while it cuts. Set
-  down as blocks it is square, as its parts are.
+- **The head is drawn round:** the cutterhead's and segment erector's own models are an 8 m disc and tail-shield hoop in level strips
+  (`tools/models/tbm.py`, films-hi05), so the machine reads round set down as blocks and running alike; their corner cells are empty
+  and their collision follows the circle in 1 m steps. The head's model is a plain face plate: the wheel of spokes, disc cutters and
+  muck buckets is drawn on the face by the renderer, all turning together at 6 rpm while it cuts.
 - **Tests:** `TunnelDrillTest` (the ring's 18, the 12 corners, the stone put back), `drill` (48 muck, 18 segments spent), the
   ring counts in the TBM scenes.
+
+## Real-world figures for the film (Heavy Iron episode 5, 2026-11-23, sourced)
+- An 8.02 m main-beam machine (WTC 2023 paper, a water-diversion tunnel): cutterhead 0 to 6.87 rpm, main drive 3,300 kW, 43 x 20 in
+  and 8 x 17 in centre disc cutters (51). The game's 1 MW beam is about a third of that.
+- A 7.9 m main-beam machine (a maker's release, north-east China): 40 to 60 m a day, a record month of 1,423.5 m for 7-8 m machines.
+  The game's 20 s a metre is 3 m a minute, close to a hundred times faster.
+- A 7.8 m rock machine under the Palisades (trade press, 2025): about 150 m (500 ft) long with its gantries.
+- No thrust figure is given: none is sourced for the game's machine.
 

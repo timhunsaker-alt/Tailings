@@ -165,6 +165,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Hi04Scenes(context).run();
 			return;
 		}
+		// Heavy Iron episode 5's films: the tunnel boring machine boring into a ridge from a portal, on two gas sets through the cable
+		// junction, only when named
+		if ("hi05".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Hi05Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();
