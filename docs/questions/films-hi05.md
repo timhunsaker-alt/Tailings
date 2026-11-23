@@ -45,6 +45,9 @@ Decided while Tim was away, on the best recommendation; each is open for review.
     de corte, cortadores de disco, cangilones, erector de dovelas, dovela, anillo, viga principal, colocadora de vía, pórtico, tren de
     apoyo, carrete de cable, caja de empalme, escombro for the TBM's muck, frente, portal, galería, pizarra profunda, enclavamiento de
     aire).
+15. **The readout card as brief evidence** (the coordinator's review): every shot is cropped clear of the card; where a figure the card
+    shows is said (the draw, Go, the advance, the rpm) the full frame plays first for 3-6 s; the paragraph about the card itself keeps
+    it. The corner map at each chapter change is the series' duty-cycle panel, not a leftover.
 
 ## Fixed (Tim's rule of 2026-11-23: fix weak spots, then film)
 - **The parked TBM was drawn as square blocks.** The cutterhead and segment erector models are now drawn round in their own block
@@ -75,3 +78,8 @@ Decided while Tim was away, on the best recommendation; each is open for review.
   rings do, but with nothing for them to push against. A reaction frame would be a new part.
 - **Real-world power:** the game's 1 MW beam is about a third of a real 8 m main-beam drive (3,300 kW). A rule change, not a film fix.
 - **The game bores close to a hundred times faster than a real machine** (3 m a minute against 40-60 m a day): a game-pace choice.
+
+## Tests
+`build` passes. The full NeoForge suite on this branch (the round models and shapes in): all 306 required tests passed. The client
+scenes (TAILINGS_ONLY=hi05) ran six times; films kept from runs 3, 5 and 6 (`videos/footage/films-hi05/NOTES.md`).
+
