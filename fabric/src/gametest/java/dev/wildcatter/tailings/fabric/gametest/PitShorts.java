@@ -106,6 +106,9 @@ final class PitShorts {
 			client.options.gamma().set(1.0);
 			client.options.bobView().set(false);
 			client.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN);
+			// a client with no input for ten minutes drops to 10 fps (FramerateLimitTracker LONG_AFK), and a client game test waits a
+			// frame a tick: every film after that would draw at half speed (Rock to Metal episode 9). Throttle only when minimized.
+			client.options.inactivityFpsLimit().set(net.minecraft.client.InactivityFpsLimit.MINIMIZED);
 		});
 		context.getInput().resizeWindow(PW, PH);
 		context.waitTicks(10);

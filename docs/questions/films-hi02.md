@@ -72,3 +72,67 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 `build` passes. The full NeoForge suite (12.7 min) passed but for `quest_shovel_milestone`, whose muck face was laid where the old
 face started; moved to the new face (16.5 m out), it and `pit_rope_shovel` pass. The pit scenes (63), the berm and haul scenes and the
 shovel scenes pass with every change.
+
+## Fixed after release (2026-11-23)
+Branch `fix-weak-spots-hi02` (off main 9a266274). Tim: "Let's keep fixing weak spots as we find them." Decided on the best
+recommendation while Tim was asleep; each is open for review. Re-filmed (run 2; run 1 rejected and deleted) and episode 2 rebuilt in
+English and Spanish with the same narration (shots swapped only, nothing re-voiced). Footage notes: `videos/footage/films-hi02/NOTES.md`.
+
+1. **The trailing cable lies on the ground (renderer bug fix).** The cable was not drawn as a straight line by design: its points were
+   placed relative to `entity.getX/Y/Z(partialTick)`, which in this game version is the position *plus the box's size times the
+   argument*, not a lerp. On a rope shovel (a box tens of metres across) that moved the whole cable by up to its box size every frame,
+   and the ground search (2 m up, 3 m down from the last point) never found the pit floor from the rim, so it ran through the air.
+   Now the cable is placed from `entity.getPosition(partialTick)` and finds the ground under each metre by climbing up to 16 m (a berm,
+   a bench) or dropping up to 64 m (off a crest): it runs across the grass from the switch house, hangs down the bench face and lies
+   along the pit floor to the reel (`PitVehicleRenderer.cable`, `groundAt`). Renderer only; the model is unchanged. Chosen over a
+   catenary between supports: a real shovel's cable lies on the ground, with stands only where it crosses a haul road, and this pit
+   has none. The dozer's ground tilt (`PitVehicleRenderer.ground`, heavy-iron-fixes) read its ground through the same call and was
+   sampled up to its box width off; fixed the same way. Its tilt was not re-checked on camera (episode 4's films will show it).
+2. **`hi02_swing` re-filmed** from beyond the truck, east and a little south, looking back at the shovel: the dipper swings out of
+   the face towards the camera, over the truck, the door trips and the load pours, then it swings back. Used under "It digs only
+   loose ground" (paragraph 10) at 12 s, now on the swing and the dump. A second angle (high to the south-east) was filmed after the
+   truck had gone and was deleted.
+3. **`hi02_dig` re-filmed** from the west, 6 m over the rim beside the pile, where the dipper is seen crowding into the face and coming
+   up through it, and the cut shows in the face. It now carries paragraph 8 (the ropes, the hoist and the crowd; it was the passes
+   film) and paragraph 34 (the face height), and the end card. A second film, `hi02_dig_b`, from high behind the machine to its
+   south-west, shows the pit, the pile, the shovel and the ultra; it carries paragraph 4 ("This pit is twelve metres deep... muck
+   pile laid before filming", label kept). Run 1's two over-the-shoulder dig views (the gantry filled the frame) were rejected.
+   **The cut follows the dipper's teeth (needs Tim).** The cells a pass takes went at a steady count over the 12 s dig while the
+   teeth come up eased in and out, so cells vanished above the teeth early in the dig. Now the rope shovel cuts a cell when its
+   teeth come up past its middle, by the same heights and easing its drawing uses (0.8 m at the toe to 13 m at the top;
+   `RopeShovelEntity.teethUp`, `PitShovelEntity.cutTo`). The load is counted at the start as before; the hydraulic shovel keeps the
+   steady count. Small, and seen working in the new dig films.
+4. **The dispatch office runs on real power** (replaces decision 7). Its 5 kW comes off the pit's supply: a unit substation on the
+   MV net in the yard steps down to the industrial voltage, a 305 m feeder (2 AWG) runs buried 3 m down round the pit and under the
+   haul road beyond the ramp's top, and a dry-type transformer at the office's box steps down to the low voltage, its low side against
+   the office (`Hi02Scenes.officeFeed`; no `forcePowered`). Chosen over a generator at the office: the yard already has the supply,
+   and a feeder from it is what a real pit does. The dry-type is seen beside the office in `hi02_dispatch`; its card now reads
+   "Radio: on, 2 km reach; power from the yard". Not narrated (nothing in the narration said otherwise). The dispatch film was
+   re-filmed with the same beats; its in-points are unchanged.
+5. **The power card matches the narration.** Paragraph 21 now starts in the re-filmed `hi02_power` at 39.0 s, 5.4 s before the dig
+   ends: the card reads 3,500 kW / 531 A under "three and a half megawatts" (2.9 s in) and drops to 600 kW / 88 A just before "six
+   hundred kilowatts" (6.2 s in). Spanish says the same words at the same times (2.1 s and 5.5 s), so one in-point serves both.
+   Paragraph 22 ("The hoist pulls more than that, but only for twelve seconds") moved to 25.0 s, where the next dig and its
+   3,500 kW start just as "only for twelve seconds" is said.
+6. **The 10 fps idle fix** (`inactivityFpsLimit` MINIMIZED, from `Rtm09Scenes`) copied into every film scene class on main that
+   lacked it: `Rtm01Scenes`-`Rtm08Scenes`, `PitShorts`, `PlcBelts`, `PlcTrailer`, `Trailer`, `SlopeScenes`, `Batch4Scenes`,
+   `PourScene`. Three lines each, nothing else.
+7. **Films replaced:** parts, dig, dig_b (new), swing, power, dispatch, scale_shovel and wide (the cable or the office on camera).
+   Kept: scale_truck, spot, passes, haul, dump. Every replaced film is real time (ticks = clock within 0.4 s; run 2).
+8. **Lengths unchanged:** English 491.1 s (8:11), Spanish 531.8 s (8:51); chapters, captions, srt and descriptions unchanged.
+   Thumbnails regenerated (same frame of `hi02_passes`). The files in `videos/ready/youtube` and `youtube-es` were replaced in place
+   or re-linked, so the links still match.
+
+### Still weak
+- Paragraph 34 ("Its reach sets the shape of the pit"), on the dig film's second dig, catches the pass where the face is nearly
+  worked out: the card reads "Dipper: 1.4 t of waste rock". True, and nothing narrated contradicts it, but a full dipper would read
+  better; a longer muck pile would fix it at the next re-film.
+- The cable hangs straight down the bench face from the crest; a real one would usually come down a ramp or over a cable stand.
+- The handle is drawn shorter than its modelled box (decision 1), as before.
+
+### Tests
+`build` passes. The full NeoForge suite (17 min) ran twice on this branch; each time one required test failed and each was flaky,
+not this change: `pit_switch_house` (tripped 17 ticks after its overload, against 18-40; 19-21 ticks on three later runs) in the
+first, `pit_dozer_cut` ("it should cut 20 m", stopped at the crest on tick 1602) in the second; on the same code it then failed
+once and passed three times alone. Neither touches the shovel's cut or the renderer. `pit_rope_shovel` passes (362.5 t in four
+passes, 3,500 kW peak). Worth a look (needs Tim): `pit_dozer_cut` is not deterministic.

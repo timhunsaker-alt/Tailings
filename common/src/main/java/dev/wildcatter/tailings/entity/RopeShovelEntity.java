@@ -117,6 +117,16 @@ public class RopeShovelEntity extends PitShovelEntity implements PitPanelMenu.Pa
 		return 16.5;
 	}
 
+	/** Its teeth's height over its base at the toe of the face and at the top of the dig, metres (as RopeShovelModel.pose draws them). */
+	private static final double TEETH_TOE_UP = 0.8, TEETH_TOP_UP = 13.0;
+
+	/** The dipper's teeth come up the face eased in and out, as they are drawn: the cut follows them, not a steady count of cells. */
+	@Override
+	protected double teethUp(double done) {
+		double t = Math.max(0, Math.min(1, done));
+		return TEETH_TOE_UP + (TEETH_TOP_UP - TEETH_TOE_UP) * t * t * (3 - 2 * t);
+	}
+
 	/** It dumps about 18 m out from its centre (its boom point, proposed), into a truck within 6 m of that arc. */
 	@Override
 	protected double dumpRadius() {

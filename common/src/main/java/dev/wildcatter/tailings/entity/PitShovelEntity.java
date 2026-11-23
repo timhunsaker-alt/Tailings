@@ -440,16 +440,35 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		}
 	}
 
-	/** Cuts the taken cells from the world up to {@code f} of the way through the dig. */
+	/**
+	 * How high over its base the bucket's teeth have come, metres, {@code done} of the way through the dig: the cut follows them. NaN
+	 * (this class) cuts the same number of cells each tick instead.
+	 */
+	protected double teethUp(double done) {
+		return Double.NaN;
+	}
+
+	/** Cuts the taken cells from the world up to {@code f} of the way through the dig: those under the teeth, else a share by count. */
 	private void cutTo(ServerLevel level, double f) {
-		int left = cutTotal - (int) Math.ceil(Math.min(1, f) * cutTotal);
-		while (cutting.size() > Math.max(0, left)) {
-			BlockPos c = cutting.remove(0);
-			BlockState state = level.getBlockState(c);
-			if (state.getBlock() == TailingsBlocks.MUCK || (!state.isAir() && !state.hasBlockEntity()
-					&& PitMass.soft(PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString())))) {
-				level.removeBlock(c, false);
+		double up = f >= 1 ? Double.POSITIVE_INFINITY : teethUp(f);
+		if (Double.isNaN(up)) {
+			int left = cutTotal - (int) Math.ceil(Math.min(1, f) * cutTotal);
+			while (cutting.size() > Math.max(0, left)) {
+				cut(level, cutting.remove(0));
 			}
+			return;
+		}
+		// lowest first: a cell goes when the teeth come up past its middle
+		while (!cutting.isEmpty() && cutting.get(0).getY() + 0.5 - getY() <= up) {
+			cut(level, cutting.remove(0));
+		}
+	}
+
+	private static void cut(ServerLevel level, BlockPos c) {
+		BlockState state = level.getBlockState(c);
+		if (state.getBlock() == TailingsBlocks.MUCK || (!state.isAir() && !state.hasBlockEntity()
+				&& PitMass.soft(PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString())))) {
+			level.removeBlock(c, false);
 		}
 	}
 
