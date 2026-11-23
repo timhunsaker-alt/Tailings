@@ -523,13 +523,18 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
 - **The switch house is fed by an ideal supply in most scenes (P5a, decision 13):** `pit_switch_house_fed` feeds one from a real 500 kW
   set through a unit substation; a pit-sized supply for a rope shovel (a plant of gas turbines on the loop) has no scene.
 - **Patterns run square to the grid (P3):** GO turns the drill to the nearest of the four ways.
-- **No flyrock in the air (P3):** a piece lands after its flight time with no entity drawn on the way; one landing in an unloaded
-  chunk is lost. No camera shake for players near a blast.
+- **Flyrock is drawn but not a block in the air (heavy-iron-fixes):** every firing hole's fragments and a bad hole's blocks of flyrock
+  are drawn on their arcs (one `flyrock` entity a hole carries them), flown on the server and landed; a fragment lands as dust, not a
+  block. One landing in an unloaded chunk is lost. Who is struck is decided as the hole fires (one fragment aimed at each person or
+  mob in the open within reach); someone who runs after the siren is missed. No camera shake for players near a blast.
+- **The muck pile has no throw (heavy-iron-fixes):** the broken face slumps to its 37 degree angle of repose and the swell spills off
+  the face; a real good shot also throws the pile forward one to two bench heights, which is not modelled. Every hole still makes the
+  same muck (fragmentation not modelled).
 - **Borrowed sounds (P3):** the emulsion truck's pump is Wildcatter's motor hum and the blast vanilla's explosion; the drill's rotary
   head and the siren have their own since wave A.
 - **The emulsion truck is driven by hand only (P3):** no self-running charge crew (spec, Left out); no hose drawn to the hole.
-- **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m; a player takes the same explosion
-  damage, less armour and Blast Protection, but no scene checks a player.
+- **Harm is checked on mobs (P3):** `pit_blast` measures 18 and 6 on iron golems at 20 and 40 m, and a fragment's 10 on each
+  (heavy-iron-fixes); a player takes the same, less armour (a helmet against the fragment), but no scene checks a player.
 - **The medium recipe makes 64 bags (L7, wave A):** Wildcatter's 1 t ferrosilicon 75 bag and about 1.3 t of iron make 1.6 t of 15 %
   Si; a real bag would make 5 t, which a crafting table cannot hand back (questions/wave-a.md 5).
 - **The DMS needs no starting charge of medium (L7):** only the 0.3 kg a tonne lost is drawn (questions/l7-dms.md, 9).

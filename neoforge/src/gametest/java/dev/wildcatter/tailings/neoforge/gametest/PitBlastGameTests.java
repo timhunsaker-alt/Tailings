@@ -50,12 +50,12 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class PitBlastGameTests {
 	static final String[] SCENES = {"pit_drill_pattern", "pit_drill_short", "pit_charge", "pit_prime_stem", "pit_blast", "pit_blast_blowout",
-			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc"};
+			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc", "pit_blast_flyrock", "pit_blast_reach", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc"};
 	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_drill_pattern", 6000), Map.entry("pit_drill_short", 1200), Map.entry("pit_charge", 2400),
 			Map.entry("pit_blast", 1200), Map.entry("pit_blast_blowout", 1200), Map.entry("pit_blast_boxcut", 1200), Map.entry("pit_misfire", 1200),
-			Map.entry("pit_blast_plc", 1200), Map.entry("pit_drill_built", 400), Map.entry("pit_drill_parts_run", 4000), Map.entry("pit_drill_plc", 6000));
+			Map.entry("pit_blast_plc", 1200), Map.entry("pit_blast_flyrock", 1200), Map.entry("pit_blast_reach", 1200), Map.entry("pit_drill_built", 400), Map.entry("pit_drill_parts_run", 4000), Map.entry("pit_drill_plc", 6000));
 	static final Map<String, Integer> PADDING = Map.ofEntries(Map.entry("pit_drill_pattern", 80), Map.entry("pit_blast", 160), Map.entry("pit_blast_blowout", 140),
-			Map.entry("pit_blast_boxcut", 100), Map.entry("pit_misfire", 120), Map.entry("pit_blast_guard", 120), Map.entry("pit_blast_plc", 120),
+			Map.entry("pit_blast_boxcut", 100), Map.entry("pit_misfire", 120), Map.entry("pit_blast_guard", 120), Map.entry("pit_blast_plc", 120), Map.entry("pit_blast_flyrock", 140), Map.entry("pit_blast_reach", 200),
 			Map.entry("pit_charge", 60), Map.entry("pit_drill_built", 80), Map.entry("pit_drill_parts_run", 80), Map.entry("pit_drill_plc", 80));
 
 	private PitBlastGameTests() {
@@ -65,6 +65,8 @@ final class PitBlastGameTests {
 		return switch (scene) {
 			case "pit_drill_pattern", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc" -> new int[] {-1, 3, -1, 3};
 			case "pit_blast" -> new int[] {-1, 5, -1, 8};
+			case "pit_blast_flyrock" -> new int[] {-2, 4, -2, 7};
+			case "pit_blast_reach" -> new int[] {-2, 4, -2, 12};
 			case "pit_blast_blowout" -> new int[] {-2, 4, -2, 6};
 			case "pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc" -> new int[] {-1, 4, -1, 6};
 			default -> PitBigGameTests.reach(scene);
@@ -390,10 +392,26 @@ final class PitBlastGameTests {
 			check(helper, count(helper, TailingsBlocks.BLASTHOLE, 0, 65, 40, 60, 40, 110) == 0, "no blasthole is left standing");
 			check(helper, count(helper, Blocks.STONE, 16, 39, 45, 45, 44, 70) == 24 * 27, "the floor under the shot is solid at y 45: the subdrill is fractured, not broken");
 			check(helper, count(helper, Blocks.STONE, 16, 39, 46, 59, 71, 71) == 24 * 14, "the bench behind the last row stands");
-			check(helper, Math.abs(near.getHealth() - (near.getMaxHealth() - 18)) < 0.2, "20 m off takes 18: " + near.getHealth());
-			check(helper, Math.abs(far.getHealth() - (far.getMaxHealth() - 6)) < 0.2, "40 m off takes 6: " + far.getHealth());
+			// the blast's 18 and 6, and in the open within the 100 m of flyrock 4 m of stemming throws, at least one 10 a fragment
+			check(helper, struck(near.getMaxHealth() - near.getHealth(), 18), "20 m off takes 18 and a fragment's 10: " + near.getHealth());
+			check(helper, struck(far.getMaxHealth() - far.getHealth(), 6), "40 m off takes 6 and a fragment's 10: " + far.getHealth());
+			check(helper, shot.fragmentsThrown() >= 9 * Blasting.COLLAR_FRAGMENTS && shot.strikes() >= 2, "every hole throws fragments: " + shot.fragmentsThrown() + ", " + shot.strikes() + " strikes");
+			// the muck pile: the face slumped from a wall to its angle of repose, out over the pit floor
+			check(helper, shot.slumped() > 200, "the broken face slumps: " + shot.slumped() + " blocks rolled");
+			check(helper, count(helper, TailingsBlocks.MUCK, 16, 39, 58, 59, 44, 45) < 24, "the front of the box no longer stands 14 m high: " + count(helper, TailingsBlocks.MUCK, 16, 39, 58, 59, 44, 45));
+			StringBuilder toe = new StringBuilder();
+			for (int z = 10; z <= 43; z += 3) {
+				toe.append(" z").append(z).append(':').append(count(helper, TailingsBlocks.MUCK, 16, 39, 46, 70, z, z));
+			}
+			check(helper, count(helper, TailingsBlocks.MUCK, 16, 39, 46, 46, 32, 40) > 150, "the muck runs out over the pit floor at its angle of repose, 3-11 m from the face:" + toe);
 			check(helper, machine.status().startsWith("FIRED") && machine.readPulses(BlastingMachineBlockEntity.FIRED) == 1, "it reads FIRED: " + machine.status());
 		});
+	}
+
+	/** {@code took} is {@code blast} plus one or more fragments' 10 each. */
+	private static boolean struck(double took, double blast) {
+		double f = (took - blast) / Blasting.FLYROCK_DAMAGE;
+		return f > 0.9 && Math.abs(f - Math.round(f)) < 0.05;
 	}
 
 	/** An unstemmed hole blows out: the lower half of its box breaks, the top half stands, and it throws 6 blocks of flyrock. */
@@ -415,7 +433,73 @@ final class PitBlastGameTests {
 					check(helper, shot.blowouts() == 1 && shot.flyrock() == Blasting.BLOWOUT_FLYROCK, "a blowout with 6 flyrock: " + shot.summary() + " " + shot.notes());
 					check(helper, shot.bank() == 7 * 8 * 7, "it breaks half its box, 7 x 8 x 7: " + shot.bank());
 					check(helper, count(helper, Blocks.STONE, 16, 23, 53, 59, 44, 50) == 8 * 7 * 7, "the top half of its box stands");
-					check(helper, count(helper, TailingsBlocks.MUCK, 16, 23, 46, 52, 44, 50) == 8 * 7 * 7, "the lower half is muck");
+					check(helper, count(helper, Blocks.STONE, 16, 23, 46, 52, 44, 50) == 0, "the lower half is broken");
+					check(helper, quarters(helper, -10, 50, 40, 70, 0, 70) >= 4L * shot.bank() - 4L * Blasting.BLOWOUT_FLYROCK, "its muck is all there, slumped out from under the top half");
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * Flyrock by Richards and Moore: one hole stemmed 8 m throws about 20 m out of its collar and 35 m off its face. A golem 30 m in
+	 * front on the pit floor is struck; one 30 m behind takes only the blast's 12; one 15 m behind under a roof only the blast's 21.
+	 */
+	static void flyrock(GameTestHelper helper) {
+		bench(helper, 6, 33, 43, 100);
+		BlastholeBlockEntity hole = hole(helper, 20, 59, 50, 16, 0, 0, Direction.NORTH);
+		load(helper, hole, true, true, 552, 8);
+		IronGolem front = helper.spawn(EntityTypes.IRON_GOLEM, new BlockPos(20, 46, 20));
+		IronGolem behind = helper.spawn(EntityTypes.IRON_GOLEM, new BlockPos(20, 60, 80));
+		IronGolem covered = helper.spawn(EntityTypes.IRON_GOLEM, new BlockPos(20, 60, 65));
+		fill(helper, Blocks.STONE, 13, 27, 64, 64, 58, 72);   // a shelter's roof
+		for (IronGolem g : List.of(front, behind, covered)) {
+			g.setNoAi(true);
+		}
+		BlockPos collar = helper.absolutePos(new BlockPos(20, 59, 50));
+		BlastingMachineBlockEntity machine = machine(helper, 20, 60, 110);
+		machine.load(logged(helper, List.of(hole)));
+		machine.setKey(true);
+		String armed = machine.arm();
+		check(helper, armed.contains("flyrock to 35 m: clear 50 m"), "ARM reads the flyrock's reach and the zone: " + armed);
+		check(helper, machine.fire().startsWith("SIREN"), "it fires");
+		machine.sirenNow();
+		helper.startSequence()
+				.thenWaitUntil(() -> check(helper, !machine.firing() && machine.lastShot() != null, "the shot should fire: " + machine.status()))
+				.thenExecute(() -> {
+					Shot shot = machine.lastShot();
+					double hf = Blasting.harm(front.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(collar)));
+					double hb = Blasting.harm(behind.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(collar)));
+					double hc = Blasting.harm(covered.position().distanceTo(net.minecraft.world.phys.Vec3.atCenterOf(collar)));
+					check(helper, Math.abs(shot.reach() - 35) < 1.5, "the reach is the face burst's 35 m: " + shot.reach());
+					check(helper, struck(front.getMaxHealth() - front.getHealth(), hf), "in front, 30 m, in the open: struck (" + hf + " + 10s): " + front.getHealth());
+					check(helper, Math.abs(behind.getMaxHealth() - behind.getHealth() - hb) < 0.2, "behind, past the 20 m the collar throws: the blast only, " + hb + ": " + behind.getHealth());
+					check(helper, Math.abs(covered.getMaxHealth() - covered.getHealth() - hc) < 0.2, "under cover: the blast only, " + hc + ": " + covered.getHealth());
+					check(helper, shot.fragmentsThrown() >= Blasting.FACE_FRAGMENTS + Blasting.COLLAR_FRAGMENTS + 1, "13 fragments and one aimed: " + shot.fragmentsThrown());
+				})
+				.thenSucceed();
+	}
+
+	/** Stemmed 4 m the collar throws past the cap: 100 m. A golem 80 m behind in the open is struck; one 115 m behind is not touched. */
+	static void reachTest(GameTestHelper helper) {
+		bench(helper, 6, 33, 43, 70);
+		fill(helper, Blocks.STONE, -10, 49, 40, 59, 71, 175);
+		BlastholeBlockEntity hole = hole(helper, 20, 59, 50, 16, 0, 0, Direction.NORTH);
+		load(helper, hole, true, true, 828, 4);
+		IronGolem in = helper.spawn(EntityTypes.IRON_GOLEM, new BlockPos(20, 60, 130));
+		IronGolem out = helper.spawn(EntityTypes.IRON_GOLEM, new BlockPos(20, 60, 165));
+		in.setNoAi(true);
+		out.setNoAi(true);
+		BlastingMachineBlockEntity machine = machine(helper, 40, 60, 110);
+		machine.load(logged(helper, List.of(hole)));
+		machine.setKey(true);
+		String armed = machine.arm();
+		check(helper, armed.contains("flyrock to 100 m: clear 100 m") && armed.contains("in the zone, fire from cover"), "ARM warns the firing point is in the zone: " + armed);
+		machine.fire();
+		machine.sirenNow();
+		helper.startSequence()
+				.thenWaitUntil(() -> check(helper, !machine.firing() && machine.lastShot() != null, "the shot should fire: " + machine.status()))
+				.thenExecute(() -> {
+					check(helper, struck(in.getMaxHealth() - in.getHealth(), 0), "80 m behind, in the open: struck: " + in.getHealth());
+					check(helper, out.getHealth() == out.getMaxHealth(), "115 m behind: untouched: " + out.getHealth());
 				})
 				.thenSucceed();
 	}

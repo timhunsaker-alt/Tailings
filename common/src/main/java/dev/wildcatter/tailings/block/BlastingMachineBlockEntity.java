@@ -39,6 +39,8 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 	private boolean key;
 	private long armedUntil = -1;
 	private long sirenUntil = -1;
+	/** The danger zone worked out at ARM, m: the flyrock's reach or the blast's 50 m. */
+	private double zone;
 	private long warnedUntil = -1;
 	private long waitUntil = -1;
 	private @Nullable Shot shot;
@@ -173,9 +175,14 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 			}
 		}
 		armedUntil = server.getGameTime() + Blasting.ARMED_TICKS;
+		zone = Shot.dangerZone(server, holes);
+		double flyrock = Shot.plannedReach(server, holes);
+		double here = nearestHole();
 		setChanged();
-		return say(String.format(Locale.ROOT, "ARMED: %d of %d holes answer; %.0f kg, %.0f t, %.2f kg/t%s", answering, holes.size(), kg, tonnes,
-				Blasting.powderFactor(kg, tonnes), wont.isEmpty() ? "" : "; " + String.join("; ", wont)));
+		return say(String.format(Locale.ROOT, "ARMED: %d of %d holes answer; %.0f kg, %.0f t, %.2f kg/t; flyrock to %.0f m: clear %.0f m%s%s", answering,
+				holes.size(), kg, tonnes, Blasting.powderFactor(kg, tonnes), flyrock, zone,
+				here < zone ? String.format(Locale.ROOT, "; firing point %.0f m: in the zone, fire from cover", here) : "",
+				wont.isEmpty() ? "" : "; " + String.join("; ", wont)));
 	}
 
 	/** FIRE: armed, key in; a player in the danger zone asks a second press. */
@@ -214,17 +221,39 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 	}
 
 	private @Nullable Player playerInZone(ServerLevel server) {
+		List<Player> in = playersInZone(server, zone > 0 ? zone : Shot.dangerZone(server, holes));
+		return in.isEmpty() ? null : in.get(0);
+	}
+
+	/** Players (not spectators) within {@code radius} of any hole of the shot. */
+	private List<Player> playersInZone(ServerLevel server, double radius) {
+		List<Player> out = new ArrayList<>();
 		for (Player player : server.players()) {
-			if (player.isSpectator()) {
+			if (player.isSpectator() || player.level() != server) {
 				continue;
 			}
 			for (Shot.Hole h : holes) {
-				if (player.position().distanceTo(Vec3.atCenterOf(h.collar())) < Blasting.HARM_RADIUS) {
-					return player;
+				if (player.position().distanceTo(Vec3.atCenterOf(h.collar())) < radius) {
+					out.add(player);
+					break;
 				}
 			}
 		}
-		return null;
+		return out;
+	}
+
+	/** The firing point's distance to the nearest hole, m (level). */
+	private double nearestHole() {
+		double near = Double.MAX_VALUE;
+		for (Shot.Hole h : holes) {
+			near = Math.min(near, Math.hypot(h.collar().getX() - worldPosition.getX(), h.collar().getZ() - worldPosition.getZ()));
+		}
+		return near;
+	}
+
+	/** The danger zone of the shot armed or firing, m (0 before ARM). */
+	public double zone() {
+		return zone;
 	}
 
 	/** Test hook: skip the siren. */
@@ -257,6 +286,16 @@ public class BlastingMachineBlockEntity extends BlockEntity implements Inspectab
 			if ((sirenUntil - now) % 100 == 99 && !holes.isEmpty()) {
 				BlockPos at = holes.get(0).collar();
 				server.playSound(null, at, dev.wildcatter.tailings.TailingsSounds.BLAST_SIREN, SoundSource.BLOCKS, 8F, 1.0F);
+			}
+			// the siren is the warning: anyone in the zone is told, each second, how long and how far to go
+			if ((sirenUntil - now) % 20 == 0 && !holes.isEmpty()) {
+				double radius = zone > 0 ? zone : Blasting.HARM_RADIUS;
+				for (Player player : playersInZone(server, radius)) {
+					boolean covered = !server.canSeeSky(BlockPos.containing(player.getEyePosition()));
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(String.format(Locale.ROOT,
+							"BLAST IN %d s: flyrock to %.0f m. %s", (sirenUntil - now) / 20, radius,
+							covered ? "Under cover: stay there" : "Clear the zone or take cover")));
+				}
 			}
 			if (now >= sirenUntil) {
 				sirenUntil = -1;

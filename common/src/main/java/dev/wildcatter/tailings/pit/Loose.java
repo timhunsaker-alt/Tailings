@@ -103,6 +103,27 @@ public final class Loose {
 		return cell == null ? pos : new BlockPos(cell.x(), cell.y(), cell.z());
 	}
 
+	/**
+	 * Where a muck block standing at {@code pos} would roll to by the settle rule at 37 degrees, its own cell counted free: its own cell
+	 * when it stands (a blast's broken face slumping, open-pit-p3-blasting.md).
+	 */
+	public static BlockPos slumpTo(ServerLevel level, BlockPos pos) {
+		Settle.Ground world = ground(level);
+		Settle.Ground without = new Settle.Ground() {
+			@Override
+			public boolean free(int x, int y, int z) {
+				return (x == pos.getX() && y == pos.getY() && z == pos.getZ()) || world.free(x, y, z);
+			}
+
+			@Override
+			public int floor() {
+				return world.floor();
+			}
+		};
+		Settle.Cell cell = Settle.rest(without, pos.getX(), pos.getY(), pos.getZ(), new java.util.Random(level.getRandom().nextLong()), Settle.MOST_RISE_37);
+		return cell == null ? pos : new BlockPos(cell.x(), cell.y(), cell.z());
+	}
+
 	/** Lets one block of {@code state} go at {@code start}. */
 	public static @Nullable BlockPos block(ServerLevel level, BlockPos start, BlockState state) {
 		BlockPos rest = rest(level, start);

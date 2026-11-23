@@ -329,3 +329,35 @@ P3's FUEL LOW is left out: the built drill burns no diesel.
 - Mining lecture notes (stemming 20-35 d, burden 25-40 d, bottom charge 0.3-0.5 of burden plus subdrill): rules of thumb, *(proposed)*
   where used.
 - Delay timing and misfire waiting times were not found in a primary source: *(unverified)* where used.
+
+## As built: flyrock you can see, and a broken muck pile (heavy-iron-fixes, 2026-11-22)
+Episode 3 of Heavy Iron films the blast; until now a good shot threw nothing and a bad hole's flyrock was invisible
+(../questions/heavy-iron-fixes.md, 1-5).
+- **Every hole that fires throws fragments,** drawn as small tumbling pieces of its rock (0.3-0.7 m, drawn a little large to be seen;
+  real flyrock is mostly 0.1-0.5 m): **8 off its free face** (only off a real, open face, not into the muck of the row ahead), at 5-40
+  degrees, and **5 up out of its collar** at 50-80 degrees. A blowout's, short burden's or overcharge's blocks of flyrock (above) are drawn
+  on their arcs too, a whole metre each, and land as before.
+- **How far, by the real rule:** Richards and Moore's flyrock ranges (Richards and Moore 2004, "Flyrock control: by chance or design",
+  ISEE): face burst **L = k²/g (√m / B)^2.6**, cratering **L = k²/g (√m / SH)^2.6**, m the charge a metre (kg/m), B the burden standing
+  in front of the hole, SH the stemming, k their site constant, fitted at about 13.5 to 27 *(unverified)*; the game takes **13.5**. Each
+  is held to the game's **100 m** (`Blasting.FLYROCK_RANGE`). The powder factor enters through √m / B: at a fixed hole and spacing it
+  rises as the burden shrinks. A matrix not yet gassed counts half its kg a metre. For the default hole (69 kg/m): the face throws
+  **35 m** over a 6.5 m burden; the collar throws **124 m** (held to **100**) on 4 m of stemming, **43 m** on 6 m, **20 m** on 8 m. So the
+  stemming is the lever: real guidance stems 20-30 hole diameters, 5.4-8 m for a 270 mm hole *(unverified)*.
+- **Who is hurt:** each fragment strikes the first player or mob its path crosses, for **10** (as flyrock; falling-block damage, so a
+  helmet counts). Anyone **in the open** (sky over their head) within reach of a firing hole has **one fragment aimed at them a shot**:
+  the face's speed in front of the face (within 60 degrees of it), the collar's anywhere, each by its ballistic reach, down a bench
+  farther. **Cover over the head** (a roof, a shelter, a cab of blocks) stops it. The blast's own 30 x (1 - r/50) within 50 m is as
+  before.
+- **The danger zone and the siren:** ARM reads the shot's flyrock reach and the zone to clear ("flyrock to 100 m: clear 100 m"), and
+  warns when the firing point stands in it ("in the zone, fire from cover"). The zone is the farther of the flyrock's reach and the
+  blast's 50 m; FIRE's "PLAYER IN DANGER ZONE" check uses it. Through the 10 s siren every player in the zone is told each second how
+  long is left and how far to go, or to stay under cover.
+- **The muck pile:** after the last hole, the broken rock rolls off the face it stood as by the settle rule, top down, a few thousand
+  cells a tick, until it stands at its **37 degree** angle of repose; the swell still spills off the face. So the pile is broken and
+  swelled, not a wall of muck. Its throw forward (real piles run out one to two bench heights) is not modelled.
+- **Game tests:** `pit_blast` (now also each golem's fragment, every hole's fragments, the slump), `pit_blast_blowout` (the broken
+  lower half slumps out from under the top), `pit_blast_flyrock` (one hole stemmed 8 m: 35 m reach, struck in front, the blast only
+  behind and under a roof), `pit_blast_reach` (stemmed 4 m: struck at 80 m in the open, untouched at 115 m; ARM warns the firing point);
+  `BlastingTest` checks the ranges and the aim.
+

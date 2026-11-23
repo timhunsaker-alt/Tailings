@@ -152,4 +152,72 @@ public final class Blasting {
 		double v = Math.sqrt(PitDrive.G * range);
 		return (int) Math.ceil(Math.sqrt(2) * v / PitDrive.G * 20);
 	}
+
+	// ---- fragments: what every firing hole throws (heavy-iron-fixes, 2026-11-22) ------------------------------------------------
+
+	/**
+	 * Richards and Moore's site constant (Richards and Moore 2004, "Flyrock control: by chance or design", ISEE): their fitted range of
+	 * k runs about 13.5 to 27 (unverified); the game takes the low end, so the 100 m cap holds for a pattern stemmed short.
+	 */
+	public static final double FLYROCK_K = 13.5;
+	/** Fragments drawn and flown from each firing hole: off its free face, and up out of its collar. */
+	public static final int FACE_FRAGMENTS = 8, COLLAR_FRAGMENTS = 5;
+	/** A fragment's size on screen, metres (real flyrock is mostly 0.1-0.5 m; drawn a little larger to be seen at range). */
+	public static final double FRAGMENT_MIN_M = 0.3, FRAGMENT_MAX_M = 0.7;
+	/** A thrown block of flyrock (a blowout's, a short burden's, an overcharge's) is drawn its whole metre. */
+	public static final double BLOCK_FLYROCK_M = 1.0;
+
+	/**
+	 * Face burst (Richards and Moore 2004): the most a fragment off the free face can fly, {@code L = k²/g (√m / B)^2.6}, m the charge a
+	 * metre (kg/m) and B the burden actually standing in front of the hole (m). At a fixed hole and spacing the powder factor rises as
+	 * B falls, so a short burden or an overcharge throws farther. Not capped: see {@link #flyrockReach}.
+	 */
+	public static double faceBurstM(double kgPerM, double burden) {
+		if (kgPerM <= 0) {
+			return 0;
+		}
+		return FLYROCK_K * FLYROCK_K / PitDrive.G * Math.pow(Math.sqrt(kgPerM) / Math.max(0.25, burden), 2.6);
+	}
+
+	/** Cratering (Richards and Moore 2004): out of the collar, {@code L = k²/g (√m / SH)^2.6}, SH the stemming (m). Not capped. */
+	public static double crateringM(double kgPerM, double stemming) {
+		if (kgPerM <= 0) {
+			return 0;
+		}
+		return FLYROCK_K * FLYROCK_K / PitDrive.G * Math.pow(Math.sqrt(kgPerM) / Math.max(0.25, stemming), 2.6);
+	}
+
+	/** A reach held to the game's {@link #FLYROCK_RANGE}, 100 m (scaled; real blasts clear people to 500 m). */
+	public static double flyrockReach(double metres) {
+		return Math.max(0, Math.min(FLYROCK_RANGE, metres));
+	}
+
+	/** The charge a metre that counts at firing: the hole's 69 kg/m, halved before the matrix has gassed ({@link #effectiveKg}). */
+	public static double kgPerM(double kg, double effectiveKg) {
+		return kg <= 0 ? 0 : KG_PER_M * effectiveKg / kg;
+	}
+
+	/** The speed, m/s, that throws a fragment {@code range} metres on level ground at its best angle, 45 degrees. */
+	public static double launchSpeed(double range) {
+		return Math.sqrt(PitDrive.G * Math.max(0, range));
+	}
+
+	/**
+	 * The angle (radians above level) a fragment at {@code speed} m/s must leave at to reach a point {@code dx} metres off and
+	 * {@code dy} up: the low arc or the high one; NaN when that speed cannot reach it.
+	 */
+	public static double aim(double speed, double dx, double dy, boolean high) {
+		double v2 = speed * speed, g = PitDrive.G;
+		double disc = v2 * v2 - g * (g * dx * dx + 2 * dy * v2);
+		if (disc < 0 || dx <= 1e-6) {
+			return Double.NaN;
+		}
+		double root = Math.sqrt(disc);
+		return Math.atan((v2 + (high ? root : -root)) / (g * dx));
+	}
+
+	/** Whether a fragment at {@code speed} m/s can reach a point {@code dx} off and {@code dy} up. */
+	public static boolean reaches(double speed, double dx, double dy) {
+		return !Double.isNaN(aim(speed, Math.max(dx, 1e-3), dy, false));
+	}
 }

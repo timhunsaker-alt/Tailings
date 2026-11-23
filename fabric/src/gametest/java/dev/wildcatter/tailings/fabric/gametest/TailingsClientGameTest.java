@@ -138,6 +138,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 		}
 		// Heavy Iron episode 1's films: the walking dragline stripping a bauxite seam, on a gas turbine through a pit switch house, only
 		// when named
+		// the Heavy Iron fixes' stills (flyrock, the dozer, the TBM's round bore, the cage), only when named
+		if ("hifix".equals(System.getenv("TAILINGS_ONLY"))) {
+			new HiFixScenes(context).run();
+			return;
+		}
 		if ("hi01".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Hi01Scenes(context).run();
 			return;

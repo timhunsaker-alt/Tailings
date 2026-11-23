@@ -16,6 +16,14 @@ It requires Wildcatter 0.8.1.
 - **Fixed:** the by-product plant could never get pentlandite or molybdenite concentrate (it was never made); the filter now packs
   them, and cobaltite and platinum, and each concentrate of a Wildcatter mineral crafts into that mineral.
 
+### Heavy Iron fixes (2026-11-22)
+
+- **Flyrock you can see:** every firing hole throws fragments of its rock off its face and out of its collar, drawn tumbling on their
+  arcs, as far as Richards and Moore's flyrock rule puts them for its charge, burden and stemming, held to 100 m; a bad hole's blocks of
+  flyrock are drawn in the air too. A fragment hits for 10; anyone in the open within reach is struck once a shot, and cover over the
+  head stops it. ARM reads the flyrock's reach and the zone to clear; the siren tells players in the zone, each second, to clear it.
+- **The muck pile slumps:** after a shot the broken face rolls down to its 37 degree angle of repose instead of standing as a wall.
+
 ### Machines you can see working
 
 - **The TBM's cutterhead turns** while it cuts (a wheel of disc cutters on the face, 6 rpm), and muck rides its conveyor gantry's

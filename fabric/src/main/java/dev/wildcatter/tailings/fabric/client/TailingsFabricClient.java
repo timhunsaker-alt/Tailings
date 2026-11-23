@@ -49,6 +49,7 @@ public final class TailingsFabricClient implements ClientModInitializer {
 		EntityRendererRegistry.register(TailingsEntities.CONVEYOR_GANTRY, dev.wildcatter.tailings.client.GantryRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.SKIP, dev.wildcatter.tailings.client.SkipRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.SLIDE, dev.wildcatter.tailings.client.SlideRenderer::new);
+		EntityRendererRegistry.register(TailingsEntities.FLYROCK, dev.wildcatter.tailings.client.FlyrockRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.HAUL_TRUCK, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.WHEEL_LOADER, dev.wildcatter.tailings.client.PitVehicleRenderer::new);
 		EntityRendererRegistry.register(TailingsEntities.BLASTHOLE_DRILL, dev.wildcatter.tailings.client.PitVehicleRenderer::new);

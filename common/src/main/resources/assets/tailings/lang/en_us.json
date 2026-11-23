@@ -231,6 +231,7 @@
   "entity.tailings.mine_locomotive": "Mine Locomotive",
   "entity.tailings.mine_car": "Mine Car",
   "entity.tailings.slide": "Slide",
+  "entity.tailings.flyrock": "Flyrock",
   "entity.tailings.tunnel_boring_machine": "Tunnel Boring Machine",
   "entity.tailings.pump_gantry": "Pump Gantry",
   "entity.tailings.reel_gantry": "Reel Gantry",

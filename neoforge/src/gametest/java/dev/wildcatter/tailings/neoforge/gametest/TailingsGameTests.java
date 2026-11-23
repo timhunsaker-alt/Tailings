@@ -229,6 +229,8 @@ public class TailingsGameTests {
 			helper.register(id("pit_misfire"), wide("pit_misfire", PitBlastGameTests::misfire));
 			helper.register(id("pit_blast_guard"), wide("pit_blast_guard", PitBlastGameTests::guard));
 			helper.register(id("pit_blast_plc"), wide("pit_blast_plc", PitBlastGameTests::plc));
+			helper.register(id("pit_blast_flyrock"), wide("pit_blast_flyrock", PitBlastGameTests::flyrock));
+			helper.register(id("pit_blast_reach"), wide("pit_blast_reach", PitBlastGameTests::reachTest));
 			helper.register(id("pit_thickener"), wide("pit_thickener", PitDryStackGameTests::thickener));
 			helper.register(id("pit_filter_cycle"), wide("pit_filter_cycle", PitDryStackGameTests::filterCycle));
 			helper.register(id("pit_loadout"), wide("pit_loadout", PitDryStackGameTests::loadout));

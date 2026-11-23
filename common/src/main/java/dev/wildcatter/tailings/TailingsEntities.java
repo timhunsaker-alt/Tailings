@@ -129,6 +129,15 @@ public final class TailingsEntities {
 			.updateInterval(20)
 			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("slide")));
 
+	/** A firing hole's flyrock and fragments on their way, drawn (open-pit-p3-blasting.md, Flyrock): never saved. */
+	public static final EntityType<dev.wildcatter.tailings.entity.FlyrockEntity> FLYROCK = EntityType.Builder
+			.<dev.wildcatter.tailings.entity.FlyrockEntity>of(dev.wildcatter.tailings.entity.FlyrockEntity::new, MobCategory.MISC)
+			.sized(1F, 1F)
+			.noSave()
+			.clientTrackingRange(20)
+			.updateInterval(20)
+			.build(ResourceKey.create(Registries.ENTITY_TYPE, Tailings.id("flyrock")));
+
 	public static final EntityType<GantryEntity> PUMP_GANTRY = gantryType(TbmGantry.PUMP);
 	public static final EntityType<GantryEntity> REEL_GANTRY = gantryType(TbmGantry.REEL);
 	public static final EntityType<GantryEntity> CONVEYOR_GANTRY = gantryType(TbmGantry.CONVEYOR);
@@ -171,6 +180,7 @@ public final class TailingsEntities {
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("dragline"), DRAGLINE);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("skip"), SKIP);
 		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("slide"), SLIDE);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id("flyrock"), FLYROCK);
 		for (TbmGantry kind : TbmGantry.values()) {
 			Registry.register(BuiltInRegistries.ENTITY_TYPE, Tailings.id(kind.id()), gantry(kind));
 		}

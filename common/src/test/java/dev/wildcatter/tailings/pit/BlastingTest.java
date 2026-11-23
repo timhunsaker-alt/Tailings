@@ -102,4 +102,30 @@ class BlastingTest {
 		int ticks = DrillPattern.holeTicks(16, 8);
 		assertEquals(200, ticks / 20.0, 1.5, "16 x 10 s + 20 s + 8 m at 1.5 km/h");
 	}
+
+	@Test
+	void flyrockFollowsRichardsAndMoore() {
+		// the default hole: 69 kg/m, 4 m of stemming throws past the cap; 6 m about 43 m; 8 m about 20 m
+		assertEquals(124, Blasting.crateringM(69, 4), 2);
+		assertEquals(100, Blasting.flyrockReach(Blasting.crateringM(69, 4)), 1e-9);
+		assertEquals(43, Blasting.crateringM(69, 6), 1.5);
+		assertEquals(20.5, Blasting.crateringM(69, 8), 1);
+		// off the face, 6.5 m of burden: about 35 m; half the burden throws much farther
+		assertEquals(35, Blasting.faceBurstM(69, 6.5), 1.5);
+		assertTrue(Blasting.faceBurstM(69, 3) > 2 * Blasting.faceBurstM(69, 6.5));
+		// an ungassed charge counts half a metre's kg
+		assertEquals(34.5, Blasting.kgPerM(828, 414), 1e-9);
+		assertTrue(Blasting.crateringM(34.5, 4) < Blasting.crateringM(69, 4));
+	}
+
+	@Test
+	void aimingReachesWhatTheSpeedCan() {
+		double v = Blasting.launchSpeed(100);
+		assertEquals(Math.PI / 4, Blasting.aim(v, 100, 0, false), 1e-6, "100 m on the level is 45 degrees at full speed");
+		assertTrue(Blasting.reaches(v, 99, 0));
+		assertTrue(!Blasting.reaches(v, 101, 0), "past the reach on the level");
+		assertTrue(Blasting.reaches(v, 105, -14), "down a 14 m bench it reaches a little farther");
+		double low = Blasting.aim(v, 50, 0, false), high = Blasting.aim(v, 50, 0, true);
+		assertEquals(Math.PI / 2, low + high, 1e-6, "the two arcs to a point are complementary");
+	}
 }
