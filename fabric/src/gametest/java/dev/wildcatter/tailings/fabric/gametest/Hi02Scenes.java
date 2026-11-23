@@ -79,8 +79,9 @@ import net.minecraft.world.phys.Vec3;
  * Filmed in real time at 2880 x 1620 with a readout card read from the machines each tick. HI02_SHOTS=a,b films only those.
  * <p>
  * Staged, and said so in the episode: the muck pile (laid by the scene, not blasted); the turbine's purge and run-up skipped off camera;
- * the fuel in its tank and the sets'; the villagers; the 100 t truck parked; the dispatch office's 5 kW on its test feed (it is not a
- * motor; its radio and counts are its own). If the shovel works its face out of reach it is moved on 4 m into the muck between films.
+ * the fuel in its tank and the sets'; the villagers; the 100 t truck parked. The dispatch office's 5 kW comes off the pit's supply: a
+ * unit substation on the MV in the yard, a buried feeder at the industrial voltage, a dry-type at the office down to the low voltage.
+ * If the shovel works its face out of reach it is moved on 4 m into the muck between films.
  */
 final class Hi02Scenes {
 	private static final int W = 1440, H = 810;
@@ -175,14 +176,17 @@ final class Hi02Scenes {
 				haulFilm();
 				dumpFilm();
 				dispatchFilm();
-				// the second load: the dipper close, the swing, the power yard; then the shovel beside a villager
+				// the second load: the dipper in the face from over the house, the power yard; then the shovel beside a villager
 				untilTruck("loading", 6000);
-				digFilm();
+				digFilm("hi02_dig", false, 1000);
 				powerFilm();
-				swingFilm();
 				untilShovelIdle(4000);
 				scaleShovelFilm();
-				// the third load, from the air
+				// the third load: the dig from behind the machine, the swing to the truck
+				untilTruck("loading", 6000);
+				digFilm("hi02_dig_b", true, 700);
+				swingFilm("hi02_swing");
+				// the fourth load, from the air
 				untilTruck("loading", 6000);
 				wideFilm();
 			} catch (RuntimeException | AssertionError ex) {
@@ -739,11 +743,10 @@ final class Hi02Scenes {
 				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(SurveyStakeBlock.KIND, kind), Block.UPDATE_ALL);
 				route.add(at.immutable());
 			}
-			// the haul dispatch office east of the ramp's top (its 5 kW on its test feed: decision in films-hi02.md)
+			// the haul dispatch office east of the ramp's top (fed off the pit's supply in power())
 			office = o.offset(66, 0, 176);
 			Trailer.part(level, TailingsBlocks.HAUL_DISPATCH, office);
 			HaulDispatchBlockEntity d = (HaulDispatchBlockEntity) level.getBlockEntity(office);
-			d.forcePowered(true);
 			log("dispatch: " + d.addRoute(route));
 			log("site at " + o.toShortString());
 		});
@@ -769,7 +772,9 @@ final class Hi02Scenes {
 			Trailer.part(level, TailingsBlocks.PIT_SWITCH_HOUSE, house);
 			// one 500 kcmil MV cable, 450 A: the shovel's 3.5 MW hoist is about 530 A for 12 s of each 35 s cycle, under its burn rise
 			runSize = ConductorSize.MV_500;
-			run(level, MV, house.north(), uat.south(), new HashSet<>(), 0);
+			Set<BlockPos> mv = new HashSet<>();
+			run(level, MV, house.north(), uat.south(), mv, 0);
+			officeFeed(level, mv);
 			log("yard: turbine " + turbine.toShortString() + ", UAT " + uat.toShortString() + ", switch house " + house.toShortString());
 		});
 		context.waitTicks(40);
@@ -786,6 +791,48 @@ final class Hi02Scenes {
 		server.runOnServer(srv -> ((GasTurbineBlockEntity) srv.overworld().getBlockEntity(turbine)).skipStartForTest());
 		ticks(400);
 		server.runOnServer(srv -> status("turbine started", srv));
+	}
+
+	/** The dispatch office's yard end of its feed: a unit substation (MV in on its east, the industrial voltage out on its west). */
+	private static final int SUBX = -56, SUBZ = 30;
+	/** The office's feeder runs buried this deep, under the yard, the ground west of the pit and the haul road beyond the ramp's top. */
+	private static final int FEEDER_Y = -3, FEEDER_Z = 190;
+
+	/**
+	 * The dispatch office's 5 kW off the pit's supply: a unit substation on the MV net in the yard, down to the industrial voltage; a
+	 * buried feeder round the pit to a dry-type transformer at the office's box, down to the low voltage, its low side against the office.
+	 */
+	private void officeFeed(ServerLevel level, Set<BlockPos> mv) {
+		BlockPos sub = d(SUBX, 0, SUBZ);
+		big(level, wc("wildcatter:unit_substation"), sub, Direction.SOUTH);
+		yards.add(new int[] {sub.getX() - 4, sub.getX(), sub.getZ() - 2, sub.getZ() + 2});
+		run(level, MV, sub.east(), null, mv, 0);
+		Direction face = TailingsPartBlock.boxFace(level.getBlockState(office));
+		BlockPos dry = office.relative(face);
+		require(level.getBlockState(dry).canBeReplaced(), "the office's box cell " + dry.toShortString() + " is taken: " + level.getBlockState(dry));
+		level.setBlock(dry, wc("wildcatter:dry_type_transformer").defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, face), Block.UPDATE_ALL);
+		BlockPos from = sub.west(4), to = dry.relative(face);
+		List<BlockPos> cells = new ArrayList<>();
+		for (int y = from.getY(); y > o.getY() + FEEDER_Y; y--) {
+			cells.add(new BlockPos(from.getX(), y, from.getZ()));
+		}
+		int fy = o.getY() + FEEDER_Y, fz = o.getZ() + FEEDER_Z;
+		for (int z = from.getZ(); z != fz; z += Integer.signum(fz - from.getZ())) {
+			cells.add(new BlockPos(from.getX(), fy, z));
+		}
+		for (int x = from.getX(); x != to.getX(); x += Integer.signum(to.getX() - from.getX())) {
+			cells.add(new BlockPos(x, fy, fz));
+		}
+		for (int z = fz; z != to.getZ(); z += Integer.signum(to.getZ() - fz)) {
+			cells.add(new BlockPos(to.getX(), fy, z));
+		}
+		for (int y = fy; y <= to.getY(); y++) {
+			cells.add(new BlockPos(to.getX(), y, to.getZ()));
+		}
+		for (BlockPos c : cells) {
+			lay(level, LV, ConductorSize.AWG_2, c);
+		}
+		log("office feed: unit substation " + sub.toShortString() + ", feeder " + cells.size() + " m, dry-type " + dry.toShortString());
 	}
 
 	private static void big(ServerLevel level, Block block, BlockPos main, Direction facing) {
@@ -1124,7 +1171,7 @@ final class Hi02Scenes {
 		if (d == null) {
 			return new String[] {"^Haul dispatch office", "gone"};
 		}
-		return new String[] {"^Haul dispatch office", "Radio: " + (d.powered() ? "on, 2 km reach" : "dead"),
+		return new String[] {"^Haul dispatch office", "Radio: " + (d.powered() ? "on, 2 km reach; power from the yard" : "dead: no power"),
 				String.format(Locale.ROOT, "Route 1 (6 stakes): %s; %d truck", d.runs(0) ? "RUN" : "PARK", d.trucks(0)),
 				String.format(Locale.ROOT, "Loads tipped: %d; %s t in the last hour", d.loads(0), f0(d.tonnesLastHour(0))),
 				"Ultra: " + (t == null ? "-" : t.status().length() > 44 ? t.status().substring(0, 44) : t.status())};
@@ -1315,21 +1362,33 @@ final class Hi02Scenes {
 	}
 
 	/** hi02_dig: the dipper hoisted through the face, close, from the pit's floor west of the muck. */
-	private void digFilm() {
-		untilDig(3000);
+	/**
+	 * The dipper crowding into the face and coming up through it, seen from high enough that the cut is not hidden behind the pile: from
+	 * the west, beside the pile, 6 m over the rim ({@code behind} false), or from high behind the machine to its south-west, over the
+	 * house; from a few seconds before a dig, through it and the swing. Aimed above the dipper, so it sits below the card.
+	 */
+	private void digFilm(String id, boolean behind, int move) {
+		untilSwing(1600);
+		ticks(23 * 20 - 200);
 		Vec3 c = shovelPos();
 		showCard(true);
-		film("hi02_dig", 560, move(dcam(c.x - 19, PF + 4, c.z - 6, c.x, PF + 6, c.z - 19), dcam(c.x - 17, PF + 5, c.z - 9, c.x, PF + 7, c.z - 20), 560),
-				(level, t) -> card(shovelCard(level)));
+		IntFunction<Cam> path = behind
+				? move(dcam(c.x - 14, PF + 27, c.z + 24, c.x, PF + 8, c.z - 14), dcam(c.x - 10, PF + 26, c.z + 25, c.x, PF + 8, c.z - 14), move)
+				: move(dcam(c.x - 25, PF + 18, c.z + 1, c.x + 1, PF + 7, c.z - 14), dcam(c.x - 24, PF + 17, c.z - 4, c.x + 1, PF + 7, c.z - 15), move);
+		film(id, move, path, (level, t) -> card(shovelCard(level)));
 		showCard(false);
 	}
 
 	/** hi02_swing: low by the crawlers, looking up the boom as it swings loaded to the truck and dumps. */
-	private void swingFilm() {
-		untilSwing(1200);
+	/**
+	 * The swing to the truck with the dipper clear of the house: from beyond the truck, east and a little south, looking back at the
+	 * shovel; from a dig through the swing, dump and back.
+	 */
+	private void swingFilm(String id) {
+		untilDig(1600);
 		Vec3 c = shovelPos();
-		film("hi02_swing", 520, move(dcam(c.x + 2, PF + 1.6, c.z + 26, c.x + 14, PF + 12, c.z - 4), dcam(c.x + 5, PF + 1.6, c.z + 26, c.x + 17, PF + 11, c.z - 3), 520),
-				(level, t) -> shovelNow(level, shovel(level)));
+		IntFunction<Cam> path = move(dcam(c.x + 38, PF + 12, c.z + 14, c.x + 10, PF + 8, c.z - 6), dcam(c.x + 36, PF + 12, c.z + 18, c.x + 10, PF + 8, c.z - 4), 700);
+		film(id, 700, path, (level, t) -> shovelNow(level, shovel(level)));
 	}
 
 	/** hi02_power: the turbine set, the transformer, the switch house on the rim and the shovel below; the card reads the power through. */
