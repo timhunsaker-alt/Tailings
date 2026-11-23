@@ -127,6 +127,11 @@ for _side, (_x0, _x1) in (("l", (-2.1625, -1.1375)), ("r", (1.1375, 2.1625))):
 		for _k in range(21):
 			_z = -2.625 + _k * DOZER_LUG_PITCH
 			DOZER_LUGS.append((f"lug_{_run}_{_side}{_k}", f"lugs_{_run}_{_side}", (_x0, _x1), (_y0, _y1), (_z, _z + 0.125), STEEL, "flat"))
+			# the shoe's end on the track's outer side, a pixel proud of the tread: seen from beside the machine, the run's shoe ends
+			# slide along it as it rolls (films-hi04: the grousers alone, under and on top, did not show from the side)
+			_ox = (_x0, _x0 + 0.0625) if _side == "l" else (_x1 - 0.0625, _x1)
+			_oy = (0.02, 0.27) if _run == "low" else (1.08, 1.31)
+			DOZER_LUGS.append((f"end_{_run}_{_side}{_k}", f"lugs_{_run}_{_side}", _ox, _oy, (_z, _z + 0.125), STEEL, "flat"))
 DOZER += DOZER_LUGS
 
 # its idlers (front) and sprockets (rear), the round ends its treads run round

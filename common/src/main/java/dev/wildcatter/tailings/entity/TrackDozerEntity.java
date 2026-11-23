@@ -234,9 +234,12 @@ public class TrackDozerEntity extends PitVehicleEntity {
 			return;
 		}
 		Crest.Ground ground = HaulTruckEntity.crestGround(level);
-		// at a crest: the ground falls away under its front; it pushes the load over and goes no further
+		// at a crest: the ground falls away under its front; it pushes the load over and goes no further. Cutting, the floor under its
+		// nose is its own cut's: on a grade the cut steps down a block before the tracks have come down into the last step (its box is
+		// 8.8 m long, a step 10 m at 10 %), so its own cut, two blocks under the tracks, is not a crest (pit_dozer_cut failed now and then)
+		int floor = blade == Blade.CUT && cutLevel != Integer.MIN_VALUE ? Math.min(trackY, cutLevel) : trackY;
 		Vec3 nose = local(0, 0, spec().length() / 2 + 1.0);
-		if (!ground.solid((int) Math.floor(nose.x), trackY - 1, (int) Math.floor(nose.z)) && !ground.solid((int) Math.floor(nose.x), trackY - 2, (int) Math.floor(nose.z))) {
+		if (!ground.solid((int) Math.floor(nose.x), floor - 1, (int) Math.floor(nose.z)) && !ground.solid((int) Math.floor(nose.x), floor - 2, (int) Math.floor(nose.z))) {
 			if (!load.empty() && blade != Blade.RAISED) {
 				spill(level, load, BlockPos.containing(nose.x, trackY + 0.5, nose.z), 0, 16, Math.min(40, 3 * Loose.blocks(load)));
 				emptied();
