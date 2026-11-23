@@ -321,7 +321,7 @@ final class QuestGameTests {
 					check(helper, helper.getLevel().getEntity(name) instanceof RopeShovelEntity, "one machine, by the crawlers' name");
 					shovel[0] = (RopeShovelEntity) helper.getLevel().getEntity(name);
 					check(helper, !reached(helper, player, Milestones.SHOVEL_RUNNING), "nothing is reached before it digs: " + shovel[0].status());
-					PitBigGameTests.muck(helper, 22, 31, 2, 14, 35, 38);
+					PitBigGameTests.muck(helper, 22, 31, 2, 14, 26, 29);   // its face, from 16.5 m ahead of its centre
 					shovel[0].fastPasses(4);
 					shovel[0].setAutoHere();
 				})

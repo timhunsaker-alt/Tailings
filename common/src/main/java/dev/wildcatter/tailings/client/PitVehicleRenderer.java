@@ -85,6 +85,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
 		state.swing = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.swing() : 0;
+		state.cycle = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.cycle() : 0;
 		if (entity instanceof dev.wildcatter.tailings.entity.DraglineEntity d) {
 			state.swing = d.swing();
 			state.bucketOut = d.bucketOut();
@@ -107,18 +108,20 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			ground(entity, state, partialTick);
 		}
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
-		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
+		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.cycle) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
 	}
 
 	/**
 	 * The rope shovel's ropes, from the entity, as pairs of points: two hoist ropes from the boom's point sheaves down to the dipper's
 	 * bail, and two suspension ropes from the gantry's head to the boom point (open-pit-p5-big-machines.md, P5d).
 	 */
-	private static float[] ropes(float yaw, float swing, float lift) {
-		double up = RopeShovelModel.BOOM_ANGLE, a = RopeShovelModel.handleAngle(lift);
-		double[] foot = {0, 5.0, -6.5}, saddle = {0, 11.36, -12.86};
+	private static float[] ropes(float yaw, float swing, float cycle) {
+		float[] pose = RopeShovelModel.pose(cycle);
+		double up = RopeShovelModel.BOOM_ANGLE, a = pose[0];
+		double[] foot = {0, 5.0, -6.5}, saddle = {0, RopeShovelModel.SADDLE_UP, -RopeShovelModel.SADDLE_OUT};
 		double[] point = {0, foot[1] + 20.8 * Math.sin(up), foot[2] - 20.8 * Math.cos(up)};
-		double d = 14.2, h = 2.2;
+		// the bail on the dipper, out along the handle by its crowd
+		double d = RopeShovelModel.BAIL_ALONG + pose[1], h = RopeShovelModel.BAIL_UP;
 		double[] bail = {0, saddle[1] + h * Math.cos(a) - d * Math.sin(a), saddle[2] - d * Math.cos(a) - h * Math.sin(a)};
 		double[] head = {0, 16.5, -3.1};
 		float[] out = new float[24];
@@ -360,6 +363,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float roll;
 		/** A shovel's house swung from its tracks, degrees, plus to its right. */
 		public float swing;
+		/** A shovel's pass: 0 to 1 through the dig, 1 to 2 through the swing, dump and back (the rope shovel's handle and door follow it). */
+		public float cycle;
 		/** Its trailing cable's points from it, x y z in turn; empty with none. */
 		public float[] cable = NO_CABLE;
 		/** The dragline's bucket, metres out and up from its centre, and how far through a step its shoes are. */
