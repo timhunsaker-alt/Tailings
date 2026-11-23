@@ -28,13 +28,41 @@ public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
 	private static final float FRONT = -0.12f;
 	private static final int SPOKES = 6;
 
+	private final java.util.Map<Integer, Float> lastTurn = new java.util.HashMap<>();
+
 	public TbmRenderer(EntityRendererProvider.Context context) {
 		super(context);
 	}
 
+	private static final java.util.Map<Direction, List<TbmMachine.Cell>> ROUND = new java.util.EnumMap<>(Direction.class);
+
+	/**
+	 * The machine's cells, but for the cutterhead's and the tail shield's corners outside the round bore (heavy-iron-fixes): the head and
+	 * shield are drawn as the 8 m circle they are, block by block, and the wheel turns on the round face.
+	 */
 	@Override
 	protected List<TbmMachine.Cell> cells(TbmEntity entity) {
-		return TbmMachine.cells(entity.facing());
+		return ROUND.computeIfAbsent(entity.facing(), f -> {
+			List<TbmMachine.Cell> out = new java.util.ArrayList<>();
+			for (TbmMachine.Cell cell : TbmMachine.cells(f)) {
+				if (!outside(cell)) {
+					out.add(cell);
+				}
+			}
+			return out;
+		});
+	}
+
+	/** A cutterhead or erector cell in a corner outside the circle: found from its piece's place in the part, unturned. */
+	private static boolean outside(TbmMachine.Cell cell) {
+		net.minecraft.world.level.block.Block block = cell.state().getBlock();
+		boolean round = block == dev.wildcatter.tailings.TailingsBlocks.tbmBlock(dev.wildcatter.tailings.mine.TbmPart.CUTTERHEAD)
+				|| block == dev.wildcatter.tailings.TailingsBlocks.tbmBlock(dev.wildcatter.tailings.mine.TbmPart.SEGMENT_ERECTOR);
+		if (!round || !(block instanceof dev.wildcatter.block.BigPartBlock part)) {
+			return false;
+		}
+		int[] at = part.footprint().offset(cell.state().getValue(part.piece()), 0);
+		return dev.wildcatter.tailings.mine.DriveCourse.isOutside(Math.abs(at[0]), Math.abs(at[1]));
 	}
 
 	@Override
@@ -50,7 +78,11 @@ public class TbmRenderer extends PitchedCellsRenderer<TbmEntity> {
 	@Override
 	public void extractRenderState(TbmEntity entity, State state, float partialTick) {
 		super.extractRenderState(entity, state, partialTick);
-		state.working = entity.cutting() ? (entity.tickCount + partialTick) / 20f : Float.NaN;
+		// the wheel is always drawn on the round face; it turns while it cuts, and stands where it stopped
+		if (entity.cutting()) {
+			lastTurn.put(entity.getId(), (entity.tickCount + partialTick) / 20f);
+		}
+		state.working = lastTurn.getOrDefault(entity.getId(), 0f);
 	}
 
 	@Override

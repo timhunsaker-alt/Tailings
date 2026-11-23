@@ -8,8 +8,19 @@ import org.junit.jupiter.api.Test;
 
 class TunnelDrillTest {
 	@Test
-	void ringIsTwentyEightAndTheFloorPatternAlternates() {
-		assertEquals(28, DriveCourse.liningCount());
+	void ringIsRoundAndTheFloorPatternAlternates() {
+		assertEquals(18, DriveCourse.liningCount(), "the round ring's edge, 18 cells");
+		assertEquals(DriveCourse.SEGMENTS_PER_RING, DriveCourse.liningCount());
+		int outside = 0;
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				outside += DriveCourse.isOutside(across, up) ? 1 : 0;
+			}
+		}
+		assertEquals(DriveCourse.CORNERS, outside, "three cells at each corner lie outside the 8 m circle");
+		assertTrue(DriveCourse.isOutside(0, 0) && DriveCourse.isOutside(1, 0) && DriveCourse.isOutside(0, 1) && !DriveCourse.isOutside(1, 1));
+		assertTrue(DriveCourse.isLining(1, 6) && DriveCourse.isLining(6, 6), "the crown's shoulders close the ring");
+		assertTrue(!DriveCourse.isLining(1, 1), "the invert's corners are floor");
 		assertArrayEquals(slope(true), DriveCourse.floor(0, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(false), DriveCourse.floor(1, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(true), DriveCourse.floor(2, Grade.ONE_IN_TWO, true));
@@ -30,17 +41,18 @@ class TunnelDrillTest {
 		Advance drove = drill.step(ground);
 		assertEquals(Advance.Stop.NONE, drove.stop());
 		assertEquals(0, ground.count(Ground.LINING), "the erector has not moved off the ring's place yet");
-		assertEquals(60, drove.muck().get(Ground.STONE), "64 cut, 4 kept for the floor; the rails are on gravel");
+		assertEquals(48, drove.muck().get(Ground.STONE), "64 cut, 12 corners put back behind the ring, 4 kept for the floor; the rails are on gravel");
 		assertTrue(drill.linePending());
 		drill.line(ground);
 		assertEquals(false, drill.linePending());
-		assertEquals(28, ground.count(Ground.LINING));
-		assertEquals(Ground.LINING, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND), "the ring just behind the erector");
+		assertEquals(18, ground.count(Ground.LINING));
+		assertEquals(Ground.LINING, ground.get(0, 11, -1 + DriveCourse.RING_BEHIND), "the ring just behind the erector");
+		assertEquals(Ground.STONE, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND), "its corner outside the round bore: the stone put back");
 		int floorZ = -1 + DriveCourse.FLOOR_BEHIND;
 		assertEquals(FloorPiece.FLAT_ROCK, ground.floorPiece(1, 10, floorZ), "where the machine was built is level");
 		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, floorZ));
 		assertEquals(FloorPiece.LANDING, ground.floorPiece(3, 10, floorZ));
-		assertEquals(72, drill.stock().segments());
+		assertEquals(100 - DriveCourse.SEGMENTS_PER_RING, drill.stock().segments());
 		assertEquals(98, drill.stock().rail());
 		assertEquals(98, drill.stock().gravel());
 		assertEquals(100, drill.stock().cobble());
@@ -106,7 +118,7 @@ class TunnelDrillTest {
 		back.loadPending(drill.savePending());
 		assertTrue(back.linePending());
 		back.line(ground);
-		assertEquals(Ground.STONE, ground.get(0, 9, -1 + DriveCourse.RING_BEHIND), "the ring cut from stone");
+		assertEquals(Ground.STONE, ground.get(0, 11, -1 + DriveCourse.RING_BEHIND), "the ring cut from stone");
 		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, -1 + DriveCourse.FLOOR_BEHIND));
 		back.loadPending("nonsense");
 		assertEquals(false, back.linePending());

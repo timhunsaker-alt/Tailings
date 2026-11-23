@@ -24,6 +24,8 @@ public final class TunnelDrill {
 	private boolean ringPending;
 	private FloorPiece[] pendingFloor;
 	private Ground[] pendingFloorRock;
+	/** The corner cells outside the round bore, as cut: put back behind the erector with the ring. */
+	private Ground[] pendingCorners;
 
 	public TunnelDrill(DrillProgram program, DrillStock stock, int originX, int startFloorY, int originZ) {
 		this.program = program;
@@ -207,7 +209,7 @@ public final class TunnelDrill {
 							waterSources++;
 						}
 					}
-					if (ahead == 0 && predicted(cell).isFloorRock() && incoming < holdCap) {
+					if (ahead == 0 && !DriveCourse.isOutside(across, up) && predicted(cell).isFloorRock() && incoming < holdCap) {
 						incoming++;
 					}
 				}
@@ -248,12 +250,30 @@ public final class TunnelDrill {
 		}
 		List<Ground> held = new ArrayList<>();
 		Advance drove = Advance.drove(waterSources, lava);
+		Ground[] corners = new Ground[DriveCourse.CORNERS];
+		int corner = 0;
 		for (int up = 0; up < DriveCourse.FACE; up++) {
 			for (int across = 0; across < DriveCourse.FACE; across++) {
 				int x = worldX(across, 0);
 				int y = worldY(up, 0);
 				int z = worldZ(across, 0);
 				Ground kind = ground.get(x, y, z);
+				if (DriveCourse.isOutside(across, up)) {
+					// outside the round bore: rock is lifted for the machine to pass and put back behind it; anything else is mucked
+					// and the cell grouted
+					if (kind.isFloorRock()) {
+						corners[corner++] = kind;
+					} else {
+						corners[corner++] = Ground.COBBLE;
+						if (kind != Ground.AIR && kind != Ground.LINING && kind != Ground.FLOOR) {
+							drove.addMuck(kind, ground.dropId(x, y, z), 1);
+						}
+					}
+					if (kind != Ground.LINING && kind != Ground.FLOOR) {
+						ground.set(x, y, z, Ground.AIR);
+					}
+					continue;
+				}
 				if (kind == Ground.AIR || kind == Ground.LINING || kind == Ground.FLOOR) {
 					continue;
 				}
@@ -274,6 +294,7 @@ public final class TunnelDrill {
 		ringPending = true;
 		pendingFloor = floor;
 		pendingFloorRock = used;
+		pendingCorners = corners;
 		for (int across = 1; across <= DriveCourse.CLEAR; across++) {
 			int x = worldX(across, 0);
 			int y = worldY(0, 0) - 1;
@@ -305,11 +326,22 @@ public final class TunnelDrill {
 		}
 		int ringAhead = -DriveCourse.RING_BEHIND;
 		int lined = 0;
+		int corner = 0;
 		for (int up = 0; up < DriveCourse.FACE; up++) {
 			for (int across = 0; across < DriveCourse.FACE; across++) {
 				if (DriveCourse.isLining(across, up)) {
-					Ground material = pendingRing == null ? null : pendingRing[lined++];
+					Ground material = pendingRing == null || lined >= pendingRing.length ? null : pendingRing[lined];
+					lined++;
 					ground.placeLining(worldX(across, ringAhead), worldY(up, ringAhead), worldZ(across, ringAhead), material);
+				} else if (DriveCourse.isOutside(across, up)) {
+					// the annulus behind the ring: the ground put back, or grouted
+					Ground back = pendingCorners != null && corner < pendingCorners.length && pendingCorners[corner] != null ? pendingCorners[corner] : Ground.COBBLE;
+					corner++;
+					int x = worldX(across, ringAhead), y = worldY(up, ringAhead), z = worldZ(across, ringAhead);
+					Ground there = ground.get(x, y, z);
+					if (there == Ground.AIR || there.isLiquid()) {
+						ground.placeLining(x, y, z, back);
+					}
 				}
 			}
 		}
@@ -322,6 +354,7 @@ public final class TunnelDrill {
 		pendingRing = null;
 		pendingFloor = null;
 		pendingFloorRock = null;
+		pendingCorners = null;
 	}
 
 	public boolean linePending() {
@@ -334,7 +367,8 @@ public final class TunnelDrill {
 			return "";
 		}
 		StringBuilder out = new StringBuilder();
-		out.append(pendingRing == null ? "-" : join(pendingRing)).append(';').append(join(pendingFloor)).append(';').append(join(pendingFloorRock));
+		out.append(pendingRing == null ? "-" : join(pendingRing)).append(';').append(join(pendingFloor)).append(';').append(join(pendingFloorRock))
+				.append(';').append(pendingCorners == null ? "-" : join(pendingCorners));
 		return out.toString();
 	}
 
@@ -352,6 +386,7 @@ public final class TunnelDrill {
 				pendingFloor[i] = FloorPiece.valueOf(pieces[i]);
 			}
 			pendingFloorRock = grounds(part[2]);
+			pendingCorners = part.length > 3 && !"-".equals(part[3]) ? grounds(part[3]) : null;   // saved before the round bore: grouted
 			ringPending = true;
 		} catch (RuntimeException ex) {
 			ringPending = false;

@@ -242,6 +242,9 @@ public class TbmEntity extends Entity implements TbmCab, SoundingEntity {
 			for (int ahead = -3; ahead >= -10; ahead--) {
 				for (int up = 2; up <= 6; up++) {
 					for (int across = 1; across <= DriveCourse.CLEAR; across++) {
+						if (DriveCourse.isLining(across, up)) {
+							continue;   // the round ring's shoulders at the crown: nothing of the machine runs there
+						}
 						BlockState there = level().getBlockState(new BlockPos(drill.worldX(across, ahead), drill.worldY(up, ahead), drill.worldZ(across, ahead)));
 						if (!there.isAir() && !there.canBeReplaced()) {
 							return false;

@@ -68,6 +68,28 @@ Decided while Tim was away, on the best recommendation; each is open for review.
   compacted state (firmer, not pushed by the blade) is wanted.
 - **Alternatives:** a SPREAD blade position (a fourth jump step); a compaction pass count on a new dry-tails block state.
 
+## Fix 3: the TBM (episode 5)
+
+### 9. Cut square, backfilled round
+- **Chosen:** the face is still cut 8 x 8 (the cutterhead and erector are 8 x 8 parts); behind the erector, as the ring goes in, the
+  twelve corner cells outside an 8 m circle get their own rock back, or cobblestone grout where they held ore, soil, air or water.
+- **Why:** a round cut would collide with the square parts and their set-down; a shield TBM really does leave an annulus that is grouted
+  behind the segments. The bored tunnel reads round from inside and behind the machine.
+- **Alternatives:** round parts (new multiblocks and set-down rules); a larger 10 m circle around the 6 x 6 clear (a new geometry for
+  every drive, floor and gantry).
+
+### 10. The ring is 18 segments
+- **Chosen:** the ring is the circle's edge, 18 cells, so a ring costs 18 crafted segments or 18 rock (was 28); a stone advance mucks
+  48, not 60. Worlds bored before keep their square tunnels; a ring waiting at save time is placed with grout at its corners.
+- **Why:** the lining follows the round bore. *Needs Tim:* fewer segments a ring makes the drive cheaper.
+- **Alternatives:** keep charging 28 and place 18 (wasteful and odd).
+
+### 11. The head drawn round, the wheel always shown
+- **Chosen:** the running machine skips its cutterhead and tail-shield cells outside the circle, and the wheel is drawn on the face at
+  all times, turning only while it cuts. Parked as blocks it is square.
+- **Why:** the face read square with a wheel drawn over it only while cutting. The airflow keeps its 36 m² (a 6.8 m bore's area).
+- **Alternatives:** round block models for the parts as placed (a part model change, left for an art wave).
+
 ## Weak on camera, left as is
 - Fragments are small at a long shot's distance; film the blast from 60-80 m.
 - No camera shake; the blast sound is still vanilla's explosion.

@@ -128,7 +128,7 @@ An advance has two phases (`TunnelDrill`): `step` probes and cuts the face; then
 
 The bore starts at the cutterhead: slice 0 is the rock ahead of it, and its floor is a block above the cutterhead's bottom. An old one-block `tunnel_drill` cab drops its stock and a main beam item, and goes. Broken lining does not leak.
 
-Geometry (`mine.DriveCourse`): an 8×8 face, a 6×6 clear bore, 28 lining segments per ring (the perimeter of the 8×8, with the middle six floor cells left open), two rails per advance, six floor pieces, three blocks of probe ahead. Stone advances in 400 ticks (20 seconds). Deepslate is 600 ticks.
+Geometry (`mine.DriveCourse`): an 8×8 face cut, a round 8 m bore (its 12 corner cells put back behind the ring), 18 lining segments per ring (the circle's edge, with the six floor cells left open), two rails per advance, six floor pieces, three blocks of probe ahead. Stone advances in 400 ticks (20 seconds). Deepslate is 600 ticks.
 
 Heading is the way the machine was built. It drives a 1-in-2 decline (even slices are the upper half, odd slices are the lower half, and a pair drops one block), then flat once it reaches the target Y. The 1-in-1 option is gone (decided with Tim, R6); steep rails already laid still run, and an old program reads as 1 in 2. Floor columns, across the heading: slope, rail, stair or landing, stair or landing, rail, slope. On the flat the walkway is landings. Every track block, decline and flat, sits on gravel ballast (one gravel a block; the rail's `ballast` look). Caves under the floor are filled with cobble.
 

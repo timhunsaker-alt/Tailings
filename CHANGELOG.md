@@ -25,6 +25,8 @@ It requires Wildcatter 0.8.1.
 - **The dozer's tracks run** with its speed, and it is drawn pitched and rolled on the ground under its tracks.
 - **The dozer spreads:** CARRY's sprint setting steps berm 1 m, berm 2 m and SPREAD, which lays the blade's load as a 1 m lift at the
   level of its tracks, filling hollows and the lift's edge ahead of it.
+- **A round bore:** the TBM's bore is an 8 m circle, block by block: its ring is 18 segments round the circle's edge, the face's
+  corners put back behind it (or grouted); its head and shield are drawn round, the wheel always on the face.
 - **The muck pile slumps:** after a shot the broken face rolls down to its 37 degree angle of repose instead of standing as a wall.
 
 ### Machines you can see working

@@ -1497,7 +1497,7 @@ public class TailingsGameTests {
 		cab.press(10, null);
 	}
 
-	/** Keeps the running machine's segments up: a ring is 28 of them, and a stack is 64. */
+	/** Keeps the running machine's segments up: a ring is 18 of them, and a stack is 64. */
 	static void feed(GameTestHelper helper, BlockPos c) {
 		helper.onEachTick(() -> {
 			TbmEntity machine = machine(helper, c);
@@ -1536,7 +1536,7 @@ public class TailingsGameTests {
 			helper.assertTrue(helper.getBlockState(c.offset(0, 0, -1)).getBlock() == TailingsBlocks.CUTTERHEAD
 					&& helper.getBlockState(c.offset(3, 3, 2)).getBlock() == TailingsBlocks.MAIN_BEAM, Component.literal("every part should be one block on"));
 			int lined = ringAt(helper, c, 2);
-			helper.assertTrue(lined == 28, Component.literal("a ring of 28 segments behind the erector, got " + lined));
+			helper.assertTrue(lined == dev.wildcatter.tailings.mine.DriveCourse.SEGMENTS_PER_RING, Component.literal("a round ring of 18 segments behind the erector, got " + lined));
 			BlockState rail = helper.getBlockState(c.offset(2, 1, 10));
 			helper.assertTrue(rail.getBlock() == TailingsBlocks.MINE_RAIL && rail.getValue(MineRailBlock.LOOK) == FloorLook.BALLAST,
 					Component.literal("track on ballast behind the track layer, got " + rail));
@@ -1546,8 +1546,8 @@ public class TailingsGameTests {
 			for (int slot = DrillBlockEntity.INPUTS; slot < DrillBlockEntity.SLOTS; slot++) {
 				muck += now.getItem(slot).getCount();
 			}
-			helper.assertTrue(muck == 60, Component.literal("64 cut, 4 kept for the floor: 60 muck, got " + muck));
-			helper.assertTrue(now.getItem(DrillBlockEntity.SLOT_GRAVEL).getCount() == 62 && now.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 36,
+			helper.assertTrue(muck == 48, Component.literal("64 cut, 12 corners outside the round bore put back, 4 kept for the floor: 48 muck, got " + muck));
+			helper.assertTrue(now.getItem(DrillBlockEntity.SLOT_GRAVEL).getCount() == 62 && now.getItem(DrillBlockEntity.SLOT_SEGMENTS).getCount() == 64 - dev.wildcatter.tailings.mine.DriveCourse.SEGMENTS_PER_RING,
 					Component.literal("ballast under both rails and a crafted ring spent"));
 			helper.assertFalse(now.running(), Component.literal("and it stays stopped"));
 		});
@@ -1586,7 +1586,7 @@ public class TailingsGameTests {
 			helper.assertTrue(between[0], Component.literal("it should pass between whole blocks"));
 			for (int i = 0; i < 4; i++) {
 				int lined = ringAt(helper, c, 2 - i);
-				helper.assertTrue(lined == 28, Component.literal("ring " + i + " should have 28 segments, got " + lined));
+				helper.assertTrue(lined == dev.wildcatter.tailings.mine.DriveCourse.SEGMENTS_PER_RING, Component.literal("ring " + i + " should have 18 segments, got " + lined));
 				helper.assertTrue(helper.getBlockState(c.offset(2, 1, 10 - i)).getBlock() == TailingsBlocks.MINE_RAIL
 						&& helper.getBlockState(c.offset(5, 1, 10 - i)).getBlock() == TailingsBlocks.MINE_RAIL, Component.literal("both tracks at row " + i));
 			}

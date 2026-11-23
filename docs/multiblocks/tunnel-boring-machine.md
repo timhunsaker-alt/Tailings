@@ -235,7 +235,7 @@ Right-click the operator cab (on the main beam, as blocks or as the moving contr
   water in its quench tank.
 
 ## Left out (ROADMAP)
-- A round bore: the face is square.
+- A round bore (built in heavy-iron-fixes, below): the face is still cut 8 x 8 for the machine's square parts and backfilled behind.
 - Cutter wear and disc changes; ground support beyond the segment lining; grouting; probe drilling as its own machine.
 - Ventilation of the drive (Later, not scheduled).
 - Huge inflows (tunnelling under an ocean): the machine stops if water gains on it.
@@ -302,3 +302,20 @@ The machine's 1 MW comes on all at once at the junction.
 - **The trailing cable is drawn** from the reel back to the junction, and the reel turns as it pays out.
 - **The cab's screen stays open** across the lift and set-down.
 - **Recipes:** steel and Wildcatter's parts (windings, a drive cabinet, MV cable, a process water pump), in place of iron and copper.
+
+## As built: a round bore and a round head (heavy-iron-fixes, 2026-11-22)
+Episode 5 of Heavy Iron films the TBM (../questions/heavy-iron-fixes.md, 9-11).
+- **The bore is round,** an **8 m** circle block by block (`DriveCourse.isOutside`: a cell whose centre is more than 4.2 cells from the
+  face's centre lies outside it, three at each corner). The face is still cut 8 x 8, so the machine's square parts pass; behind the
+  erector, as the ring goes in, the twelve corner cells are **put back** with the ground they held (its rock; ore and soil are mucked
+  and the cell **grouted** with cobblestone, as open or flooded cells are), as a real shield's annulus is grouted behind its segments.
+- **The ring** is the circle's edge: **18 segments** (was 28): rows 0 and 7 and columns 0 and 7 inside the circle, and the crown's two
+  shoulders; the invert's two corners are the floor's own pieces, as before. A ring of crafted segments is 18; a ring cut from rock
+  takes 18 of it. The clear section is 32 cells; the airflow keeps its 36 m² (a 6.8 m bore's area).
+- **Muck:** a block of advance in stone makes 48 muck, not 60 (the 12 corners stay in the ground).
+- **The head is drawn round:** the running machine's cutterhead and tail-shield cells outside the circle are not drawn, so its head and
+  shield are the 8 m circle; the wheel of spokes and disc cutters is drawn always on the face and turns at 6 rpm while it cuts. Set
+  down as blocks it is square, as its parts are.
+- **Tests:** `TunnelDrillTest` (the ring's 18, the 12 corners, the stone put back), `drill` (48 muck, 18 segments spent), the
+  ring counts in the TBM scenes.
+
