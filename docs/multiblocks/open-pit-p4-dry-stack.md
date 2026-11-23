@@ -179,6 +179,23 @@ and is to be checked before approval.
 - **Scenes:** `pit_thickener`, `pit_filter_cycle`, `pit_loadout`, `pit_loadout_haul`, `pit_berm`, `pit_no_berm`, `pit_over_crest`,
   `pit_dump_advance`, `pit_dozer_cut`, `pit_dozer_berm`, `pit_dozer_hard`, `pit_dozer_push`; the client film `pit_dry_stack` (written).
 
+## As built: running tracks, the body on the ground, and spreading (heavy-iron-fixes, 2026-11-22)
+Episode 4 of Heavy Iron films the dozer (../questions/heavy-iron-fixes.md, 6-8).
+- **The tracks run:** a row of grousers along the ground run and the top run of each track (`tools/models/pit_vehicles.py`), drawn at a
+  **0.25 m** pitch (the class's shoes are about 0.26 m, *unverified*), a pixel proud of the tread. As the dozer rolls the ground run
+  slides back and the top run forward, a pitch and round again, at its own speed (the same distance its idlers and sprockets turn
+  through), so the tracks are seen to run.
+- **On the ground under it:** the body is drawn pitched by the ground under the front and rear of its tracks and rolled by the ground
+  under its left and right tracks, each from the highest ground there (a track bridges a hollow), eased over a few frames as a block
+  edge passes under it. Its box is still level.
+- **Spreading (SPREAD, CARRY's third setting on the sprint key):** with a load, a metre at a time, each of the blade's five columns
+  fills the ground its tracks stand on in front of the blade where that is open (a hollow, or its lift's edge over lower ground): the
+  dozer lays its load as a **1 m lift** and drives on along it. Pushing a truck's tipped load across a lift spreads it into the lift.
+  Real dry stacks are spread in lifts of about 0.3-0.5 m and compacted *(unverified)*; a block is the game's thinnest lift.
+- **No compaction** (left out): the real one is a number of roller or track passes to a density; the game has no density for a
+  block, nothing that a firmer stack would change, and dry tails is a plain falling block.
+- **Game test:** `pit_dozer_spread` (18 blocks laid 5 wide at the lift's level from its edge, the dozer driving on along it).
+
 ## Sources
 - R. Kaswalder, filter press paper (ACG Paste 2017 proceedings): one unit with 2,500 x 2,500 mm plates about 1,800 t/day (average
   filterability) to about 3,000 t/day.

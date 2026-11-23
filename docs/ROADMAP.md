@@ -608,7 +608,9 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
 - **`pit_dozer_cut` fails now and then in the full suite (since 2026-11-18):** in the whole run its dozer stops at 15-20 m reading
   "at the crest" (the ground under its nose not solid two down); alone it passes. Seen on `flow-all` (2026-11-18) and in both wave A
   full runs; not chased yet.
-- **The dozer is drawn level and its treads do not run (P4):** its idlers and sprockets turn as it moves; the tread boxes are still.
+- **The dozer's tracks (heavy-iron-fixes):** its track shoes' grousers slide along both runs as it rolls and it is drawn pitched and
+  rolled on the ground under its tracks; turning on the spot, its tracks do not counter-rotate, and its box (as every pit machine's) is
+  still level. No compaction: spreading lays 1 m lifts, but nothing counts passes or firms the stack (questions/heavy-iron-fixes.md, 7).
 - **A load-out needs room to loop (P4):** a truck leaves a load-out round a balloon loop needing about 40 m beyond the gate and 25 m
   to its right; it halts and says so if it cannot loop within 3 minutes.
 - **Loads are tipped where the truck stops (P4):** a DUMP POINT stake is moved by the player as the crest advances; nothing moves it.
@@ -621,7 +623,8 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
   blocks and collars, `dry_tails` and the dozer's icon are Ludo art, and the drill's and emulsion truck's skins are painted in the
   swatches (white paint added for the truck). The matrix fill point and P4's four parts use Wildcatter's materials. P5's three
   icons (the trailing cable, the ultra truck, the hydraulic shovel) are Ludo art too (`docs/questions/p5-big-machines.md`, 36).
-- **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp.
+- **A pit machine is drawn level (P1).** It climbs a step a block at a time and is not pitched on a ramp; only the track dozer is drawn
+  on the ground under it (heavy-iron-fixes).
 - **A pit machine's box is a box (P1):** its real length and width turned with it, so at a diagonal it stands wider than it is.
 - **The loader works where it stands (P1):** it digs the face in front of its bucket and dumps into a truck within 4 m of the bucket,
   without driving between; the driver moves it. A self-running loader edges up to 5 m toward a face out of reach (P5), no further.

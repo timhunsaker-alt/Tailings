@@ -43,7 +43,7 @@ import net.minecraft.world.phys.AABB;
  */
 final class PitDryStackGameTests {
 	static final String[] SCENES = {"pit_thickener", "pit_filter_cycle", "pit_loadout", "pit_loadout_haul", "pit_berm", "pit_no_berm", "pit_over_crest",
-			"pit_dump_advance", "pit_dozer_cut", "pit_dozer_berm", "pit_dozer_hard", "pit_dozer_push"};
+			"pit_dump_advance", "pit_dozer_cut", "pit_dozer_berm", "pit_dozer_hard", "pit_dozer_push", "pit_dozer_spread"};
 	static final Map<String, Integer> TICKS = Map.of("pit_thickener", 1200, "pit_filter_cycle", 1600, "pit_loadout", 1600, "pit_loadout_haul", 9000,
 			"pit_berm", 3600, "pit_no_berm", 3600, "pit_over_crest", 1200, "pit_dozer_cut", 1600, "pit_dozer_berm", 1600, "pit_dozer_push", 1600);
 	static final Map<String, Integer> PADDING = Map.of("pit_loadout_haul", 180, "pit_berm", 120, "pit_no_berm", 120);
@@ -415,6 +415,33 @@ final class PitDryStackGameTests {
 				.thenExecute(() -> {
 					helper.assertTrue(relZ(helper, dozer) < 16 - 4.4, Component.literal("short of the stone: " + where(helper, dozer)));
 					helper.assertTrue(helper.getBlockState(new BlockPos(10, 59, 16)).is(Blocks.STONE), Component.literal("the stone still stands"));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * SPREAD: from the edge of a 1 m lift of dry tails, the dozer lays its 18 blocks as the lift's next metres, 5 wide at the lift's level,
+	 * and drives on along it without climbing.
+	 */
+	static void dozerSpread(GameTestHelper helper) {
+		floor(helper, 0, 20, 50, 55, 0, 40);
+		for (int x = 4; x <= 16; x++) {
+			for (int z = 0; z <= 12; z++) {
+				helper.setBlock(new BlockPos(x, 56, z), TailingsBlocks.DRY_TAILS);
+			}
+		}
+		TrackDozerEntity dozer = vehicle(helper, TailingsEntities.TRACK_DOZER, 10.5, 57, 5.0, 0);
+		dozer.loadBlade(PitMass.DRY_TAILS, 18);
+		dozer.setSpread();
+		dozer.testDrive(FORWARD);
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(dozer.bladeBlocks() == 0, Component.literal("it should spread its load: " + dozer.status() + " " + where(helper, dozer))))
+				.thenExecute(() -> {
+					int laid = count(helper, TailingsBlocks.DRY_TAILS, 4, 16, 56, 56, 13, 30);
+					helper.assertTrue(laid == 18, Component.literal("18 blocks laid at the lift's level ahead of it: " + laid));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 0, 20, 57, 60, 0, 40) == 0, Component.literal("nothing heaped above the lift"));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 8, 12, 56, 56, 13, 15) == 15, Component.literal("its first 3 m are the blade's 5 wide"));
+					helper.assertTrue(Math.abs(dozer.getY() - helper.absolutePos(new BlockPos(0, 57, 0)).getY()) < 0.1, Component.literal("it drove on along the lift: " + where(helper, dozer)));
 				})
 				.thenSucceed();
 	}

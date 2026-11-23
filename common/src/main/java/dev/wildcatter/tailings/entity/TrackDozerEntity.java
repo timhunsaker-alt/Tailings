@@ -37,7 +37,9 @@ import org.jspecify.annotations.Nullable;
  * A player drives it; jump steps the blade CARRY, CUT, RAISED; sprint steps the setting for the blade's position (CUT: the grade it
  * cuts to; CARRY: a berm 1 or 2 m high). In CARRY it takes the loose ground and muck in front into the blade and spills the extra off
  * its ends; in CUT it also cuts the layer under its front, a block down each N metres for the grade; reversing it leaves the load; at a
- * crest it pushes the load over; along a crest it drops a berm. Standing hard rock stops it.
+ * crest it pushes the load over; along a crest it drops a berm. Standing hard rock stops it. Set to SPREAD (CARRY's third setting), it
+ * lays its load in a 1 m lift at the level its tracks stand on, filling the ground in front of the blade, a block a column a metre:
+ * pushing a tipped load across a stack's lift it spreads it into that lift (heavy-iron-fixes).
  */
 public class TrackDozerEntity extends PitVehicleEntity {
 	public enum Blade {
@@ -70,6 +72,8 @@ public class TrackDozerEntity extends PitVehicleEntity {
 	private int cutStart;
 	private double cutRun;
 	private double bermRun;
+	/** CARRY's setting is a berm (1 or 2 m high) or spreading: the berm height 0 means SPREAD. */
+	private double spreadRun;
 	private boolean dozing;
 	private boolean lastSprint;
 	private int spillSide = 1;
@@ -165,6 +169,15 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		this.bermHigh = Math.max(1, Math.min(2, high));
 	}
 
+	/** Test hook: CARRY set to SPREAD. */
+	public void setSpread() {
+		this.bermHigh = 0;
+	}
+
+	public boolean spreading() {
+		return bermHigh == 0;
+	}
+
 	private void say(@Nullable Player driver, String what) {
 		status = what;
 		if (driver != null) {
@@ -182,7 +195,7 @@ public class TrackDozerEntity extends PitVehicleEntity {
 	private String describeSetting() {
 		return switch (blade) {
 			case CUT -> ", cutting to " + grade.label();
-			case CARRY -> ", berm " + bermHigh + " m";
+			case CARRY -> bermHigh == 0 ? ", spreading a 1 m lift" : ", berm " + bermHigh + " m";
 			case RAISED -> "";
 		};
 	}
@@ -194,7 +207,7 @@ public class TrackDozerEntity extends PitVehicleEntity {
 			cutStart = cutLevel;
 			cutRun = 0;
 		} else if (blade == Blade.CARRY) {
-			bermHigh = bermHigh == 1 ? 2 : 1;
+			bermHigh = bermHigh == 1 ? 2 : bermHigh == 2 ? 0 : 1;   // berm 1 m, berm 2 m, spread
 		}
 		say(driver, "blade " + blade.name() + describeSetting());
 	}
@@ -275,6 +288,10 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		if (blade == Blade.CUT) {
 			dozing = true;
 			status = String.format(java.util.Locale.ROOT, "cutting to %s: %d down, %.0f m; blade %d of %d", grade.label(), trackY - cutLevel, cutRun, bladeBlocks, BLADE_BLOCKS);
+		} else if (bermHigh == 0) {
+			if (!spread(level)) {
+				status = bladeBlocks > 0 ? "pushing " + bladeBlocks + " blocks to spread" : "spreading: blade empty";
+			}
 		} else if (!berm(level)) {
 			status = bladeBlocks > 0 ? "pushing " + bladeBlocks + " blocks" : "blade at the tracks";
 		}
@@ -358,6 +375,41 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		return false;
 	}
 
+	/**
+	 * SPREAD: a metre at a time, each of the blade's 5 columns fills the ground its tracks stand on, in front of the blade, where that is
+	 * open (a hollow, or the lift's own edge over lower ground) from the load, so the dozer lays its load as a 1 m lift and drives on to
+	 * it. A real dry stack is spread in lifts and compacted (open-pit-p4-dry-stack.md): a block is the game's thinnest lift.
+	 */
+	private boolean spread(ServerLevel level) {
+		if (load.empty()) {
+			return false;
+		}
+		spreadRun += speed() * TICK;
+		dozing = true;
+		if (spreadRun >= 1) {
+			spreadRun = Math.max(0, spreadRun - 1);
+			int lift = (int) Math.floor(getY() + 0.01) - 1;
+			Vec3 front = local(0, 0, spec().length() / 2 + 0.5);
+			Vec3 across = right();
+			for (int side = -BLADE_HALF; side <= BLADE_HALF && !load.empty(); side++) {
+				BlockPos pos = new BlockPos((int) Math.floor(front.x + across.x * side), lift, (int) Math.floor(front.z + across.z * side));
+				if (level.getBlockState(pos).canBeReplaced() && level.getBlockState(pos).getFluidState().isEmpty()) {
+					// a deeper hollow is filled from its floor up, a block a pass
+					BlockPos at = pos;
+					for (int down = 0; down < 3 && level.getBlockState(at.below()).canBeReplaced(); down++) {
+						at = at.below();
+					}
+					placeOne(level, at);
+				}
+			}
+		}
+		status = "spreading a 1 m lift: " + bladeBlocks + " blocks left";
+		if (load.empty()) {
+			emptied();
+		}
+		return true;
+	}
+
 	/** Places one block from the load: soil and dry tails as themselves, rock as a block of muck. */
 	private void placeOne(ServerLevel level, BlockPos pos) {
 		Map.Entry<String, Long> first = load.contents().entrySet().iterator().next();
@@ -413,7 +465,7 @@ public class TrackDozerEntity extends PitVehicleEntity {
 			blade = Blade.CARRY;
 			grade = DryStack.Grade.LEVEL;
 		}
-		bermHigh = input.getIntOr("berm_high", 1);
+		bermHigh = Math.max(0, Math.min(2, input.getIntOr("berm_high", 1)));
 		bladeBlocks = input.getIntOr("blade_blocks", 0);
 		setLift(blade.lift());
 	}

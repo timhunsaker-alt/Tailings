@@ -22,6 +22,9 @@ It requires Wildcatter 0.8.1.
   arcs, as far as Richards and Moore's flyrock rule puts them for its charge, burden and stemming, held to 100 m; a bad hole's blocks of
   flyrock are drawn in the air too. A fragment hits for 10; anyone in the open within reach is struck once a shot, and cover over the
   head stops it. ARM reads the flyrock's reach and the zone to clear; the siren tells players in the zone, each second, to clear it.
+- **The dozer's tracks run** with its speed, and it is drawn pitched and rolled on the ground under its tracks.
+- **The dozer spreads:** CARRY's sprint setting steps berm 1 m, berm 2 m and SPREAD, which lays the blade's load as a 1 m lift at the
+  level of its tracks, filling hollows and the lift's edge ahead of it.
 - **The muck pile slumps:** after a shot the broken face rolls down to its 37 degree angle of repose instead of standing as a wall.
 
 ### Machines you can see working

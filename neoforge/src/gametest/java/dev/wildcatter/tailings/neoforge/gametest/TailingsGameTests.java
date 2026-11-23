@@ -243,6 +243,7 @@ public class TailingsGameTests {
 			helper.register(id("pit_dozer_berm"), wide("pit_dozer_berm", PitDryStackGameTests::dozerBerm));
 			helper.register(id("pit_dozer_hard"), wide("pit_dozer_hard", PitDryStackGameTests::dozerHard));
 			helper.register(id("pit_dozer_push"), wide("pit_dozer_push", PitDryStackGameTests::dozerPush));
+			helper.register(id("pit_dozer_spread"), wide("pit_dozer_spread", PitDryStackGameTests::dozerSpread));
 			helper.register(id("pit_switch_house"), wide("pit_switch_house", PitBigGameTests::switchHouse));
 			helper.register(id("pit_cable_end"), wide("pit_cable_end", PitBigGameTests::cableEnd));
 			helper.register(id("pit_ultra_haul"), wide("pit_ultra_haul", PitBigGameTests::ultraHaul));

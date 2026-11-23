@@ -102,6 +102,10 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 				state.shadowRadius = 0;
 			}
 		}
+		state.groundPitch = state.groundRoll = state.groundDy = 0;
+		if (state.kind == 4) {
+			ground(entity, state, partialTick);
+		}
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
 		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.lift) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
 	}
@@ -168,6 +172,63 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		return n + 3;
 	}
 
+	/** Each tracked machine's pitch, roll and drop as last drawn, eased toward the ground's from frame to frame. */
+	private final java.util.Map<Integer, float[]> eased = new java.util.HashMap<>();
+
+	/** The track dozer's tracks: 5.2 m long on the ground, their centres 3.3 m apart (TrackDozerModel). */
+	private static final double TRACK_HALF = 2.6, TRACK_GAUGE = 3.3;
+
+	/**
+	 * The track dozer stands on the ground under its tracks, not level (heavy-iron-fixes): the ground under the front and rear of its
+	 * tracks pitches it, under its left and right tracks rolls it, each from the highest ground there (a track bridges a hollow and rests
+	 * on the highest points). Eased, so a block edge passing under it tips it over a few frames, as a track walks over it.
+	 */
+	private void ground(PitVehicleEntity entity, PitState state, float partialTick) {
+		net.minecraft.world.level.Level level = entity.level();
+		double ox = entity.getX(partialTick), oy = entity.getY(partialTick), oz = entity.getZ(partialTick);
+		double yaw = Math.toRadians(state.yaw);
+		double fx = -Math.sin(yaw), fz = Math.cos(yaw), rx = -Math.cos(yaw), rz = -Math.sin(yaw);
+		double front = -1e9, rear = -1e9, left = -1e9, right = -1e9;
+		for (double side : new double[] {-TRACK_GAUGE / 2, TRACK_GAUGE / 2}) {
+			for (int k = 0; k <= 8; k++) {
+				double along = -TRACK_HALF + k * TRACK_HALF / 4;
+				double h = GantryRenderer.floorAt(level, ox + fx * along + rx * side, oz + fz * along + rz * side, oy) - oy;
+				if (along >= TRACK_HALF / 2) {
+					front = Math.max(front, h);
+				}
+				if (along <= -TRACK_HALF / 2) {
+					rear = Math.max(rear, h);
+				}
+				if (side > 0) {
+					right = Math.max(right, h);
+				} else {
+					left = Math.max(left, h);
+				}
+			}
+		}
+		float pitch = (float) Math.toDegrees(Math.atan2(front - rear, TRACK_HALF * 1.5));
+		float roll = (float) Math.toDegrees(Math.atan2(left - right, TRACK_GAUGE));
+		float dy = (float) Math.max(-1.5, Math.min(1.5, (front + rear) / 2));
+		pitch = Math.max(-35, Math.min(35, pitch));
+		roll = Math.max(-25, Math.min(25, roll));
+		if (eased.size() > 512) {
+			eased.clear();
+		}
+		float[] e = eased.computeIfAbsent(entity.getId(), id -> new float[] {Float.NaN, 0, 0});
+		if (Float.isNaN(e[0])) {
+			e[0] = pitch;
+			e[1] = roll;
+			e[2] = dy;
+		} else {
+			e[0] += (pitch - e[0]) * 0.15F;
+			e[1] += (roll - e[1]) * 0.15F;
+			e[2] += (dy - e[2]) * 0.15F;
+		}
+		state.groundPitch = e[0];
+		state.groundRoll = e[1];
+		state.groundDy = e[2];
+	}
+
 	private static final float[] NO_CABLE = new float[0];
 	/** The most metres of trailing cable drawn: four reels. */
 	private static final int MOST_METRES = 1600;
@@ -222,6 +283,13 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 			pose.translate(-state.tipX * state.tipPivot, 0, -state.tipZ * state.tipPivot);
 		}
 		pose.pushPose();
+		if (state.groundPitch != 0 || state.groundRoll != 0 || state.groundDy != 0) {
+			// on the ground under its tracks: nose up about its right, right side down about its forward
+			double yaw = Math.toRadians(state.yaw);
+			pose.translate(0, state.groundDy, 0);
+			pose.rotateDegrees(Axis.of(new org.joml.Vector3f((float) -Math.cos(yaw), 0, (float) -Math.sin(yaw))), state.groundPitch);
+			pose.rotateDegrees(Axis.of(new org.joml.Vector3f((float) -Math.sin(yaw), 0, (float) Math.cos(yaw))), state.groundRoll);
+		}
 		pose.rotateDegrees(Axis.YP, 180.0F - state.yaw);
 		pose.scale(-1.0F, -1.0F, 1.0F);
 		EntityModel<PitState> model = switch (state.kind) {
@@ -302,5 +370,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float[] ropes = NO_CABLE;
 		/** A dragline going down with a slide: degrees tipped, toward x z (a unit vector), metres dropped and slid out, and its pivot's distance out. */
 		public float tip, tipX, tipZ, tipDrop, tipShift, tipPivot;
+		/** The track dozer on the ground under its tracks: degrees nose up, degrees right side down, metres up from its entity. */
+		public float groundPitch, groundRoll, groundDy;
 	}
 }

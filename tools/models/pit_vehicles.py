@@ -117,6 +117,18 @@ DOZER = [
 	("blade_load", "blade", (-2.2, 2.2), (0.2, 1.6), (-5.4, -4.45), ROCK, "rock"),
 ]
 
+# its track shoes' grousers, the lugs across each shoe (heavy-iron-fixes): a row along the ground run and one along the top run of each
+# track, each its own group, so the model slides them along the run as the dozer rolls (the ground run back, the top run forward) and
+# the tracks are seen to run. Drawn at a 0.25 m pitch (the class's shoes are about 0.26 m, unverified), a pixel proud of the tread.
+DOZER_LUG_PITCH = 0.25
+DOZER_LUGS = []
+for _side, (_x0, _x1) in (("l", (-2.1625, -1.1375)), ("r", (1.1375, 2.1625))):
+	for _run, (_y0, _y1) in (("low", (-0.0625, 0.0625)), ("top", (1.3125, 1.4375))):
+		for _k in range(21):
+			_z = -2.625 + _k * DOZER_LUG_PITCH
+			DOZER_LUGS.append((f"lug_{_run}_{_side}{_k}", f"lugs_{_run}_{_side}", (_x0, _x1), (_y0, _y1), (_z, _z + 0.125), STEEL, "flat"))
+DOZER += DOZER_LUGS
+
 # its idlers (front) and sprockets (rear), the round ends its treads run round
 DOZER_WHEELS = [
 	("idler_l", (-2.1, -1.2), 0.66, -2.6, 0.66, -1),
@@ -542,10 +554,26 @@ def main(names):
 
 def dozer():
 	paint(DOZER, "track_dozer", DOZER_HINGE, "TrackDozerModel",
-		"The 70 t track dozer at its real size, 8.8 x 4.9 x 4.6 m; its blade and push arms rise and fall about their trunnions.", ["blade"],
+		"The 70 t track dozer at its real size, 8.8 x 4.9 x 4.6 m; its blade and push arms rise and fall about their trunnions, and its"
+		+ " track shoes run round as it moves.",
+		["blade"] + [(g, (0.0, 0.0, 0.0), None) for g in ("lugs_low_l", "lugs_low_r", "lugs_top_l", "lugs_top_r")],
 		"\t\tModelPart blade = root().getChild(BLADE);\n"
 		"\t\tblade.y += (0.5F - state.lift) * 24F;   // CUT a block lower than CARRY, RAISED a block and a half higher\n"
-		"\t\tblade.getChild(\"blade_load\").visible = state.loaded;", DOZER_WHEELS)
+		"\t\tblade.getChild(\"blade_load\").visible = state.loaded;\n"
+		"\t\t// the track runs: on the ground its shoes stand still as the machine goes over them, so drawn on the machine the ground run\n"
+		"\t\t// slides back and the top run forward, a shoe's pitch and round again\n"
+		"\t\tfloat run = shoeShift(state.roll) * 16F;\n"
+		"\t\troot().getChild(LUGS_LOW_L).z += run;\n"
+		"\t\troot().getChild(LUGS_LOW_R).z += run;\n"
+		"\t\troot().getChild(LUGS_TOP_L).z -= run;\n"
+		"\t\troot().getChild(LUGS_TOP_R).z -= run;", DOZER_WHEELS, SHEET,
+		"\t/** The track shoes' pitch, metres: one shoe's grouser to the next. */\n"
+		f"\tpublic static final float SHOE_PITCH = {DOZER_LUG_PITCH}F;\n\n"
+		"\t/** How far a shoe has slid through its pitch, metres, after the machine has rolled {@code roll} metres forward. */\n"
+		"\tpublic static float shoeShift(float roll) {\n"
+		"\t\tfloat r = roll % SHOE_PITCH;\n"
+		"\t\treturn r < 0 ? r + SHOE_PITCH : r;\n"
+		"\t}\n\n", share=True)
 
 
 def rope():
