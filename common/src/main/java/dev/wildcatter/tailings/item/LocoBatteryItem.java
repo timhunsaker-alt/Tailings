@@ -65,6 +65,6 @@ public class LocoBatteryItem extends Item {
 
 	@Override
 	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-		tooltip.accept(Component.literal("Traction battery, 132 V 440 Ah: " + describe(charge(stack))));
+		tooltip.accept(Component.literal(String.format(Locale.ROOT, "Traction battery, %.0f kWh: ", Battery.NAMEPLATE_WH / 1000) + describe(charge(stack))));
 	}
 }

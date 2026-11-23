@@ -70,8 +70,15 @@ and is to be checked before approval.
 
 ## Sources
 - Supplier listings for a Chinese 8 t class: 8 t, 2 x 22 kW, AC variable-frequency drive; 132 V, 440 Ah for the 8 t model *(unverified)*.
-- AGH paper on a lithium monorail battery locomotive: a 143.5 kWh lithium system, 11 kW a drive, 88 kW in all (a different class, for
-  comparison).
+  **Checked 2026-11-23 (films-hi06):** two makers' 8 t spec tables give "Power 11kW x 2 or 15kW x 2", battery 440 Ah at 110 to 144 V
+  (132 V: 58 kWh), 6.2 to 7.8 km/h, gauge 600/762/900 mm, about 4.4 m long and 1.55-1.6 m high. **The game's 2 x 22 kW is about half
+  as strong again as the real class** (needs Tim: docs/questions/films-hi06.md); the 58 kWh holds.
+- 80 % depth of discharge: US Bureau of Mines OFR 61(5)-78 (1977), "Battery manufacturers recommend that lead-acid batteries not be
+  discharged below 80% of their capacity"; ZVEI leaflet "Service Life of Traction Batteries" (2014-02).
+- Spare boxes charging while one works: Wikipedia "Mine railway"; "Anthracite Mine Transportation Methods" (undergroundminers.com).
+  Not found: that the boxes are changed by crane (sources show boxes rolled off on wheels or a stand).
+- AGH paper on a lithium monorail battery locomotive (Szlązak, Korzec and Cheng, *Energies* 15(20):7527, 2022): a **142 kWh** lithium
+  battery, 8 x 11 kW, 88 kW in all, 2.0 m/s (a different class, for comparison; the 143.5 kWh above came from a trade paper).
 - Wildcatter ROADMAP Phase 3: three-phase receptacles and plugs (L21-30, L22-30, IEC 60309 red).
 
 ## As built (L2, 2026-11-09, branch `l2-l3-trains`)

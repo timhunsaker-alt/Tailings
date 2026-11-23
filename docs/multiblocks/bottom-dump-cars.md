@@ -55,6 +55,11 @@ and is to be checked before approval.
 
 ## Sources
 - SME *Mining Engineering Handbook*, 3rd ed. (2011), rail haulage: bottom-dump cars and cam-opened doors *(unverified detail)*.
+- **Checked 2026-11-23 (films-hi06):** bottom-dump cars emptied on the move over an unloading station: Metzelaers, Brudek & Elliott,
+  "Rail Haulage Systems", 9th Int. Conf. on Mass Mining, 2024 (ACG): a Swedish iron mine's trains of 1 locomotive and 21 cars of
+  17 m³. The real guide that opens the doors is called a scroll beam there.
+- The **300-400 mm** grizzly gaps are **not found**: SME's ore-pass chapter (Beus et al., 1992) gives only a rule (the largest lump
+  under a fifth of the pass width); California Title 8 §7052 caps grizzly bars at 30 in (760 mm). The game's 300 mm is a game figure.
 
 ## As built (L3, 2026-11-09, branch `l2-l3-trains`)
 Decisions in [../questions/l2-l3-trains.md](../questions/l2-l3-trains.md) (#14-#20).

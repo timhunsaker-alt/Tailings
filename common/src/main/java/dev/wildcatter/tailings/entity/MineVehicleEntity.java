@@ -63,6 +63,8 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	private static final EntityDataAccessor<Boolean> DATA_LOADED = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	/** A bottom-dump car's doors, opened by the cam rail over a track grizzly. */
 	private static final EntityDataAccessor<Boolean> DATA_DOORS = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
+	/** A battery locomotive with its battery box in it: the client draws the box only then (a box swapped out leaves its bay empty). */
+	private static final EntityDataAccessor<Boolean> DATA_BATTERY = SynchedEntityData.defineId(MineVehicleEntity.class, EntityDataSerializers.BOOLEAN);
 	private static final double TICK = 1.0 / 20;
 	/** How close behind a gantry a train turns back, in metres. */
 	private static final double GANTRY_TURN = 0.5;
@@ -143,6 +145,18 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	/** Puts a battery holding {@code wh} in it (the game test's and the swap's). */
 	public void setBatteryWh(double wh) {
 		batteryWh = wh < 0 ? -1 : Math.min(Battery.USABLE_WH, wh);
+		showBattery();
+	}
+
+	/** Client side: a battery box sits in its bay. */
+	public boolean batteryFitted() {
+		return entityData.get(DATA_BATTERY);
+	}
+
+	private void showBattery() {
+		if (entityData.get(DATA_BATTERY) != batteryWh >= 0) {
+			entityData.set(DATA_BATTERY, batteryWh >= 0);
+		}
 	}
 
 	/** Standing still, so a charger may charge it where it is. */
@@ -169,6 +183,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		}
 		ItemStack out = dev.wildcatter.tailings.item.LocoBatteryItem.of(TailingsItems.LOCO_BATTERY, batteryWh);
 		batteryWh = -1;
+		showBattery();
 		return out;
 	}
 
@@ -186,6 +201,9 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 	/** Client side, for drawing the tip: whether the car was loaded when last drawn, and the game time it last tipped. */
 	public boolean clientWasLoaded;
 	public long clientTippedAt = Long.MIN_VALUE / 2;
+	/** Client side, for drawing a bottom-dump car's doors swinging: how far open (0 to 1), as of the frame time last drawn. */
+	public float clientDoorShare;
+	public float clientDoorTime;
 
 	public CarLoad load() {
 		return load;
@@ -228,10 +246,18 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		this.running = running;
 	}
 
+	/** Reverses it, as a sneaking click does: locomotive first, or backing its cars up. */
+	public void reverse() {
+		direction = -direction;
+		reachedAhead = -1;
+		endWait = 0;
+	}
+
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_LOADED, false);
 		builder.define(DATA_DOORS, false);
+		builder.define(DATA_BATTERY, false);
 		builder.define(DATA_SPEED, 0F);
 	}
 
@@ -358,6 +384,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		derailed = input.getBooleanOr("derailed", false);
 		status = input.getStringOr("status", "standing");
 		batteryWh = input.getDoubleOr("battery", -1);
+		showBattery();
 		cars.clear();
 		for (String id : input.getStringOr("cars", "").split(",")) {
 			if (!id.isEmpty()) {
@@ -871,13 +898,58 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 		BlockPos rail = RailView.pos(path.stepAt(carPlace(index)).cell());
 		DumpBlockEntity pocket = DumpBlockEntity.under(server, rail, car.bottomDump());
 		if (pocket != null && car.load.total() > 0 && pocket.offer(car.load.contents())) {
+			if (car.bottomDump()) {
+				dropThrough(server, car);
+			}
 			car.load.clear();
 			car.refreshLoad();
 			server.playSound(null, car.getX(), car.getY(), car.getZ(), dev.wildcatter.tailings.TailingsSounds.MUCK_TIP, net.minecraft.sounds.SoundSource.BLOCKS, 2F, 1F);
 		}
 		if (car.bottomDump()) {
 			car.setDoors(pocket != null && car.load.total() == 0);
+			if (car.doorsOpen() && car.dumpRock != null) {
+				// the last of it still falling through the doors while they hang open over the grizzly
+				car.shower(server, car.dumpRock, 14, 0.08);
+			} else if (!car.doorsOpen()) {
+				car.dumpRock = null;
+			}
 		}
+	}
+
+	/**
+	 * A bottom-dump car's load seen falling out through its open doors, between the rails into the pocket: a shower of its commonest
+	 * rock's pieces under the car, spread along its 2 m (bottom-dump-cars.md). The load goes into the pocket at once; this draws it.
+	 */
+	private static void dropThrough(ServerLevel server, MineVehicleEntity car) {
+		String most = null;
+		int count = 0;
+		for (Map.Entry<String, Integer> e : car.load.contents().entrySet()) {
+			if (e.getValue() > count) {
+				most = e.getKey();
+				count = e.getValue();
+			}
+		}
+		net.minecraft.world.level.block.state.BlockState rock = Blocks.COBBLESTONE.defaultBlockState();
+		net.minecraft.resources.Identifier id = most == null ? null : net.minecraft.resources.Identifier.tryParse(most);
+		if (id != null) {
+			net.minecraft.world.level.block.Block block = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(id);
+			if (block != Blocks.AIR) {
+				rock = block.defaultBlockState();
+			}
+		}
+		car.dumpRock = rock;
+		car.shower(server, rock, 120, 0.15);
+	}
+
+	/** The rock a bottom-dump car dropped, while its doors hang open over the grizzly; null once they shut. */
+	private net.minecraft.world.level.block.state.@Nullable BlockState dumpRock;
+
+	/** {@code count} pieces of {@code rock} falling from under the car, spread along its 2 m. */
+	private void shower(ServerLevel server, net.minecraft.world.level.block.state.BlockState rock, int count, double speed) {
+		double yaw = Math.toRadians(getYRot());
+		double ax = Math.abs(Math.sin(yaw)), az = Math.abs(Math.cos(yaw));
+		server.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, rock),
+				getX(), getY() + 0.2, getZ(), count, 0.25 + 0.55 * ax, 0.15, 0.25 + 0.55 * az, speed);
 	}
 
 	private void strike(ServerLevel server, List<MineVehicleEntity> train) {
@@ -945,9 +1017,7 @@ public class MineVehicleEntity extends Entity implements SoundingEntity {
 				player.sendOverlayMessage(Component.literal(name + "battery taken out, " + dev.wildcatter.tailings.item.LocoBatteryItem.describe(batteryWh)));
 				player.setItemInHand(hand, takeBattery());
 			} else if (player.isShiftKeyDown()) {
-				direction = -direction;
-				reachedAhead = -1;
-				endWait = 0;
+				reverse();
 				player.sendOverlayMessage(Component.literal(name + "reversed, " + (direction > 0 ? "locomotive first" : "backing up") + reading + "; " + cars.size() + " cars"));
 			} else {
 				running = !running;

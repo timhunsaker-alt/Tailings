@@ -286,7 +286,9 @@ public class BatteryChargerBlockEntity extends BlockEntity implements BigPartEnt
 
 	@Override
 	public Component inspect() {
-		return Component.literal("Battery Charger (20 kW, three-phase 30 A plug): " + status + "; line " + line.describe());
+		// its rating is 80 % of the receptacle it is plugged into (17.7 kW on IEC 32 A, 20 kW on NEMA 30 A), not a fixed 20 kW
+		String rating = plugType == null ? "three-phase 30 A plug" : String.format(Locale.ROOT, "%.1f kW, three-phase 30 A plug", ratedWatts() / 1000);
+		return Component.literal("Battery Charger (" + rating + "): " + status + "; line " + line.describe());
 	}
 
 	@Override

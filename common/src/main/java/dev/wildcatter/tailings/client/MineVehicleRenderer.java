@@ -37,10 +37,13 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 	private final MineCarModel emptyCar;
 	private final BatteryLocomotiveModel batteryLocomotive;
 	private final BatteryLocomotiveModel batteryHeadlight;
+	/** With its battery box swapped out: the bay in the middle of the frame empty. */
+	private final BatteryLocomotiveModel batteryOut;
 	/** Loaded with its doors shut, empty with them shut, and empty with them open: each its own model, as the parts are drawn later. */
 	private final BottomDumpCarModel bottomLoaded;
 	private final BottomDumpCarModel bottomEmpty;
-	private final BottomDumpCarModel bottomOpen;
+	/** Empty, its doors part-way: shut, then swinging down over {@link #DOOR_TICKS} to open (and back), one model a step. */
+	private final BottomDumpCarModel[] bottomSwing = new BottomDumpCarModel[DOOR_STEPS + 1];
 
 	public MineVehicleRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -67,9 +70,15 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		bottomLoaded = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
 		bottomEmpty = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
 		bottomEmpty.root().getChild(BottomDumpCarModel.LOAD).visible = false;
-		bottomOpen = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
-		bottomOpen.root().getChild(BottomDumpCarModel.LOAD).visible = false;
-		bottomOpen.doors(true);
+		for (int i = 0; i <= DOOR_STEPS; i++) {
+			bottomSwing[i] = new BottomDumpCarModel(models.bakeLayer(BottomDumpCarModel.LAYER));
+			bottomSwing[i].root().getChild(BottomDumpCarModel.LOAD).visible = false;
+			bottomSwing[i].doors((float) i / DOOR_STEPS);
+		}
+		batteryOut = new BatteryLocomotiveModel(models.bakeLayer(BatteryLocomotiveModel.LAYER));
+		for (String part : BatteryLocomotiveModel.BOX) {
+			batteryOut.root().getChild(part).visible = false;
+		}
 	}
 
 	@Override
@@ -90,6 +99,19 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		state.battery = entity.battery();
 		state.bottomDump = entity.bottomDump();
 		state.doorsOpen = entity.doorsOpen();
+		state.batteryFitted = entity.batteryFitted();
+		// the doors swing down as the cam rail lifts them and back up past the closing ramp, rather than snapping
+		if (state.bottomDump && entity.level() != null) {
+			float now = entity.level().getGameTime() + partialTick;
+			float step = (now - entity.clientDoorTime) / DOOR_TICKS;
+			entity.clientDoorTime = now;
+			if (step > 0 && step < 5) {
+				entity.clientDoorShare = state.doorsOpen ? Math.min(1F, entity.clientDoorShare + step) : Math.max(0F, entity.clientDoorShare - step);
+			} else {
+				entity.clientDoorShare = state.doorsOpen ? 1F : 0F;
+			}
+			state.doorShare = entity.clientDoorShare;
+		}
 		state.loaded = entity.loaded();
 		state.yaw = entity.getYRot(partialTick);
 		// a Granby car rolls over on its side as it tips at the ramp, and comes upright again (dump-station.md): seen here as its load
@@ -120,10 +142,11 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		pose.scale(-1.0F, -1.0F, 1.0F);
 		pose.translate(0.0F, -MODEL_ROOT, 0.0F);
 		if (state.battery) {
-			submitModel(collector, batteryLocomotive, state, pose, BATTERY_TEXTURE, state.lightCoords);
+			submitModel(collector, state.batteryFitted ? batteryLocomotive : batteryOut, state, pose, BATTERY_TEXTURE, state.lightCoords);
 			collector.order(1).submitModel(batteryHeadlight, state, pose, RenderTypes.eyes(BATTERY_TEXTURE), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, state.outlineColor);
 		} else if (state.bottomDump) {
-			submitModel(collector, state.loaded ? bottomLoaded : state.doorsOpen ? bottomOpen : bottomEmpty, state, pose, BOTTOM_DUMP_TEXTURE, state.lightCoords);
+			BottomDumpCarModel model = state.loaded ? bottomLoaded : state.doorShare <= 0F ? bottomEmpty : bottomSwing[Math.round(state.doorShare * DOOR_STEPS)];
+			submitModel(collector, model, state, pose, BOTTOM_DUMP_TEXTURE, state.lightCoords);
 		} else if (state.locomotive) {
 			submitModel(collector, locomotive, state, pose, LOCOMOTIVE_TEXTURE, state.lightCoords);
 			collector.order(1).submitModel(headlight, state, pose, RenderTypes.eyes(LOCOMOTIVE_TEXTURE), LightCoordsUtil.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, state.outlineColor);
@@ -144,6 +167,9 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 		public boolean battery;
 		public boolean bottomDump;
 		public boolean doorsOpen;
+		public boolean batteryFitted;
+		/** How far a bottom-dump car's doors are open, 0 to 1. */
+		public float doorShare;
 		public float yaw;
 		public float pitch;
 		/** How far a tipping car is rolled over, degrees. */
@@ -152,4 +178,7 @@ public class MineVehicleRenderer extends EntityRenderer<MineVehicleEntity, MineV
 
 	/** A car's tip at the ramp: rolled this far over at the middle of it, over this many ticks. */
 	private static final float TIP_DEGREES = 42F, TIP_TICKS = 30F;
+	/** A bottom-dump car's doors swing fully open or shut in this many ticks, drawn in this many steps. */
+	private static final float DOOR_TICKS = 6F;
+	private static final int DOOR_STEPS = 6;
 }

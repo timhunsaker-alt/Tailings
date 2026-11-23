@@ -31,8 +31,13 @@ public class BottomDumpCarModel extends EntityModel<EntityRenderState> {
 
 	/** Swings both doors open or shut. */
 	public void doors(boolean open) {
-		root().getChild(DOOR_LEFT).zRot = open ? DOOR_OPEN : 0F;
-		root().getChild(DOOR_RIGHT).zRot = open ? -DOOR_OPEN : 0F;
+		doors(open ? 1F : 0F);
+	}
+
+	/** Swings both doors to {@code share} of the way open, 0 shut to 1 open. */
+	public void doors(float share) {
+		root().getChild(DOOR_LEFT).zRot = DOOR_OPEN * share;
+		root().getChild(DOOR_RIGHT).zRot = -DOOR_OPEN * share;
 	}
 
 	public static LayerDefinition createBodyLayer() {

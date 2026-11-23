@@ -37,16 +37,21 @@ public class MineRailBlock extends BaseEntityBlock {
 	public static final EnumProperty<RailGrade> GRADE = EnumProperty.create("grade", RailGrade.class);
 	public static final EnumProperty<FloorLook> LOOK = EnumProperty.create("look", FloorLook.class);
 	public static final BooleanProperty RACK = BooleanProperty.create("rack");
+	/**
+	 * Laid on a track grizzly (bottom-dump-cars.md): no ballast bed under it, only the rails, the conductor and the ties, so the bars
+	 * and the pocket under them show and a bottom-dump car's load is seen to fall through. Set from the block under it.
+	 */
+	public static final BooleanProperty BRIDGE = BooleanProperty.create("bridge");
 
 	public MineRailBlock(Properties properties) {
 		super(properties);
 		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(GRADE, RailGrade.FLAT)
-				.setValue(LOOK, FloorLook.STONE).setValue(RACK, false));
+				.setValue(LOOK, FloorLook.STONE).setValue(RACK, false).setValue(BRIDGE, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING, GRADE, LOOK, RACK);
+		builder.add(FACING, GRADE, LOOK, RACK, BRIDGE);
 	}
 
 	@Override
@@ -56,12 +61,43 @@ public class MineRailBlock extends BaseEntityBlock {
 
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return shape(state.getValue(GRADE), state.getValue(FACING));
+		return shape(state);
 	}
 
 	@Override
 	protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+		return shape(state);
+	}
+
+	/** Over a track grizzly: the rails and the conductor only, open between them. */
+	private static final VoxelShape BRIDGE_X = Shapes.or(box(0, 13, 2, 16, 16, 4), box(0, 13, 7, 16, 16, 9), box(0, 13, 12, 16, 16, 14));
+	private static final VoxelShape BRIDGE_Z = Shapes.or(box(2, 13, 0, 4, 16, 16), box(7, 13, 0, 9, 16, 16), box(12, 13, 0, 14, 16, 16));
+
+	private static VoxelShape shape(BlockState state) {
+		if (state.getValue(BRIDGE) && state.getValue(GRADE) == RailGrade.FLAT) {
+			return state.getValue(FACING).getAxis() == Direction.Axis.X ? BRIDGE_X : BRIDGE_Z;
+		}
 		return shape(state.getValue(GRADE), state.getValue(FACING));
+	}
+
+	/** True when the block under a rail is a track grizzly: the rail is laid as a bridge over its bars. */
+	public static boolean onGrizzly(BlockState below) {
+		return below.getBlock() instanceof PlantMachineBlock block && block.machine() == dev.wildcatter.tailings.plant.Machine.TRACK_GRIZZLY;
+	}
+
+	@Override
+	public @Nullable BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext context) {
+		BlockState state = super.getStateForPlacement(context);
+		return state == null ? null : state.setValue(BRIDGE, onGrizzly(context.getLevel().getBlockState(context.getClickedPos().below())));
+	}
+
+	@Override
+	protected BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader level, net.minecraft.world.level.ScheduledTickAccess ticks, BlockPos pos,
+			Direction toNeighbour, BlockPos neighbourPos, BlockState neighbourState, net.minecraft.util.RandomSource random) {
+		if (toNeighbour == Direction.DOWN) {
+			state = state.setValue(BRIDGE, onGrizzly(neighbourState));
+		}
+		return super.updateShape(state, level, ticks, pos, toNeighbour, neighbourPos, neighbourState, random);
 	}
 
 	private static VoxelShape shape(RailGrade grade, Direction facing) {

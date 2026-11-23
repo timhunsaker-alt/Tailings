@@ -14,13 +14,18 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 
 /**
  * The 8 t battery locomotive (docs/multiblocks/battery-locomotive.md), 3 m long: the trolley locomotive's frame and cab, its traction
- * battery's steel box in the middle, no collector shoe. The root sits 24 pixels above the rail. Texture is 256x256, painted by
+ * battery's steel box in the middle (drawn only while a battery is in it), a step either side of the cab, no collector shoe. The root sits 24 pixels above the rail. Texture is 256x256, painted by
  * tools/models/vehicles.py.
  */
 public class BatteryLocomotiveModel extends EntityModel<EntityRenderState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("battery_locomotive"), "main");
 	public static final String HEADLIGHT = "headlight";
 	public static final String BATTERY = "battery";
+	/** The box's lid and lifting lugs, which go with it when it is swapped out. */
+	public static final String[] BOX = {"battery", "lid", "lug_f", "lug_r"};
+	/** The driver's steps beside the cab, about 0.3 m above the rail. */
+	public static final double STEP_UP = 5 / 16.0;
+	public static final double STEP_OUT = 9 / 16.0;
 
 	public BatteryLocomotiveModel(ModelPart root) {
 		super(root, id -> RenderTypes.entityCutout(id));
@@ -38,6 +43,9 @@ public class BatteryLocomotiveModel extends EntityModel<EntityRenderState> {
 		root.addOrReplaceChild("socket", CubeListBuilder.create().texOffs(83, 52).addBox(7F, 12F, -6F, 1F, 3F, 3F), PartPose.ZERO);
 		root.addOrReplaceChild("cab", CubeListBuilder.create().texOffs(92, 52).addBox(-7F, 3F, 6F, 14F, 16F, 16F), PartPose.ZERO);
 		root.addOrReplaceChild("roof", CubeListBuilder.create().texOffs(153, 52).addBox(-8F, 2F, 5F, 16F, 1F, 18F), PartPose.ZERO);
+		// the driver's steps either side of the cab, on the frame's sill (painted as the frame)
+		root.addOrReplaceChild("step_l", CubeListBuilder.create().texOffs(0, 0).addBox(-11F, 19F, 9F, 4F, 1F, 10F), PartPose.ZERO);
+		root.addOrReplaceChild("step_r", CubeListBuilder.create().texOffs(0, 0).addBox(7F, 19F, 9F, 4F, 1F, 10F), PartPose.ZERO);
 		root.addOrReplaceChild("headlight", CubeListBuilder.create().texOffs(222, 52).addBox(-2F, 13F, -23F, 4F, 3F, 1F), PartPose.ZERO);
 		root.addOrReplaceChild("bumper_f", CubeListBuilder.create().texOffs(0, 85).addBox(-7F, 20F, -25F, 14F, 2F, 1F), PartPose.ZERO);
 		root.addOrReplaceChild("bumper_r", CubeListBuilder.create().texOffs(31, 85).addBox(-7F, 20F, 24F, 14F, 2F, 1F), PartPose.ZERO);
