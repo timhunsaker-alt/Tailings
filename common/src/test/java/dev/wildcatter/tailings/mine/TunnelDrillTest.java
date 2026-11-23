@@ -21,6 +21,15 @@ class TunnelDrillTest {
 		assertTrue(DriveCourse.isOutside(0, 0) && DriveCourse.isOutside(1, 0) && DriveCourse.isOutside(0, 1) && !DriveCourse.isOutside(1, 1));
 		assertTrue(DriveCourse.isLining(1, 6) && DriveCourse.isLining(6, 6), "the crown's shoulders close the ring");
 		assertTrue(!DriveCourse.isLining(1, 1), "the invert's corners are floor");
+		int rounded = 0;
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				rounded += DriveCourse.roundedCorner(across, up) != 0 ? 1 : 0;
+			}
+		}
+		assertEquals(2, rounded, "only the crown's two shoulders are drawn rounded");
+		assertEquals(-1, DriveCourse.roundedCorner(1, 6), "the west shoulder's solid corner is toward column 0");
+		assertEquals(1, DriveCourse.roundedCorner(6, 6), "the east shoulder's toward column 7");
 		assertArrayEquals(slope(true), DriveCourse.floor(0, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(false), DriveCourse.floor(1, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(true), DriveCourse.floor(2, Grade.ONE_IN_TWO, true));

@@ -317,8 +317,14 @@ Episode 5 of Heavy Iron films the TBM (../questions/heavy-iron-fixes.md, 9-11).
   (`tools/models/tbm.py`, films-hi05), so the machine reads round set down as blocks and running alike; their corner cells are empty
   and their collision follows the circle in 1 m steps. The head's model is a plain face plate: the wheel of spokes, disc cutters and
   muck buckets is drawn on the face by the renderer, all turning together at 6 rpm while it cuts.
-- **Tests:** `TunnelDrillTest` (the ring's 18, the 12 corners, the stone put back), `drill` (48 muck, 18 segments spent), the
-  ring counts in the TBM scenes.
+- **The crown's shoulders are drawn rounded** (fix-weak-spots-hi05, 2026-11-23): a crafted ring's two upper corner segments are
+  placed as `lining[corner=true,facing=<outer side>]`, a quarter-round fillet from the wall's top to the crown's edge
+  (`DriveCourse.roundedCorner`, `models/block/lining_corner.json`, its shape in 4 px strips), so from inside the bore reads
+  round-cornered rather than stepped. Still one segment each; a ring cut from rock stays square. Drawn only: nothing else changes.
+- **The cutting is drawn:** while it cuts, the client throws chips and dust of the rock just ahead off the face, and chips fall
+  at the bottom of the wheel where the buckets scoop (`TbmEntity.faceDust`). Drawn only.
+- **Tests:** `TunnelDrillTest` (the ring's 18, the 12 corners, the stone put back, the two rounded shoulders), `drill` (48 muck,
+  18 segments spent), the ring counts in the TBM scenes.
 
 ## Real-world figures for the film (Heavy Iron episode 5, 2026-11-23, sourced)
 - An 8.02 m main-beam machine (WTC 2023 paper, a water-diversion tunnel): cutterhead 0 to 6.87 rpm, main drive 3,300 kW, 43 x 20 in

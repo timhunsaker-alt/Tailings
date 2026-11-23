@@ -106,6 +106,17 @@ public final class DriveCourse {
 		return isOutside(across - 1, up) || isOutside(across + 1, up) || isOutside(across, up - 1) || isOutside(across, up + 1);
 	}
 
+	/**
+	 * For the ring's two upper corner segments (a lining cell with outside cells beside it and above it): -1 or 1, the step across toward
+	 * its outer side; else 0. Those are drawn as rounded segments, so the bore reads round-cornered from inside, not stepped.
+	 */
+	public static int roundedCorner(int across, int up) {
+		if (!isLining(across, up) || up < FACE / 2 || !isOutside(across, up + 1)) {
+			return 0;
+		}
+		return isOutside(across - 1, up) ? -1 : isOutside(across + 1, up) ? 1 : 0;
+	}
+
 	public static boolean isFloor(int across, int up) {
 		return up == 1 && across >= 1 && across <= CLEAR;
 	}

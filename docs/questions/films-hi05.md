@@ -64,12 +64,12 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 - **The TBM ran force-run in every earlier scene** (`Trailer.tbm` forces the cab): here it runs on two gas sets through the junction.
 
 ## Weak on camera, left as is
-- From inside, the bore is an octagon of whole blocks (decision 11).
-- The cutting is not drawn: the face's blocks vanish as the wheel reaches them (said in the narration).
+- From inside, the bore is an octagon of whole blocks (decision 11). *(2026-11-23: its shoulders now drawn rounded, "Fixed after release" 2.)*
+- The cutting is not drawn: the face's blocks vanish as the wheel reaches them (said in the narration). *(2026-11-23: chips and dust now drawn, "Fixed after release" 3; the blocks still vanish.)*
 - The section cut leaves a flat stone trench beside the ridge in the aerial.
 
 ## Needs Tim
-- **A rider on the TBM's seat is drawn sunk into the cab's roof.** The server puts it at the roof (the scene's seat test: rider at y
+- **(Resolved 2026-11-23, "Fixed after release" 1: not a render fault, the section cut hid it.)** **A rider on the TBM's seat is drawn sunk into the cab's roof.** The server puts it at the roof (the scene's seat test: rider at y
   83.00, the roof at 83.00), but the client draws a villager about 1.6 m low, only the top of its head showing, whether riding or held
   there by the scene. A player riding was not checked. Two client runs did not find the cause (the renderer draws the cells at the
   entity's position with no offset; vanilla positionRider would subtract the rider's vehicle attachment, which is at the feet for a
@@ -83,3 +83,42 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 `build` passes. The full NeoForge suite on this branch (the round models and shapes in): all 306 required tests passed. The client
 scenes (TAILINGS_ONLY=hi05) ran six times; films kept from runs 3, 5 and 6 (`videos/footage/films-hi05/NOTES.md`).
 
+
+## Fixed after release (2026-11-23)
+Branch `fix-weak-spots-hi05` (off main 5f225735). Tim: "Let's keep fixing weak spots as we find them." Decided on the best
+recommendation while Tim was away; each is open for review. Re-filmed (fix runs 2-4; run 1 ran the probe by mistake) and episode 5
+rebuilt in English and Spanish, the narration unchanged but for paragraph 28. Footage notes: `videos/footage/films-hi05/NOTES.md`.
+
+1. **The villager on the cab's seat was never drawn low: the section cut hid it.** A probe (`HI05_PROBE=1`, stills in the client run's
+   `hi05probe/`) read the rider on both sides: server and client alike put it at y 83.0, the cab's roof (`TbmEntity.positionRider`,
+   SEAT_UP 5), and from inside the bore, before the section is cut, a riding villager and one stood on the beam both show whole on the
+   roof. In the film the camera was outside the cut-away east wall at about the roof's height, and the cut (only the wall's own column,
+   across 7) left the ring's east shoulder segment and the crown's edge (across 5-6, up 6-7) between it and the seat: they hid all of
+   the villager above its feet, which read as "the top of its head" sunk into the roof. So no renderer or attachment change: for the cab
+   film the scene now also cuts that shoulder and crown along the machine (`Hi05Scenes.shoulder`), the villager rides the seat (no
+   longer held there by the scene), and the camera is nearer and aimed north of the seat, so the villager stands clear of the
+   readout card (fix run 2's take had it beside the card and was deleted). Re-filmed `hi05_cab` (fix run 4).
+   **Narration:** paragraph 28 re-voiced (Brian; Spanish Brian, Venezuelan delivery): "Here the scene has put a villager on that seat. It
+   rides up on the roof, where a player would sit as the machine bores." / "Aquí la escena puso un aldeano en ese asiento. Va arriba, en
+   el techo, donde se sentaría un jugador mientras la máquina perfora." Garble check: English exact; Spanish first take heard "techo"
+   as "pecho", re-voiced once, then exact but for "aldiano" for "aldeano" (a spelling, accepted as before). The cab's label became
+   "Villager put on the seat by the scene" ("Aldeano puesto en el asiento por la escena"); the descriptions no longer call it a fault.
+   A player riding was not checked on camera (the same seat code).
+2. **The bore's corners are drawn rounded.** The ring's two upper corner segments (the crown's shoulders, `DriveCourse.roundedCorner`)
+   are now placed as `lining[corner=true,facing=<outer side>]`: a quarter-round fillet of the bore's inside, from the wall's top to the
+   crown's edge, in 2 px strips (`models/block/lining_corner.json`; its shape in 4 px strips). From inside, the bore reads as a
+   round-cornered tunnel instead of a stepped octagon. Chosen because it fits inside the lining's own cells: anything rounder needs
+   lining in the clear 6 x 6 the gantries pass through. Still one segment each; a ring cut from rock stays square; the walls and the
+   floor's corners are unchanged (a real tunnel's invert is flat too). `TunnelDrillTest` checks the two shoulders. Re-filmed `hi05_bore`.
+   Paragraph 20 ("its corners stepped in: a circle, drawn in blocks") still holds and is unchanged.
+3. **The cutting is drawn.** While it cuts, the client throws chips and dust of the rock just ahead (stone where the section is open)
+   off the face in front of the wheel, and chips fall at the bottom of the wheel where the buckets scoop (`TbmEntity.faceDust`, nine a
+   tick; drawn only, no rule). Re-filmed `hi05_face` and `hi05_wheel` (the cold open and paragraph 16 show it too). Paragraph 17 is
+   unchanged: the game still takes the face block by block.
+4. **No soft crops.** The films were kept at 1920 x 1080, so the episode's crops (most 0.5-0.56 of the frame, to keep the readout card
+   out) were 1.8-2x enlargements. Every hi05 film is now re-filmed and kept at its full 2880 x 1620 (CRF 17), so the same crops are
+   1.2-1.5x; the hardest ones are filmed nearer as well (`hi05_power`, `hi05_face`, `hi05_wheel`, `hi05_cab`), and their crops widened
+   where the card allows. The scenes kill dropped items before each film (the section cut left some on the pad).
+5. **Tests:** `build` passes; the full NeoForge suite on this branch: all 306 required tests passed. The client scenes ran four
+   times (fix runs 1-4), every kept film real time.
+6. **The probe switch** (`HI05_PROBE`) stays in `Hi05Scenes` for the record; an empty value is off (fix run 1 ran it by mistake).
