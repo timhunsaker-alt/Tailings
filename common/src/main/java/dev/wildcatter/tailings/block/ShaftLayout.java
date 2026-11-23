@@ -23,8 +23,10 @@ import org.jspecify.annotations.Nullable;
 public final class ShaftLayout {
 	/** The shaft's cells in the headframe's own frame, and the skips' compartments. */
 	public static final int HOLE_FROM = 2, HOLE_TO = 6;
-	private static final int[] COMPARTMENT_X = {2, 5};
-	private static final int COMPARTMENT_Z = 3;
+	/** Compartments 0 and 1 are the skips', 2 the cage's, beside them on the shaft's south side (heavy-iron-fixes). */
+	private static final int[] COMPARTMENT_X = {2, 5, 3};
+	private static final int[] COMPARTMENT_Z = {3, 3, 5};
+	public static final int CAGE = 2;
 
 	/** A headframe's geometry, from its main cell and facing. */
 	public record Frame(BlockPos main, Direction facing) {
@@ -50,7 +52,7 @@ public final class ShaftLayout {
 
 		/** The corner of a skip's main cell in compartment {@code which}, its bottom at {@code y}. */
 		public Vec3 skipCorner(int which, double y) {
-			BlockPos at = cell(COMPARTMENT_X[which], 0, COMPARTMENT_Z);
+			BlockPos at = cell(COMPARTMENT_X[which], 0, COMPARTMENT_Z[which]);
 			return new Vec3(at.getX(), y, at.getZ());
 		}
 
@@ -59,7 +61,7 @@ public final class ShaftLayout {
 			List<BlockPos> out = new ArrayList<>();
 			for (int dx = 0; dx < 2; dx++) {
 				for (int dz = 0; dz < 2; dz++) {
-					out.add(cell(COMPARTMENT_X[which] + dx, y - collarY(), COMPARTMENT_Z + dz));
+					out.add(cell(COMPARTMENT_X[which] + dx, y - collarY(), COMPARTMENT_Z[which] + dz));
 				}
 			}
 			return out;

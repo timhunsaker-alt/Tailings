@@ -68,6 +68,29 @@ public final class Hoisting {
 		return windSeconds(travel) + REST_SECONDS;
 	}
 
+	// ---- the cage (heavy-iron-fixes, shaft-and-hoist.md "L4c, the cage") ---------------------------------------------------------
+
+	/** The cage's speed with people in it, m/s (proposed in the spec: a man-riding limit well under the skips' 10 m/s). */
+	public static final double CAGE_SPEED = 4;
+	/** People the cage carries (the spec's 2 x 3 x 2 cage, proposed). */
+	public static final int CAGE_PEOPLE = 4;
+	/** Stacks of materials its deck carries (proposed: a pallet's worth of supplies, as a small mine's cage carries them). */
+	public static final int CAGE_STACKS = 9;
+	/** The bell before it moves, s (proposed): the onsetter's signal to the hoistman, and the gate closing. */
+	public static final double CAGE_BELL_SECONDS = 5;
+	/** The cage's height, cells. */
+	public static final int CAGE_HEIGHT = 3;
+
+	/** One cage trip over {@code travel} metres at the cage's speed, s, on the same trapezoid as the skips'. */
+	public static double cageSeconds(double travel) {
+		double toFull = CAGE_SPEED / ACCEL;
+		double accelMetres = CAGE_SPEED * toFull / 2;
+		if (travel <= 2 * accelMetres) {
+			return 2 * Math.sqrt(travel / ACCEL);
+		}
+		return 2 * toFull + (travel - 2 * accelMetres) / CAGE_SPEED;
+	}
+
 	/** What the hoist lifts, t/h, over {@code travel} metres. */
 	public static double tonnesPerHour(double travel) {
 		return SKIP_KG / 1000 * 3600 / cycleSeconds(travel);

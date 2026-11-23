@@ -127,6 +127,25 @@ public class PlantMachineBlock extends TailingsPartBlock {
 			}
 			return InteractionResult.SUCCESS;
 		}
+		if (machine == Machine.HEADFRAME && stack.getItem() == dev.wildcatter.tailings.TailingsItems.CAGE
+				&& level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity headframe) {
+			// the cage hangs in its own compartment beside the skips, at the collar (heavy-iron-fixes)
+			if (level instanceof net.minecraft.server.level.ServerLevel server) {
+				var cage = dev.wildcatter.tailings.entity.ShaftSkipEntity.hangCage(server, ShaftLayout.Frame.of(headframe));
+				if (cage == null) {
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("a cage hangs here already"));
+				} else {
+					stack.consume(1, player);
+					player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("hung the cage beside the skips, at the collar"));
+				}
+			}
+			return InteractionResult.SUCCESS;
+		}
+		if ((machine == Machine.HEADFRAME || machine == Machine.MEASURING_FLASK) && stack.isEmpty() && player.isShiftKeyDown()
+				&& level instanceof net.minecraft.server.level.ServerLevel server && callCage(server, machine, main(pos, state))) {
+			player.sendOverlayMessage(net.minecraft.network.chat.Component.literal("rang for the cage: to the " + (machine == Machine.HEADFRAME ? "collar" : "bottom landing")));
+			return InteractionResult.SUCCESS;
+		}
 		if (machine == Machine.HEADFRAME && stack.getItem() == dev.wildcatter.tailings.TailingsItems.SKIP
 				&& level.getBlockEntity(main(pos, state)) instanceof PlantBlockEntity headframe) {
 			// a skip hangs on the next free rope, at the dump (shaft-and-hoist.md, L4)
@@ -283,5 +302,19 @@ public class PlantMachineBlock extends TailingsPartBlock {
 			}
 		}
 		return super.useWithoutItem(state, level, pos, player, hit);
+	}
+
+	/**
+	 * A call for the cage from a landing (heavy-iron-fixes): sneak with an empty hand on the headframe for the collar, on the measuring
+	 * flask for the bottom landing. True when a cage was found to call.
+	 */
+	private static boolean callCage(net.minecraft.server.level.ServerLevel level, Machine machine, BlockPos main) {
+		net.minecraft.world.phys.AABB around = machine == Machine.HEADFRAME ? new net.minecraft.world.phys.AABB(main).inflate(10, 40, 10)
+				: new net.minecraft.world.phys.AABB(main).inflate(10, dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH + 40, 10);
+		for (var cage : level.getEntitiesOfClass(dev.wildcatter.tailings.entity.ShaftSkipEntity.class, around, dev.wildcatter.tailings.entity.ShaftSkipEntity::cage)) {
+			cage.call(machine == Machine.HEADFRAME);
+			return true;
+		}
+		return false;
 	}
 }

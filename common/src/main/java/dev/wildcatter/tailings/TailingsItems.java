@@ -49,6 +49,8 @@ public final class TailingsItems {
 	public static Item GAS_DETECTOR;
 	/** A shaft skip (shaft-and-hoist.md, L4): clicked on a headframe, it hangs on the next free rope. */
 	public static Item SKIP;
+	/** The shaft's cage for people and materials (heavy-iron-fixes). */
+	public static Item CAGE;
 	/** A 50 kg bag of cement (paste-backfill.md, L5): the paste mixer's binder, a placeholder until a cement kiln exists. */
 	public static Item CEMENT;
 	/** A 25 kg bag of milled 15 % Si ferrosilicon, the dense medium's make-up (dense-medium-separation.md, L7; a placeholder recipe). */
@@ -107,6 +109,8 @@ public final class TailingsItems {
 		GAS_DETECTOR = Registry.register(BuiltInRegistries.ITEM, detector, new dev.wildcatter.tailings.item.GasDetectorItem(new Item.Properties().setId(detector).stacksTo(1)));
 		ResourceKey<Item> skip = ResourceKey.create(Registries.ITEM, Tailings.id("skip"));
 		SKIP = Registry.register(BuiltInRegistries.ITEM, skip, new Item(new Item.Properties().setId(skip).stacksTo(1)));
+		ResourceKey<Item> cage = ResourceKey.create(Registries.ITEM, Tailings.id("cage"));
+		CAGE = Registry.register(BuiltInRegistries.ITEM, cage, new Item(new Item.Properties().setId(cage).stacksTo(1)));
 		CEMENT = item("cement");
 		ResourceKey<Item> anode = ResourceKey.create(Registries.ITEM, Tailings.id("copper_anode"));
 		COPPER_ANODE = Registry.register(BuiltInRegistries.ITEM, anode, new Item(new Item.Properties().setId(anode).stacksTo(16)));

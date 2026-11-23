@@ -96,6 +96,233 @@ final class HiFixScenes {
 
 	/** Later fixes' stills. */
 	private void extra() {
+		if (wanted("dozer")) {
+			dozer();
+		}
+		if (wanted("tbm")) {
+			tbm();
+		}
+		if (wanted("bore")) {
+			bore();
+		}
+		if (wanted("cage")) {
+			cage();
+		}
+	}
+
+	private static final net.minecraft.world.entity.player.Input FORWARD = new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false);
+
+	// ---- fix 2: the dozer on the ground, its tracks running, spreading a lift ----------------------------------------------------
+
+	private void dozer() {
+		BlockPos o = new BlockPos(-300, 100, 400);
+		java.util.UUID[] ids = new java.util.UUID[3];
+		cam(Cam.of(o, 22, 6, 20, 6, 3, 18));   // the player there first: a dozer spawned in an unloaded chunk loses its test drive
+		settle(20);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			fill(level, o, Blocks.AIR, -20, 60, 0, 20, -20, 60);
+			fill(level, o, Blocks.STONE, -20, 60, -4, -1, -20, 60);
+			// a ramp up the x axis: a block every 3 m (a 1 in 3), then a flat top
+			for (int k = 0; k < 6; k++) {
+				fill(level, o, Blocks.STONE, 0, 12, 0, k, 10 + 3 * k, 60);
+			}
+			// a 1-block kerb under the left track of a parked dozer
+			fill(level, o, Blocks.STONE, 30, 32, 0, 0, 0, 12);
+			// a 1 m lift of dry tails to spread on from
+			for (int x = 40; x <= 56; x++) {
+				for (int z = 0; z <= 14; z++) {
+					level.setBlock(o.offset(x, 0, z), dev.wildcatter.tailings.TailingsBlocks.DRY_TAILS.defaultBlockState(), Block.UPDATE_CLIENTS);
+				}
+			}
+			var climb = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, EntitySpawnReason.COMMAND);
+			climb.setPos(o.getX() + 6.5, o.getY(), o.getZ() + 4);
+			climb.setYRot(0);
+			climb.setBlade(dev.wildcatter.tailings.entity.TrackDozerEntity.Blade.RAISED);
+			climb.setFuel(climb.tank());
+			level.addFreshEntity(climb);
+			climb.testDrive(FORWARD);
+			var kerb = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, EntitySpawnReason.COMMAND);
+			kerb.setPos(o.getX() + 32.6, o.getY() + 0.0, o.getZ() + 6);
+			kerb.setYRot(0);
+			kerb.setFuel(kerb.tank());
+			level.addFreshEntity(kerb);
+			var spread = dev.wildcatter.tailings.TailingsEntities.TRACK_DOZER.create(level, EntitySpawnReason.COMMAND);
+			spread.setPos(o.getX() + 48.5, o.getY() + 1, o.getZ() + 6);
+			spread.setYRot(0);
+			spread.setFuel(spread.tank());
+			level.addFreshEntity(spread);
+			spread.loadBlade(dev.wildcatter.tailings.pit.PitMass.DRY_TAILS, 18);
+			spread.setSpread();
+			spread.testDrive(FORWARD);
+			ids[0] = climb.getUUID();
+			ids[1] = kerb.getUUID();
+			ids[2] = spread.getUUID();
+		});
+		cam(Cam.of(o, 22, 6, 20, 6, 3, 18));
+		settle(30);
+		server.runOnServer(srv -> {
+			for (java.util.UUID id : ids) {
+				if (srv.overworld().getEntity(id) instanceof dev.wildcatter.tailings.entity.TrackDozerEntity d) {
+					log("dozer early at " + d.position() + ": " + d.status() + "; " + d.readout().getString() + "; fuel out " + d.outOfFuel());
+				}
+			}
+		});
+		still("dozer_01_ramp_low");
+		context.waitTicks(60);
+		still("dozer_02_ramp_up");
+		cam(Cam.of(o, 26, 3, 12, 31, 1.5, 6));
+		settle(20);
+		still("dozer_03_kerb_roll");
+		cam(Cam.of(o, 62, 5, 22, 48, 1, 18));
+		context.waitTicks(10);
+		still("dozer_04_spread_a");
+		context.waitTicks(80);
+		still("dozer_05_spread_b");
+		cam(Cam.of(o, 4, 2.5, 12, 7, 1, 12));
+		context.waitTicks(2);
+		still("dozer_06_tracks_a");
+		context.waitTicks(3);
+		still("dozer_07_tracks_b");
+		server.runOnServer(srv -> {
+			for (java.util.UUID id : ids) {
+				if (srv.overworld().getEntity(id) instanceof dev.wildcatter.tailings.entity.TrackDozerEntity d) {
+					log("dozer at " + d.position() + ": " + d.status());
+				}
+			}
+		});
+	}
+
+	// ---- fix 3: the TBM's round head, and a round bore -----------------------------------------------------------------------------
+
+	private void tbm() {
+		BlockPos c = new BlockPos(-300, 100, 700);
+		server.runCommand("tailings rule ventilation_interlock false");
+		cam(Cam.of(c, 14, 6, -20, 4, 4, -10));
+		settle(20);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			fill(level, c, Blocks.AIR, -12, 20, -4, 16, -50, 50);
+			fill(level, c, Blocks.STONE, -12, 20, -4, -1, -50, 50);
+			fill(level, c, Blocks.STONE, -4, 12, 0, 12, -40, -1);
+			Trailer.tbm(level, c, 40);
+		});
+		context.waitTicks(80);
+		server.runOnServer(srv -> ((dev.wildcatter.tailings.block.DrillBlockEntity) srv.overworld().getBlockEntity(c.offset(3, 3, 3))).press(10, null));
+		for (int s = 0; s < 40; s++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> Trailer.feedTbm(srv.overworld(), c));
+		}
+		double front = server.computeOnServer(srv -> Trailer.tbmFront(srv.overworld(), c));
+		server.runOnServer(srv -> {
+			for (var m : srv.overworld().getEntitiesOfClass(dev.wildcatter.tailings.entity.TbmEntity.class, new net.minecraft.world.phys.AABB(c).inflate(90))) {
+				log("tbm: " + m.core().readout());
+			}
+		});
+		log("tbm front " + (c.getZ() - front) + " m in");
+		// the rock ahead of the head cut away, to see it
+		server.runOnServer(srv -> fill(srv.overworld(), c, Blocks.AIR, -4, 12, 0, 12, -40, (int) Math.floor(front - c.getZ()) - 2));
+		cam(Cam.of(c, 14, 6, front - c.getZ() - 12, 4, 4, front - c.getZ()));
+		settle(20);
+		still("tbm_01_head_a");
+		context.waitTicks(10);
+		still("tbm_02_head_b");
+		cam(Cam.of(c, 4, 4, front - c.getZ() - 10, 4, 4, front - c.getZ()));
+		settle(10);
+		still("tbm_03_head_front");
+	}
+
+	/** The drive's own rule run on its own, no machine in the way: a lined round bore 30 m long, seen from its mouth. */
+	private void bore() {
+		BlockPos o = new BlockPos(-300, 100, 1000);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			fill(level, o, Blocks.AIR, -10, 20, -4, 16, -50, 30);
+			fill(level, o, Blocks.STONE, -10, 20, -4, -1, -50, 30);
+			fill(level, o, Blocks.STONE, -6, 14, 0, 12, -45, -1);
+			var program = new dev.wildcatter.tailings.mine.DrillProgram(o.getY() + 1, dev.wildcatter.tailings.mine.Heading.NORTH, 100);
+			var stock = new dev.wildcatter.tailings.mine.DrillStock();
+			stock.setRail(1000);
+			stock.setGravel(1000);
+			stock.setCobble(1000);
+			stock.setSegments(1000);
+			var drill = new dev.wildcatter.tailings.mine.TunnelDrill(program, stock, o.getX(), o.getY() + 1, o.getZ() + 6);
+			var ground = new dev.wildcatter.tailings.block.WorldGround(level, dev.wildcatter.tailings.mine.Heading.NORTH);
+			for (int k = 0; k < 44; k++) {
+				var a = drill.step(ground);
+				drill.line(ground);
+				if (a.stop() != dev.wildcatter.tailings.mine.Advance.Stop.NONE) {
+					log("bore stopped: " + a.detail());
+					break;
+				}
+			}
+		});
+		cam(Cam.of(o, 4, 5, 14, 4, 4, -30));
+		settle(30);
+		still("bore_01_mouth");
+		cam(Cam.of(o, 4, 4.5, -6, 4, 4, -40));
+		settle(20);
+		still("bore_02_inside");
+	}
+
+	// ---- fix 4: the cage beside the skips --------------------------------------------------------------------------------------
+
+	private void cage() {
+		BlockPos h = new BlockPos(-300, 130, 1200);
+		int depth = 30;
+		java.util.UUID[] cage = new java.util.UUID[1];
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			fill(level, h, Blocks.AIR, -10, 18, -depth - 3, 32, -10, 40);
+			fill(level, h, Blocks.STONE, -10, 18, -1, -1, -10, 40);
+			fill(level, h, Blocks.AIR, 2, 6, -1, -1, 2, 6);   // the shaft's collar
+			fill(level, h, Blocks.STONE, -4, 14, -depth - 2, -depth - 1, -4, 14);   // the bottom landing's floor
+			var headframe = Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.HEADFRAME, h);
+			Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.HEADFRAME_BIN, h.offset(2, 0, -4));
+			var hoist = Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.HOIST_HOUSE, h.offset(0, 0, 20));
+			Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.MEASURING_FLASK, h.offset(7, -depth, 4));
+			hoist.forceRunning();
+			var frame = dev.wildcatter.tailings.block.ShaftLayout.Frame.of(headframe);
+			dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
+			var cg = dev.wildcatter.tailings.entity.ShaftSkipEntity.hangCage(level, frame);
+			cg.deck().add(new ItemStack(net.minecraft.world.item.Items.RAIL, 64));
+			cg.setLoaded(true);
+			var villager = EntityTypes.VILLAGER.create(level, EntitySpawnReason.COMMAND);
+			villager.setNoAi(true);
+			villager.setPos(cg.getX() + 1, cg.getY(), cg.getZ() + 1);
+			level.addFreshEntity(villager);
+			villager.startRiding(cg);
+			cage[0] = cg.getUUID();
+		});
+		context.waitTicks(40);
+		cam(Cam.of(h, 4.5, 3, 16, 4.5, 1.5, 5));
+		settle(20);
+		still("cage_01_collar");
+		server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(cage[0]) instanceof dev.wildcatter.tailings.entity.ShaftSkipEntity cg) {
+				cg.call(false);
+			}
+		});
+		for (int k = 0; k < 10; k++) {
+			context.waitTicks(20);
+			server.runOnServer(srv -> {
+				var hoist = (dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(h.offset(0, 0, 20));
+				log("hoist: " + hoist.status() + "; cage " + hoist.winder().cageAt() + " of " + hoist.winder().cageTravel());
+			});
+		}
+		cam(Cam.of(h, 18, -10, 14, 4.5, -14, 5));
+		settle(10);
+		still("cage_02_shaft");
+		context.waitTicks(200);
+		cam(Cam.of(h, 14, -depth + 3, 14, 4.5, -depth + 1.5, 5));
+		settle(10);
+		still("cage_03_bottom");
+		server.runOnServer(srv -> {
+			if (srv.overworld().getEntity(cage[0]) instanceof dev.wildcatter.tailings.entity.ShaftSkipEntity cg) {
+				log("cage at " + cg.position() + ", riders " + cg.getPassengers().size());
+			}
+		});
 	}
 
 	// ---- camera and stills -------------------------------------------------------------------------------------------------------

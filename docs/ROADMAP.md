@@ -575,7 +575,8 @@ heating; a cathode shaft furnace and casting machine; batch converting with ladl
 - **No new L2/L3 sounds:** the battery locomotive uses the trolley locomotive's loop, the doors `muck_tip`; the charger is silent.
 - **The battery locomotive has no PLC points of its own (L2):** it has no control cable as it moves; the spec puts its points on the
   charger, which has them (CHARGING, FULL, CHARGE) (questions/gaps2.md, 8).
-- **No raise borer and no cage yet (L4):** the shaft is dug by hand; the hoist only checks the skips' compartments are clear
+- **No raise borer yet (L4; the cage built in heavy-iron-fixes):** the shaft is dug by hand; the hoist only checks the skips' compartments are clear,
+  not the cage's; the cage has no call-button blocks (the headframe and flask take calls) and one level
   (questions/l4-shaft.md, 1, 2). Planned in shaft-and-hoist.md, "Still to build".
 - **The hoist motor draws its full 450 kW while it runs (L4):** Wildcatter 0.5.1's motor has no part load, so the real lift (346 kW,
   less between winds) is not modelled (questions/l4-shaft.md, 8).

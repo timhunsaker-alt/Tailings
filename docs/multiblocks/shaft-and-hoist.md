@@ -122,7 +122,7 @@ Decisions in [../questions/l4-shaft.md](../questions/l4-shaft.md) (21 entries; #
   each layer's blocks become items of their rock (the TBM's mined-rock rule) dropped onto the drive floor under the shaft, where a
   loader or a train takes them; lining as the TBM's (28 segments or cobble) on the shaft walls. Reads PILOT n m, REAMING n m, DONE; a
   scene `shaft_raise_bore` at a test depth of 20 m with `testTicks`. Its 400 kW is a Wildcatter `Motor` at the medium tier.
-- **L4c, the cage** (`cage`, 2 x 3 x 2): a second skip kind on compartment 1's rope, hung by clicking the headframe with a cage item;
+- **L4c, the cage**: built in heavy-iron-fixes, below; as planned here except where that says. The plan was (`cage`, 2 x 3 x 2): a second skip kind on compartment 1's rope, hung by clicking the headframe with a cage item;
   the hoist house's sneak-click sets SKIP or CAGE (only with the cage hung). In CAGE the skip on drum 0 runs empty as the counterweight;
   a player in the cage's box rides it (the cage's entity carries passengers as a vehicle does; collision of its floor); call buttons:
   a `shaft_call` block at each landing (the collar and the flask's level) and the cage's own, which set the winder's target end. The
@@ -130,3 +130,23 @@ Decisions in [../questions/l4-shaft.md](../questions/l4-shaft.md) (21 entries; #
   to the top.
 - **The shaft as the return airway** (with L1 ventilation): a fan on the headframe counts the shaft as the drive's exhaust.
 - **Levels:** several flasks, one per level, the winder's bottom stop chosen by which flask is full; a PLC LEVEL point.
+
+## As built: the cage (heavy-iron-fixes, 2026-11-22)
+Episode 7 of Heavy Iron needs someone to ride the shaft (../questions/heavy-iron-fixes.md, 12-15). The raise borer (L4b) is not built
+in this pass.
+- **Its own compartment beside the skips:** the shaft's south side, x 3-4, z 5-6 in the headframe's frame (the skips are z 3-4). A
+  `cage` item clicked on the headframe hangs it at the collar; one a headframe. 2 x 3 x 2 m: a steel deck and roof, corner posts, mesh
+  sides and a gate, the rope from its bail to the head sheave and the hoist's drum.
+- **People and materials:** up to **4 people** ride it (they board with an empty hand; a gate holds them in while it moves; they step
+  off at a landing by sneaking); its deck carries **9 stacks** (sneak with a stack to load it, with an empty hand to unload).
+- **Landings:** the collar, and the bottom landing at the measuring flask's level (the skips' loading stop).
+- **Running it:** a rider's boarding rings the bell to go to the other landing; sneaking with an empty hand on the headframe calls it
+  to the collar, on the flask to the bottom. The bell rings **5 s** *(proposed: the onsetter's signal)*, then it winds on the skips'
+  profile (0.75 m/s², creep at the ends) at the man-riding **4 m/s** (the spec's proposal). It takes the hoist once the skips are at
+  rest, and the skips wait for it: a real double-drum hoist runs a cage on a declutched drum, one at a time *(proposed)*. 40 m takes
+  about 15.3 s plus the bell; 150 m about 43 s.
+- **Power:** the hoist house's motor, as for the skips.
+- **Not built:** the call-button blocks (the headframe and flask stand in), several levels, the cage's own column check in NOT BUILT.
+- **Tests:** `HoistingTest.theCageRidesAtFourMetresASecond`; NeoForge `shaft_cage` (a stack of rail and a rider down 40 m in the bell's
+  5 s and 15.3 s at 4 m/s, the skips standing; called back up from the collar).
+

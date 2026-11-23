@@ -19,6 +19,12 @@ public final class Winder {
 	private double rest;
 	private final RockLoad[] loads = {new RockLoad(), new RockLoad()};
 	private int dumps;
+	/**
+	 * The cage, in its own compartment beside the skips (heavy-iron-fixes): its floor's height above the bottom landing, the metres
+	 * between the landings, its speed, which way it goes (0 at rest), the bell still to ring before it goes, and its trips.
+	 */
+	private double cageAt, cageTravel, cageSpeed, cageBell;
+	private int cageDir, cageTrips;
 
 	public double travel() {
 		return travel;
@@ -143,8 +149,105 @@ public final class Winder {
 		loads[skip].take(Double.MAX_VALUE);
 	}
 
+	// ---- the cage -------------------------------------------------------------------------------------------------------------
+
+	public double cageAt() {
+		return cageAt;
+	}
+
+	public double cageTravel() {
+		return cageTravel;
+	}
+
+	public double cageSpeed() {
+		return cageSpeed;
+	}
+
+	public int cageTrips() {
+		return cageTrips;
+	}
+
+	/** The cage is ringing to go or on its way: the skips wait for it, as it waits for them. */
+	public boolean cageBusy() {
+		return cageDir != 0;
+	}
+
+	public boolean cageRinging() {
+		return cageDir != 0 && cageBell > 0;
+	}
+
+	/** At the top landing (the collar)? */
+	public boolean cageUp() {
+		return cageTravel > 0 && cageAt >= cageTravel - 1e-6;
+	}
+
+	public boolean cageAtLanding() {
+		return cageDir == 0 && (cageAt <= 1e-6 || cageUp());
+	}
+
+	/** The landings as the hoist finds them; a change keeps the cage at its landing. */
+	public void setCageTravel(double metres) {
+		if (Math.abs(metres - cageTravel) < 1e-9) {
+			return;
+		}
+		boolean up = cageTravel <= 0 || cageAt >= cageTravel / 2;   // a cage first found is where it was hung, at the collar
+		cageTravel = Math.max(0, metres);
+		cageAt = up ? cageTravel : 0;
+		cageSpeed = 0;
+		cageDir = 0;
+	}
+
+	/** Calls the cage to the top landing (true) or the bottom: the bell rings, then it goes. False when it is there or already going. */
+	public boolean callCage(boolean top) {
+		if (cageDir != 0 || cageTravel <= 0) {
+			return false;
+		}
+		if (top ? cageUp() : cageAt <= 1e-6) {
+			return false;
+		}
+		cageDir = top ? 1 : -1;
+		cageBell = Hoisting.CAGE_BELL_SECONDS;
+		return true;
+	}
+
+	/** Sends the cage to the other landing (a rider's bell). */
+	public boolean sendCage() {
+		return callCage(!cageUp());
+	}
+
+	/** Rings the bell on, then winds the cage for {@code dt} s at the man-riding speed; true on the tick it arrives at its landing. */
+	public boolean windCage(double dt, double strength) {
+		if (cageDir == 0) {
+			return false;
+		}
+		if (cageBell > 0) {
+			cageBell = Math.max(0, cageBell - dt);
+			return false;
+		}
+		if (strength <= 0) {
+			cageSpeed = 0;
+			return false;
+		}
+		double target = cageDir > 0 ? cageTravel : 0;
+		double left = Math.abs(target - cageAt);
+		double top = Hoisting.CAGE_SPEED * Math.min(1, strength);
+		double braking = Math.sqrt(2 * Hoisting.ACCEL * left);
+		cageSpeed = braking <= Hoisting.CREEP ? Hoisting.CREEP : Math.min(Math.min(top, cageSpeed + Hoisting.ACCEL * dt), braking);
+		double step = cageSpeed * dt;
+		if (step >= left) {
+			cageAt = target;
+			cageSpeed = 0;
+			cageDir = 0;
+			cageTrips++;
+			return true;
+		}
+		cageAt += cageDir * step;
+		return false;
+	}
+
 	public String save() {
-		return travel + ";" + position + ";" + speed + ";" + direction + ";" + rest + ";" + dumps + ";" + loads[0].save() + ";" + loads[1].save();
+		return travel + ";" + position + ";" + speed + ";" + direction + ";" + rest + ";" + dumps + ";" + loads[0].save() + ";" + loads[1].save()
+				+ ";" + cageAt + ";" + cageTravel + ";" + cageSpeed + ";" + cageBell + ";" + cageDir + ";" + cageTrips;
 	}
 
 	public void load(String text) {
@@ -163,6 +266,14 @@ public final class Winder {
 			loads[0].load(p[6]);
 			loads[1] = new RockLoad();
 			loads[1].load(p[7]);
+			if (p.length >= 14) {   // saved with a cage
+				cageAt = Double.parseDouble(p[8]);
+				cageTravel = Double.parseDouble(p[9]);
+				cageSpeed = Double.parseDouble(p[10]);
+				cageBell = Double.parseDouble(p[11]);
+				cageDir = Integer.parseInt(p[12]);
+				cageTrips = Integer.parseInt(p[13]);
+			}
 		} catch (NumberFormatException ex) {
 			// a damaged save starts the hoist afresh
 		}

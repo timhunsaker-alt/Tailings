@@ -9,7 +9,7 @@ package dev.wildcatter.tailings.mine;
 public enum TbmPart {
 	/** A disc-cutter head in its shield, cutting the 8 x 8 face. */
 	CUTTERHEAD("cutterhead", "Cutterhead", 8, 8, 1, 0, 0, -1),
-	/** The tail shield and ring erector: a ring of 28 segments at its tail for each block of advance. */
+	/** The tail shield and ring erector: a round ring of 18 segments at its tail for each block of advance. */
 	SEGMENT_ERECTOR("segment_erector", "Segment Erector", 8, 8, 2, 0, 0, -2),
 	/** The thrust cylinders, grippers and cutterhead drive, the operator cab at its tail; down the middle of the bore. */
 	MAIN_BEAM("main_beam", "Main Beam", 2, 2, 8, 3, 3, -4),

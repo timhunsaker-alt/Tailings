@@ -90,6 +90,32 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 - **Why:** the face read square with a wheel drawn over it only while cutting. The airflow keeps its 36 m² (a 6.8 m bore's area).
 - **Alternatives:** round block models for the parts as placed (a part model change, left for an art wave).
 
+## Fix 4: the shaft (episode 7)
+
+### 12. The cage first; the raise borer left for its own pass
+- **Chosen:** the cage is built; the raise borer (shaft-and-hoist.md L4b: a 4 x 6 x 6 part, a pilot and a ream a layer a minute, its
+  cuttings into the drive, lining, a 400 kW motor) is not.
+- **Why:** the plan asks for the cage first if both do not fit one pass; the raise borer is a new multiblock with its own stage, model
+  and tests. *Needs Tim:* the raise borer as its own wave; episode 7 says the shaft was dug before filming.
+
+### 13. Its own compartment, the same hoist, one at a time
+- **Chosen:** the cage hangs beside the skips (x 3-4, z 5-6), on the hoist house's motor; it moves only with the skips at rest and the
+  skips wait for it. It does not replace a skip (the spec's CAGE mode).
+- **Why:** "beside the skips", as asked: the skips keep their balance and the ore keeps coming between trips. A real mine would often
+  give the cage its own service hoist with a counterweight. *Needs Tim:* a separate service hoist house.
+- **Alternatives:** the spec's CAGE mode (a skip off its rope while people ride); a second hoist house.
+
+### 14. 4 people, 9 stacks, 4 m/s, a 5 s bell
+- **Chosen:** the spec's 2 x 3 x 2 cage for 4 people and its man-riding 4 m/s; 9 stacks on its deck; a 5 s bell before each trip; the
+  skips' acceleration and creep.
+- **Why:** the spec's proposals; real cages carry more people and wind faster in deep shafts (all *proposed*).
+
+### 15. Calls without new blocks
+- **Chosen:** boarding rings to go to the other landing; sneaking with an empty hand on the headframe calls it up, on the flask down.
+  A gate holds riders in while it moves (they are put back aboard).
+- **Why:** the spec's `shaft_call` blocks would add a block, model and art for what two existing parts can do.
+- **Alternatives:** `shaft_call` blocks at each landing; PLC points for the cage.
+
 ## Weak on camera, left as is
 - Fragments are small at a long shot's distance; film the blast from 60-80 m.
 - No camera shake; the blast sound is still vanilla's explosion.

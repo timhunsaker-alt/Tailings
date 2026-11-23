@@ -36,8 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * bottom-dump cars' pocket (L3), and the skips in balance between them.
  */
 final class ShaftGameTests {
-	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power"};
-	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power");
+	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage"};
+	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage");
 	private static final Map<String, Integer> TICKS = Map.of("shaft_hoist", 3400);
 	/** The scenes' collar: the headframe's main cell, its shaft going down from here. */
 	private static final int COLLAR = 155;
@@ -51,6 +51,7 @@ final class ShaftGameTests {
 		out.accept("shaft_flask_feed", ShaftGameTests::flaskFeed);
 		out.accept("shaft_bin_full", ShaftGameTests::binFull);
 		out.accept("shaft_power", ShaftGameTests::power);
+		out.accept("shaft_cage", ShaftGameTests::cage);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -138,6 +139,54 @@ final class ShaftGameTests {
 			double ws = west.getY() - (helper.absolutePos(BlockPos.ZERO).getY() + COLLAR - 150), es = east.getY() - (helper.absolutePos(BlockPos.ZERO).getY() + COLLAR - 150);
 			helper.assertTrue(Math.abs(ws + es - travel) < 1e-3, Component.literal("the skips in balance: " + ws + " + " + es));
 		});
+	}
+
+	/**
+	 * The cage (shaft_cage, heavy-iron-fixes): hung beside the skips at the collar, it takes a stack of materials on its deck and a
+	 * rider; the rider's bell rings 5 s and it winds 40 m to the bottom landing at the man-riding 4 m/s, the skips standing; a call from
+	 * the collar brings it back up empty.
+	 */
+	private static void cage(GameTestHelper helper) {
+		Built b = build(helper, 40);
+		hang(helper, b.headframe());
+		hang(helper, b.headframe());
+		ShaftSkipEntity cage = ShaftSkipEntity.hangCage(helper.getLevel(), ShaftLayout.Frame.of(b.headframe()));
+		helper.assertTrue(cage != null && cage.cage(), Component.literal("the cage should hang beside the skips"));
+		helper.assertTrue(ShaftSkipEntity.hangCage(helper.getLevel(), ShaftLayout.Frame.of(b.headframe())) == null, Component.literal("one cage a headframe"));
+		int collarY = helper.absolutePos(BlockPos.ZERO).getY() + COLLAR;
+		net.minecraft.world.entity.player.Player rider = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+		rider.setPos(cage.getX() + 1, cage.getY() + 0.1, cage.getZ() + 1);
+		rider.setShiftKeyDown(true);
+		rider.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RAIL, 64));
+		cage.interact(rider, net.minecraft.world.InteractionHand.MAIN_HAND, cage.position());
+		helper.assertTrue(cage.deck().size() == 1 && cage.loaded(), Component.literal("a stack of rail on its deck"));
+		rider.setShiftKeyDown(false);
+		cage.interact(rider, net.minecraft.world.InteractionHand.MAIN_HAND, cage.position());
+		helper.assertTrue(cage.hasPassenger(rider), Component.literal("the rider boards"));
+		long[] start = {helper.getTick()}, arrived = {-1};
+		double[] fastest = {0};
+		helper.onEachTick(() -> {
+			fastest[0] = Math.max(fastest[0], b.hoist().winder().cageSpeed());
+			if (arrived[0] < 0 && b.hoist().winder().cageTrips() == 1) {
+				arrived[0] = helper.getTick();
+			}
+		});
+		double trip = Hoisting.CAGE_BELL_SECONDS + Hoisting.cageSeconds(40);
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(arrived[0] >= 0, Component.literal("the cage should reach the bottom: " + b.hoist().status())))
+				.thenExecute(() -> {
+					double took = (arrived[0] - start[0]) / 20.0;
+					helper.assertTrue(Math.abs(took - trip) < 1.0, Component.literal(String.format("the bell and the trip should take about %.1f s, took %.1f s", trip, took)));
+					helper.assertTrue(Math.abs(fastest[0] - Hoisting.CAGE_SPEED) < 1e-6, Component.literal("at the man-riding 4 m/s: " + fastest[0]));
+					helper.assertTrue(Math.abs(cage.getY() - (collarY - 40)) < 1e-3, Component.literal("its floor at the bottom landing: " + cage.getY()));
+					helper.assertTrue(cage.hasPassenger(rider) && cage.deck().size() == 1, Component.literal("with its rider and its rail"));
+					helper.assertTrue(b.hoist().winder().dumps() == 0 && !b.hoist().winder().winding(), Component.literal("the skips stood"));
+					rider.stopRiding();
+					cage.call(true);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
+						Component.literal("called from the collar, it comes up: " + cage.getY() + "; " + b.hoist().status())))
+				.thenSucceed();
 	}
 
 	/** A missing skip reads NOT BUILT, and with it hung the hoist winds (shaft_not_built); a missing flask is named too. */

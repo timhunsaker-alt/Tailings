@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IBI",
+    "B B",
+    "IDI"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:iron_bars",
+    "D": "minecraft:iron_door"
+  },
+  "result": {
+    "id": "tailings:cage",
+    "count": 1
+  }
+}

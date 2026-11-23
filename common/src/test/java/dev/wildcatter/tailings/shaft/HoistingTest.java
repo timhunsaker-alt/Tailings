@@ -97,4 +97,26 @@ class HoistingTest {
 		assertEquals(1, copy.dumps());
 		assertTrue(copy.load(0).isEmpty());
 	}
+
+	@Test
+	void theCageRidesAtFourMetresASecond() {
+		// 40 m: 5.3 s up to 4 m/s over 10.7 m, the same down, 18.7 m at speed: about 15.3 s
+		assertEquals(15.33, Hoisting.cageSeconds(40), 0.05);
+		Winder w = new Winder();
+		w.setCageTravel(40);
+		assertTrue(w.cageUp(), "a cage first found stands where it was hung, at the collar");
+		assertTrue(w.callCage(false) && w.cageRinging());
+		double t = 0, fastest = 0;
+		while (!w.windCage(0.05, 1) && t < 120) {
+			t += 0.05;
+			fastest = Math.max(fastest, w.cageSpeed());
+		}
+		assertEquals(Hoisting.CAGE_BELL_SECONDS + Hoisting.cageSeconds(40), t, 0.6, "the bell, then the trip");
+		assertEquals(Hoisting.CAGE_SPEED, fastest, 1e-9);
+		assertTrue(w.cageAtLanding() && !w.cageUp() && w.cageTrips() == 1);
+		Winder back = new Winder();
+		back.load(w.save());
+		assertEquals(1, back.cageTrips());
+		assertEquals(0, back.cageAt(), 1e-9);
+	}
 }

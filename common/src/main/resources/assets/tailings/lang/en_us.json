@@ -384,6 +384,7 @@
   "block.tailings.sorter_compressor": "Sorter Air Compressor",
   "block.tailings.skip": "Skip",
   "item.tailings.skip": "Skip",
+  "item.tailings.cage": "Shaft Cage",
   "entity.tailings.skip": "Skip",
   "block.tailings.paste_filter": "Paste Filter",
   "block.tailings.paste_mixer": "Paste Mixer",

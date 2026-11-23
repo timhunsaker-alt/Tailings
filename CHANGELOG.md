@@ -27,6 +27,8 @@ It requires Wildcatter 0.8.1.
   level of its tracks, filling hollows and the lift's edge ahead of it.
 - **A round bore:** the TBM's bore is an 8 m circle, block by block: its ring is 18 segments round the circle's edge, the face's
   corners put back behind it (or grouted); its head and shield are drawn round, the wheel always on the face.
+- **The shaft's cage:** a 2 x 3 x 2 cage in its own compartment beside the skips carries 4 people and 9 stacks of materials between
+  the collar and the bottom landing at 4 m/s, after a 5 s bell; ride it, or call it from the headframe or the flask.
 - **The muck pile slumps:** after a shot the broken face rolls down to its 37 degree angle of repose instead of standing as a wall.
 
 ### Machines you can see working
