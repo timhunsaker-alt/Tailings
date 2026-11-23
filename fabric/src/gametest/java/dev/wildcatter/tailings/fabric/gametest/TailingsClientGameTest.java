@@ -136,6 +136,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Rtm09Scenes(context).run();
 			return;
 		}
+		// Heavy Iron episode 1's films: the walking dragline stripping a bauxite seam, on a gas turbine through a pit switch house, only
+		// when named
+		if ("hi01".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Hi01Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

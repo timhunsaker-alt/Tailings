@@ -84,6 +84,12 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	private int retryIn;
 	private boolean dumped;
 	private int bucketQuarters;
+	/**
+	 * The bank cells this cycle's bucket has taken but not yet cut: the job counts the load when it plans the bite, and the cells go
+	 * from the world as the bucket drags through them over the fill, outermost first (Heavy Iron episode 1: they went all at once).
+	 */
+	private final java.util.ArrayList<BlockPos> cutting = new java.util.ArrayList<>();
+	private int cutTotal;
 	private double digSwing, digOut, digUp;
 	private double dumpSwing, dumpOut, dumpUp;
 	private @Nullable BlockPos dumpAt;
@@ -309,6 +315,9 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	protected void work(ServerLevel level) {
 		plc(level);
 		levers(level);
+		if (!cutting.isEmpty() && (hand || cycleTick < 0 || mode != Mode.RUNNING)) {
+			flushCuts(level);
+		}
 		if (!hand) {
 			doWork(level);
 		}
@@ -572,7 +581,10 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 			blocked("no room to cast within its reach beyond the strip");
 			return;
 		}
+		flushCuts(level);
 		fill(level, cells);
+		cutting.sort(Comparator.comparingDouble((BlockPos c) -> -Math.hypot(c.getX() + 0.5 - getX(), c.getZ() + 0.5 - getZ())));
+		cutTotal = cutting.size();
 		if (load.empty() && bucketQuarters == 0) {
 			blocked("nothing the bucket could take");
 			return;
@@ -618,7 +630,7 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 				if (Dragline.fits(load.total(), bucketQuarters, kg, 4)) {
 					load.add(id, kg);
 					bucketQuarters += 4;
-					level.removeBlock(c.pos(), false);
+					cutting.add(c.pos().immutable());
 				}
 			} else if (state.canBeReplaced()) {
 				level.destroyBlock(c.pos(), false);   // grass, flowers, snow: stripped with the topsoil
@@ -686,10 +698,14 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 	private void stepCycle(ServerLevel level) {
 		cycleTick += divisor;
 		Dragline.Phase phase = Dragline.phase(Math.min(cycleTick, Dragline.CYCLE_TICKS - 1));
+		if (phase != Dragline.Phase.FILL && !cutting.isEmpty()) {
+			flushCuts(level);
+		}
 		double f;
 		switch (phase) {
 			case FILL -> {
 				f = cycleTick / (double) Dragline.FILL_TICKS;
+				cutTo(level, f);
 				// dragged in toward the machine as it fills, about 10 m (proposed)
 				pose(digSwing, digOut - 10 * f, digUp);
 			}
@@ -713,6 +729,24 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		if (cycleTick >= Dragline.CYCLE_TICKS) {
 			cycleTick = -1;
 		}
+	}
+
+	/** Cuts the taken cells from the world up to {@code f} of the way through the fill. */
+	private void cutTo(ServerLevel level, double f) {
+		int left = cutTotal - (int) Math.ceil(Math.min(1, f + 1.0 / Math.max(1, Dragline.FILL_TICKS)) * cutTotal);
+		while (cutting.size() > Math.max(0, left)) {
+			BlockPos c = cutting.remove(0);
+			BlockState state = level.getBlockState(c);
+			if (!state.isAir() && !state.hasBlockEntity()) {
+				level.removeBlock(c, false);
+			}
+		}
+	}
+
+	/** Every taken cell still in the world goes now: the fill is over, cut short or saved. */
+	private void flushCuts(ServerLevel level) {
+		cutTo(level, 1);
+		cutting.clear();
 	}
 
 	/** Casts the bucket at its spoil point: it lands by the settle rule. */
@@ -1453,6 +1487,12 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		retryIn = input.getIntOr("retry_in", 0);
 		dumped = input.getBooleanOr("dumped", false);
 		bucketQuarters = input.getIntOr("bucket_quarters", 0);
+		cutting.clear();
+		int[] cut = input.getIntArray("cutting").orElse(new int[0]);
+		for (int i = 0; i + 2 < cut.length; i += 3) {
+			cutting.add(new BlockPos(cut[i], cut[i + 1], cut[i + 2]));
+		}
+		cutTotal = input.getIntOr("cut_total", cutting.size());
 		digSwing = input.getDoubleOr("dig_swing", 0);
 		digOut = input.getDoubleOr("dig_out", PARK_OUT);
 		digUp = input.getDoubleOr("dig_up", 0);
@@ -1489,6 +1529,8 @@ public class DraglineEntity extends PitVehicleEntity implements PitPanelMenu.Pan
 		output.putInt("retry_in", retryIn);
 		output.putBoolean("dumped", dumped);
 		output.putInt("bucket_quarters", bucketQuarters);
+		output.putIntArray("cutting", cutting.stream().flatMapToInt(c -> java.util.stream.IntStream.of(c.getX(), c.getY(), c.getZ())).toArray());
+		output.putInt("cut_total", cutTotal);
 		output.putDouble("dig_swing", digSwing);
 		output.putDouble("dig_out", digOut);
 		output.putDouble("dig_up", digUp);
