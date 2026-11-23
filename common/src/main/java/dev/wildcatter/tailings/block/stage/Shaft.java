@@ -265,6 +265,118 @@ public final class Shaft {
 		}
 	}
 
+	// ---- the raise borer (shaft-and-hoist.md, L4b; heavy-iron-fixes) ------------------------------------------------------------
+
+	/** The reamed shaft's cells in the borer's own frame (facing north from its main cell): x 0 to 4, z 1 to 5; its centre x 2, z 3. */
+	static final int SHAFT_X = 0, SHAFT_Z = 1, CENTRE_X = 2, CENTRE_Z = 3;
+
+	private static net.minecraft.core.BlockPos at(PlantBlockEntity part, int x, int y, int z) {
+		Direction facing = part.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING);
+		return part.getBlockPos().offset(dev.wildcatter.tailings.block.TbmMachine.offset(facing, x, y, z));
+	}
+
+	/** The drive under the borer: metres down its centre column to the first open cell under at least 3 m of rock; -1 for none. */
+	public static int findDrive(PlantBlockEntity part) {
+		net.minecraft.world.level.Level level = part.getLevel();
+		for (int k = 1; k <= dev.wildcatter.tailings.shaft.RaiseBoring.MAX_DEPTH; k++) {
+			net.minecraft.core.BlockPos p = at(part, CENTRE_X, -k, CENTRE_Z);
+			if (p.getY() <= level.getMinY()) {
+				return -1;
+			}
+			net.minecraft.world.level.block.state.BlockState s = level.getBlockState(p);
+			if (s.isAir() || s.canBeReplaced()) {
+				if (k - 1 < dev.wildcatter.tailings.shaft.RaiseBoring.MIN_COVER) {
+					return -1;   // open ground under the pad: not a drive
+				}
+				// a drive has a floor within a few metres of its roof; a cave or an open pit does not
+				for (int down = 1; down <= 6; down++) {
+					net.minecraft.world.level.block.state.BlockState under = level.getBlockState(p.below(down));
+					if (!under.isAir() && !under.canBeReplaced()) {
+						return k;
+					}
+				}
+				return -1;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * The raise borer: placed on a level pad over a drive, it drills its pilot down the centre column a metre each 10 s, breaks into the
+	 * drive, and reams the 5 x 5 back up a metre each 60 s from the drive's roof to under the collar slab, each layer's rock falling into
+	 * the drive as its items; any open or flooded cell round a layer is grouted. Its 400 kW from the medium-voltage tier.
+	 */
+	static final Stage RAISE_BORER = new Stage() {
+		@Override
+		public void tick(PlantBlockEntity part) {
+			ServerLevel level = (ServerLevel) part.getLevel();
+			dev.wildcatter.tailings.shaft.RaiseBoring.Progress p = part.raise();
+			if (p.phase() == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.SITING) {
+				int drive = findDrive(part);
+				if (drive < 0) {
+					part.say(p.readout());
+					return;
+				}
+				p.found(drive);
+				part.setChanged();
+			}
+			if (p.phase() == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.DONE) {
+				part.say(p.readout());
+				return;
+			}
+			part.want();
+			if (!part.running()) {
+				part.say("waiting for its motor: " + p.readout());
+				return;
+			}
+			dev.wildcatter.tailings.shaft.RaiseBoring.Phase before = p.phase();
+			if (p.run(DT * part.fast(), part.strength()) > 0) {
+				if (before == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.PILOT) {
+					// the pilot's cuttings flushed up the hole and out at the collar
+					net.minecraft.core.BlockPos collar = at(part, CENTRE_X, 0, CENTRE_Z);
+					level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,
+							level.getBlockState(at(part, CENTRE_X, -p.pilot(), CENTRE_Z))), collar.getX() + 0.5, collar.getY() + 0.2, collar.getZ() + 0.5, 12, 0.3, 0.1, 0.3, 0.05);
+				} else {
+					ream(level, part, p);
+				}
+			}
+			part.setChanged();
+			part.say(p.readout());
+		}
+	};
+
+	/** One reamed layer: its rock falls into the drive as items; open or flooded cells round it grouted. */
+	private static void ream(ServerLevel level, PlantBlockEntity part, dev.wildcatter.tailings.shaft.RaiseBoring.Progress p) {
+		int y = -p.drive() + p.reamed();
+		net.minecraft.core.BlockPos floor = at(part, CENTRE_X, -p.drive(), CENTRE_Z);
+		var random = level.getRandom();
+		for (int x = SHAFT_X - 1; x <= SHAFT_X + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT; x++) {
+			for (int z = SHAFT_Z - 1; z <= SHAFT_Z + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT; z++) {
+				net.minecraft.core.BlockPos pos = at(part, x, y, z);
+				net.minecraft.world.level.block.state.BlockState s = level.getBlockState(pos);
+				boolean inside = x >= SHAFT_X && x < SHAFT_X + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT && z >= SHAFT_Z && z < SHAFT_Z + dev.wildcatter.tailings.shaft.RaiseBoring.SHAFT;
+				if (!inside) {
+					if (s.isAir() || !s.getFluidState().isEmpty()) {
+						level.setBlock(pos, net.minecraft.world.level.block.Blocks.COBBLESTONE.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+					}
+					continue;
+				}
+				if (s.isAir() || s.hasBlockEntity() || s.getDestroySpeed(level, pos) < 0) {
+					continue;
+				}
+				for (net.minecraft.world.item.ItemStack drop : net.minecraft.world.level.block.Block.getDrops(s, level, pos, null)) {
+					net.minecraft.world.entity.item.ItemEntity item = new net.minecraft.world.entity.item.ItemEntity(level,
+							floor.getX() + 0.5 + (random.nextDouble() - 0.5) * 4, floor.getY() + 0.3, floor.getZ() + 0.5 + (random.nextDouble() - 0.5) * 4, drop);
+					level.addFreshEntity(item);
+				}
+				level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+			}
+		}
+		net.minecraft.core.BlockPos mid = at(part, CENTRE_X, y, CENTRE_Z);
+		level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK,
+				net.minecraft.world.level.block.Blocks.STONE.defaultBlockState()), mid.getX() + 0.5, mid.getY() - 1, mid.getZ() + 0.5, 60, 2, 1, 2, 0.1);
+	}
+
 	/** The measuring flask: what the apron feeder drops in its surge runs into the flask until it holds one skip's 3 t. */
 	static final Stage FLASK = new Stage() {
 		@Override

@@ -6,6 +6,9 @@
 - hoist_house, 10 x 8 x 12: the hoist house, its north wall open over the drums where the ropes leave, the two 3 m drums on one shaft,
   the 450 kW motor at their east end and its terminal box on the west face of the main cell;
 - measuring_flask, 2 x 3 x 2: the loading pocket's measuring flask, its feed chute on top and its hydraulic gate under it;
+- raise_borer, 4 x 6 x 6: a raise borer on its baseplate over the raise (heavy-iron-fixes): two guide columns and the derrick head over
+  the hole at x 2-3, z 3-4, the rotary drive head on them and the drill rod down the hole, the rod rack at its north end and the
+  400 kW hydraulic power pack at its south end, its cable terminal on the west face;
 - skip, 2 x 4 x 2: a 3 t bottom-dump skip, never placed: the skip entity draws it, its bail, rope socket and guide shoes.
 """
 import tlib
@@ -143,4 +146,30 @@ SK.box((0.05, 3.75, 0.8), (1.95, 3.95, 1.2), "iron")                       # the
 SK.box((0.9, 3.95, 0.9), (1.1, 4.0, 1.1), "steel")                         # the rope socket
 SK.collide((0.2, 0.0, 0.2), (1.8, 4.0, 1.8))
 
-MODELS = [HF, HB, HH, MF, SK]
+# ---- the raise borer --------------------------------------------------------------------------------------------------------------
+RB = model("raise_borer", 4, 6, 6, "blue")
+RB.box((0.1, 0.0, 1.6), (3.9, 0.4, 5.4), "steel")                          # its baseplate, bolted to the pad round the hole
+for x in (1.05, 3.55):
+	RB.box((x, 0.4, 3.3), (x + 0.4, 5.6, 3.7), "blue")                      # the two guide columns the drive head rides
+	RB.box((x - 0.05, 0.4, 3.0), (x + 0.45, 0.9, 4.0), "iron")              # their feet
+	RB.box((x + 0.05, 0.9, 3.0), (x + 0.3, 4.6, 3.25), "steel")             # the thrust cylinders that pull the reamer up
+RB.box((1.0, 5.6, 3.1), (4.0, 6.0, 3.9), "blue")                           # the derrick head across them
+RB.box((1.5, 2.6, 2.9), (3.5, 3.8, 4.1), "hipaint")                        # the rotary drive head
+RB.box((1.7, 3.8, 3.1), (3.3, 4.4, 3.9), "iron")                           # its hydraulic motors
+RB.box((2.35, 0.0, 3.35), (2.65, 2.6, 3.65), "steel")                      # the drill rod, down the hole
+for y in (0.5, 0.85, 1.2):
+	RB.box((0.2, y, 0.2), (3.8, y + 0.3, 0.5), "steel")                     # the rod rack: 1.5 m rods laid ready
+	RB.box((0.2, y, 0.7), (3.8, y + 0.3, 1.0), "steel")
+for x in (0.2, 3.6):
+	RB.box((x, 0.0, 0.1), (x + 0.2, 1.6, 1.1), "iron")                      # the rack's ends
+RB.box((0.2, 0.4, 4.9), (3.8, 2.4, 5.9), "blue")                           # the 400 kW hydraulic power pack
+RB.decal((0.4, 1.0, 5.91), (3.6, 2.0, 5.92), "louvre", "south", "blue")
+RB.box((0.3, 2.4, 5.0), (1.3, 2.9, 5.8), "grey")                           # its oil cooler
+RB.decal((2.0, 1.2, 4.89), (3.4, 2.2, 4.9), "gauge", "north", "blue")     # its control panel
+motor_box(RB, y=0.6, z=4.9, h=0.8, w=0.7)
+RB.collide((0.1, 0.0, 1.6), (3.9, 0.4, 5.4))
+RB.collide((0.2, 0.0, 0.1), (3.8, 1.6, 1.1))
+RB.collide((0.2, 0.4, 4.9), (3.8, 2.4, 5.9))
+RB.collide((1.0, 0.4, 2.9), (4.0, 6.0, 4.1))
+
+MODELS = [HF, HB, HH, MF, SK, RB]

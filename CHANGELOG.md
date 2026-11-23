@@ -29,6 +29,8 @@ It requires Wildcatter 0.8.1.
   corners put back behind it (or grouted); its head and shield are drawn round, the wheel always on the face.
 - **The shaft's cage:** a 2 x 3 x 2 cage in its own compartment beside the skips carries 4 people and 9 stacks of materials between
   the collar and the bottom landing at 4 m/s, after a 5 s bell; ride it, or call it from the headframe or the flask.
+- **The raise borer:** a 4 x 6 x 6 raise borer on its pad over a drive drills a pilot down to it (a metre each 10 s) and reams a
+  5 x 5 raise back up (a metre each 60 s), its rock falling into the drive; 400 kW from the medium-voltage tier.
 - **The muck pile slumps:** after a shot the broken face rolls down to its 37 degree angle of repose instead of standing as a wall.
 
 ### Machines you can see working

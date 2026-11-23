@@ -36,8 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * bottom-dump cars' pocket (L3), and the skips in balance between them.
  */
 final class ShaftGameTests {
-	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage"};
-	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage");
+	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore"};
+	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore");
 	private static final Map<String, Integer> TICKS = Map.of("shaft_hoist", 3400);
 	/** The scenes' collar: the headframe's main cell, its shaft going down from here. */
 	private static final int COLLAR = 155;
@@ -52,6 +52,7 @@ final class ShaftGameTests {
 		out.accept("shaft_bin_full", ShaftGameTests::binFull);
 		out.accept("shaft_power", ShaftGameTests::power);
 		out.accept("shaft_cage", ShaftGameTests::cage);
+		out.accept("shaft_raise_bore", ShaftGameTests::raiseBore);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -187,6 +188,52 @@ final class ShaftGameTests {
 				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
 						Component.literal("called from the collar, it comes up: " + cage.getY() + "; " + b.hoist().status())))
 				.thenSucceed();
+	}
+
+	/**
+	 * The raise borer (shaft_raise_bore, L4b): on a pad over a drive 20 m down, it drills its pilot and reams a 5 x 5 raise from the
+	 * drive's roof to under the collar slab, its rock falling into the drive as cobblestone; the walls and the slab stand. At 50 times
+	 * the real rate (a pilot metre in 0.2 s, a reamed metre in 1.2 s).
+	 */
+	private static void raiseBore(GameTestHelper helper) {
+		int top = COLLAR - 1, driveY = COLLAR - 20;
+		for (int x = -3; x <= 8; x++) {
+			for (int z = -3; z <= 9; z++) {
+				for (int y = COLLAR - 24; y <= top; y++) {
+					boolean drive = y >= driveY - 2 && y <= driveY;
+					helper.setBlock(new BlockPos(x, y, z), drive ? Blocks.AIR : Blocks.STONE);
+				}
+			}
+		}
+		PlantBlockEntity borer = part(helper, Machine.RAISE_BORER, new BlockPos(0, COLLAR, 0));
+		helper.assertTrue(dev.wildcatter.tailings.block.stage.Shaft.findDrive(borer) == 20, Component.literal("the drive 20 m down: " + dev.wildcatter.tailings.block.stage.Shaft.findDrive(borer)));
+		borer.forceRunning();
+		borer.fastCycle(50);
+		helper.succeedWhen(() -> {
+			var p = borer.raise();
+			helper.assertTrue(p.phase() == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.DONE, Component.literal("it should finish: " + borer.status()));
+			helper.assertTrue(p.pilot() == 20 && p.reamed() == 18, Component.literal("a 20 m pilot and an 18 m ream: " + p.save()));
+			int open = 0, wall = 0;
+			for (int y = driveY + 1; y <= COLLAR - 2; y++) {
+				for (int x = 0; x <= 4; x++) {
+					for (int z = 1; z <= 5; z++) {
+						open += helper.getBlockState(new BlockPos(x, y, z)).isAir() ? 1 : 0;
+					}
+				}
+				wall += helper.getBlockState(new BlockPos(-1, y, 3)).is(Blocks.STONE) && helper.getBlockState(new BlockPos(5, y, 3)).is(Blocks.STONE) ? 1 : 0;
+			}
+			helper.assertTrue(open == 25 * 18, Component.literal("the 5 x 5 raise open from the drive's roof up: " + open + " of " + 25 * 18));
+			helper.assertTrue(wall == 18, Component.literal("its walls stand"));
+			helper.assertTrue(helper.getBlockState(new BlockPos(2, COLLAR - 1, 3)).is(Blocks.STONE), Component.literal("the collar slab under the borer stands"));
+			int cobble = 0;
+			for (var item : helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+					new net.minecraft.world.phys.AABB(helper.absolutePos(new BlockPos(-3, driveY - 3, -3))).expandTowards(12, 5, 13))) {
+				if (item.getItem().is(net.minecraft.world.item.Items.COBBLESTONE)) {
+					cobble += item.getItem().getCount();
+				}
+			}
+			helper.assertTrue(cobble == 25 * 18, Component.literal("its cuttings in the drive: " + cobble + " cobblestone"));
+		});
 	}
 
 	/** A missing skip reads NOT BUILT, and with it hung the hoist winds (shaft_not_built); a missing flask is named too. */

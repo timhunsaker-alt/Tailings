@@ -116,6 +116,28 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 - **Why:** the spec's `shaft_call` blocks would add a block, model and art for what two existing parts can do.
 - **Alternatives:** `shaft_call` blocks at each landing; PLC points for the cage.
 
+## The raise borer (follow-up, the coordinator's request)
+
+### 16. As L4b planned: a pilot down, a ream up, at the spec's scaled rates
+- **Chosen:** the spec's 4 x 6 x 6 part, 400 kW, 200 m look-down for a drive under 3 m of rock, a metre of pilot each 10 s and a metre
+  of ream each 60 s, a 5 m (5 x 5) raise.
+- **Why:** the spec's figures (all *proposed*; real reaming makes a few metres a day).
+
+### 17. The raise stops under the collar slab
+- **Chosen:** the ream stops at the layer under the borer's pad; that metre is left for the player to take out after moving the borer.
+- **Why:** the borer stands on it; a real raise is finished under the machine's pad once it is moved.
+- **Alternatives:** reaming through and leaving the borer hanging over the hole.
+
+### 18. Unlined, grouted where open
+- **Chosen:** no lining; an open or flooded cell round a reamed layer is grouted with cobblestone.
+- **Why:** raise-bored shafts in sound rock usually stand unlined *(unverified)*; lining 5 x 5 walls a metre a minute would cost a stack
+  of segments every few minutes. *Needs Tim:* the spec said lining as the TBM's.
+
+### 19. Where the raise lies, and the headframe after
+- **Chosen:** the 5 x 5 sits at x 0-4, z 1-5 in the borer's frame (centred on its derrick); the headframe's shaft (x 2-6, z 2-6 in its
+  frame) is lined up over it by the player after the borer is taken off.
+- **Alternatives:** the borer reading where a headframe would stand (no headframe exists yet when it bores).
+
 ## Weak on camera, left as is
 - Fragments are small at a long shot's distance; film the blast from 60-80 m.
 - No camera shake; the blast sound is still vanilla's explosion.

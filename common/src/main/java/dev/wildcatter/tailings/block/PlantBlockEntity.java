@@ -561,6 +561,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		return winder;
 	}
 
+	/** A raise borer's pilot and ream (shaft-and-hoist.md, L4b). */
+	private final dev.wildcatter.tailings.shaft.RaiseBoring.Progress raise = new dev.wildcatter.tailings.shaft.RaiseBoring.Progress();
+
+	public dev.wildcatter.tailings.shaft.RaiseBoring.Progress raise() {
+		return raise;
+	}
+
 	/** A conveyor drive's last scan of its run; a hoist house's last look at its shaft (not saved). */
 	public @Nullable Object run;
 
@@ -1724,6 +1731,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		if (machine() == Machine.HOIST_HOUSE) {
 			output.putString("winder", winder.save());
 		}
+		if (machine() == Machine.RAISE_BORER) {
+			output.putString("raise", raise.save());
+		}
 		remote.save(output);
 		output.putBoolean("selective", selective);
 		StringBuilder bin = new StringBuilder();
@@ -1784,6 +1794,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		sorter.load(input.getStringOr("sort", ""));
 		pit.load(input.getStringOr("pit", ""));
 		winder.load(input.getStringOr("winder", ""));
+		raise.load(input.getStringOr("raise", ""));
 		selective = input.getBooleanOr("selective", false);
 		if (vent != null) {
 			vent.load(input);

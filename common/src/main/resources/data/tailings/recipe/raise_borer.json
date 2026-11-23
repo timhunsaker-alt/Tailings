@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IPI",
+    "IDI",
+    "ICI"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "P": "minecraft:piston",
+    "D": "minecraft:diamond_pickaxe",
+    "C": "minecraft:copper_block"
+  },
+  "result": {
+    "id": "tailings:raise_borer",
+    "count": 1
+  }
+}

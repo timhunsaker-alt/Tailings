@@ -98,6 +98,8 @@ public enum Machine {
 	HOIST_HOUSE("hoist_house", "Hoist House", 10, 8, 12, dev.wildcatter.tailings.shaft.Hoisting.MOTOR_WATTS, Supply.MEDIUM),
 	/** The loading pocket's measuring flask beside the shaft bottom: it fills to one skip's 3 t and empties into the skip (L4). */
 	MEASURING_FLASK("measuring_flask", "Measuring Flask", 2, 3, 2, 0, Supply.NONE),
+	/** A raise borer on its pad over a drive: it drills a pilot down and reams a 5 m raise back up, 400 kW at the medium-voltage tier (L4b, proposed). */
+	RAISE_BORER("raise_borer", "Raise Borer", 4, 6, 6, dev.wildcatter.tailings.shaft.RaiseBoring.MOTOR_WATTS, Supply.MEDIUM),
 	/** A vacuum disc filter with its vacuum pump, taking thickened tails to an 80 % cake for the paste mixer (paste-backfill.md, L5; proposed 75 kW). */
 	PASTE_FILTER("paste_filter", "Paste Filter", 5, 5, 8, 75_000, Supply.INDUSTRIAL),
 	/** A continuous twin-shaft paste mixer with its cement hopper on top (L5; proposed 75 kW). */

@@ -108,6 +108,54 @@ final class HiFixScenes {
 		if (wanted("cage")) {
 			cage();
 		}
+		if (wanted("raise")) {
+			raise();
+		}
+	}
+
+	// ---- the raise borer (shaft-and-hoist.md, L4b) ------------------------------------------------------------------------------
+
+	/** A raise borer on a pad over a drive 24 m down, at 20 times the real rate; its section cut open on the east to see the raise. */
+	private void raise() {
+		BlockPos b = new BlockPos(-300, 120, 1500);
+		int depth = 24;
+		cam(Cam.of(b, 20, 6, 16, 2, 2, 3));
+		settle(20);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			fill(level, b, Blocks.AIR, -15, 25, -depth - 6, 12, -15, 25);
+			fill(level, b, Blocks.STONE, -6, 8, -depth - 5, -1, -6, 12);
+			fill(level, b, Blocks.AIR, -6, 8, -depth - 2, -depth, -6, 12);   // the drive, 3 m high, under it
+			fill(level, b, Blocks.AIR, 6, 8, -depth - 5, -1, -6, 12);        // the section's open side
+			var borer = Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.RAISE_BORER, b);
+			borer.forceRunning();
+			borer.fastCycle(20);
+		});
+		context.waitTicks(60);
+		cam(Cam.of(b, 24, -8, 3, 2, -12, 3));
+		settle(10);
+		still("raise_01_pilot");
+		context.waitTicks(500);
+		server.runOnServer(srv -> log("raise borer: " + ((dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(b)).status()));
+		still("raise_02_reaming");
+		for (int k = 0; k < 40; k++) {
+			context.waitTicks(40);
+			boolean done = server.computeOnServer(srv -> ((dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(b)).raise().phase()
+					== dev.wildcatter.tailings.shaft.RaiseBoring.Phase.DONE);
+			if (done) {
+				break;
+			}
+		}
+		server.runOnServer(srv -> log("raise borer: " + ((dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(b)).status()));
+		cam(Cam.of(b, 24, -10, 3, 2, -12, 3));
+		settle(10);
+		still("raise_03_done_section");
+		cam(Cam.of(b, 2.5, -depth + 1.6, 9, 2.5, -2, 3.5));
+		settle(10);
+		still("raise_04_from_the_drive");
+		cam(Cam.of(b, 16, 8, 14, 2, 2, 3));
+		settle(10);
+		still("raise_05_borer");
 	}
 
 	private static final net.minecraft.world.entity.player.Input FORWARD = new net.minecraft.world.entity.player.Input(true, false, false, false, false, false, false);

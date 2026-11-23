@@ -115,7 +115,7 @@ Decisions in [../questions/l4-shaft.md](../questions/l4-shaft.md) (21 entries; #
   pulse), `shaft_power` (the brakes hold with no power and it winds on); the client film `shaft_hoist`.
 
 ## Still to build (planned)
-- **L4b, the raise borer** (`raise_borer`, 4 x 6 x 6, 400 kW at the medium-voltage tier, proposed): a `RaiseBorer` stage on the plant
+- **L4b, the raise borer**: built in heavy-iron-fixes (below, "As built: the raise borer"). The plan was (`raise_borer`, 4 x 6 x 6, 400 kW at the medium-voltage tier, proposed): a `RaiseBorer` stage on the plant
   block entity. Placed on a level pad, it looks straight down up to 200 m for a drive (an air cell under at least 3 cells of solid rock
   over a TBM floor block); NO DRIVE BELOW otherwise. PILOT: one cell a 10 s down the shaft's centre column (saved progress), a 300 mm
   hole drawn as a thin column. REAM: once the pilot breaks through, the 5 x 5 rises from the drive's roof to the collar a layer a 60 s;
@@ -132,8 +132,7 @@ Decisions in [../questions/l4-shaft.md](../questions/l4-shaft.md) (21 entries; #
 - **Levels:** several flasks, one per level, the winder's bottom stop chosen by which flask is full; a PLC LEVEL point.
 
 ## As built: the cage (heavy-iron-fixes, 2026-11-22)
-Episode 7 of Heavy Iron needs someone to ride the shaft (../questions/heavy-iron-fixes.md, 12-15). The raise borer (L4b) is not built
-in this pass.
+Episode 7 of Heavy Iron needs someone to ride the shaft (../questions/heavy-iron-fixes.md, 12-15). The raise borer followed (below).
 - **Its own compartment beside the skips:** the shaft's south side, x 3-4, z 5-6 in the headframe's frame (the skips are z 3-4). A
   `cage` item clicked on the headframe hangs it at the collar; one a headframe. 2 x 3 x 2 m: a steel deck and roof, corner posts, mesh
   sides and a gate, the rope from its bail to the head sheave and the hoist's drum.
@@ -149,4 +148,25 @@ in this pass.
 - **Not built:** the call-button blocks (the headframe and flask stand in), several levels, the cage's own column check in NOT BUILT.
 - **Tests:** `HoistingTest.theCageRidesAtFourMetresASecond`; NeoForge `shaft_cage` (a stack of rail and a rider down 40 m in the bell's
   5 s and 15.3 s at 4 m/s, the skips standing; called back up from the collar).
+
+## As built: the raise borer (heavy-iron-fixes, 2026-11-23)
+As L4b planned, except where listed (../questions/heavy-iron-fixes.md, 16-19). The figures are in `shaft.RaiseBoring` (`RaiseBoringTest`).
+- **The part:** `raise_borer`, 4 x 6 x 6 (`tools/models/shaft.py`): its baseplate on the pad, two guide columns and the derrick head over
+  the hole, the rotary drive head and the rod down the hole, the rod rack at its north end, the 400 kW hydraulic power pack at its
+  south end; **400 kW** from the medium-voltage tier (the spec's proposal), its cable on the west face of its main cell.
+- **Where the raise goes:** in the borer's own frame (facing north from its main cell) the 5 x 5 is x 0 to 4, z 1 to 5, the pilot down
+  its centre (x 2, z 3). It looks down that column up to **200 m** for a drive: the first open cell under at least **3 m** of rock, with
+  a floor within 6 m under it. NO DRIVE BELOW otherwise.
+- **PILOT:** a metre each **10 s** to the drive (the 300 mm pilot is not drawn: the cuttings puff out at the collar). **REAM:** then a
+  metre each **60 s** from the drive's roof up to the layer under the pad, **5 m** across (the spec's: real borers ream 1-6 m in a few
+  metres a day, *scaled*). The pad's own metre under the borer is the collar slab, left for the player to take out once the borer is
+  moved, as a real raise is finished under the machine's pad. A 20 m drive: 200 s of pilot and 18 m, 18 min, of reaming.
+- **The cuttings:** each reamed layer's blocks fall into the drive as their own drops (stone as cobblestone), spread on the drive's
+  floor under the raise, where a loader or a train takes them. Block entities and unbreakable blocks are left.
+- **No lining:** the raise stands in its rock, as raise-bored shafts in competent rock usually do *(unverified)*; any open or flooded
+  cell round a layer is grouted with cobblestone. (The spec said segments or cobble as the TBM's.)
+- **Reads:** NO DRIVE BELOW, PILOT n of m, REAMING n of m, DONE; saved on the part.
+- **Not built:** the pilot drawn as a thin column; a reamer head and rod drawn going down the hole; PLC points.
+- **Tests:** `RaiseBoringTest`; NeoForge `shaft_raise_bore` (a 20 m drive: the 5 x 5 open for 18 m, the walls and the collar slab
+  standing, 450 cobblestone in the drive).
 
