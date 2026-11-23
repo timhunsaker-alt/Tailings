@@ -52,10 +52,23 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 9. **One truck.** The shovel waits with a full dipper while the truck is away; the narration says a real pit matches trucks to its
    shovel. A second truck would show double-side loading but doubles the takes' risk; the narration describes it instead.
 
+11. **Narration.** 1,175 words in 36 paragraphs, Brian, English; Spanish in Venezuelan usted register, Brian Spanish (as episode 1).
+   Four passes "a little over two minutes" (4 x 35 s), not the first draft's two and a half. The dispatch office's name is said
+   "the dispatch office" (the voice said "haul" as "hall" twice).
+12. **Music:** episode 1's Heavy Iron bed again (no new credits).
+13. **Thumbnails:** `hi02_passes` at 35 s, the dipper's door open over the ultra and a villager at the crawlers, cropped below the card;
+   "100 TONNES A PASS" / "100 TONELADAS POR PASADA" (heavy-iron/tools/make_thumbs.py, ep 2 added).
+
 ## Weak on camera, left as is
+- `hi02_swing` is from low by the crawlers and the house hides the dipper; it is used once, under "it digs only loose ground".
+- `hi02_dig`: from the west the dipper is seen rising beside the pile, the cut itself behind its near side. The passes film (from the
+  north-east) carries the dig.
+- The power card's 3,500 kW comes a few seconds after the narration says it (the film's dig starts 4 s into the paragraph).
 - The trailing cable is drawn as a straight line from the switch house on the rim down to the shovel.
 - The handle is drawn shorter than its modelled box (decision 1).
 - Muck cells vanish as the dipper rises through them; the dipper is drawn but the cut is block by block.
 
 ## Tests
-(filled in at the end)
+`build` passes. The full NeoForge suite (12.7 min) passed but for `quest_shovel_milestone`, whose muck face was laid where the old
+face started; moved to the new face (16.5 m out), it and `pit_rope_shovel` pass. The pit scenes (63), the berm and haul scenes and the
+shovel scenes pass with every change.
