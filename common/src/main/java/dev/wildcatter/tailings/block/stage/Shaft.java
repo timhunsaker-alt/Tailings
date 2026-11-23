@@ -143,15 +143,25 @@ public final class Shaft {
 	 */
 	private static void pour(ServerLevel level, ShaftSkipEntity[] skips, Winder winder, ShaftLayout layout) {
 		if (!pours(layout, winder) || winder.rest() <= 0) {
+			for (ShaftSkipEntity skip : skips) {
+				if (skip != null) {
+					skip.setPour(0, null);
+				}
+			}
 			return;
 		}
 		double poured = Hoisting.REST_SECONDS - winder.rest();
 		ShaftSkipEntity top = skips[winder.top()];
 		if (poured >= POUR_SECONDS) {
 			top.setLoaded(false);
+			top.setPour(0, null);
 			return;
 		}
 		{
+			// its door open and the stream of rock drawn falling into the bin, thinning as it empties (films-hi07)
+			net.minecraft.core.Direction facing = layout.bin.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING);
+			top.setPour((float) Math.max(0.02, 1 - poured / POUR_SECONDS),
+					layout.bin.getBlockPos().offset(dev.wildcatter.tailings.block.TbmMachine.offset(facing, 2, 5, 2)));
 			// out of its bottom door down the headframe's chute into the bin: aimed at the bin's top middle
 			net.minecraft.world.phys.Vec3 c = top.getBoundingBox().getCenter();
 			double y = top.getBoundingBox().minY - 0.2;
@@ -330,7 +340,12 @@ public final class Shaft {
 				return;
 			}
 			dev.wildcatter.tailings.shaft.RaiseBoring.Phase before = p.phase();
-			if (p.run(DT * part.fast(), part.strength()) > 0) {
+			int done = p.run(DT * part.fast(), part.strength());
+			if (done > 0 || level.getGameTime() % 40 == 0) {
+				// the client draws the pilot string and the reamer in the hole from this (films-hi07)
+				level.sendBlockUpdated(part.getBlockPos(), part.getBlockState(), part.getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+			}
+			if (done > 0) {
 				if (before == dev.wildcatter.tailings.shaft.RaiseBoring.Phase.PILOT) {
 					// the pilot's cuttings flushed up the hole and out at the collar
 					net.minecraft.core.BlockPos collar = at(part, CENTRE_X, 0, CENTRE_Z);

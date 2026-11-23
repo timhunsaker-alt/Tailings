@@ -91,3 +91,6 @@ Decisions in [../questions/l1-ventilation.md](../questions/l1-ventilation.md) (1
   `vent_cassette`, `vent_stale_player`, `vent_booster`, `vent_default_off` (no fan, rules off: reads POOR AIR and drives on),
   `vent_parts`; the client film `vent` (`TAILINGS_ONLY=vent ./gradlew :fabric:runClientGameTest`).
 
+## Drawn moving (films-hi07, 2026-11-23)
+The vent fan's eight-blade and the booster's six-blade impellers are drawn turning by `PlantRenderer` while the fan runs, at 1,480 rpm
+(proposed: a direct-drive axial fan on a four-pole motor); the static impellers are out of `vent.py`.

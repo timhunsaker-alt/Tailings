@@ -56,6 +56,12 @@ public final class PlantMotion {
 	public static final Apron RECLAIM_APRON = new Apron(0.3f, 1.7f, 1.1f, 1.22f, 0.2f, 0.5f, 0.46f, 11, "steel");
 	public static final Apron DUMP_APRON = new Apron(0.3f, 1.7f, 0.45f, 0.55f, 0.2f, 0.22f, 0.24f, 16, "iron");
 
+	/**
+	 * The vent fan's and the booster's impellers, rpm (proposed: a direct-drive axial fan on a four-pole motor; films-hi07). The hoist's
+	 * drums and the head sheaves are not here: they turn with the rope, as far as the skips move (PlantRenderer).
+	 */
+	public static final float FAN_RPM = 1480;
+
 	/** The part's real shaft rpm while it runs, or 0 for a part with no moving parts drawn. */
 	public static float rpm(Machine machine) {
 		return switch (machine) {
@@ -68,6 +74,7 @@ public final class PlantMotion {
 			case BALL_MILL_LARGE -> BALL_MILL_LARGE_RPM;
 			case TANK_CELL, COLUMN_CELL, FLOTATION_BANK, SCAVENGER_BANK, CLEANER_BANK -> FROTH_RPM;
 			case XRT_SORTER -> XRT_RPM;
+			case VENT_FAN, BOOSTER_FAN -> FAN_RPM;
 			default -> 0;
 		};
 	}

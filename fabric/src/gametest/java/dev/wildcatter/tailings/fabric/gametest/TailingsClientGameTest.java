@@ -177,6 +177,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Hi06Scenes(context).run();
 			return;
 		}
+		// Heavy Iron episode 7's films: a shaft and hoist with its cage, a raise borer boring a vent raise and the fan at its collar, on two
+		// gas sets and a diesel set, only when named
+		if ("hi07".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Hi07Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

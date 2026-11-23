@@ -46,6 +46,13 @@ public class ShaftSkipEntity extends Entity {
 	/** It is the cage (compartment 2), for the client to draw it so. */
 	private static final EntityDataAccessor<Boolean> DATA_CAGE = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.BOOLEAN);
 
+	/**
+	 * Its pour at the dump (films-hi07): how much of its load is still to pour, 1 to 0 while its door is open (0: shut), and the bin's
+	 * mouth the stream falls to.
+	 */
+	private static final EntityDataAccessor<Float> DATA_POUR = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Optional<BlockPos>> DATA_POUR_TO = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+
 	/** The headframe's main cell it hangs in, and which compartment (0 west, 1 east, in the headframe's own frame). */
 	private BlockPos headframe = BlockPos.ZERO;
 	private int compartment;
@@ -322,6 +329,28 @@ public class ShaftSkipEntity extends Entity {
 		builder.define(DATA_SHEAVE_Y, NO_ROPE);
 		builder.define(DATA_DRUM, Optional.empty());
 		builder.define(DATA_CAGE, false);
+		builder.define(DATA_POUR, 0f);
+		builder.define(DATA_POUR_TO, Optional.empty());
+	}
+
+	/** How much of its load is still to pour out of its open door, 1 to 0; 0 with its door shut. */
+	public float pour() {
+		return entityData.get(DATA_POUR);
+	}
+
+	public @Nullable BlockPos pourTo() {
+		return entityData.get(DATA_POUR_TO).orElse(null);
+	}
+
+	/** Opens its door and pours, {@code left} of its load still in it, toward {@code to}; 0 shuts it. */
+	public void setPour(float left, @Nullable BlockPos to) {
+		if (Math.abs(entityData.get(DATA_POUR) - left) > 1e-3) {
+			entityData.set(DATA_POUR, left);
+		}
+		Optional<BlockPos> at = Optional.ofNullable(to);
+		if (!entityData.get(DATA_POUR_TO).equals(at)) {
+			entityData.set(DATA_POUR_TO, at);
+		}
 	}
 
 	@Override

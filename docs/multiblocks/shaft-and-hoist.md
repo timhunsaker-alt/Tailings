@@ -145,7 +145,10 @@ Episode 7 of Heavy Iron needs someone to ride the shaft (../questions/heavy-iron
   rest, and the skips wait for it: a real double-drum hoist runs a cage on a declutched drum, one at a time *(proposed)*. 40 m takes
   about 15.3 s plus the bell; 150 m about 43 s.
 - **Power:** the hoist house's motor, as for the skips.
-- **Not built:** the call-button blocks (the headframe and flask stand in), several levels, the cage's own column check in NOT BUILT.
+- **Call buttons (films-hi07):** any redstone signal reaching the headframe calls the cage to the collar, one reaching the measuring
+  flask calls it to the bottom landing: a stone button on a block beside either is the landing's call button (NeoForge
+  `shaft_cage_button`). No new block.
+- **Not built:** several levels, the cage's own column check in NOT BUILT.
 - **Tests:** `HoistingTest.theCageRidesAtFourMetresASecond`; NeoForge `shaft_cage` (a stack of rail and a rider down 40 m in the bell's
   5 s and 15.3 s at 4 m/s, the skips standing; called back up from the collar).
 
@@ -166,7 +169,18 @@ As L4b planned, except where listed (../questions/heavy-iron-fixes.md, 16-19). T
 - **No lining:** the raise stands in its rock, as raise-bored shafts in competent rock usually do *(unverified)*; any open or flooded
   cell round a layer is grouted with cobblestone. (The spec said segments or cobble as the TBM's.)
 - **Reads:** NO DRIVE BELOW, PILOT n of m, REAMING n of m, DONE; saved on the part.
-- **Not built:** the pilot drawn as a thin column; a reamer head and rod drawn going down the hole; PLC points.
+- **Drawn in the hole (films-hi07):** while it drills, the drill string of 1.5 m rods and its bit go down the hole as far as the
+  pilot has gone; while it reams, the string runs down to a 4.8 m reamer head under the cutting face, its cutters on top, rising as
+  it cuts; both turn with the drive head's spindle at 8 rpm (proposed). The client is sent the borer's progress each metre and every
+  2 s, and runs it on between.
+- **Not built:** PLC points.
 - **Tests:** `RaiseBoringTest`; NeoForge `shaft_raise_bore` (a 20 m drive: the 5 x 5 open for 18 m, the walls and the collar slab
   standing, 450 cobblestone in the drive).
 
+## Drawn moving (films-hi07, 2026-11-23)
+- **The head sheaves and the drums turn with the rope:** their spokes (and the drums' rope clamps and flange spokes) are drawn by
+  `PlantRenderer`, turned as far as each skip has moved (the rope over a 2.9 m sheave, onto a 3 m drum); the static spokes are out of
+  `shaft.py`. The cage rides with the skips standing, so nothing turns for it.
+- **The skip's dump reads:** while a skip pours (the first 4 s of the rest), its bottom door is drawn swung open and a stream of
+  rock falls from it to the headframe bin's mouth, thinning as it empties; the heap in the skip sinks as it pours (synced on the skip:
+  how much is left and where the bin's mouth is). The load still goes into the bin's count at the rest's end, as before.

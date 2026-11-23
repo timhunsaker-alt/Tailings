@@ -71,6 +71,11 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		/** A tailings filter's seconds into its cycle (-1: not known), and whether it has ever dropped a cake. */
 		float press = -1;
 		boolean pressed;
+		/** The hoist's ropes (films-hi07): each skip's height (west, east compartment), for the drums and head sheaves; NaN for none. */
+		float rope0 = Float.NaN, rope1 = Float.NaN;
+		/** A raise borer's pilot bit and reamer face, metres below its base (NaN: not in the hole), and their light. */
+		float pilot = Float.NaN, reamer = Float.NaN;
+		int deepLight;
 	}
 
 	@Override
@@ -88,6 +93,32 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			state.press = plant.getLevel() == null ? -1 : (float) plant.pressSeconds(plant.getLevel().getGameTime() + partialTick);
 			state.pressed = plant.cycles() > 0;
 			state.light = plant.getLevel() == null ? state.lightCoords : lightAt(plant, state.turns, new int[] {3, 5, 12});
+			return;
+		}
+		if (machine == Machine.HEADFRAME || machine == Machine.HOIST_HOUSE) {
+			state.machine = machine;
+			state.turns = BigParts.turns(plant.getBlockState());
+			ropes(plant, state, partialTick);
+			state.light = plant.getLevel() == null ? state.lightCoords
+					: lightAt(plant, state.turns, machine == Machine.HEADFRAME ? new int[] {4, 27, 5} : new int[] {3, 3, 2});
+			return;
+		}
+		if (machine == Machine.RAISE_BORER) {
+			state.machine = machine;
+			state.turns = BigParts.turns(plant.getBlockState());
+			if (plant.getLevel() == null) {
+				state.light = state.deepLight = state.lightCoords;
+				state.pilot = state.reamer = Float.NaN;
+				return;
+			}
+			double now = plant.getLevel().getGameTime() + partialTick;
+			state.angle = (float) plant.turned(now, RAISE_RPM);
+			double[] tools = plant.raiseTools(now);
+			state.pilot = (float) tools[0];
+			state.reamer = (float) tools[1];
+			state.light = lightAt(plant, state.turns, new int[] {2, 2, 3});
+			float deep = Float.isNaN(state.reamer) ? state.pilot : state.reamer + 1.5f;
+			state.deepLight = Float.isNaN(deep) ? state.light : lightAt(plant, state.turns, new int[] {2, -(int) Math.ceil(deep), 3});
 			return;
 		}
 		float rpm = PlantMotion.rpm(machine);
@@ -113,6 +144,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			case SCAVENGER_BANK -> new int[] {2, 3, 4};
 			case CLEANER_BANK -> new int[] {2, 2, 3};
 			case XRT_SORTER -> new int[] {2, 3, 7};
+			case VENT_FAN, BOOSTER_FAN -> new int[] {1, 1, 0};
 			default -> new int[] {1, 0, 2};
 		};
 		if (plant.getLevel() == null) {
@@ -148,12 +180,15 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	/** NeoForge culls by this box: the whole of the largest part here, round the main cell whichever way it faces. */
 	public AABB getRenderBoundingBox(PlantBlockEntity plant) {
 		int reach = plant.machine() == Machine.TAILINGS_FILTER ? 25 : 13;
-		return new AABB(plant.getBlockPos()).inflate(reach, 0, reach).expandTowards(0, 14, 0);
+		AABB box = new AABB(plant.getBlockPos()).inflate(reach, 0, reach).expandTowards(0, plant.machine() == Machine.HEADFRAME ? 30 : 14, 0);
+		// a raise borer's string and reamer reach down its hole
+		return plant.machine() == Machine.RAISE_BORER ? box.expandTowards(0, -dev.wildcatter.tailings.shaft.RaiseBoring.MAX_DEPTH, 0) : box;
 	}
 
 	@Override
 	public int getViewDistance() {
-		return 128;
+		// a raise borer's reamer is seen from the drive far under it (films-hi07)
+		return 224;
 	}
 
 	@Override
@@ -171,6 +206,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float press = state.press;
 		boolean pressed = state.pressed;
 		int light = state.light;
+		float rope0 = state.rope0, rope1 = state.rope1, pilot = state.pilot, reamer = state.reamer;
+		int deepLight = state.deepLight;
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (p, v) -> {
 			PoseStack at = new PoseStack();
 			at.last().pose().set(p.pose());
@@ -190,6 +227,11 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case CLEANER_BANK -> cleanerFroth(at.last(), v, angle, light);
 					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
 					case TAILINGS_FILTER -> press(at.last(), v, press, pressed, light);
+					case HEADFRAME -> sheaves(at, v, rope0, rope1, light);
+					case HOIST_HOUSE -> drums(at, v, rope0, rope1, light);
+					case VENT_FAN -> impeller(at, v, angle, 1.5f, 1.5f, 0.75f, 0.85f, 8, 0.3f, light);
+					case BOOSTER_FAN -> impeller(at, v, angle, 1.0f, 1.0f, 0.38f, 0.65f, 6, 0.24f, light);
+					case RAISE_BORER -> raiseTools(at, v, angle, pilot, reamer, light, deepLight);
 				default -> {
 				}
 			}
@@ -517,6 +559,169 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				}
 				float dz = (OPEN / 2 + (hash(k, j + 31) - 0.5f) * 0.12f) * grow;   // into the middle of the opened gap
 				box(p, v, cake, x - wide, y0, z + dz - half, x + wide, y1, z + dz + half, light);
+			}
+		}
+	}
+
+	// ---- the shaft and the fans (films-hi07) -----------------------------------------------------------------------------------------
+
+	/** A raise borer's drill string, rpm (proposed: real raise borers turn the reamer at a few to about 20 rpm). */
+	static final float RAISE_RPM = 8;
+	/** The hoist's drums (3 m) and head sheaves (2.9 m): radius, m, as shaft.py draws them. */
+	private static final float DRUM_R = 1.4f, SHEAVE_R = 1.4f;
+
+	/**
+	 * Each skip's height on the client, for the drums and sheaves to turn with its rope: the skips hung within this part's reach, west
+	 * or east compartment by where they hang across its frame (the hoist house stands in line behind the headframe). The cage is left
+	 * out: it rides when the skips stand.
+	 */
+	private static void ropes(PlantBlockEntity plant, State state, float partialTick) {
+		state.rope0 = state.rope1 = Float.NaN;
+		if (plant.getLevel() == null) {
+			return;
+		}
+		BlockPos main = plant.getBlockPos();
+		boolean frame = plant.machine() == Machine.HEADFRAME;
+		AABB around = frame ? new AABB(main).inflate(10, 0, 10).expandTowards(0, -dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH - 10, 0).expandTowards(0, 32, 0)
+				: new AABB(main).inflate(dev.wildcatter.tailings.shaft.Hoisting.ROPE_REACH + 12, 0, dev.wildcatter.tailings.shaft.Hoisting.ROPE_REACH + 12)
+						.expandTowards(0, -dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH - 10, 0).expandTowards(0, 40, 0);
+		for (dev.wildcatter.tailings.entity.ShaftSkipEntity skip : plant.getLevel().getEntitiesOfClass(dev.wildcatter.tailings.entity.ShaftSkipEntity.class, around)) {
+			if (skip.cage()) {
+				continue;
+			}
+			if (!frame && (skip.drum() == null || skip.drum().distManhattan(main) > 24)) {
+				continue;
+			}
+			// the skip's centre across the part's frame (x east when it faces north)
+			double cx = skip.getBoundingBox().getCenter().x - main.getX(), cz = skip.getBoundingBox().getCenter().z - main.getZ();
+			double across = switch (Math.floorMod(state.turns, 4)) {
+				case 1 -> cz;
+				case 2 -> 1 - cx;
+				case 3 -> 1 - cz;
+				default -> cx;
+			};
+			float y = (float) (net.minecraft.util.Mth.lerp(partialTick, skip.yo, skip.getY()));
+			if (across < 4.5) {
+				state.rope0 = y;
+			} else {
+				state.rope1 = y;
+			}
+		}
+	}
+
+	/** The two head sheaves' six spokes and hubs (shaft.py: x 3 and 6, centre 27.5 m up, 5.5 m south), turned as far as each rope moved. */
+	private static void sheaves(PoseStack at, VertexConsumer v, float rope0, float rope1, int light) {
+		TextureAtlasSprite blue = mat("blue"), iron = mat("iron");
+		float[] xs = {3.0f, 6.0f};
+		float[] ropes = {rope0, rope1};
+		for (int k = 0; k < 2; k++) {
+			float turn = Float.isNaN(ropes[k]) ? 0 : (float) Math.toDegrees(ropes[k] / SHEAVE_R);
+			for (int b = 0; b < 3; b++) {
+				PoseStack p = new PoseStack();
+				p.last().pose().set(at.last().pose());
+				p.last().normal().set(at.last().normal());
+				p.translate(0, 27.5f, 5.5f);
+				p.rotateDegrees(Axis.XP, turn + b * 60f);
+				box(p.last(), v, blue, xs[k] - 0.04f, -0.06f, -1.38f, xs[k] + 0.04f, 0.06f, 1.38f, light);
+				if (b == 0) {
+					box(p.last(), v, iron, xs[k] - 0.12f, -0.2f, -0.2f, xs[k] + 0.12f, 0.2f, 0.2f, light);
+				}
+			}
+		}
+	}
+
+	/**
+	 * The hoist's two drums (shaft.py: x 0.8-4.3 and 5.3-8.8, centre 3.4 m up, 3 m south): four rope clamps along each drum and four
+	 * spokes on each flange, turned with the drum. One shaft: the west drum winds as its skip goes up, the east one unwinds.
+	 */
+	private static void drums(PoseStack at, VertexConsumer v, float rope0, float rope1, int light) {
+		TextureAtlasSprite clamp = vanilla("black_concrete"), blue = mat("blue");
+		float[][] drums = {{0.8f, 4.3f}, {5.3f, 8.8f}};
+		float turn = !Float.isNaN(rope0) ? (float) -Math.toDegrees(rope0 / DRUM_R) : !Float.isNaN(rope1) ? (float) Math.toDegrees(rope1 / DRUM_R) : 0;
+		for (float[] d : drums) {
+			for (int b = 0; b < 4; b++) {
+				PoseStack p = new PoseStack();
+				p.last().pose().set(at.last().pose());
+				p.last().normal().set(at.last().normal());
+				p.translate(0, 3.4f, 3.0f);
+				p.rotateDegrees(Axis.XP, turn + b * 90f);
+				box(p.last(), v, clamp, d[0] + 0.05f, DRUM_R - 0.02f, -0.1f, d[1] - 0.05f, DRUM_R + 0.07f, 0.1f, light);
+				box(p.last(), v, blue, d[0] - 0.14f, 0.25f, -0.12f, d[0] - 0.1f, 1.65f, 0.12f, light);
+				box(p.last(), v, blue, d[1] + 0.1f, 0.25f, -0.12f, d[1] + 0.14f, 1.65f, 0.12f, light);
+			}
+		}
+	}
+
+	/** An axial fan's impeller: {@code blades} pitched blades and a hub, round the z axis at (cx, cy), {@code z} south of its north face. */
+	private static void impeller(PoseStack at, VertexConsumer v, float angle, float cx, float cy, float z, float r, int blades, float width, int light) {
+		TextureAtlasSprite iron = mat("iron"), steel = mat("steel");
+		for (int b = 0; b < blades; b++) {
+			PoseStack p = new PoseStack();
+			p.last().pose().set(at.last().pose());
+			p.last().normal().set(at.last().normal());
+			p.translate(cx, cy, z);
+			p.rotateDegrees(Axis.ZP, angle + b * 360f / blades);
+			p.rotateDegrees(Axis.YP, 30);
+			box(p.last(), v, iron, -width / 2, r * 0.22f, -0.025f, width / 2, r, 0.025f, light);
+		}
+		PoseStack p = new PoseStack();
+		p.last().pose().set(at.last().pose());
+		p.last().normal().set(at.last().normal());
+		p.translate(cx, cy, z);
+		p.rotateDegrees(Axis.ZP, angle);
+		box(p.last(), v, steel, -r * 0.22f, -r * 0.22f, -0.09f, r * 0.22f, r * 0.22f, 0.09f, light);
+		p.rotateDegrees(Axis.ZP, 45);
+		box(p.last(), v, steel, -r * 0.22f, -r * 0.22f, -0.09f, r * 0.22f, r * 0.22f, 0.09f, light);
+	}
+
+	/**
+	 * A raise borer's tools in the hole under its drive head (shaft.py: the rod at x 2.5, z 3.5): while it drills the pilot, the drill
+	 * string of 1.5 m rods down to its bit; while it reams, the string down to the 5 m reamer head, its cutters on top, rising up the
+	 * raise as it cuts. The string and the reamer turn with the drive head.
+	 */
+	private static void raiseTools(PoseStack at, VertexConsumer v, float angle, float pilot, float reamer, int light, int deepLight) {
+		TextureAtlasSprite steel = mat("steel"), iron = mat("iron"), paint = mat("blue"), black = vanilla("black_concrete");
+		float bottom = !Float.isNaN(reamer) ? reamer : pilot;
+		PoseStack p = new PoseStack();
+		p.last().pose().set(at.last().pose());
+		p.last().normal().set(at.last().normal());
+		p.translate(2.5f, 0, 3.5f);
+		p.rotateDegrees(Axis.YP, angle);
+		// the rotary spindle under the drive head, its four lugs showing the turn
+		box(p.last(), v, iron, -0.35f, 2.3f, -0.08f, 0.35f, 2.6f, 0.08f, light);
+		box(p.last(), v, iron, -0.08f, 2.3f, -0.35f, 0.08f, 2.6f, 0.35f, light);
+		if (Float.isNaN(bottom)) {
+			return;
+		}
+		// the string: a rod a 1.5 m length, a tool joint at each, a painted stripe down one side
+		box(p.last(), v, steel, -0.14f, -bottom, -0.14f, 0.14f, 0, 0.14f, deepLight);
+		box(p.last(), v, black, 0.14f, -bottom, -0.03f, 0.16f, 0, 0.03f, deepLight);
+		for (float y = 1.5f; y < bottom; y += 1.5f) {
+			box(p.last(), v, iron, -0.18f, -y - 0.12f, -0.18f, 0.18f, -y + 0.12f, 0.18f, deepLight);
+		}
+		if (Float.isNaN(reamer)) {
+			// the pilot bit: a 300 mm tricone
+			box(p.last(), v, iron, -0.15f, -pilot - 0.05f, -0.15f, 0.15f, -pilot + 0.35f, 0.15f, deepLight);
+			return;
+		}
+		// the reamer head under its cutting face: a body, a round plate 4.8 m across, and its cutters in rows on top, turning
+		float face = -reamer;
+		box(p.last(), v, paint, -0.6f, face - 1.4f, -0.6f, 0.6f, face - 0.3f, 0.6f, deepLight);
+		for (int k = 0; k < 4; k++) {
+			PoseStack q = new PoseStack();
+			q.last().pose().set(p.last().pose());
+			q.last().normal().set(p.last().normal());
+			q.rotateDegrees(Axis.YP, k * 22.5f);
+			box(q.last(), v, paint, -2.4f, face - 0.45f, -0.95f, 2.4f, face - 0.2f, 0.95f, deepLight);
+			box(q.last(), v, paint, -0.95f, face - 0.45f, -2.4f, 0.95f, face - 0.2f, 2.4f, deepLight);
+		}
+		for (int k = 0; k < 8; k++) {
+			PoseStack q = new PoseStack();
+			q.last().pose().set(p.last().pose());
+			q.last().normal().set(p.last().normal());
+			q.rotateDegrees(Axis.YP, k * 45f + (k % 2) * 12f);
+			for (float r = 0.4f + (k % 2) * 0.5f; r < 2.3f; r += 1.0f) {
+				box(q.last(), v, iron, r - 0.18f, face - 0.2f, -0.13f, r + 0.18f, face, 0.13f, deepLight);
 			}
 		}
 	}

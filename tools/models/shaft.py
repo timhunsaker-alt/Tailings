@@ -63,7 +63,7 @@ for x in (3.0, 6.0):
 	HF.box((x + 0.3, 25.7, 4.9), (x + 0.55, 27.3, 6.1), "iron")
 	HF.cylinder("x", (27.5, 5.5), 0.12, x - 0.55, x + 0.55, "steel", sides=8)   # the axle
 	HF.ring("x", (27.5, 5.5), 1.45, x - 0.12, x + 0.12, 0.12, "blue", sides=16)   # the rim, with the rope's groove
-	HF.fan("x", (27.5, 5.5), 1.4, x, 0.08, "blue", blades=6, width=0.12, hub=0.2, hub_tex="iron")   # its spokes
+	# its six spokes and hub are drawn turning with the rope by PlantRenderer (films-hi07), not here
 HF.collide((0.3, 0.0, 0.3), (0.9, 25.5, 0.9))
 HF.collide((8.1, 0.0, 0.3), (8.7, 25.5, 0.9))
 HF.collide((0.3, 0.0, 8.1), (0.9, 25.5, 8.7))
