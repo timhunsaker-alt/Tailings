@@ -153,6 +153,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Hi02Scenes(context).run();
 			return;
 		}
+		// Heavy Iron episode 3's films: a blasthole drill's pattern charged, tied in and fired, with its flyrock, zone and siren, only when
+		// named
+		if ("hi03".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Hi03Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

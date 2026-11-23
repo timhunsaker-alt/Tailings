@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** The rotary blasthole drill at its real size, 7 x 15 m on its crawlers and 26 m to the mast top; its rotary head runs down the mast as it drills. Written by tools/models/pit_vehicles.py, with its 2048 x 2048 skin painted in Ludo's materials: change the script, not this file. */
+/** The rotary blasthole drill at its real size, 7 x 15 m on its crawlers and 26 m to the mast top; its rotary head runs down the mast and turns as it drills. Written by tools/models/pit_vehicles.py, with its 2048 x 2048 skin painted in Ludo's materials: change the script, not this file. */
 public class BlastholeDrillModel extends EntityModel<PitVehicleRenderer.PitState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("blasthole_drill"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */
@@ -58,5 +58,6 @@ public class BlastholeDrillModel extends EntityModel<PitVehicleRenderer.PitState
 		}
 		ModelPart head = root().getChild(HEAD);
 		head.y = -368F + state.lift * 256F;   // the head comes down 16 m as the hole deepens
+		head.yRot = state.lift > 0 ? state.spin * (float) (Math.PI * 2 / 20) : 0F;   // the rotary head turns the rods at 60 rpm while it drills
 	}
 }

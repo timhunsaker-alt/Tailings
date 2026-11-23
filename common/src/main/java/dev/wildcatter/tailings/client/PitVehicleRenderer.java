@@ -82,6 +82,7 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		// from where the truck is drawn, which is where the pose stands
 		state.pour = PourRenderer.mesh(entity, partialTick, state.x, state.y, state.z);
 		state.lift = entity.lift();
+		state.spin = entity.tickCount + partialTick;
 		state.yaw = entity.getYRot(partialTick);
 		state.roll = entity.rolled(partialTick);
 		state.swing = entity instanceof dev.wildcatter.tailings.entity.PitShovelEntity shovel ? shovel.swing() : 0;
@@ -358,6 +359,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		/** A truck's load on its way out, to draw (open-pit.md, Pouring). */
 		public PourRenderer.Quad[] pour = PourRenderer.NONE;
 		public float lift;
+		/** Ticks it has lived, for parts that turn while it works (the drill's rotary head). */
+		public float spin;
 		public float yaw;
 		/** Metres its wheels have rolled. */
 		public float roll;

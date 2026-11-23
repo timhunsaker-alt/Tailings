@@ -68,10 +68,11 @@ TRUCK_WHEELS = [
 if __name__ == "__main__":
 	pit_vehicles.SHEET = 2048   # a 26 m mast and a 15 m deck do not fit the trucks' 1024 sheet
 	paint(DRILL, "blasthole_drill", DRILL_HEAD, "BlastholeDrillModel",
-		"The rotary blasthole drill at its real size, 7 x 15 m on its crawlers and 26 m to the mast top; its rotary head runs down the mast as it drills.",
+		"The rotary blasthole drill at its real size, 7 x 15 m on its crawlers and 26 m to the mast top; its rotary head runs down the mast and turns as it drills.",
 		["head"],
 		"\t\tModelPart head = root().getChild(HEAD);\n"
-		"\t\thead.y = -368F + state.lift * 256F;   // the head comes down 16 m as the hole deepens", ())
+		"\t\thead.y = -368F + state.lift * 256F;   // the head comes down 16 m as the hole deepens\n"
+		"\t\thead.yRot = state.lift > 0 ? state.spin * (float) (Math.PI * 2 / 20) : 0F;   // the rotary head turns the rods at 60 rpm while it drills", ())
 	pit_vehicles.SHEET = 1024
 	paint(TRUCK, "emulsion_truck", (0.0, 1.9, 4.3), "EmulsionTruckModel",
 		"The bulk emulsion truck at its real size, 8.5 x 2.5 x 3.8 m; its hose hangs from the reel while it pumps.", ["hose"],
