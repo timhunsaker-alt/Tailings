@@ -39,6 +39,8 @@ import org.jspecify.annotations.Nullable;
 public abstract class PitShovelEntity extends PitVehicleEntity {
 	/** How far its house is swung from its tracks' heading, degrees (plus to its right), for drawing it. */
 	private static final EntityDataAccessor<Float> DATA_SWING = SynchedEntityData.defineId(PitShovelEntity.class, EntityDataSerializers.FLOAT);
+	/** Where it is in its pass, for drawing it: 0 to 1 through the dig, 1 to 2 through the swing, dump and swing back; 0 at rest. */
+	private static final EntityDataAccessor<Float> DATA_CYCLE = SynchedEntityData.defineId(PitShovelEntity.class, EntityDataSerializers.FLOAT);
 	/** It swings no further than this to a truck (spec). */
 	public static final double MOST_SWING = 90;
 
@@ -53,6 +55,9 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 	private long passes;
 	private long tonnesKg;
 	private int retryIn;
+	/** The cells a pass has taken, still in the world: they go over the dig, lowest first, as the bucket comes up through the face. */
+	private final java.util.ArrayList<BlockPos> cutting = new java.util.ArrayList<>();
+	private int cutTotal;
 
 	protected PitShovelEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -120,6 +125,11 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		return entityData.get(DATA_SWING);
 	}
 
+	/** 0 to 1 through the dig, 1 to 2 through the swing, dump and swing back; 0 at rest, 1 holding a full bucket. */
+	public float cycle() {
+		return entityData.get(DATA_CYCLE);
+	}
+
 	/** True while it digs (the hoist part of its cycle). */
 	public boolean digging() {
 		return passLeft > 0 && !dumping;
@@ -133,6 +143,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		super.defineSynchedData(builder);
 		builder.define(DATA_SWING, 0F);
+		builder.define(DATA_CYCLE, 0F);
 	}
 
 	@Override
@@ -347,6 +358,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 			}
 		}
 		boolean hard = false;
+		flushCuts(level);
 		outer:
 		for (int up = reachUp() - 1; up >= 0; up--) {
 			for (int depth = 0; depth < reachIn(); depth++) {
@@ -360,7 +372,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 						continue;
 					}
 					if (state.getBlock() == TailingsBlocks.MUCK && level.getBlockEntity(pos) instanceof MuckBlockEntity muck) {
-						takeQuarters(level, pos, muck, room);
+						takeQuarters(level, pos, muck, load, room, cutting);
 						continue;
 					}
 					String id = PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());
@@ -369,7 +381,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 							continue;
 						}
 						load.add(id, PitMass.kg(id));
-						level.removeBlock(pos, false);
+						cutting.add(pos.immutable());
 					} else if (state.canBeReplaced()) {
 						level.destroyBlock(pos, false);
 					} else {
@@ -380,9 +392,14 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		}
 		refreshLoad();
 		if (load.empty()) {
+			flushCuts(level);
 			say(driver, hard ? "hard rock: blast it first" : "FACE OUT OF REACH: nothing in reach of the bucket");
 			return;
 		}
+		// the bucket comes up through the face: the lowest cells go first, the nearest of a layer first
+		Vec3 me = position();
+		cutting.sort(java.util.Comparator.<BlockPos>comparingInt(BlockPos::getY).thenComparingDouble(c -> Math.hypot(c.getX() + 0.5 - me.x, c.getZ() + 0.5 - me.z)));
+		cutTotal = cutting.size();
 		dumping = false;
 		passLeft = digTicks() / divisor;
 		say(driver, "DIGGING: " + load.tonnes());
@@ -393,13 +410,17 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		return BlockPos.containing(lip.x + in.x * (depth + 0.5) + across.x * (side + 0.5), y, lip.z + in.z * (depth + 0.5) + across.z * (side + 0.5));
 	}
 
-	/** Takes what fits of a muck block, a quarter at a time; what is left stays as a smaller block. */
-	private void takeQuarters(ServerLevel level, BlockPos pos, MuckBlockEntity muck, long room) {
-		takeQuarters(level, pos, muck, load, room);
-	}
-
 	/** Takes what fits of a muck block into {@code load} up to {@code room} kg in all, a quarter at a time (the dragline's bucket too). */
 	static void takeQuarters(ServerLevel level, BlockPos pos, MuckBlockEntity muck, dev.wildcatter.tailings.pit.PitLoad load, long room) {
+		takeQuarters(level, pos, muck, load, room, null);
+	}
+
+	/**
+	 * As above; a block taken whole goes into {@code later} to be cut over the dig, if given, else at once. A part-taken block stays,
+	 * smaller, at once.
+	 */
+	static void takeQuarters(ServerLevel level, BlockPos pos, MuckBlockEntity muck, dev.wildcatter.tailings.pit.PitLoad load, long room,
+			java.util.@Nullable List<BlockPos> later) {
 		Map<String, Integer> left = new LinkedHashMap<>(muck.quarters());
 		for (Map.Entry<String, Integer> e : left.entrySet()) {
 			long quarter = PitMass.kg(e.getKey()) / 4;
@@ -410,15 +431,39 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 			}
 		}
 		left.values().removeIf(q -> q <= 0);
-		if (left.isEmpty()) {
+		if (left.isEmpty() && later != null) {
+			later.add(pos.immutable());
+		} else if (left.isEmpty()) {
 			level.removeBlock(pos, false);
 		} else {
 			muck.set(left);
 		}
 	}
 
+	/** Cuts the taken cells from the world up to {@code f} of the way through the dig. */
+	private void cutTo(ServerLevel level, double f) {
+		int left = cutTotal - (int) Math.ceil(Math.min(1, f) * cutTotal);
+		while (cutting.size() > Math.max(0, left)) {
+			BlockPos c = cutting.remove(0);
+			BlockState state = level.getBlockState(c);
+			if (state.getBlock() == TailingsBlocks.MUCK || (!state.isAir() && !state.hasBlockEntity()
+					&& PitMass.soft(PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString())))) {
+				level.removeBlock(c, false);
+			}
+		}
+	}
+
+	/** Every taken cell still in the world goes now: the dig is over, cut short or saved. */
+	private void flushCuts(ServerLevel level) {
+		cutTo(level, 1);
+		cutting.clear();
+	}
+
 	@Override
 	protected void work(ServerLevel level) {
+		if (!cutting.isEmpty() && (passLeft <= 0 || dumping)) {
+			flushCuts(level);
+		}
 		workAlone(level);
 		if (passLeft <= 0) {
 			float swung = swing();
@@ -430,6 +475,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		passLeft--;
 		int length = Math.max(1, (dumping ? dumpTicks() : digTicks()) / divisor);
 		float done = 1 - passLeft / (float) length;
+		entityData.set(DATA_CYCLE, dumping ? 1 + done : done);
 		if (dumping) {
 			// swing out over the first 40 %, dump, swing back over the last 40 %
 			double out = done < 0.4 ? done / 0.4 : done > 0.6 ? (1 - done) / 0.4 : 1;
@@ -437,10 +483,12 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 			setLift((float) Math.min(1, out + 0.2));
 		} else {
 			setLift(done);
+			cutTo(level, done);
 		}
 		if (passLeft == 0 && dumping) {
 			dumpInto(level);
 			setLift(0);
+			entityData.set(DATA_CYCLE, 0F);
 		}
 	}
 
@@ -500,6 +548,12 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		passes = input.getLongOr("passes", 0);
 		tonnesKg = input.getLongOr("tonnes_kg", 0);
 		divisor = Math.max(1, input.getIntOr("fast", 1));
+		cutting.clear();
+		int[] cut = input.getIntArray("cutting").orElse(new int[0]);
+		for (int i = 0; i + 2 < cut.length; i += 3) {
+			cutting.add(new BlockPos(cut[i], cut[i + 1], cut[i + 2]));
+		}
+		cutTotal = input.getIntOr("cut_total", cutting.size());
 	}
 
 	@Override
@@ -517,5 +571,7 @@ public abstract class PitShovelEntity extends PitVehicleEntity {
 		output.putLong("passes", passes);
 		output.putLong("tonnes_kg", tonnesKg);
 		output.putInt("fast", divisor);
+		output.putIntArray("cutting", cutting.stream().flatMapToInt(c -> java.util.stream.IntStream.of(c.getX(), c.getY(), c.getZ())).toArray());
+		output.putInt("cut_total", cutTotal);
 	}
 }

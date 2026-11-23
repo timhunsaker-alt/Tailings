@@ -11,7 +11,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-/** The 4100-class electric rope shovel at its real size: crawlers 14 x 12 m, the house 12 x 15 m swinging on them, the 20 m boom at 45 degrees and the dipper on its handle, hoisted up and down. Written by tools/models/pit_vehicles.py, with its 2048 x 2048 skin painted in Ludo's materials: change the script, not this file. */
+/** The 4100-class electric rope shovel at its real size: crawlers 14 x 12 m, the house 12 x 15 m swinging on them, the 20 m boom fixed at 45 degrees on its suspension ropes, and the dipper on its handle: hoisted up the face, crowded out and retracted through the saddle, its door tripping over the truck. Written by tools/models/pit_vehicles.py, with its 2048 x 2048 skin painted in Ludo's materials: change the script, not this file. */
 public class RopeShovelModel extends EntityModel<PitVehicleRenderer.PitState> {
 	public static final ModelLayerLocation LAYER = new ModelLayerLocation(Tailings.id("rope_shovel"), "main");
 	/** Its wheels, each turning on its own axle as it rolls, and their radius in metres. */
@@ -59,6 +59,7 @@ public class RopeShovelModel extends EntityModel<PitVehicleRenderer.PitState> {
 		dipper.addOrReplaceChild("handle", CubeListBuilder.create().texOffs(937, 1252).addBox(-13F, -8F, -192F, 26F, 16F, 224F), PartPose.ZERO);
 		dipper.addOrReplaceChild("dipper", CubeListBuilder.create().texOffs(1438, 1252).addBox(-37F, -34F, -264F, 74F, 72F, 72F), PartPose.ZERO);
 		dipper.addOrReplaceChild("teeth", CubeListBuilder.create().texOffs(1731, 1252).addBox(-35F, 38F, -268F, 70F, 6F, 13F), PartPose.ZERO);
+		dipper.addOrReplaceChild("door", CubeListBuilder.create().texOffs(1438, 1252).addBox(-37F, 38F, -264F, 74F, 4F, 72F), PartPose.ZERO);
 		dipper.addOrReplaceChild("dipper_load", CubeListBuilder.create().texOffs(0, 1586).addBox(-32F, -36F, -260F, 64F, 18F, 62F), PartPose.ZERO);
 		PartDefinition idler_l = root.addOrReplaceChild("idler_l", CubeListBuilder.create(), PartPose.offset(0.0F, -16F, -88F));
 		idler_l.addOrReplaceChild("t0", CubeListBuilder.create().texOffs(253, 1586).addBox(40F, -16F, -4F, 72F, 1.0F, 8F), PartPose.ZERO);
@@ -278,9 +279,58 @@ public class RopeShovelModel extends EntityModel<PitVehicleRenderer.PitState> {
 	/** The boom's angle up from level, radians. */
 	public static final float BOOM_ANGLE = (float) Math.toRadians(45);
 
-	/** The dipper handle's angle down from level, radians, for the hoist from 0 (in the face) to 1 (up over a truck). */
-	public static float handleAngle(float lift) {
-		return 0.7F - lift * 0.75F;
+	/**
+	 * The saddle block on the boom, where the handle runs through it: metres out from its centre and up from the ground. The boom is
+	 * fixed in service, held by its suspension ropes, as a real shovel's: what moves is the handle, crowded out and retracted through
+	 * the saddle and pivoting on it while the hoist ropes lift the dipper.
+	 */
+	public static final float SADDLE_OUT = 12.86F, SADDLE_UP = 11.36F;
+	/** The handle is drawn at 0.6 of its modelled length; the dipper rides in by the rest, 4.8 m. */
+	public static final float HANDLE_SCALE = 0.6F, IN_BY = 192F * (1 - HANDLE_SCALE) / 16F;
+	/** The teeth, out along the handle from the saddle and below its line, and the hoist ropes' bail, at no crowd. */
+	public static final float TEETH_ALONG = 16.74F - IN_BY, TEETH_BELOW = 2.56F;
+	public static final float BAIL_ALONG = 14.2F - IN_BY, BAIL_UP = 2.2F;
+	/** Where its teeth go through a pass (out, up): the toe of the face, the top of the face, over the truck. */
+	private static final float[] TOE = {16.5F, 0.8F}, TOP = {22.0F, 13.0F}, OVER_TRUCK = {21.0F, 11.5F};
+
+	private static float ease(float t) {
+		t = Math.max(0F, Math.min(1F, t));
+		return t * t * (3 - 2 * t);
+	}
+
+	/**
+	 * The handle's pose for a point in the pass ({@code cycle}: 0 to 1 the dig, 1 to 2 the swing, dump and back): its angle down from
+	 * level (radians), its crowd out through the saddle (metres; less than nothing is retracted), and the door, 0 shut to 1 open. The
+	 * teeth go up the face from its toe to its top through the dig, the handle crowding out as they rise; the dipper swings out held
+	 * high, its door trips over the truck and the load falls out, and it comes back down to the toe as the door swings shut.
+	 */
+	public static float[] pose(float cycle) {
+		float out, up, door = 0;
+		if (cycle <= 1) {
+			float e = ease(cycle);
+			out = TOE[0] + (TOP[0] - TOE[0]) * (float) Math.pow(e, 1.4);
+			up = TOE[1] + (TOP[1] - TOE[1]) * e;
+		} else {
+			float s = cycle - 1;
+			if (s < 0.4F) {
+				float e = ease(s / 0.4F);
+				out = TOP[0] + (OVER_TRUCK[0] - TOP[0]) * e;
+				up = TOP[1] + (OVER_TRUCK[1] - TOP[1]) * e;
+			} else if (s < 0.6F) {
+				out = OVER_TRUCK[0];
+				up = OVER_TRUCK[1];
+			} else {
+				float e = ease((s - 0.6F) / 0.4F);
+				out = OVER_TRUCK[0] + (TOE[0] - OVER_TRUCK[0]) * e;
+				up = OVER_TRUCK[1] + (TOE[1] - OVER_TRUCK[1]) * e;
+			}
+			// the door trips at the top of the swing and swings shut as the dipper comes back down
+			door = s < 0.42F ? 0 : s < 0.47F ? (s - 0.42F) / 0.05F : s < 0.65F ? 1 : Math.max(0, 1 - (s - 0.65F) / 0.25F);
+		}
+		double f = out - SADDLE_OUT, dn = SADDLE_UP - up;
+		double along = Math.sqrt(Math.max(1, f * f + dn * dn - TEETH_BELOW * TEETH_BELOW));
+		float angle = (float) (Math.atan2(dn, f) - Math.atan2(TEETH_BELOW, along));
+		return new float[] {angle, (float) (along - TEETH_ALONG), door};
 	}
 
 	/** Set when the frame is drawn, from this machine's own state. */
@@ -294,7 +344,22 @@ public class RopeShovelModel extends EntityModel<PitVehicleRenderer.PitState> {
 		house.yRot = (float) Math.toRadians(state.swing);   // plus swings its front to its right
 		house.getChild(BOOM).xRot = -BOOM_ANGLE;   // the boom stands at 45 degrees
 		ModelPart dipper = house.getChild(DIPPER);
-		dipper.xRot = handleAngle(state.lift);
-		dipper.getChild("dipper_load").visible = state.loaded;
+		float[] pose = pose(state.cycle);
+		dipper.xRot = pose[0];   // the handle pivots on the saddle
+		float crowd = pose[1] * 16F;
+		ModelPart handle = dipper.getChild("handle");
+		handle.zScale = HANDLE_SCALE;
+		handle.z -= crowd;   // the handle slides out along itself through the saddle
+		float in = IN_BY * 16F - crowd;
+		for (String part : new String[] {"dipper", "teeth", "dipper_load", "door"}) {
+			dipper.getChild(part).z += in;
+		}
+		// the door: hinged at its inner edge under the dipper, its outer end dropping open
+		ModelPart door = dipper.getChild("door");
+		float t = pose[2] * 1.2F, hy = 38F, hz = -192F;
+		door.xRot = t;
+		door.y += hy - (hy * (float) Math.cos(t) - hz * (float) Math.sin(t));
+		door.z += hz - (hy * (float) Math.sin(t) + hz * (float) Math.cos(t));
+		dipper.getChild("dipper_load").visible = state.loaded && pose[2] < 0.05F;
 	}
 }

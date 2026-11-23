@@ -233,6 +233,7 @@ ROPE = [
 	("handle", "dipper", (-0.8, 0.8), (10.86, 11.86), (-24.9, -10.9), YELLOW, "plate"),
 	("dipper", "dipper", (-2.3, 2.3), (9.0, 13.5), (-29.4, -24.9), STEEL, "plate"),
 	("teeth", "dipper", (-2.2, 2.2), (8.6, 9.0), (-29.6, -28.8), DARK, "flat"),
+	("door", "dipper", (-2.3, 2.3), (8.735, 8.985), (-29.36, -24.86), STEEL, "plate"),
 	("dipper_load", "dipper", (-2.0, 2.0), (12.5, 13.6), (-29.1, -25.2), ROCK, "rock"),
 ]
 
@@ -550,21 +551,89 @@ def dozer():
 
 def rope():
 	paint(ROPE, "rope_shovel", ROPE_HOUSE, "RopeShovelModel",
-		"The 4100-class electric rope shovel at its real size: crawlers 14 x 12 m, the house 12 x 15 m swinging on them, the 20 m boom at 45"
-		+ " degrees and the dipper on its handle, hoisted up and down.",
+		"The 4100-class electric rope shovel at its real size: crawlers 14 x 12 m, the house 12 x 15 m swinging on them, the 20 m boom fixed"
+		+ " at 45 degrees on its suspension ropes, and the dipper on its handle: hoisted up the face, crowded out and retracted through the"
+		+ " saddle, its door tripping over the truck.",
 		[("house", ROPE_HOUSE, None), ("boom", ROPE_BOOM, "house"), ("dipper", ROPE_SADDLE, "house")],
 		"\t\tModelPart house = root().getChild(HOUSE);\n"
 		"\t\thouse.yRot = (float) Math.toRadians(state.swing);   // plus swings its front to its right\n"
 		"\t\thouse.getChild(BOOM).xRot = -BOOM_ANGLE;   // the boom stands at 45 degrees\n"
 		"\t\tModelPart dipper = house.getChild(DIPPER);\n"
-		"\t\tdipper.xRot = handleAngle(state.lift);\n"
-		"\t\tdipper.getChild(\"dipper_load\").visible = state.loaded;", ROPE_WHEELS, 2048,
+		"\t\tfloat[] pose = pose(state.cycle);\n"
+		"\t\tdipper.xRot = pose[0];   // the handle pivots on the saddle\n"
+		"\t\tfloat crowd = pose[1] * 16F;\n"
+		"\t\tModelPart handle = dipper.getChild(\"handle\");\n"
+		"\t\thandle.zScale = HANDLE_SCALE;\n"
+		"\t\thandle.z -= crowd;   // the handle slides out along itself through the saddle\n"
+		"\t\tfloat in = IN_BY * 16F - crowd;\n"
+		"\t\tfor (String part : new String[] {\"dipper\", \"teeth\", \"dipper_load\", \"door\"}) {\n"
+		"\t\t\tdipper.getChild(part).z += in;\n"
+		"\t\t}\n"
+		"\t\t// the door: hinged at its inner edge under the dipper, its outer end dropping open\n"
+		"\t\tModelPart door = dipper.getChild(\"door\");\n"
+		"\t\tfloat t = pose[2] * 1.2F, hy = 38F, hz = -192F;\n"
+		"\t\tdoor.xRot = t;\n"
+		"\t\tdoor.y += hy - (hy * (float) Math.cos(t) - hz * (float) Math.sin(t));\n"
+		"\t\tdoor.z += hz - (hy * (float) Math.sin(t) + hz * (float) Math.cos(t));\n"
+		"\t\tdipper.getChild(\"dipper_load\").visible = state.loaded && pose[2] < 0.05F;", ROPE_WHEELS, 2048,
 		"\t/** The boom's angle up from level, radians. */\n"
-		"\tpublic static final float BOOM_ANGLE = (float) Math.toRadians(45);\n\n"
-		"\t/** The dipper handle's angle down from level, radians, for the hoist from 0 (in the face) to 1 (up over a truck). */\n"
-		"\tpublic static float handleAngle(float lift) {\n"
-		"\t\treturn 0.7F - lift * 0.75F;\n"
-		"\t}\n\n")
+		"\tpublic static final float BOOM_ANGLE = (float) Math.toRadians(45);\n"
+		"\n"
+		"\t/**\n"
+		"\t * The saddle block on the boom, where the handle runs through it: metres out from its centre and up from the ground. The boom is\n"
+		"\t * fixed in service, held by its suspension ropes, as a real shovel's: what moves is the handle, crowded out and retracted through\n"
+		"\t * the saddle and pivoting on it while the hoist ropes lift the dipper.\n"
+		"\t */\n"
+		"\tpublic static final float SADDLE_OUT = 12.86F, SADDLE_UP = 11.36F;\n"
+		"\t/** The handle is drawn at 0.6 of its modelled length; the dipper rides in by the rest, 4.8 m. */\n"
+		"\tpublic static final float HANDLE_SCALE = 0.6F, IN_BY = 192F * (1 - HANDLE_SCALE) / 16F;\n"
+		"\t/** The teeth, out along the handle from the saddle and below its line, and the hoist ropes' bail, at no crowd. */\n"
+		"\tpublic static final float TEETH_ALONG = 16.74F - IN_BY, TEETH_BELOW = 2.56F;\n"
+		"\tpublic static final float BAIL_ALONG = 14.2F - IN_BY, BAIL_UP = 2.2F;\n"
+		"\t/** Where its teeth go through a pass (out, up): the toe of the face, the top of the face, over the truck. */\n"
+		"\tprivate static final float[] TOE = {16.5F, 0.8F}, TOP = {22.0F, 13.0F}, OVER_TRUCK = {21.0F, 11.5F};\n"
+		"\n"
+		"\tprivate static float ease(float t) {\n"
+		"\t\tt = Math.max(0F, Math.min(1F, t));\n"
+		"\t\treturn t * t * (3 - 2 * t);\n"
+		"\t}\n"
+		"\n"
+		"\t/**\n"
+		"\t * The handle's pose for a point in the pass ({@code cycle}: 0 to 1 the dig, 1 to 2 the swing, dump and back): its angle down from\n"
+		"\t * level (radians), its crowd out through the saddle (metres; less than nothing is retracted), and the door, 0 shut to 1 open. The\n"
+		"\t * teeth go up the face from its toe to its top through the dig, the handle crowding out as they rise; the dipper swings out held\n"
+		"\t * high, its door trips over the truck and the load falls out, and it comes back down to the toe as the door swings shut.\n"
+		"\t */\n"
+		"\tpublic static float[] pose(float cycle) {\n"
+		"\t\tfloat out, up, door = 0;\n"
+		"\t\tif (cycle <= 1) {\n"
+		"\t\t\tfloat e = ease(cycle);\n"
+		"\t\t\tout = TOE[0] + (TOP[0] - TOE[0]) * (float) Math.pow(e, 1.4);\n"
+		"\t\t\tup = TOE[1] + (TOP[1] - TOE[1]) * e;\n"
+		"\t\t} else {\n"
+		"\t\t\tfloat s = cycle - 1;\n"
+		"\t\t\tif (s < 0.4F) {\n"
+		"\t\t\t\tfloat e = ease(s / 0.4F);\n"
+		"\t\t\t\tout = TOP[0] + (OVER_TRUCK[0] - TOP[0]) * e;\n"
+		"\t\t\t\tup = TOP[1] + (OVER_TRUCK[1] - TOP[1]) * e;\n"
+		"\t\t\t} else if (s < 0.6F) {\n"
+		"\t\t\t\tout = OVER_TRUCK[0];\n"
+		"\t\t\t\tup = OVER_TRUCK[1];\n"
+		"\t\t\t} else {\n"
+		"\t\t\t\tfloat e = ease((s - 0.6F) / 0.4F);\n"
+		"\t\t\t\tout = OVER_TRUCK[0] + (TOE[0] - OVER_TRUCK[0]) * e;\n"
+		"\t\t\t\tup = OVER_TRUCK[1] + (TOE[1] - OVER_TRUCK[1]) * e;\n"
+		"\t\t\t}\n"
+		"\t\t\t// the door trips at the top of the swing and swings shut as the dipper comes back down\n"
+		"\t\t\tdoor = s < 0.42F ? 0 : s < 0.47F ? (s - 0.42F) / 0.05F : s < 0.65F ? 1 : Math.max(0, 1 - (s - 0.65F) / 0.25F);\n"
+		"\t\t}\n"
+		"\t\tdouble f = out - SADDLE_OUT, dn = SADDLE_UP - up;\n"
+		"\t\tdouble along = Math.sqrt(Math.max(1, f * f + dn * dn - TEETH_BELOW * TEETH_BELOW));\n"
+		"\t\tfloat angle = (float) (Math.atan2(dn, f) - Math.atan2(TEETH_BELOW, along));\n"
+		"\t\treturn new float[] {angle, (float) (along - TEETH_ALONG), door};\n"
+		"\t}\n"
+		"\n"
+		"\n")
 
 
 def dragline():

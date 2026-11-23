@@ -438,12 +438,17 @@ public class HaulTruckEntity extends PitVehicleEntity {
 			}
 			return;
 		}
-		// a ridge just behind its tail with a drop behind that: a berm
+		// a ridge just behind its tail with a drop behind that: a berm, as high as its berm rule asks (the ultra's is 2 blocks)
 		bermBehind = false;
+		int high = dev.wildcatter.tailings.pit.DryStack.bermBlocks(wheelRadius());
 		for (double back = 0.5; back <= 2.0 && !bermBehind; back += 0.5) {
 			Vec3 at = local(0, 0, -spec().length() / 2 - back);
 			int x = (int) Math.floor(at.x), z = (int) Math.floor(at.z);
-			if (ground.solid(x, y, z) && !ground.solid(x, y + 1, z)) {
+			int h = 0;
+			while (h < high && ground.solid(x, y + h, z)) {
+				h++;
+			}
+			if (h >= 1 && !ground.solid(x, y + h, z)) {
 				for (double beyond = 1; beyond <= 4 && !bermBehind; beyond += 1) {
 					Vec3 b = local(0, 0, -spec().length() / 2 - back - beyond);
 					bermBehind = dev.wildcatter.tailings.pit.Crest.drop(ground, (int) Math.floor(b.x), y, (int) Math.floor(b.z));

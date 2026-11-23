@@ -142,6 +142,12 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			new Hi01Scenes(context).run();
 			return;
 		}
+		// Heavy Iron episode 2's films: a rope shovel loading an ultra truck that hauls itself up a ramp to a waste dump, on a gas
+		// turbine through a pit switch house, only when named
+		if ("hi02".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Hi02Scenes(context).run();
+			return;
+		}
 		// shorts batch 4's footage (TBM, rock to concentrate, the hoist): their own real world, only when named
 		if ("batch4".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Batch4Scenes(context).run();

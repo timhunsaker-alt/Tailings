@@ -414,8 +414,8 @@ final class PitBigGameTests {
 					helper.assertTrue(found instanceof RopeShovelEntity, Component.literal("one machine, by the crawlers' name: " + found));
 					shovel[0] = (RopeShovelEntity) found;
 					helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(at)).isAir(), Component.literal("its parts' cells are air"));
-					// the face, where the boom lay: 10 wide, 4 deep in front of its crawlers
-					muck(helper, 22, 31, 2, 14, 35, 38);
+					// the face, 10 wide and 4 deep, from 16.5 m ahead of its centre: where its dipper reaches the floor
+					muck(helper, 22, 31, 2, 14, 26, 29);
 					shovel[0].fastPasses(4);
 					shovel[0].setAutoHere();
 				})
@@ -432,10 +432,10 @@ final class PitBigGameTests {
 				})
 				.thenWaitUntil(() -> helper.assertTrue(!shovel[0].busy(), Component.literal("its pass done")))
 				.thenExecute(() -> {
-					// its boom, handle and dipper are laid down ahead of it: that ground must be clear, so the face's last muck goes
+					// its boom, handle and dipper are laid down ahead of it, over the face: that ground must be clear, so the face's last muck goes
 					for (int x = 22; x <= 31; x++) {
 						for (int y = 2; y <= 14; y++) {
-							for (int z = 35; z <= 38; z++) {
+							for (int z = 26; z <= 38; z++) {
 								helper.setBlock(x, y, z, net.minecraft.world.level.block.Blocks.AIR);
 							}
 						}

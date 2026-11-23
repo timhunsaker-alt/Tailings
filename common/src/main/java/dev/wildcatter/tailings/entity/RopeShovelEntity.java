@@ -91,7 +91,7 @@ public class RopeShovelEntity extends PitShovelEntity implements PitPanelMenu.Pa
 		status = "lifted off its parts: " + (cable == null ? "NO CABLE" : cable.describe());
 	}
 
-	// a 55 m³ dipper's face: 10 wide, 15 high from its floor, 4 deep (proposed: its reach)
+	// a 55 m³ dipper's face: 10 wide, 15 high from its floor, 4 deep, from 16.5 m out (proposed: its reach)
 	@Override
 	protected int reachAcross() {
 		return 5;
@@ -107,9 +107,14 @@ public class RopeShovelEntity extends PitShovelEntity implements PitPanelMenu.Pa
 		return 4;
 	}
 
+	/**
+	 * Its face starts 16.5 m ahead of its centre: where its dipper reaches the floor, with the handle hanging nearly straight down from
+	 * the saddle (proposed: the class's cutting radius at floor level is about 16 m, unverified), so the cells it takes are the ones its
+	 * dipper is drawn digging through.
+	 */
 	@Override
 	protected double faceAhead() {
-		return spec().length() / 2;
+		return 16.5;
 	}
 
 	/** It dumps about 18 m out from its centre (its boom point, proposed), into a truck within 6 m of that arc. */
