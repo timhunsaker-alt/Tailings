@@ -32,7 +32,7 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 10. **The readout card as brief evidence from the start:** every shot cropped clear of the card except where a figure it shows is said
     (the charger's 18 kW, the set's 20 kW of 500, the battery, the climb speed and energy, the pocket's count): there the full frame
     plays 4-6 s first. The FLAT paragraph keeps the card, since it is about the card's state.
-11. **Length:** about 7.7 min, a little short of the series' 8; the episode covers what the code does and stops there rather than pad.
+11. **Length:** 7:45 in English (8:35 in Spanish), a little short of the series' 8; the episode covers what the code does and stops there rather than pad.
 12. **Rewordings for the voice:** "mines" heard "minds" four times, so "Real mines use them" became "Underground railways use them", "so
     a mine can see" became "so the control room can see", "A working mine does not wait" became "Real haulage does not wait", "Real
     mines do this" became "This is done"; "the bay's wall" (heard "base") became "the wall of the bay"; "CHARGING and FULL" (heard
@@ -42,6 +42,9 @@ Decided while Tim was away, on the best recommendation; each is open for review.
     for "wire", "part way" for "partway", and single words at 0.44-0.50 with exact transcripts; "Three" at 0.21 and 0.26 in two takes of
     the speed line (sentence-initial, exact transcript).
 13. **Music:** episode 1's Heavy Iron bed again (no new credits).
+14. **Spanish:** "La locomotora a batería", Brian Spanish (Venezuelan, usted); new words under Heavy Iron in `es_glossary.md` (sala de
+    carga, cajón, parrilla de vía, riel de leva, rampa de cierre, vagón de descarga por el fondo, cremallera, estribo, ...). Three clips
+    re-voiced with the same words (p14, p30, p31); no rewording.
 
 ## Fixed (Tim's rule of 2026-11-23: fix weak spots, then film)
 1. **A swapped-out battery box stayed drawn on the locomotive.** Whether a box is fitted is now synced to the client
