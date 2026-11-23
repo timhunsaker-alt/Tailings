@@ -543,6 +543,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	private int fast = 1;
 	/** On the client: a tailings filter's cycle length in ticks and the game time its cycle was last sent, for drawing its plates. */
 	private double cycleTicksSent = Double.NaN;
+	/** On the client: when the raise borer's progress was last sent, and its speed-up then (films-hi07). */
+	private double raiseSentAt = Double.NaN;
+	private int raiseFast = 1;
 	private double cycleSentAt = Double.NaN;
 	private Motor motor;
 	/** The second pinion's motor of a twin-pinion mill (sag-mill-line.md, P7b), its box on the west face 4 m south of the main cell; else null. */
@@ -694,6 +697,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		if (machine() == Machine.XRT_SORTER) {
 			tag.putFloat("xrtShare", xrtShareNow());
 		}
+		if (machine() == Machine.RAISE_BORER) {
+			// the pilot string and the reamer drawn in the hole (films-hi07): its progress, and how fast it runs
+			tag.putString("raise", raise.save());
+			tag.putInt("raise_fast", fast);
+		}
 		if (machine() == Machine.TAILINGS_FILTER) {
 			tag.putDouble("cycle", cycle);
 			tag.putDouble("dry_kg", dryKg);
@@ -701,6 +709,20 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			tag.putDouble("cycle_ticks", dev.wildcatter.tailings.pit.DryStack.CYCLE_SECONDS * 20.0 / fast);
 		}
 		return tag;
+	}
+
+	/**
+	 * On the client: where a raise borer's tools are at game time {@code now}, metres below its pad, run on from what the server last
+	 * sent while its motor runs: {pilot bit, reamer's cutting face}; NaN for a tool not in the hole (films-hi07).
+	 */
+	public double[] raiseTools(double now) {
+		dev.wildcatter.tailings.shaft.RaiseBoring.Progress p = raise;
+		double run = moving && !Double.isNaN(raiseSentAt) ? Math.max(0, Math.min(200, now - raiseSentAt)) / 20.0 * raiseFast : 0;
+		return switch (p.phase()) {
+			case PILOT -> new double[] {p.pilot() + Math.min(1, (p.into() + run) / dev.wildcatter.tailings.shaft.RaiseBoring.PILOT_SECONDS_PER_M), Double.NaN};
+			case REAM -> new double[] {Double.NaN, p.drive() - 1 - p.reamed() - Math.min(1, (p.into() + run) / dev.wildcatter.tailings.shaft.RaiseBoring.REAM_SECONDS_PER_M)};
+			default -> new double[] {Double.NaN, Double.NaN};
+		};
 	}
 
 	/**
@@ -1817,6 +1839,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		cycle = input.getDoubleOr("cycle", 0);
 		cycleTicksSent = input.getDoubleOr("cycle_ticks", Double.NaN);
 		cycleSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
+		raiseFast = Math.max(1, input.getIntOr("raise_fast", 1));
+		raiseSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		waterOut = input.getDoubleOr("water_out", 0);
 		waterReturned = input.getDoubleOr("water_returned", 0);
 		cycles = input.getIntOr("cycles", 0);

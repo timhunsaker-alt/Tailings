@@ -24,7 +24,7 @@ for z in (0.9, 2.4, 3.9):
 VF.ring("z", (1.5, 1.5), 1.4, 0.0, 0.25, 0.1, "galv", sides=16)             # the inlet bell's lip
 VF.ring("z", (1.5, 1.5), 1.2, 0.25, 0.6, 0.1, "galv", sides=16)             # the bell
 VF.cylinder("z", (1.5, 1.5), 1.1, 0.05, 0.09, "grating", 16)                # the inlet screen
-VF.fan("z", (1.5, 1.5), 0.85, 0.75, 0.06, "iron", blades=8)                 # the impeller, seen through the screen
+# the impeller, seen through the screen: drawn turning by PlantRenderer (films-hi07)
 VF.cylinder("z", (1.5, 1.5), 1.1, 0.6, 2.1, "lagging", 16)                  # the silencer
 VF.flange("z", (1.5, 1.5), 1.15, 2.1, 0.08, "grey", bolts=12)
 VF.cylinder("z", (1.5, 1.5), 0.95, 2.1, 3.5, "grey", 16)                    # the 1.8 m fan casing
@@ -44,7 +44,7 @@ BF.box((0.5, 0.2, 0.8), (1.5, 0.35, 2.2), "iron")
 BF.cylinder("z", (1.0, 1.0), 0.48, 0.0, 0.4, "duct", 12)                    # duct in, the north
 BF.flange("z", (1.0, 1.0), 0.8, 0.4, 0.06, "grey", bolts=8)
 BF.cylinder("z", (1.0, 1.0), 0.75, 0.4, 2.6, "grey", 16)                    # the casing
-BF.fan("z", (1.0, 1.0), 0.65, 0.38, 0.04, "iron", blades=6)
+# its impeller: drawn turning by PlantRenderer (films-hi07)
 BF.flange("z", (1.0, 1.0), 0.8, 2.6, 0.06, "grey", bolts=8)
 BF.cylinder("z", (1.0, 1.0), 0.48, 2.6, 3.0, "duct", 12)                    # duct out, the south
 motor_box(BF, 0.3, 0.3, 0.45, 0.4)

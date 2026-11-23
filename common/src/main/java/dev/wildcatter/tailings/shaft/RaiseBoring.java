@@ -60,6 +60,11 @@ public final class RaiseBoring {
 			return drive;
 		}
 
+		/** Seconds into the metre being drilled or reamed. */
+		public double into() {
+			return into;
+		}
+
 		/** Metres of raise reamed up from the drive's roof. */
 		public int reamed() {
 			return reamed;

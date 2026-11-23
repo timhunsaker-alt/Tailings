@@ -305,12 +305,27 @@ public class PlantMachineBlock extends TailingsPartBlock {
 	}
 
 	/**
+	 * A call button for the cage (films-hi07): a redstone signal reaching the headframe calls it to the collar, one reaching the
+	 * measuring flask calls it to the bottom landing. A stone button on a post beside either is the landing's call button.
+	 */
+	@Override
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.block.Block neighborBlock,
+			net.minecraft.world.level.redstone.@Nullable Orientation orientation, boolean movedByPiston) {
+		super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+		if ((machine == Machine.HEADFRAME || machine == Machine.MEASURING_FLASK) && level instanceof net.minecraft.server.level.ServerLevel server
+				&& level.hasNeighborSignal(pos)) {
+			callCage(server, machine, main(pos, state));
+		}
+	}
+
+	/**
 	 * A call for the cage from a landing (heavy-iron-fixes): sneak with an empty hand on the headframe for the collar, on the measuring
 	 * flask for the bottom landing. True when a cage was found to call.
 	 */
 	private static boolean callCage(net.minecraft.server.level.ServerLevel level, Machine machine, BlockPos main) {
-		net.minecraft.world.phys.AABB around = machine == Machine.HEADFRAME ? new net.minecraft.world.phys.AABB(main).inflate(10, 40, 10)
-				: new net.minecraft.world.phys.AABB(main).inflate(10, dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH + 40, 10);
+		// the cage may be anywhere in the shaft, up to its deepest landing below the collar (films-hi07: a call from the collar missed a
+		// cage more than 40 m down)
+		net.minecraft.world.phys.AABB around = new net.minecraft.world.phys.AABB(main).inflate(10, dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH + 40, 10);
 		for (var cage : level.getEntitiesOfClass(dev.wildcatter.tailings.entity.ShaftSkipEntity.class, around, dev.wildcatter.tailings.entity.ShaftSkipEntity::cage)) {
 			cage.call(machine == Machine.HEADFRAME);
 			return true;

@@ -36,6 +36,9 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		/** The rope's points from the skip's corner: off its bail, up to the sheave, and back to the drum; empty for none. */
 		float[] rope = new float[0];
 		float centreX, centreZ;
+		/** Its pour (films-hi07): the load still to pour (0: door shut), and the bin's mouth from its corner. */
+		float pour;
+		float[] pourTo;
 	}
 
 	@Override
@@ -78,6 +81,9 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		SkipState skip = (SkipState) state;
 		skip.loaded = entity.loaded();
 		skip.cage = entity.cage();
+		skip.pour = entity.pour();
+		BlockPos to = entity.pourTo();
+		skip.pourTo = to == null ? null : new float[] {(float) (to.getX() + 0.5 - entity.getX()), (float) (to.getY() - entity.getY()), (float) (to.getZ() + 0.5 - entity.getZ())};
 		float bail = skip.cage ? dev.wildcatter.tailings.shaft.Hoisting.CAGE_HEIGHT : SkipPartBlock.HEIGHT;
 		BlockPos far = TbmMachine.offset(entity.facing(), SkipPartBlock.WIDTH - 1, 0, SkipPartBlock.WIDTH - 1);
 		skip.centreX = (Math.min(0, far.getX()) + Math.max(0, far.getX()) + 1) / 2f;
@@ -103,12 +109,26 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		}
 		if (pitched) {
 			if (skip.loaded) {
-				// the rock heaped in the skip, just under its rim: one rod along x as wide as the body
+				// the rock heaped in the skip, just under its rim: one rod along x as wide as the body; it sinks as the skip pours
 				TextureAtlasSprite gravel = sprite("block/gravel");
+				float top = skip.pour > 0 ? 0.9f + 2.25f * skip.pour : 3.15f;
 				collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (at, v) -> GantryRenderer.rod(at, v, gravel,
-						skip.centreX - 0.8f, 3.15f, skip.centreZ, skip.centreX + 0.8f, 3.15f, skip.centreZ, 1.5f, light));
+						skip.centreX - 0.8f, top, skip.centreZ, skip.centreX + 0.8f, top, skip.centreZ, 1.5f, light));
 			}
 			return;
+		}
+		if (skip.pour > 0 && skip.pourTo != null) {
+			// its bottom door swung open, and the stream of rock falling from it down the chute into the bin, thinning as it empties
+			TextureAtlasSprite gravel = sprite("block/gravel"), cobble = sprite("block/cobblestone"), steel = sprite("block/iron_block");
+			float[] to = skip.pourTo;
+			float cx = skip.centreX, cz = skip.centreZ, w = 0.35f + 0.85f * skip.pour;
+			collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (at, v) -> {
+				GantryRenderer.rod(at, v, steel, cx - 0.9f, -0.05f, cz + 0.9f, cx - 0.9f, -1.1f, cz - 0.2f, 0.1f, light);
+				GantryRenderer.rod(at, v, steel, cx + 0.9f, -0.05f, cz + 0.9f, cx + 0.9f, -1.1f, cz - 0.2f, 0.1f, light);
+				GantryRenderer.rod(at, v, steel, cx, -0.05f, cz + 0.9f, cx, -1.1f, cz - 0.2f, 0.1f, light);
+				GantryRenderer.rod(at, v, gravel, cx, -0.1f, cz, to[0], to[1], to[2], w, light);
+				GantryRenderer.rod(at, v, cobble, cx + 0.15f, -0.3f, cz - 0.1f, to[0] + 0.2f, to[1] + 0.3f, to[2] - 0.1f, w * 0.7f, light);
+			});
 		}
 		float[] p = skip.rope;
 		if (p.length < 6) {

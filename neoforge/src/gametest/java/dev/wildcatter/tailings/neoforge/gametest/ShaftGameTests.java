@@ -36,8 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * bottom-dump cars' pocket (L3), and the skips in balance between them.
  */
 final class ShaftGameTests {
-	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore"};
-	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore");
+	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore", "shaft_cage_button"};
+	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore",
+			"shaft_cage_button");
 	private static final Map<String, Integer> TICKS = Map.of("shaft_hoist", 3400);
 	/** The scenes' collar: the headframe's main cell, its shaft going down from here. */
 	private static final int COLLAR = 155;
@@ -53,6 +54,7 @@ final class ShaftGameTests {
 		out.accept("shaft_power", ShaftGameTests::power);
 		out.accept("shaft_cage", ShaftGameTests::cage);
 		out.accept("shaft_raise_bore", ShaftGameTests::raiseBore);
+		out.accept("shaft_cage_button", ShaftGameTests::cageButton);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -187,6 +189,48 @@ final class ShaftGameTests {
 				})
 				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
 						Component.literal("called from the collar, it comes up: " + cage.getY() + "; " + b.hoist().status())))
+				.thenSucceed();
+	}
+
+	/**
+	 * The landings' call buttons (shaft_cage_button, films-hi07): a stone button on a block beside the measuring flask calls the cage
+	 * down to the bottom landing, one beside the headframe at the collar calls it back up.
+	 */
+	private static void cageButton(GameTestHelper helper) {
+		Built b = build(helper, 60);
+		hang(helper, b.headframe());
+		hang(helper, b.headframe());
+		ShaftSkipEntity cage = ShaftSkipEntity.hangCage(helper.getLevel(), ShaftLayout.Frame.of(b.headframe()));
+		helper.assertTrue(cage != null, Component.literal("the cage should hang"));
+		int collarY = helper.absolutePos(BlockPos.ZERO).getY() + COLLAR;
+		// 60 m: deeper than the 40 m a call from the collar once reached
+		BlockPos bottomButton = new BlockPos(10, COLLAR - 59, 4), collarButton = new BlockPos(4, COLLAR + 1, 10);
+		helper.setBlock(new BlockPos(9, COLLAR - 59, 4), net.minecraft.world.level.block.Blocks.STONE_BRICKS);
+		helper.setBlock(bottomButton, net.minecraft.world.level.block.Blocks.STONE_BUTTON.defaultBlockState()
+				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE, net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, Direction.EAST));
+		helper.setBlock(new BlockPos(4, COLLAR + 1, 9), net.minecraft.world.level.block.Blocks.STONE_BRICKS);
+		helper.setBlock(collarButton, net.minecraft.world.level.block.Blocks.STONE_BUTTON.defaultBlockState()
+				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE, net.minecraft.world.level.block.state.properties.AttachFace.WALL)
+				.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH));
+		Runnable[] press = new Runnable[2];
+		BlockPos[] buttons = {bottomButton, collarButton};
+		for (int i = 0; i < 2; i++) {
+			BlockPos at = helper.absolutePos(buttons[i]);
+			press[i] = () -> {
+				net.minecraft.world.level.block.state.BlockState s = helper.getLevel().getBlockState(at);
+				((net.minecraft.world.level.block.ButtonBlock) s.getBlock()).press(s, helper.getLevel(), at, null);
+			};
+		}
+		helper.startSequence()
+				.thenIdle(20)
+				.thenExecute(press[0])
+				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 1 && Math.abs(cage.getY() - (collarY - 60)) < 1e-3,
+						Component.literal("the bottom landing's button brings it down: " + cage.getY() + "; " + b.hoist().status())))
+				.thenIdle(40)
+				.thenExecute(press[1])
+				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
+						Component.literal("the collar's button brings it up: " + cage.getY() + "; " + b.hoist().status())))
 				.thenSucceed();
 	}
 
