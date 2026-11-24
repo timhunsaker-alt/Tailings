@@ -83,6 +83,7 @@
     "tailings:headframe",
     "tailings:headframe_bin",
     "tailings:hoist_house",
+    "tailings:cage_winder",
     "tailings:raise_borer",
     "tailings:measuring_flask",
     "tailings:paste_filter",

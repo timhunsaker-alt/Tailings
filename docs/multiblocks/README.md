@@ -38,6 +38,7 @@ Every Tailings machine has a spec here **before any code is written**, as in Wil
 | [battery-locomotive.md](battery-locomotive.md) | L2 (DRAFT) | (new) battery locomotives and their charger on a Wildcatter receptacle |
 | [bottom-dump-cars.md](bottom-dump-cars.md) | L3 (DRAFT) | (new) bottom-dump cars over a track grizzly |
 | [shaft-and-hoist.md](shaft-and-hoist.md) | L4 (DRAFT) | (new) raise-bored shaft, headframe, double-drum hoist, skips, cage |
+| [cage-winder.md](cage-winder.md) | built | the cage's own single-drum service winder and sheave (2026-11-23) |
 | [paste-backfill.md](paste-backfill.md) | L5 (DRAFT) | (new) paste fill of enclosed old workings with tailings |
 | [dry-mill.md](dry-mill.md) | L6 (DRAFT) | (new) dryer, magnetic and electrostatic separators for ilmenite, rutile, zircon, monazite |
 | [dense-medium-separation.md](dense-medium-separation.md) | L7 (DRAFT) | (new) DMS cyclone pre-concentration on the gravel face |

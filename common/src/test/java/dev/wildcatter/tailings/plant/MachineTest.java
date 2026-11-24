@@ -62,6 +62,7 @@ class MachineTest {
 			Map.entry(Machine.HEADFRAME, new int[] {9, 30, 9}),
 			Map.entry(Machine.HEADFRAME_BIN, new int[] {4, 5, 4}),
 			Map.entry(Machine.HOIST_HOUSE, new int[] {10, 8, 12}),
+			Map.entry(Machine.CAGE_WINDER, new int[] {6, 6, 8}),
 			Map.entry(Machine.MEASURING_FLASK, new int[] {2, 3, 2}),
 			Map.entry(Machine.RAISE_BORER, new int[] {4, 6, 6}),
 			Map.entry(Machine.PASTE_FILTER, new int[] {5, 5, 8}),

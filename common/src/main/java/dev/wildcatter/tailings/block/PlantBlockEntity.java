@@ -575,6 +575,13 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		return winder;
 	}
 
+	/** A cage winder's drum and its cage (cage-winder.md). */
+	private final dev.wildcatter.tailings.shaft.CageWinder cageWinder = new dev.wildcatter.tailings.shaft.CageWinder();
+
+	public dev.wildcatter.tailings.shaft.CageWinder cageWinder() {
+		return cageWinder;
+	}
+
 	/** A raise borer's pilot and ream (shaft-and-hoist.md, L4b). */
 	private final dev.wildcatter.tailings.shaft.RaiseBoring.Progress raise = new dev.wildcatter.tailings.shaft.RaiseBoring.Progress();
 
@@ -1750,6 +1757,10 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			held.append(String.format("; %d skips dumped (%.0f t); skips at %.0f and %.0f m of %.0f m", winder.dumps(), winder.dumps() * dev.wildcatter.tailings.shaft.Hoisting.SKIP_KG / 1000,
 					winder.height(0), winder.height(1), winder.travel()));
 		}
+		if (machine() == Machine.CAGE_WINDER) {
+			held.append(String.format("; the cage %.0f m below the collar of %.0f m, %d trips; its drum %.1f turns out", cageWinder.rope(), cageWinder.travel(), cageWinder.trips(),
+					cageWinder.drumDegrees() / 360));
+		}
 		if (machine() == Machine.BELT_WEIGHER) {
 			held.append(String.format("; reads %.0f t/h, setpoint %.0f t/h%s%s, %.0f t weighed", pit.rateTph(), setpointTph(), pit.byPlc() ? " (PLC)" : "",
 					level != null && pit.overloaded(level.getGameTime()) ? " (10 % back: the mill reads OVERLOAD)" : "", pit.totalKg() / 1000));
@@ -1841,6 +1852,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		if (machine() == Machine.HOIST_HOUSE) {
 			output.putString("winder", winder.save());
 		}
+		if (machine() == Machine.CAGE_WINDER) {
+			output.putString("cage_winder", cageWinder.save());
+		}
 		if (machine() == Machine.RAISE_BORER) {
 			output.putString("raise", raise.save());
 		}
@@ -1910,6 +1924,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		sorter.load(input.getStringOr("sort", ""));
 		pit.load(input.getStringOr("pit", ""));
 		winder.load(input.getStringOr("winder", ""));
+		cageWinder.load(input.getStringOr("cage_winder", ""));
 		raise.load(input.getStringOr("raise", ""));
 		selective = input.getBooleanOr("selective", false);
 		if (vent != null) {

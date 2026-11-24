@@ -192,6 +192,11 @@ public final class ShaftLayout {
 		if (bin == null) {
 			return new ShaftLayout(frame, headframe, null, null, 0, drum, "needs a Headframe Bin touching the headframe, for the skips to dump into");
 		}
+		return bottom(level, frame, headframe, bin, drum, new int[] {0, 1}, "the skips need their compartments clear down to the flask");
+	}
+
+	/** The measuring flask beside the shaft bottom, and the compartments {@code which} clear from it up to the collar. */
+	private static ShaftLayout bottom(Level level, Frame frame, PlantBlockEntity headframe, @Nullable PlantBlockEntity bin, BlockPos drum, int[] which, String blocked) {
 		PlantBlockEntity flask = null;
 		for (int y = frame.collarY() - 1; y >= frame.collarY() - Hoisting.MAX_DEPTH && flask == null && y >= level.getMinY(); y--) {
 			for (BlockPos ring : frame.ring(y)) {
@@ -206,14 +211,76 @@ public final class ShaftLayout {
 		}
 		int bottom = flask.getBlockPos().getY();
 		for (int y = bottom; y < frame.collarY(); y++) {
-			for (int which = 0; which < 2; which++) {
-				for (BlockPos c : frame.compartment(which, y)) {
+			for (int w : which) {
+				for (BlockPos c : frame.compartment(w, y)) {
 					if (!level.getBlockState(c).getCollisionShape(level, c).isEmpty()) {
-						return new ShaftLayout(frame, headframe, bin, flask, bottom, drum, "the shaft is blocked at y " + y + ": the skips need their compartments clear down to the flask");
+						return new ShaftLayout(frame, headframe, bin, flask, bottom, drum, "the shaft is blocked at y " + y + ": " + blocked);
 					}
 				}
 			}
 		}
 		return new ShaftLayout(frame, headframe, bin, flask, bottom, drum, null);
+	}
+
+	// ---- the cage winder (cage-winder.md) ---------------------------------------------------------------------------------------
+
+	/** How far east or west of the shaft's centre line a cage winder may stand, m: in or beside the hoist house's line. */
+	public static final int CAGE_WINDER_ASIDE = 20;
+	/** The cage winder's drum in its own frame (facing north from its main cell): its axis x 2 to 5, its centre 2.25 m up, 2.5 m south. */
+	public static final double CAGE_DRUM_X = 3.5, CAGE_DRUM_Y = 2.25, CAGE_DRUM_Z = 2.5;
+	/** The cage sheave in the headframe's frame: over the cage's compartment, its axle 26.95 m up and 7.25 m south (shaft.py). */
+	public static final double CAGE_SHEAVE_X = 4.0, CAGE_SHEAVE_Y = 26.95, CAGE_SHEAVE_Z = 7.25;
+
+	/** The top of the cage sheave, where the cage's rope leaves it. */
+	public static double cageSheaveTop(Frame frame) {
+		return frame.collarY() + CAGE_SHEAVE_Y + Hoisting.CAGE_SHEAVE_DIAMETER / 2;
+	}
+
+	/**
+	 * Finds the shaft a cage winder works: the nearest headframe whose rope side it stands on, within the rope's reach and
+	 * {@link #CAGE_WINDER_ASIDE} of its line ({@code known} first, if it still stands there); the flask's landing, and the cage's
+	 * compartment clear. No bin is needed.
+	 */
+	public static ShaftLayout findCage(PlantBlockEntity winder, @Nullable PlantBlockEntity known) {
+		Level level = winder.getLevel();
+		BlockPos main = winder.getBlockPos();
+		Direction facing = winder.getBlockState().getValue(BigPartBlock.FACING);
+		BlockPos drumCell = main.offset(TbmMachine.offset(facing, (int) Math.floor(CAGE_DRUM_X), (int) Math.floor(CAGE_DRUM_Y + Hoisting.CAGE_DRUM_DIAMETER / 2),
+				(int) Math.floor(CAGE_DRUM_Z)));
+		PlantBlockEntity headframe = known != null && !known.isRemoved() && serves(known, drumCell) ? known : null;
+		if (headframe == null) {
+			int reach = Hoisting.ROPE_REACH + 16;
+			double best = Double.MAX_VALUE;
+			for (int cx = (main.getX() - reach) >> 4; cx <= (main.getX() + reach) >> 4; cx++) {
+				for (int cz = (main.getZ() - reach) >> 4; cz <= (main.getZ() + reach) >> 4; cz++) {
+					if (!level.hasChunk(cx, cz)) {
+						continue;
+					}
+					for (net.minecraft.world.level.block.entity.BlockEntity be : level.getChunk(cx, cz).getBlockEntities().values()) {
+						if (be instanceof PlantBlockEntity part && part.machine() == Machine.HEADFRAME && !part.isRemoved() && serves(part, drumCell)) {
+							double d = part.getBlockPos().distSqr(main);
+							if (d < best) {
+								best = d;
+								headframe = part;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (headframe == null) {
+			return new ShaftLayout(null, null, null, null, 0, drumCell, "needs a Headframe within " + Hoisting.ROPE_REACH + " m, standing behind it on its rope side, within "
+					+ CAGE_WINDER_ASIDE + " m of its line");
+		}
+		Frame frame = Frame.of(headframe);
+		return bottom(level, frame, headframe, null, drumCell, new int[] {CAGE}, "the cage needs its compartment clear down to the flask");
+	}
+
+	/** A headframe a cage winder's drum at {@code drum} can serve: behind it on its rope side, in reach and near its line. */
+	private static boolean serves(PlantBlockEntity headframe, BlockPos drum) {
+		Frame frame = Frame.of(headframe);
+		int[] at = frame.local(drum);
+		return at[2] > HOLE_TO + 2 && at[2] - HOLE_TO <= Hoisting.ROPE_REACH && Math.abs(at[0] - CAGE_SHEAVE_X) <= CAGE_WINDER_ASIDE
+				&& Math.abs(at[1]) <= Machine.HOIST_HOUSE.height();
 	}
 }

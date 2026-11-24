@@ -141,10 +141,13 @@ Episode 7 of Heavy Iron needs someone to ride the shaft (../questions/heavy-iron
 - **Landings:** the collar, and the bottom landing at the measuring flask's level (the skips' loading stop).
 - **Running it:** a rider's boarding rings the bell to go to the other landing; sneaking with an empty hand on the headframe calls it
   to the collar, on the flask to the bottom. The bell rings **5 s** *(proposed: the onsetter's signal)*, then it winds on the skips'
-  profile (0.75 m/s², creep at the ends) at the man-riding **4 m/s** (the spec's proposal). It takes the hoist once the skips are at
-  rest, and the skips wait for it: a real double-drum hoist runs a cage on a declutched drum, one at a time *(proposed)*. 40 m takes
-  about 15.3 s plus the bell; 150 m about 43 s.
-- **Power:** the hoist house's motor, as for the skips.
+  profile (0.75 m/s², creep at the ends) at the man-riding **4 m/s** (the spec's proposal). 40 m takes about 15.3 s plus the bell;
+  150 m about 43 s.
+- **Its own winder (2026-11-23, Tim):** the cage no longer rides on the skip hoist. A **cage winder** beside the hoist house winds it
+  on its own 2.5 m drum and rope over its own 2.5 m sheave in the headframe, on its own 160 kW motor; the skips and the cage no longer
+  wait for each other. See [cage-winder.md](cage-winder.md). (It was: it took the hoist once the skips were at rest, the skips waiting
+  for it.)
+- **Power:** the cage winder's own motor, from the medium voltage.
 - **Call buttons (films-hi07):** any redstone signal reaching the headframe calls the cage to the collar, one reaching the measuring
   flask calls it to the bottom landing: a stone button on a block beside either is the landing's call button (NeoForge
   `shaft_cage_button`). No new block.
@@ -180,7 +183,7 @@ As L4b planned, except where listed (../questions/heavy-iron-fixes.md, 16-19). T
 ## Drawn moving (films-hi07, 2026-11-23)
 - **The head sheaves and the drums turn with the rope:** their spokes (and the drums' rope clamps and flange spokes) are drawn by
   `PlantRenderer`, turned as far as each skip has moved (the rope over a 2.9 m sheave, onto a 3 m drum); the static spokes are out of
-  `shaft.py`. The cage rides with the skips standing, so nothing turns for it.
+  `shaft.py`. The cage's drum and sheave turn on its own winder (cage-winder.md, 2026-11-23).
 - **The skip's dump reads:** while a skip pours (the first 4 s of the rest), its bottom door is drawn swung open and a stream of
   rock falls from it to the headframe bin's mouth, thinning as it empties; the heap in the skip sinks as it pours (synced on the skip:
   how much is left and where the bin's mouth is). The load still goes into the bin's count at the rest's end, as before.

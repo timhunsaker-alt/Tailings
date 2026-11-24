@@ -73,7 +73,7 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 ## Weak on camera, left as is
 - The ream from below is a dark disc rising up a lit shaft; a section of the raise is not possible (the ream grouts any open cell round it). *(2026-11-23: the reamer was drawn inside the rock; fixed, "Fixed after release" 3.)*
 - The flask is a block model: its 3 t shows on the card, not in the flask. *(2026-11-23: sight windows drawn, "Fixed after release" 2.)*
-- The cage moves with the skips standing, so no drum turns for it.
+- The cage moves with the skips standing, so no drum turns for it. *(2026-11-23: its own winder; fix2-hi07 below.)*
 
 ## Needs Tim
 - **A 150 m shaft does not fit under a yard at y 78** (the world's floor at y -64): the episode's shaft is 120 m. Deeper shafts need a
@@ -81,7 +81,8 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 - **The raise borer reams a metre a minute**, about 120 times a real 5.5 m reamer (Lyle 2017: 0.5 m an hour). Said in the episode as
   the game's scaling; a rule change only if Tim wants it slower.
 - **The cage has no drum of its own** (it rides "beside the skips on the hoist's second rope", heavy-iron-fixes #13), so the drawing
-  cannot turn a drum for it.
+  cannot turn a drum for it. *(Tim, 2026-11-23: add a cage winder; done, fix2-hi07 below. The 120 m shaft and the reamer's rate:
+  accepted.)*
 
 ## Tests
 `build` passes. The full NeoForge suite on this branch (all the fixes above in, and the new `shaft_cage_button`): all 307 required
@@ -140,3 +141,77 @@ except the ream at 20x, as before) and episode 7 rebuilt in English and Spanish 
 
 ### Tests
 `build` passes; the full NeoForge suite on this branch (the flask sync, the reamer drawing and the falling cuttings in): all 307 required tests passed, first run. `shaft_flask_feed` and `shaft_raise_bore` gained the checks above.
+
+## Second fix round (fix2-hi07, 2026-11-23)
+Branch `fix2-hi07` (off main 105dee5e). Tim's rule: "Let's keep fixing weak spots as we find them."
+
+### Decided by Tim 2026-11-23
+1. **Add a cage winder.** Done: the cage no longer rides on the skip hoist. A separate single-drum service winder beside the hoist
+   house (`cage_winder`, 6 x 6 x 8): its own 2.5 m drum, its own rope over its own 2.5 m sheave in the headframe, its own 160 kW motor
+   from the same medium-voltage run as the hoist. Spec with the real counterpart and its sources first:
+   `docs/multiblocks/cage-winder.md` (MDG 33's single-drum personnel winder: 4 m/s, a drum of about 2.5 m; the Hard Rock Miner's
+   Handbook's 0.405 √H, 4.4 m/s over 120 m, and cage service at two thirds of the skips' speed; its power table's separate cage
+   hoist). The cage's 4 m/s is kept, now sourced. The call buttons work as before. The skips and the cage no longer wait for each
+   other.
+2. **Keep the shaft at 120 m.** Accepted (was "Needs Tim").
+3. **Keep the reamer's fast speed** (a metre a minute, said in the episode as the game's scaling). Accepted (was "Needs Tim").
+
+### Fixed
+1. **The cage winder** (above): `shaft.CageWinder`, `Shaft.CAGE_WINDER`, `ShaftLayout.findCage`, `Machine.CAGE_WINDER`; the model in
+   `tools/models/shaft.py` (the cage winder; the cage sheave and the deck's rope opening in the headframe, the only change to the
+   headframe's model); `PlantRenderer.cageDrum` and `cageSheave` turn with the cage, with light rope clamps and yellow marks so the
+   turn reads; `SkipRenderer` runs the cage's rope round the top of its sheave to the drum. Recipe, loot, lang, pickaxe tag. NeoForge
+   `shaft_cage_winder` (new), `shaft_cage` and `shaft_cage_button` now on the cage winder; `HoistingTest` extended.
+2. **The narration said the cage takes the hoist and the skips wait for it.** Paragraph 27's last sentence re-voiced in both
+   languages, same voice and settings (Ludo preset Brian; English "calm, measured documentary narration"; Spanish "Venezuelan Spanish
+   accent, calm documentary"): "It has its own winder: one drum, one rope over its own sheave, and its own motor." / "Tiene su propio
+   malacate: un tambor, un cable sobre su propia polea y su propio motor." Garble check: English exact (one "a" at 0.49), Spanish exact,
+   no flags (`ep07/garble4.txt`, `ep07/es/garble3.txt`).
+3. **The cage shots now show its winder.** New films `hi07_cagedrum` (the drum turning through the winder's open side as the cage is
+   called up, the camera drawing back along the rope to the headframe) and `hi07_cagesheave` (the cage sheave turning, zoomed);
+   paragraph 27 cuts from the drum to the sheave. A lower third "Cage winder · its own drum, rope and motor · 2.5 m drum · 160 kW" and a
+   3 s evidence card (CAGE WINDER · 160 kW, rope speed, the drum's turns). The cage chapter no longer lights the hoist on the duty-cycle
+   map; the map is off there, which also lets the cage's lower third show (it was dropped for room).
+4. **The 300 mm bit was small at breakthrough.** The break is filmed zoomed (a 30 degree view from 4.5 m: 2.4 m of roof round the
+   bit).
+5. **The cut showed only the first 4 m of the 112 m pilot.** A second pilot film, `hi07_pilotdeep`: the rock cut away 92 m down
+   beside the pilot's column (9 x 5 m, open to the sky), the camera going down the cut with the bit at 20 times the game's rate to 86 m,
+   then the game's rate again; the rock put back. Labelled "Rock cut away · 20x the game's rate". Paragraph 9 opens on it.
+6. **The skip and the cage were small on the grey section.** The wind and the ride re-filmed tighter: the camera 5 m from the skip
+   (was 6.5) at a 55 degree view, 4.6 m from the cage at 62 degrees, both led by their speed so they stay framed at 10 m/s and 4 m/s.
+7. **The site's other films re-taken with the cage winder in them** (wide, power, hoist, scale, dump), so it is there throughout.
+   `hi07_sheaves` kept from the first take: paragraph 4 says "two head sheaves", and from that angle the cage sheave stands in front
+   of them.
+8. **Paragraph 9's pass down the pilot plays its readout in full** (5 s): PILOT 49 to 57 of 112 m counting down is the evidence for
+   "a hundred and twelve metres down"; then the zoomed break, the bit through the roof and the reamer on. Paragraph 21 starts 2 s
+   later in the new wind (6 s), past the ledge the camera sees first.
+9. **Lengths kept:** English 7:38 (458.3 s; the new line is 0.6 s longer), Spanish 8:17 (497.3 s; its new line is 1.2 s longer, and
+   paragraph 27's closing pad is 0.7 s shorter in the Spanish spec to hold it). Descriptions in both languages updated (the cage's own
+   winder; one pass down the pilot at 20x; the rock cut away beside the pilot), chapter lists refreshed.
+
+### Decided while Tim was away (open for review)
+- **The cage winder stands beside the hoist house**, east of it (Tim: "in or beside the hoist house"), rather than as a third drum
+  inside it: the hoist house's 10 m is taken by its two 3 m drums. It finds the headframe whose rope side it stands on within the
+  rope's 60 m and 20 m either side of the shaft's line.
+- **The skips no longer wait for the cage, nor it for them** (two winders, two ropes). The scenes no longer empty the pocket before the
+  cage films; the skips are seen winding in them.
+- **A cage winder's motor is 160 kW** (142 kW to lift the cage, a rated 1 t and its rope from 120 m at 4 m/s, with accelerating;
+  `cage-winder.md`). The cage's mass (1.5 t), its rated load (1 t) and its rope (2.7 kg/m) are proposed figures, marked so.
+- **Paragraph 30 kept** ("the medium voltage for the hoist and the raise borer"): the cage winder is a hoist on the same run; not
+  re-voiced.
+- **A world from before:** the hoist no longer runs the cage; with no cage winder built, calls do nothing.
+
+### Still weak on camera
+- The pass down the pilot is a drill string in a slot of grey rock: it reads by its tool joints sliding and the readout counting, not
+  by the rock.
+- The wind's camera passes the collar's 3 m rock lip for about 3 s (22-25 s of `hi07_wind`); paragraph 22 crosses it briefly.
+- The cage at the bottom landing is not seen from the riding camera (kept 5 m up, clear of the ledge); paragraph 28 cuts before it.
+- The cage drum's rope clamps are light on a dark drum but small from the north side; its yellow flange marks and the readout's turns
+  carry the turning.
+- `hi07_call` keeps the first take's angle, with a grey block close on the left as before.
+
+### Tests (fix2-hi07)
+`build` passes; the full NeoForge suite on this branch: all 308 required tests passed, first run (the new `shaft_cage_winder`: 60 m
+down while the skips wind, the drum 7.64 turns, braked with no power, back up with the drum wound in; `shaft_cage` and
+`shaft_cage_button` on the cage winder). `HoistingTest` adds the cage winder's lift power, the drum's turns and an old hoist save
+still loading.

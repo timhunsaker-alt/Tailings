@@ -68,9 +68,12 @@ public final class Hoisting {
 		return windSeconds(travel) + REST_SECONDS;
 	}
 
-	// ---- the cage (heavy-iron-fixes, shaft-and-hoist.md "L4c, the cage") ---------------------------------------------------------
+	// ---- the cage (heavy-iron-fixes, shaft-and-hoist.md "L4c, the cage"), on its own winder (cage-winder.md) --------------------------
 
-	/** The cage's speed with people in it, m/s (proposed in the spec: a man-riding limit well under the skips' 10 m/s). */
+	/**
+	 * The cage's speed, m/s: MDG 33's single-drum personnel winder winds at 4 m/s; the Hard Rock Miner's Handbook puts a drum hoist's
+	 * economic speed at 0.405 √H (4.4 m/s over 120 m) and cage service at about two thirds of the skips' (cage-winder.md).
+	 */
 	public static final double CAGE_SPEED = 4;
 	/** People the cage carries (the spec's 2 x 3 x 2 cage, proposed). */
 	public static final int CAGE_PEOPLE = 4;
@@ -89,6 +92,33 @@ public final class Hoisting {
 			return 2 * Math.sqrt(travel / ACCEL);
 		}
 		return 2 * toFull + (travel - 2 * accelMetres) / CAGE_SPEED;
+	}
+
+	/** The cage itself, kg (proposed: a 2 x 2 x 3 m cage for four; MDG 33's for twenty is 4,000 kg). */
+	public static final double CAGE_KG = 1_500;
+	/** Its deck's rated load, kg (proposed: 9 stacks of materials; four people are about 350 kg). */
+	public static final double CAGE_PAYLOAD_KG = 1_000;
+	/** Its rope, kg a metre (proposed: a 26 mm six-strand rope). */
+	public static final double CAGE_ROPE_KG_PER_M = 2.7;
+	/** The rope hanging from the sheave beyond the wind, m (the sheave's height over the collar, about). */
+	public static final double CAGE_ROPE_OVER = 15;
+	/** The cage winder's single drum, and the cage sheave in the headframe, m across (cage-winder.md: MDG 33's is about 2.5 m). */
+	public static final double CAGE_DRUM_DIAMETER = 2.5, CAGE_SHEAVE_DIAMETER = 2.5;
+	/** The cage winder's motor, W: a standard 160 kW over the {@link #cageLiftWatts} of a 120 m shaft (cage-winder.md). */
+	public static final int CAGE_MOTOR_WATTS = 160_000;
+
+	/**
+	 * The power to lift the cage at full load and speed over {@code travel} metres, W: a single drum, so nothing balances it: the cage,
+	 * its rated load and its hanging rope, with the drive's losses, and the acceleration at the start.
+	 */
+	public static double cageLiftWatts(double travel) {
+		double kg = CAGE_KG + CAGE_PAYLOAD_KG + (travel + CAGE_ROPE_OVER) * CAGE_ROPE_KG_PER_M;
+		return kg * (G + ACCEL) * CAGE_SPEED / EFFICIENCY;
+	}
+
+	/** How far the cage winder's drum has turned, degrees, with {@code rope} metres paid out over it. */
+	public static double cageDrumDegrees(double rope) {
+		return Math.toDegrees(rope / (CAGE_DRUM_DIAMETER / 2));
 	}
 
 	/** What the hoist lifts, t/h, over {@code travel} metres. */

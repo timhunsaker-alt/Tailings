@@ -119,6 +119,7 @@ public interface Stage {
 			case VENT_FAN -> Vent.FAN;
 			case BOOSTER_FAN -> Vent.BOOSTER;
 			case HOIST_HOUSE -> Shaft.HOIST;
+			case CAGE_WINDER -> Shaft.CAGE_WINDER;
 			case MEASURING_FLASK -> Shaft.FLASK;
 			case RAISE_BORER -> Shaft.RAISE_BORER;
 			case HEADFRAME_BIN -> Shaft.BIN;

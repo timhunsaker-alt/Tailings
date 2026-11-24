@@ -30,7 +30,6 @@ public final class Shaft {
 	static final class Run {
 		@Nullable ShaftLayout layout;
 		final ShaftSkipEntity[] skips = new ShaftSkipEntity[2];
-		@Nullable ShaftSkipEntity cage;
 		long dumpedAt = Long.MIN_VALUE / 2;
 	}
 
@@ -86,7 +85,6 @@ public final class Shaft {
 					final int c = which;
 					run.skips[which] = hung.stream().filter(s -> s.compartment() == c).findFirst().orElse(null);
 				}
-				run.cage = hung.stream().filter(ShaftSkipEntity::cage).findFirst().orElse(null);
 			}
 			for (int which = 0; which < 2; which++) {
 				ShaftSkipEntity skip = run.skips[which];
@@ -102,10 +100,6 @@ public final class Shaft {
 				}
 			}
 			winder.setTravel(layout.travel);
-			if (cage(part, layout, winder, run)) {
-				place(layout, run.skips, winder);
-				return;
-			}
 			if (winder.winding()) {
 				part.want();
 				if (!part.running()) {
@@ -206,10 +200,6 @@ public final class Shaft {
 			part.say(String.format("WAITING FOR ORE: the flask holds %.1f of %.0f t", flask.hold().total() / 1000, Hoisting.FLASK_KG / 1000));
 			return;
 		}
-		if (winder.cageBusy()) {
-			part.say("waiting for the cage");
-			return;
-		}
 		part.want();
 		if (!part.running()) {
 			part.say("waiting for its motor");
@@ -220,50 +210,91 @@ public final class Shaft {
 		part.setChanged();
 	}
 
-	/**
-	 * The cage (heavy-iron-fixes): beside the skips on the hoist's second rope, between the collar and the bottom landing. A rider's bell
-	 * or a call from a landing sends it once the skips are at rest; it rings for 5 s, then winds at the man-riding 4 m/s; the skips wait
-	 * for it. True while the cage has the hoist (the skips stand).
-	 */
-	private static boolean cage(PlantBlockEntity part, ShaftLayout layout, Winder winder, Run run) {
-		ShaftSkipEntity cage = run.cage;
-		if (cage == null || cage.isRemoved()) {
-			run.cage = null;
-			return false;
-		}
-		winder.setCageTravel(layout.frame.collarY() - layout.bottomY);
-		int call = cage.takeCall();
-		boolean bell = cage.takeBell();
-		if (call >= 0) {
-			winder.callCage(call == 1);
-		} else if (bell && winder.cageAtLanding()) {
-			winder.sendCage();
-		}
-		boolean has = winder.cageBusy() && !winder.winding() && winder.rest() <= 0;
-		if (has) {
-			part.want();
-			if (!part.running()) {
-				part.say("CAGE: waiting for its motor");
-			} else {
-				boolean ringing = winder.cageRinging();
-				if (winder.windCage(DT, part.strength())) {
-					((ServerLevel) part.getLevel()).playSound(null, cage.getX(), cage.getY(), cage.getZ(), net.minecraft.sounds.SoundEvents.BELL_BLOCK,
-							net.minecraft.sounds.SoundSource.BLOCKS, 1.5F, 1.4F);
-				} else if (ringing && part.getLevel().getGameTime() % 20 == 0) {
-					// the bell: the signal to the hoistman, as the gate shuts
-					((ServerLevel) part.getLevel()).playSound(null, cage.getX(), cage.getY(), cage.getZ(), net.minecraft.sounds.SoundEvents.BELL_BLOCK,
-							net.minecraft.sounds.SoundSource.BLOCKS, 1.5F, 1.0F);
-				}
-				part.say(winder.cageRinging() ? "CAGE: the bell, going " + (winder.cageUp() ? "down" : "up")
-						: winder.cageBusy() ? String.format("CAGE at %.1f m/s, %.0f m below the collar", winder.cageSpeed(), winder.cageTravel() - winder.cageAt())
-						: "CAGE at the " + (winder.cageUp() ? "collar" : "bottom landing"));
-			}
-			part.setChanged();
-		}
-		cage.setAt(layout.frame.skipCorner(ShaftLayout.CAGE, layout.bottomY + winder.cageAt()), layout.frame.facing());
-		cage.setRope((float) layout.frame.sheaveTop(), layout.drum);
-		return has;
+	// ---- the cage winder (cage-winder.md) -----------------------------------------------------------------------------------------
+
+	/** The cage winder's last look at its shaft and its cage (not saved: found again after a load). */
+	static final class CageRun {
+		@Nullable ShaftLayout layout;
+		@Nullable ShaftSkipEntity cage;
 	}
+
+	private static CageRun cageRun(PlantBlockEntity part) {
+		if (part.run instanceof CageRun run) {
+			return run;
+		}
+		CageRun run = new CageRun();
+		part.run = run;
+		return run;
+	}
+
+	/** The shaft the cage winder last found, or null. */
+	public static @Nullable ShaftLayout cageLayout(PlantBlockEntity winder) {
+		return cageRun(winder).layout;
+	}
+
+	/**
+	 * The cage winder: a single-drum service winder beside the hoist house, the cage on its own rope over its own sheave in the
+	 * headframe. A rider's bell or a call from a landing rings the bell 5 s, then it winds at the man-riding 4 m/s; its own 160 kW from
+	 * the medium voltage, drawn while it winds. The skips do not wait for it, nor it for them.
+	 */
+	static final Stage CAGE_WINDER = new Stage() {
+		@Override
+		public void tick(PlantBlockEntity part) {
+			CageRun run = cageRun(part);
+			dev.wildcatter.tailings.shaft.CageWinder winder = part.cageWinder();
+			boolean scan = run.layout == null || part.scanDue() || !run.layout.stillStands();
+			if (scan) {
+				run.layout = ShaftLayout.findCage(part, run.layout == null ? null : run.layout.headframe);
+			}
+			ShaftLayout layout = run.layout;
+			if (layout.problem != null || layout.frame == null) {
+				winder.brake();
+				part.say("NOT BUILT: " + layout.problem);
+				return;
+			}
+			ServerLevel level = (ServerLevel) part.getLevel();
+			if (scan || run.cage == null || run.cage.isRemoved()) {
+				run.cage = ShaftSkipEntity.cageIn(level, layout.frame);
+			}
+			ShaftSkipEntity cage = run.cage;
+			if (cage == null) {
+				winder.brake();
+				part.say("NOT BUILT: needs a cage in the headframe's cage compartment (click the headframe with a cage)");
+				return;
+			}
+			winder.setTravel(layout.frame.collarY() - layout.bottomY);
+			int call = cage.takeCall();
+			boolean bell = cage.takeBell();
+			if (call >= 0) {
+				winder.call(call == 1);
+			} else if (bell && winder.atLanding()) {
+				winder.send();
+			}
+			if (winder.busy()) {
+				part.want();
+				if (!part.running()) {
+					winder.brake();
+					part.say("STOPPED: the brakes hold the cage (" + (part.strength() > 0 ? "its motor is starting" : "no power to its motor") + ")");
+				} else {
+					boolean ringing = winder.ringing();
+					if (winder.wind(DT, part.strength())) {
+						level.playSound(null, cage.getX(), cage.getY(), cage.getZ(), net.minecraft.sounds.SoundEvents.BELL_BLOCK, net.minecraft.sounds.SoundSource.BLOCKS, 1.5F, 1.4F);
+					} else if (ringing && level.getGameTime() % 20 == 0) {
+						// the bell: the signal to the winder driver, as the gate shuts
+						level.playSound(null, cage.getX(), cage.getY(), cage.getZ(), net.minecraft.sounds.SoundEvents.BELL_BLOCK, net.minecraft.sounds.SoundSource.BLOCKS, 1.5F, 1.0F);
+					}
+					part.say(winder.ringing() ? "CAGE: the bell, going " + (winder.up() ? "down" : "up")
+							: winder.busy() ? String.format("CAGE at %.1f m/s, %.0f m below the collar", winder.speed(), winder.rope())
+							: "CAGE at the " + (winder.up() ? "collar" : "bottom landing"));
+				}
+				part.setChanged();
+			} else {
+				part.say("CAGE at the " + (winder.up() ? "collar" : winder.at() <= 1e-6 ? "bottom landing" : String.format("%.0f m below the collar", winder.rope())));
+			}
+			cage.setAt(layout.frame.skipCorner(ShaftLayout.CAGE, layout.bottomY + winder.at()), layout.frame.facing());
+			cage.setRope((float) ShaftLayout.cageSheaveTop(layout.frame), layout.drum);
+		}
+	};
 
 	/** Sets each skip where its drum puts it, shows its load, and runs its rope up to the sheave and back to the drum. */
 	private static void place(ShaftLayout layout, ShaftSkipEntity[] skips, Winder winder) {

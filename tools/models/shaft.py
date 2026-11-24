@@ -5,6 +5,7 @@
 - headframe_bin, 4 x 5 x 4: the 100 t steel bin on legs that the skips dump into, its hopper falling to the outlet under it;
 - hoist_house, 10 x 8 x 12: the hoist house, its north wall open over the drums where the ropes leave, the two 3 m drums on one shaft,
   the 450 kW motor at their east end and its terminal box on the west face of the main cell;
+- cage_winder, 6 x 6 x 8: the cage's own single-drum winder (cage-winder.md), its 2.5 m drum, brake and 160 kW motor;
 - measuring_flask, 2 x 3 x 2: the loading pocket's measuring flask, its feed chute on top and its hydraulic gate under it;
 - raise_borer, 4 x 6 x 6: a raise borer on its baseplate over the raise (heavy-iron-fixes): two guide columns and the derrick head over
   the hole at x 2-3, z 3-4, the rotary drive head on them and the drill rod down the hole, the rod rack at its north end and the
@@ -52,7 +53,9 @@ stepped(HF, 2.0, 7.0, 17.2, 15.6, 3.0, 0.0, 4, 0.25, "steel")              # the
 HF.box((2.0, 15.6, -0.0), (2.15, 17.6, 3.0), "steel")                       # its cheek plates
 HF.box((6.85, 15.6, 0.0), (7.0, 17.6, 3.0), "steel")
 # the sheave deck, open over the compartments where the ropes come up
-for frm, to in (((0.0, 25.5, 0.0), (9.0, 25.7, 3.0)), ((0.0, 25.5, 5.0), (9.0, 25.7, 9.0)), ((0.0, 25.5, 3.0), (2.0, 25.7, 5.0)),
+# (and open over the cage's compartment where its rope comes up, x 3.6-4.4, z 5-6.5: cage-winder.md)
+for frm, to in (((0.0, 25.5, 0.0), (9.0, 25.7, 3.0)), ((0.0, 25.5, 5.0), (3.6, 25.7, 9.0)), ((4.4, 25.5, 5.0), (9.0, 25.7, 9.0)),
+		((3.6, 25.5, 6.5), (4.4, 25.7, 9.0)), ((0.0, 25.5, 3.0), (2.0, 25.7, 5.0)),
 		((4.0, 25.5, 3.0), (5.0, 25.7, 5.0)), ((7.0, 25.5, 3.0), (9.0, 25.7, 5.0))):
 	HF.box(frm, to, "grating")
 	HF.collide(frm, to)
@@ -64,6 +67,12 @@ for x in (3.0, 6.0):
 	HF.cylinder("x", (27.5, 5.5), 0.12, x - 0.55, x + 0.55, "steel", sides=8)   # the axle
 	HF.ring("x", (27.5, 5.5), 1.45, x - 0.12, x + 0.12, 0.12, "blue", sides=16)   # the rim, with the rope's groove
 	# its six spokes and hub are drawn turning with the rope by PlantRenderer (films-hi07), not here
+# the 2.5 m cage sheave (cage-winder.md): over the cage's compartment (x 3-5, z 5-7), its rope coming up at z 6 and leaving over its top
+# to the south for the cage winder's drum; its spokes and hub are drawn turning by PlantRenderer
+HF.box((3.5, 25.7, 6.75), (3.7, 27.15, 7.75), "iron")                       # the bearing pedestals
+HF.box((4.3, 25.7, 6.75), (4.5, 27.15, 7.75), "iron")
+HF.cylinder("x", (26.95, 7.25), 0.1, 3.5, 4.5, "steel", sides=8)           # the axle
+HF.ring("x", (26.95, 7.25), 1.25, 3.88, 4.12, 0.1, "blue", sides=16)       # the rim, with the rope's groove
 HF.collide((0.3, 0.0, 0.3), (0.9, 25.5, 0.9))
 HF.collide((8.1, 0.0, 0.3), (8.7, 25.5, 0.9))
 HF.collide((0.3, 0.0, 8.1), (0.9, 25.5, 8.7))
@@ -120,6 +129,42 @@ HH.collide((0.0, 0.4, 0.0), (0.2, 8.0, 12.0))
 HH.collide((9.8, 0.4, 0.0), (10.0, 8.0, 12.0))
 HH.collide((0.0, 7.6, 0.0), (10.0, 8.0, 12.0))
 
+# ---- the cage winder (cage-winder.md) -------------------------------------------------------------------------------------------
+# a single-drum service winder for the cage, beside the hoist house: its north wall low and its roof open over the drum where the rope
+# leaves for the cage sheave; the 2.5 m drum on its own shaft, its brake, the 160 kW motor behind it, the driver's desk
+CW = model("cage_winder", 6, 6, 8, "galv")
+CW.box((0.0, 0.0, 0.0), (6.0, 0.4, 8.0), "concrete")                         # the floor slab
+CW.box((0.0, 0.4, 0.0), (6.0, 1.6, 0.2), "galv")                             # the north wall: low, open over the drum
+CW.box((0.0, 0.4, 7.8), (6.0, 5.6, 8.0), "galv")                             # the south wall
+CW.box((0.0, 0.4, 0.2), (0.2, 5.6, 7.8), "galv")                             # the side walls
+CW.box((5.8, 0.4, 0.2), (6.0, 5.6, 7.8), "galv")
+CW.box((0.0, 1.6, 0.0), (0.2, 5.6, 0.2), "galv")                             # the north corner posts
+CW.box((5.8, 1.6, 0.0), (6.0, 5.6, 0.2), "galv")
+CW.decal((-0.01, 2.8, 4.5), (0.0, 4.0, 7.0), "louvre", "west", "galv")
+CW.decal((6.0, 2.8, 4.5), (6.01, 4.0, 7.0), "louvre", "east", "galv")
+CW.box((-0.1, 5.6, 4.2), (6.1, 6.0, 8.1), "blue")                            # the roof over the motor
+CW.box((-0.1, 5.6, -0.1), (1.4, 6.0, 4.2), "blue")                           # and either side of the rope's opening over the drum
+CW.box((4.6, 5.6, -0.1), (6.1, 6.0, 4.2), "blue")
+CW.ring("x", (2.25, 2.5), 1.25, 2.0, 5.0, 0.18, "iron", sides=16)            # the 2.5 m drum, the rope wound on it
+CW.ring("x", (2.25, 2.5), 1.5, 1.9, 2.0, 0.18, "blue", sides=16)             # its flanges
+CW.ring("x", (2.25, 2.5), 1.5, 5.0, 5.1, 0.18, "blue", sides=16)
+CW.cylinder("x", (2.25, 2.5), 0.2, 0.6, 5.6, "steel", sides=8)               # the drum shaft
+for x in (1.2, 5.25):
+	CW.box((x, 0.4, 2.0), (x + 0.4, 2.45, 3.0), "iron")                       # its bearing pedestals
+CW.box((0.9, 0.4, 1.6), (1.15, 3.2, 3.4), "hipaint")                         # the brake's caliper stand on the west flange
+CW.box((1.5, 0.4, 5.2), (4.5, 2.2, 7.4), "blue")                             # the 160 kW motor, behind the drum
+CW.box((3.2, 1.6, 3.6), (3.8, 2.1, 5.2), "steel")                            # its gearbox shaft to the drum
+CW.box((4.7, 0.4, 5.6), (5.6, 2.0, 7.6), "grey")                             # the driver's desk and its drive cabinet
+CW.decal((4.69, 1.2, 6.0), (4.7, 1.9, 7.2), "controller", "west", "grey")
+CW.decal((2.0, 1.0, 7.41), (4.0, 1.8, 7.42), "ratingplate", "south", "blue")
+motor_box(CW, y=1.0, z=0.4, h=0.8, w=0.7)
+CW.collide((0.0, 0.0, 0.0), (6.0, 0.4, 8.0))
+CW.collide((0.0, 0.4, 0.0), (6.0, 1.6, 0.2))
+CW.collide((0.0, 0.4, 7.8), (6.0, 6.0, 8.0))
+CW.collide((0.0, 0.4, 0.0), (0.2, 6.0, 8.0))
+CW.collide((5.8, 0.4, 0.0), (6.0, 6.0, 8.0))
+CW.collide((0.0, 5.6, 4.2), (6.0, 6.0, 8.0))
+
 # ---- the measuring flask ----------------------------------------------------------------------------------------------------------
 MF = model("measuring_flask", 2, 3, 2, "steel")
 for x, z in ((0.1, 0.1), (1.7, 0.1), (0.1, 1.7), (1.7, 1.7)):
@@ -172,4 +217,4 @@ RB.collide((0.2, 0.0, 0.1), (3.8, 1.6, 1.1))
 RB.collide((0.2, 0.4, 4.9), (3.8, 2.4, 5.9))
 RB.collide((1.0, 0.4, 2.9), (4.0, 6.0, 4.1))
 
-MODELS = [HF, HB, HH, MF, SK, RB]
+MODELS = [HF, HB, HH, CW, MF, SK, RB]

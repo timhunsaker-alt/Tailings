@@ -96,6 +96,8 @@ public enum Machine {
 	HEADFRAME_BIN("headframe_bin", "Headframe Bin", 4, 5, 4, 0, Supply.NONE),
 	/** The hoist house: a double-drum hoist, drums about 3 m across, on a 450 kW motor at the medium-voltage tier (L4, proposed). */
 	HOIST_HOUSE("hoist_house", "Hoist House", 10, 8, 12, dev.wildcatter.tailings.shaft.Hoisting.MOTOR_WATTS, Supply.MEDIUM),
+	/** The cage's own winder beside the hoist house: a single 2.5 m drum on a 160 kW motor at the medium-voltage tier (cage-winder.md). */
+	CAGE_WINDER("cage_winder", "Cage Winder", 6, 6, 8, dev.wildcatter.tailings.shaft.Hoisting.CAGE_MOTOR_WATTS, Supply.MEDIUM),
 	/** The loading pocket's measuring flask beside the shaft bottom: it fills to one skip's 3 t and empties into the skip (L4). */
 	MEASURING_FLASK("measuring_flask", "Measuring Flask", 2, 3, 2, 0, Supply.NONE),
 	/** A raise borer on its pad over a drive: it drills a pilot down and reams a 5 m raise back up, 400 kW at the medium-voltage tier (L4b, proposed). */
