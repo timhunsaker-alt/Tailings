@@ -1688,13 +1688,15 @@ final class Hi04Scenes {
 			return;   // it waits up to a whole press cycle for the drop
 		}
 		// the last plates shifted at the head end, the drop, and the press closing (the hold comes 25 s into the next cycle)
-		boolean ok = waitFor(60000, level -> filter.cycles() >= 1 && !filter.pressHeld() && filter.cycle() / 20 >= 866);
+		boolean ok = waitFor(60000, level -> filter.cycles() >= 1 && !filter.pressHeld() && filter.cycle() / 20 >= 851);
 		log("press near the end of a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		int[] seen = {-1};
-		// from above the head end, looking down into the last chambers as the gap opens along the pack and their cakes fall into the
-		// trough (fix2: from the side, the trough's wall hid the falling cake; the lumps read only as specks)
-		film("hi04_drop", 1000, move(qcam(23.5, 27.5, 55.5, 20, 21.2, 62.5), qcam(23, 27, 56.5, 20, 21.2, 62.5), 1000), (level, k) -> {
+		// from just above the fixed head (the south end; the tail and its ram are at the north end, over the bin), looking steeply down
+		// into the last chambers as the gap reaches the head: the lumps falling and the cake gathering in the trough under the opened
+		// chambers (fix2: from the side the trough's wall hid the falling cake, and from far off the lumps read only as specks)
+		// straight down over the gap as it travels to the head (a 0.5 m gap between 1.7 m plates shows only from near overhead)
+		film("hi04_drop", 1300, move(qcam(20, 27.2, 77.6, 20, 20.6, 77.9), qcam(20, 27.2, 79.4, 20, 20.6, 79.7), 960), (level, k) -> {
 			if (seen[0] < 0) {
 				seen[0] = filter.cycles();
 			}

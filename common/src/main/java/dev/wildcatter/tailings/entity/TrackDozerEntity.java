@@ -643,9 +643,43 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		float turned = getYRot() + Math.max(-most, Math.min(most, err));
 		if (level.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
 			setYRot(turned);
+			turnBlocked = 0;
+		} else if (clearSwing(level, turned) && level.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
+			setYRot(turned);
+			turnBlocked = 0;
+		} else {
+			turnBlocked++;
 		}
 		return false;
 	}
+
+	/**
+	 * A windrow or a pile of loose ground or cake at its tracks' level in the way of its swing is pushed aside into the blade as it
+	 * turns, as its blade takes what it drives into; false (nothing moved) if anything else is in the way.
+	 */
+	private boolean clearSwing(ServerLevel level, float yaw) {
+		net.minecraft.world.phys.AABB box = boxAt(position(), yaw).deflate(0.05);
+		int y0 = (int) Math.floor(box.minY + 0.01);
+		java.util.List<BlockPos> loose = new java.util.ArrayList<>();
+		for (BlockPos p : BlockPos.betweenClosed((int) Math.floor(box.minX), y0, (int) Math.floor(box.minZ), (int) Math.floor(box.maxX), (int) Math.floor(box.maxY - 0.01), (int) Math.floor(box.maxZ))) {
+			BlockState state = level.getBlockState(p);
+			if (state.getCollisionShape(level, p).isEmpty()) {
+				continue;
+			}
+			boolean soft = state.getBlock() == TailingsBlocks.MUCK || PitMass.soft(PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString()));
+			if (!soft || p.getY() > y0 + 1) {
+				return false;
+			}
+			loose.add(p.immutable());
+		}
+		for (BlockPos p : loose) {
+			take(level, p, level.getBlockState(p));
+		}
+		return !loose.isEmpty();
+	}
+
+	/** Ticks its pivot has found no room. */
+	private int turnBlocked;
 
 	/** Something in its way within 3 m of the blade (forward) or of its tail (reversing): a mob, a player not watching, a machine. */
 	private boolean inTheWay(ServerLevel level, boolean forward) {
@@ -719,6 +753,10 @@ public class TrackDozerEntity extends PitVehicleEntity {
 				float err = Math.abs(net.minecraft.util.Mth.wrapDegrees(want - getYRot()));
 				if (err > 4F && Math.abs(speed()) < 0.3) {
 					pivot(level, want, PIVOT);
+					if (turnBlocked > 200) {
+						stopAuto("AUTO STOPPED: no room to turn for lane " + (lane + 1));
+						return Drive.STAND;
+					}
 					status = "AUTO: turning for lane " + (lane + 1);
 					return Drive.STAND;
 				}
@@ -746,6 +784,10 @@ public class TrackDozerEntity extends PitVehicleEntity {
 					return Drive.STAND;
 				}
 				if (!pivot(level, pushYaw, PIVOT)) {
+					if (turnBlocked > 200) {
+						stopAuto("AUTO STOPPED: no room to square up to lane " + (lane + 1));
+						return Drive.STAND;
+					}
 					status = "AUTO: squaring up to lane " + (lane + 1);
 					return Drive.STAND;
 				}

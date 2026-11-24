@@ -475,7 +475,8 @@ final class PitDryStackGameTests {
 	// ---- Tim, 2026-11-23: the dozer's autopilot, compaction and the slump, full batches, the bin's level --------------------------
 
 	/**
-	 * Two DOZE AREA stakes mark a 20 x 35 m area over a loose 1 m lift with a tipped pile on it and its edge inside the area: started,
+	 * Two DOZE AREA stakes mark a 20 x 35 m area over a loose 1 m lift with a tipped pile on it, a windrow where it turns, and the lift's
+ * edge inside the area: started,
 	 * the dozer works the area's four lanes by itself, pushing the pile off the lift's top and spreading it past the lift's edge,
 	 * compacting the lift under its tracks and staying inside the stakes, on its own diesel; the book on it again stops it.
 	 */
@@ -491,8 +492,11 @@ final class PitDryStackGameTests {
 				helper.setBlock(new BlockPos(x, 57, z), TailingsBlocks.DRY_TAILS);   // a tipped pile, 15 blocks
 			}
 		}
+		for (int x = 8; x <= 24; x++) {
+			helper.setBlock(new BlockPos(x, 57, 5), TailingsBlocks.DRY_TAILS);   // a windrow behind the lanes' starts, in the way of its turns
+		}
 		BlockPos a = stake(helper, 6, 57, 4, StopKind.DOZE_AREA), b = stake(helper, 25, 57, 38, StopKind.DOZE_AREA);
-		TrackDozerEntity dozer = vehicle(helper, TailingsEntities.TRACK_DOZER, 15.5, 57, 8.0, 0);
+		TrackDozerEntity dozer = vehicle(helper, TailingsEntities.TRACK_DOZER, 15.5, 57, 10.5, 0);
 		dozer.setFuel(dozer.tank());
 		String why = dozer.setAutoArea(helper.getLevel(), List.of(a, b));
 		helper.assertTrue(why == null && dozer.autoRunning(), Component.literal("it should start on the area: " + why));
@@ -510,7 +514,7 @@ final class PitDryStackGameTests {
 		});
 		helper.startSequence()
 				.thenWaitUntil(() -> helper.assertTrue(dozer.passes() >= 1 && dozer.leg() == TrackDozerEntity.Leg.PUSH, Component.literal("it should work across the area by itself: lane "
-						+ (dozer.lane() + 1) + ", pass " + dozer.passes() + ", " + dozer.leg() + "; " + dozer.status() + " " + where(helper, dozer))))
+						+ (dozer.lane() + 1) + ", pass " + dozer.passes() + ", " + dozer.leg() + "; " + dozer.status() + " " + where(helper, dozer) + ", yaw " + dozer.getYRot() + ", blade " + dozer.blade() + " " + dozer.bladeBlocks() + ", y " + (dozer.getY() - helper.absolutePos(BlockPos.ZERO).getY()))))
 				.thenExecute(() -> {
 					helper.assertTrue(lanes.size() == 4, Component.literal("all four lanes pushed: " + lanes));
 					helper.assertTrue(box[0] >= 6 + 2.0 && box[1] <= 26 - 2.0 && box[2] >= 4 + 4.0 && box[3] <= 39 - 4.0,

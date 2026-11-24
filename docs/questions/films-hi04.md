@@ -169,3 +169,31 @@ find them."
   minutes a cycle), P31 (the whole cake at once, output in drops; the bin's level in its windows), P35 (loose and compacted, the slump;
   "compaction is not modelled" was wrong), and a new paragraph after it (the autopilot; Spanish paragraph 36, the old 36 and 37 moved
   to 37 and 38 with their takes renamed, not re-voiced).
+- **Spanish:** the same lines translated and re-voiced (Brian, Spanish, "Venezuelan Spanish accent, calm documentary"); "claro y en
+  terrones ... lo compacta" (heard "enterrones", "compactra") became "claro, en grumos ... lo deja compactado".
+- **Garble check** (`garble_fix2.txt`, `es/garble_fix2.txt`): every re-voiced clip transcribed exactly or nearly; accepted after
+  inspection: EN p07 "stack" 0.46, p35 "in" 0.47, p29_c2 "1" 0.46, p38_c2 "a" 0.42 and "and" 0.31 (exact transcripts); EN p38_c1
+  "stakes" heard "steaks" (a homophone; re-voiced once, the same again); ES p29_c2 "las/la", p36_c2 "del/de" (match over 0.97).
+  EN p38_c1 first take heard "a survey book" for "the survey book": re-voiced. The lane line was re-voiced in both languages once the
+  pattern changed (below): "backs up its lane and moves over to the next" / "retrocede por su carril y pasa al siguiente".
+
+### Fixed (fix 2)
+1. **The autopilot's first takes stopped or stuck.** Backing diagonally to the next lane it climbed a staged pile and its drop check
+   (2 m) stopped it; then, turning at a lane's start, a windrow in its swing stopped it for good. Now it backs straight down the lane
+   it has just pushed clear, crosses over at the near end, pushes loose ground in its swing aside into the blade, counts a crest
+   behind it only at the game's 3 m, and gives up turning after 10 s ("no room to turn"). `pit_dozer_auto` has a windrow where it
+   turns.
+2. **The press's drop is filmed from above** (run 4: high over the tail's end, looking south down the plates to the head) instead of
+   from the side, where the trough's wall hid the falling cake and the lumps read as specks. The lumps are larger once clear of the
+   plates and the cake now gathers in the trough under each opened chamber until the count (47.2 s into the take). A run-6 take from
+   straight above the head (the scene's camera now) showed only a hairline gap between the plates and no falling cake: rejected.
+3. **"Into the bin" is seen:** the bin's windows (`hi04_bin`, its level falling as the gate fills a truck), and its fill from above in
+   the press film; the bin's model no longer looks full whatever it holds.
+4. **The press film's card** no longer says "up to 15 t each" or "held by the scene".
+5. **Slow films played at their game's speed:** two run-2 films (the machine loaded by other agents' builds) are played at clock /
+   ticks (slump 1.43x, bin 1.25x) so the game's motion is real time; noted in NOTES.md.
+
+### Still weak (fix 2)
+- **The falling cake still does not read**, from the side, from above the tail (run 4, used) or from straight above the head (run 6):
+  a chamber opens about 0.5 m between 1.7 m plates, so the gap is a hairline on screen and the cake falls inside the trough. It needs
+  an art change, not another camera: wider gaps between the shifted plates, or an open side to the trough so the fall can be seen.
