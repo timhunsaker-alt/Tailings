@@ -160,6 +160,20 @@ rebuilt in English and Spanish with the same narration (nothing re-voiced). Foot
 ### Accepted by Tim 2026-11-23
 - **The cut follows the dipper's teeth** (decision "Fixed after release" 3, `RopeShovelEntity.teethUp`): accepted as built.
 
+4. **P28 keeps the full frame**: the body comes up on the crest right under the card, and no crop clears one without losing the
+   other. The dump shots' crops start just under the truck card (y 0.27).
+5. **Lengths:** English 491.1 s (8:11), Spanish 531.8 s (8:51), as before; chapters, captions and descriptions unchanged.
+   Thumbnails regenerated (the same frame of the new `hi02_passes`). `videos/ready/youtube` and `youtube-es` links checked.
+
+### Accepted by Tim 2026-11-23 (above)
+
 ### Still weak
 - The handle is drawn shorter than its modelled box (decision 1), as before.
 - The cropped shots are 1.5x enlargements of 1080p films (as episodes 5-7's).
+- Four films ran a little under real time on this run (parts +2.8 s over 26 s, scale_truck +3.7 s over 56 s, passes +2.7 s over
+  124 s, haul +1.2 s); passes is said to be "in real time" and is 2 % long. The rest are within 0.3 s.
+- The staged muck pile still shows its layers: rounded and broken up, but a 37 degree pile of whole cells is still terraced.
+
+### Tests
+`build` and the full NeoForge suite: all 310 required tests passed (38.5 min), first run. New: `pit_muck_shape`, `pit_cable_drape`,
+`pit_drill_hose`; `pit_blast_flyrock` extended.

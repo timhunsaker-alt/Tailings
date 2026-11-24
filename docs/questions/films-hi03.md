@@ -107,8 +107,19 @@ notes: `videos/footage/films-hi03/NOTES.md`.
 - **6 m of stemming** (decision 1; the collar's flyrock to 43 m, the zone the blast's 50 m): accepted.
 - **The 50 m blast zone** kept (decision 4 above).
 
+6. **Lengths:** English 523.8 s (8:44, was 525.7), Spanish 576.1 s (9:36, was 579.0); captions, chapters and the descriptions
+   updated (the description said the siren was shown telling a player in the zone, and the camera in the zone labelled).
+   Thumbnails regenerated (the same frame of the new `hi03_blast`). `videos/ready/youtube` and `youtube-es` links checked.
+
 ### Still weak
+- The muck pile still shows its layers: its edges are rounded and broken up, but a 37 degree pile of whole cells still reads as
+  terraced from close in. Smoothing it further needs partial-height muck (a change to the settle rule), not only drawing.
 - The emulsion truck's hose still hangs from its reel, not run into the hole (tried and reverted in the first pass).
 - P35 says the fragments are "drawn a little larger than real flyrock"; they are now about twice real size. Not wrong, so not
   re-voiced.
 - The cropped shots are 1.5x enlargements of 1080p films; the drill's crops lose the top of its mast.
+- P29 and P31 are both on the blasting machine in its shelter (P31 moved there: the siren film is only 16 s before the shot).
+
+### Tests
+`build` and the full NeoForge suite: all 310 required tests passed (38.5 min), first run. The client scenes (TAILINGS_ONLY=hi03)
+ran end to end twice.
