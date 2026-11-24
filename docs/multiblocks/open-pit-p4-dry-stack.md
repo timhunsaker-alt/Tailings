@@ -252,6 +252,31 @@ again), `pit_cake_slump` (a load at the edge of a loose lift slides off; on a co
 `pit_filter_batch` (on a short feed the press holds at its fill and drops only a full 15 t), `pit_bin_level` (the bin sends its
 level to the client as the cake drops and the truck loads).
 
+## The press's opening drawn: an open frame, a wide gap, slabs (fix3-hi04, 2026-11-24)
+Heavy Iron episode 4 could not show the cake falling (`docs/questions/films-hi04.md`, "Fix 3"): the plates opened 0.5 m apart, a
+hairline from above, and a 3.2 m solid trough wall under the floor hid the fall from the side. Only the drawing changed; the press's
+figures, its timing (fill 2, squeeze 3.5, blow 2, open and drop 7.5 minutes), its 15 t batch and the game's count into the bin did not.
+- **Real counterpart:** on a side-bar or overhead-beam press the plate shifter pulls the plates one at a time (or in groups) toward
+  the tail, opening a gap of several hundred millimetres at each; the cake comes away from the cloths in large pieces and drops
+  through the open frame under the pack into a bunker, a bin or onto a conveyor. Nothing solid stands between the pack and the open
+  space under it; a bunker or chute has its walls well below the plates.
+- **The open frame:** the trough's solid sides are gone. The cake chute under the floor's opening is now pans on posts hung from the
+  floor, stepping down from each end to the chute over the bin (pan tops 2.0, 1.6 and 1.2 m, the chute's 0.6 m; they were 2.6, 1.8
+  and 1.0), each with a 0.5 m skirt along its sides and risers between the steps. The fall under the plates (4.1 m) is open from
+  every side: at least 1.6 m clear over the skirts, about 3.5 m over the chute. (`tools/models/pit.py`; the collision is unchanged.)
+- **The gap: 0.8 m** (was 0.5): the tail draws back 0.8 m and each shifted plate moves 0.8 m, so the open gap that travels down the
+  pack is 0.8 m wide between the 1.7 m plates. The moving tail is drawn 0.6 m thick (was 0.8) so it opens the full gap short of the
+  cylinder's stand. *(Proposed: the top of a real shifter's several hundred mm, unverified for 2.5 m plates.)*
+- **The cake as slabs:** each chamber's cake stands a second on the cloth, then comes away in four slabs (about 1 x 0.8 m, drawn
+  0.12 m thick; a real cake is about 40-50 mm), the lower two first, 0.4 s between the first and the last; they part a little and
+  tumble over (35-80 degrees) as they clear the plates, falling at g the full height onto the pan below, where they gather till the
+  game counts the whole cake into the bin. The last slab, by the head, lands just before the cycle ends (the last plate's shift now
+  starts at 14:57.7; a plate every 5.6 s as before).
+- **Code:** the schedule is `pit/PressOpening` (plain Java), drawn by `PlantRenderer.press`. Tests: `PressOpeningTest` (each
+  shifted plate opens the full gap; the tail fits short of the stand; every cake falls at least 1.5 m clear and lands before the next
+  chamber opens; the last lands within half a second before the count) and `pit_filter_batch` (the drawn last cake has landed by the
+  game's count).
+
 ## Sources
 - R. Kaswalder, filter press paper (ACG Paste 2017 proceedings): one unit with 2,500 x 2,500 mm plates about 1,800 t/day (average
   filterability) to about 3,000 t/day.

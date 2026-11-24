@@ -197,3 +197,26 @@ find them."
 - **The falling cake still does not read**, from the side, from above the tail (run 4, used) or from straight above the head (run 6):
   a chamber opens about 0.5 m between 1.7 m plates, so the gap is a hairline on screen and the cake falls inside the trough. It needs
   an art change, not another camera: wider gaps between the shifted plates, or an open side to the trough so the fall can be seen.
+
+## Fix 3 (branch `fix3-hi04`, off main 43ba8293, 2026-11-24): the cake seen falling
+The art change, all three of the options at once (spec note with the real counterpart: `docs/multiblocks/open-pit-p4-dry-stack.md`,
+"The press's opening drawn"). The press's figures, timing, batch and the game's count are unchanged.
+1. **An open frame under the pack.** The trough's 3.2 m solid sides are cut away: skirted pans on posts hung from the floor, stepping
+   down to the chute over the bin (pan tops 2.0, 1.6, 1.2 m, the chute 0.6), so the space under the plates is open from every side,
+   as under a real side-bar or overhead-beam press. `tools/models/pit.py`; only `tailings_filter`'s model files changed on rebuild.
+2. **A 0.8 m gap** (was 0.5): the tail draws back 0.8 m and each shifted plate moves 0.8 m; the tail is drawn 0.6 m thick so it still
+   stops short of the cylinder's stand.
+3. **Slabs, not specks:** each cake comes away in four slabs (about 1 x 0.8 m, drawn 0.12 m thick), the lower two first, tumbling as
+   they fall the full height onto the pan; they gather there till the count. The schedule is `pit/PressOpening` (plain Java).
+- **Tests:** `PressOpeningTest` (new, 4 tests, pass); `ModelLintTest` passes; `pit_filter_batch` checks the drawn last cake has
+  landed by the game's count.
+- **Scene:** `hi04_drop`'s camera is now three-quarter from the east, level with the press's floor, between its columns, at the head
+  end (`Hi04Scenes.DROP_CAM`). The head is at the **north** end (its feed pipe), the tail and ram at the south: the old comment had
+  them the other way round. `HI04_DROP_PREVIEW=1` (with `HI04_DROP_CAM` to try another camera) films only the drop in a few minutes,
+  the press fed and set near its cycle's end by the scene: a camera check, never a kept take.
+- **Camera checks:** preview 1 (south-east) showed the open frame and the cake heaps on the pans clearly, but from the tail end;
+  preview 2 (north-east) had a column and the thickened-tails pipe across the head-end chambers; preview 3 recorded the desktop, not
+  the game (the recorder films the screen rectangle of the game window, and other windows were in front of it): deleted unwatched
+  beyond the check.
+- **Not done in this pass:** the real take of `hi04_drop` (and `press`, `thickener`, `bin`, which show the old solid trough), the
+  in-points, the EN/ES rebuild and the contact sheets: filming needs the game window in front for about an hour.

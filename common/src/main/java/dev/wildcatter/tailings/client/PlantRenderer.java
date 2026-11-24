@@ -8,7 +8,7 @@ import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.ShaftLayout;
 import dev.wildcatter.tailings.shaft.ShaftGeometry;
 import dev.wildcatter.tailings.plant.Machine;
-import dev.wildcatter.tailings.pit.DryStack;
+import dev.wildcatter.tailings.pit.PressOpening;
 import dev.wildcatter.tailings.plant.PlantMotion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -51,10 +51,11 @@ import org.jspecify.annotations.Nullable;
  * read as ore on to the product chute (south), with a puff at the manifold, and the rest drop to the waste chute (east), in the share
  * the sorter is sending each way.</li>
  * <li>the tailings filter: its 78 plates, moving tail and ram rod, drawn closed through filling, squeezing and blowing; in the cycle's
- * last 7.5 minutes the tail draws back half a metre and the plates are shifted one at a time from the tail end to the head, each
- * cake dropping through the floor into the trough as its chamber opens, the last as the cycle ends and the game counts the cake into
- * the bin; the press closes again over the next cycle's first 20 s. Timed by the cycle the server sends
- * ({@link PlantBlockEntity#pressSeconds}).</li>
+ * last 7.5 minutes the tail draws back 0.8 m and the plates are shifted one at a time from the tail end to the head, each opening a
+ * 0.8 m gap; each cake comes away in four slabs that tumble and fall through the open frame under the pack onto the cake chute's
+ * pans as its chamber opens, the last as the cycle ends and the game counts the cake into the bin; the press closes again over the
+ * next cycle's first 20 s. Timed by the cycle the server sends ({@link PlantBlockEntity#pressSeconds}); the schedule is
+ * {@link dev.wildcatter.tailings.pit.PressOpening}'s.</li>
  * </ul>
  */
 public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, PlantRenderer.State> {
@@ -499,124 +500,112 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		}
 	}
 
-	// ---- the tailings filter's plates (tools/models/pit.py leaves them out) ------------------------------------------------------------
+	// ---- the tailings filter's plates (tools/models/pit.py leaves them out; the schedule is PressOpening's) --------------------------
 
-	private static final int PLATES = 78;
-	/** The first plate's head-side face, the plates' pitch and thickness (the cake chambers between them 5 cm), m along z. */
-	private static final float PLATE_Z0 = 2.1f, PLATE_PITCH = 0.25f, PLATE_T = 0.2f;
-	/** The tail's closed head-side face; how far it draws back, and each shifted plate goes; the cylinder's end stand. */
-	private static final float TAIL_Z = 21.8f, OPEN = 0.5f, STAND_Z = 23.2f;
-	/** A cake stands in its opened chamber this long before it falls. */
-	private static final float CAKE_HANG = 1.0f;
-	/**
-	 * Seconds: opening starts when blowing ends; the tail draws back over 20 s; then the plates are shifted one at a time, 2.5 s each,
-	 * the last (by the head) starting so its cake falls just before the cycle ends, when the game counts the whole cake into the bin.
-	 */
-	private static final float OPEN_AT = DryStack.FILL_SECONDS + DryStack.SQUEEZE_SECONDS + DryStack.BLOW_SECONDS, TAIL_MOVE = 20f, SHIFT_MOVE = 2.5f;
-	private static final float LAST_SHIFT = DryStack.CYCLE_SECONDS - CAKE_HANG - 0.6f;
-	private static final float SHIFT_EVERY = (LAST_SHIFT - OPEN_AT - TAIL_MOVE) / (PLATES - 1);
+	/** A slab's half height: a quarter of the cake (two slabs up, two across). */
+	private static final float SLAB_HALF_H = (PressOpening.CAKE_Y1 - PressOpening.CAKE_Y0) / 4;
 
-	private static float smooth(float t) {
-		t = Math.max(0, Math.min(1, t));
-		return t * t * (3 - 2 * t);
+	/** A falling slab's centre y and tilt (degrees) {@code tj} s after it came away: it tumbles over as it clears the plates. */
+	private static float[] slabAt(int k, int j, float tj) {
+		float drop = 0.5f * PressOpening.G * tj * tj;
+		float y = PressOpening.slabBottom(j) + SLAB_HALF_H - drop;
+		float dir = hash(k, j + 51) < 0.5f ? -1 : 1;
+		float tilt = dir * (35 + 45 * hash(k, j + 53)) * Math.min(1, drop / 2.0f);
+		return new float[] {y, tilt};
 	}
 
-	/** When plate k (0 at the head) starts its shift, s into the cycle: from the tail end to the head. */
-	private static float shiftAt(int k) {
-		return OPEN_AT + TAIL_MOVE + (PLATES - 1 - k) * SHIFT_EVERY;
+	/** How far a slab tilted by {@code tilt} degrees reaches below its centre. */
+	private static float slabReach(float tilt) {
+		double a = Math.toRadians(tilt);
+		return (float) (SLAB_HALF_H * Math.abs(Math.cos(a)) + PressOpening.SLAB_T / 2 * Math.abs(Math.sin(a)));
 	}
 
-	/** Where the cake trough's bottom is under z (pit.py: stepping down from each end to the chute). */
-	private static float troughAt(float z) {
-		if (z < 5.0f || z >= 19.5f) {
-			return 2.6f;
+	/** Whether slab {@code j} of chamber {@code k}'s cake has reached the pan under it, {@code t} s after the chamber opened. */
+	private static boolean slabLanded(int k, int j, float t) {
+		float tj = t - PressOpening.CAKE_HANG - PressOpening.SLAB_DELAY[j];
+		if (tj < 0) {
+			return false;
 		}
-		if (z < 7.5f || z >= 16.5f) {
-			return 1.8f;
-		}
-		if (z < 9.6f || z >= 14.4f) {
-			return 1.0f;
-		}
-		return 0.6f;
+		float[] at = slabAt(k, j, tj);
+		return at[0] - slabReach(at[1]) <= PressOpening.panAt(PressOpening.chamberZ(k));
 	}
 
 	/**
-	 * The press at {@code s} seconds into its cycle (-1: closed): the plates, the moving tail and the ram's rod, and the cakes standing
-	 * in their opened chambers or falling into the trough.
+	 * The press at {@code s} seconds into its cycle (-1: closed): the plates, the moving tail and the ram's rod; each opened chamber's
+	 * cake standing, then coming away in four slabs that tumble and fall the full height under the pack, past the open frame, onto
+	 * the cake chute's pans, where they gather till the game counts the whole cake into the bin.
 	 */
 	private static void press(PoseStack.Pose p, VertexConsumer v, float s, boolean pressed, int light) {
-		float tail = 0;
-		float[] off = new float[PLATES];
-		if (s >= OPEN_AT) {
-			tail = OPEN * smooth((s - OPEN_AT) / TAIL_MOVE);
-			for (int k = 0; k < PLATES; k++) {
-				off[k] = OPEN * smooth((s - shiftAt(k)) / SHIFT_MOVE);
-			}
-		} else if (s >= 0 && s < TAIL_MOVE && pressed) {
-			// closing: the ram pushes the tail and the shifted plates back up to the head
-			tail = OPEN * (1 - smooth(s / TAIL_MOVE));
-			java.util.Arrays.fill(off, tail);
+		final int plates = PressOpening.PLATES;
+		float tail = PressOpening.tail(s, pressed);
+		float[] off = new float[plates];
+		for (int k = 0; k < plates; k++) {
+			off[k] = PressOpening.plate(k, s, pressed);
 		}
 		TextureAtlasSprite plate = mat("polymer"), blue = mat("blue"), steel = mat("steel");
-		for (int k = 0; k < PLATES; k++) {
-			float z = PLATE_Z0 + k * PLATE_PITCH + off[k];
-			box(p, v, plate, 1.75f, 4.1f, z, 4.25f, 5.8f, z + PLATE_T, light);
-			box(p, v, steel, 0.9f, 5.55f, z + 0.04f, 1.75f, 5.75f, z + PLATE_T - 0.04f, light);   // its arms on the side beams
-			box(p, v, steel, 4.25f, 5.55f, z + 0.04f, 5.1f, 5.75f, z + PLATE_T - 0.04f, light);
+		for (int k = 0; k < plates; k++) {
+			float z = PressOpening.PLATE_Z0 + k * PressOpening.PLATE_PITCH + off[k];
+			box(p, v, plate, 1.75f, PressOpening.PLATE_BOTTOM, z, 4.25f, PressOpening.PLATE_TOP, z + PressOpening.PLATE_T, light);
+			box(p, v, steel, 0.9f, 5.55f, z + 0.04f, 1.75f, 5.75f, z + PressOpening.PLATE_T - 0.04f, light);   // its arms on the side beams
+			box(p, v, steel, 4.25f, 5.55f, z + 0.04f, 5.1f, 5.75f, z + PressOpening.PLATE_T - 0.04f, light);
 		}
-		box(p, v, blue, 0.9f, 4.0f, TAIL_Z + tail, 5.1f, 5.9f, TAIL_Z + 0.8f + tail, light);
+		float tailZ = PressOpening.TAIL_Z + tail;
+		box(p, v, blue, 0.9f, 4.0f, tailZ, 5.1f, 5.9f, tailZ + PressOpening.TAIL_T, light);
 		PoseStack rod = new PoseStack();
 		rod.last().pose().set(p.pose());
 		rod.last().normal().set(p.normal());
 		rod.translate(3.0f, 5.0f, 0);
-		cylinderZ(rod.last(), v, steel, TAIL_Z + 0.8f + tail, STAND_Z, 0.12f, 8, light);   // the ram's rod
-		if (s < OPEN_AT) {
+		cylinderZ(rod.last(), v, steel, tailZ + PressOpening.TAIL_T, PressOpening.STAND_Z, 0.12f, 8, light);   // the ram's rod
+		if (s < PressOpening.OPEN_AT) {
 			return;
 		}
 		TextureAtlasSprite cake = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.fromNamespaceAndPath("tailings", "block/dry_tails"));
-		for (int k = 0; k <= PLATES; k++) {
+		float mid = (PressOpening.CAKE_X0 + PressOpening.CAKE_X1) / 2;
+		for (int k = 0; k <= plates; k++) {
 			// chamber k: between plate k-1 (or the head) and plate k (or the tail), opened as plate k (or the tail) moves off
-			float opened = k == PLATES ? OPEN_AT : shiftAt(k);
-			float t = s - opened;
-			if (t < 0 || t > CAKE_HANG + 1.2f) {
+			float t = s - PressOpening.openedAt(k);
+			if (t < 0) {
 				continue;
 			}
-			float z = k == 0 ? 2.05f : k == PLATES ? PLATE_Z0 + (PLATES - 1) * PLATE_PITCH + PLATE_T + 0.07f : PLATE_Z0 + k * PLATE_PITCH - 0.025f;
-			if (t < CAKE_HANG) {
-				box(p, v, cake, 1.95f, 4.15f, z - 0.04f, 4.05f, 5.75f, z + 0.04f, light);   // standing in its opened chamber
-				continue;
-			}
-			for (int j = 0; j < 5; j++) {
-				// as it falls it breaks into lumps, the lowest first, each tumbling a little out of the chamber's plane; clear of the plates
-				// (under their bottom edge, 4.1 m) the lumps open out to half a metre and more, so they read from the press's side
-				float fall = Math.max(0, t - CAKE_HANG - 0.05f * (j % 3));
-				float drop = 4.9f * fall * fall;
-				float grow = Math.min(1, fall / 0.15f);
-				float wide = 0.3f + 0.16f * hash(k, j + 13);
-				float x = 1.95f + wide + (2.1f - 2 * wide) * hash(k, j + 3);
-				float y0 = 4.15f + 0.3f * j - drop, y1 = y0 + 0.4f + 0.2f * hash(k, j + 21);
-				if (y0 < troughAt(z) + 0.2f) {
+			float zA = k == 0 ? 2.0f : PressOpening.PLATE_Z0 + (k - 1) * PressOpening.PLATE_PITCH + PressOpening.PLATE_T + off[k - 1];
+			float zB = k == plates ? tailZ : PressOpening.PLATE_Z0 + k * PressOpening.PLATE_PITCH + off[k];
+			float zc = (zA + zB) / 2;   // the middle of the opened gap
+			int landed = 0;
+			for (int j = 0; j < 4; j++) {
+				float tj = t - PressOpening.CAKE_HANG - PressOpening.SLAB_DELAY[j];
+				boolean west = j % 2 == 0;
+				float x0 = west ? PressOpening.CAKE_X0 : mid + 0.02f, x1 = west ? mid - 0.02f : PressOpening.CAKE_X1;
+				if (tj < 0) {
+					// standing on the cloth in its opened chamber
+					float y0 = PressOpening.slabBottom(j);
+					box(p, v, cake, x0, y0, zc - PressOpening.SLAB_T / 2, x1, y0 + 2 * SLAB_HALF_H - 0.01f, zc + PressOpening.SLAB_T / 2, light);
 					continue;
 				}
-				float clear = Math.max(0, Math.min(1, (4.1f - y1) / 0.6f));
-				float half = 0.04f + 0.13f * grow * (0.7f + 0.6f * hash(k, j + 7)) + 0.16f * clear;
-				float dz = (OPEN / 2 + (hash(k, j + 31) - 0.5f) * 0.12f) * grow;   // into the middle of the opened gap
-				box(p, v, cake, x - wide, y0, z + dz - half, x + wide, y1, z + dz + half, light);
+				if (slabLanded(k, j, t)) {
+					landed++;
+					continue;
+				}
+				float[] at = slabAt(k, j, tj);
+				float drop = 0.5f * PressOpening.G * tj * tj;
+				float spread = Math.min(0.25f, 0.08f * drop) * (west ? -1 : 1);   // the halves part a little as they fall
+				float dz = (hash(k, j + 31) - 0.5f) * 0.1f * Math.min(1, drop);
+				PoseStack slab = new PoseStack();
+				slab.last().pose().set(p.pose());
+				slab.last().normal().set(p.normal());
+				slab.translate((x0 + x1) / 2 + spread, at[0], zc + dz);
+				slab.rotateDegrees(Axis.XP, at[1]);
+				float hx = (x1 - x0) / 2;
+				box(slab.last(), v, cake, -hx, -SLAB_HALF_H, -PressOpening.SLAB_T / 2, hx, SLAB_HALF_H, PressOpening.SLAB_T / 2, light);
 			}
-		}
-		// the cake gathers in the trough under each chamber that has dropped, till the game counts the whole batch into the bin at the
-		// cycle's end (the trough is then empty again)
-		for (int k = 0; k <= PLATES; k++) {
-			float opened = k == PLATES ? OPEN_AT : shiftAt(k);
-			float landed = s - opened - CAKE_HANG - 0.7f;
-			if (landed < 0) {
-				continue;
+			if (landed > 0) {
+				// the slabs gather on the pan under the chamber till the game counts the whole batch into the bin at the cycle's end (the
+				// pans are then empty again)
+				float zLand = PressOpening.chamberZ(k) + PressOpening.GAP / 2;
+				float floor = PressOpening.panAt(PressOpening.chamberZ(k));
+				float h = (0.3f + 0.2f * hash(k, 41)) * landed / 4f;
+				float w = 0.6f + 0.25f * hash(k, 43);
+				box(p, v, cake, 3.0f - w, floor, zLand - 0.17f, 3.0f + w, floor + h, zLand + 0.17f, light);
 			}
-			float z = PLATE_Z0 + Math.min(PLATES - 1, k) * PLATE_PITCH;
-			float floor = troughAt(z);
-			float h = (0.35f + 0.25f * hash(k, 41)) * Math.min(1, landed / 0.4f);
-			float w = 0.55f + 0.25f * hash(k, 43);
-			box(p, v, cake, 3.0f - w, floor, z - 0.02f, 3.0f + w, floor + h, z + PLATE_PITCH + 0.02f, light);
 		}
 	}
 

@@ -6,8 +6,8 @@
   an air conditioner, the radio mast on its roof, and the power and control cable entry (the electrical box) on the west face.
 - tailings_thickener, 15 x 5 x 15 (P4): the 15 m high-rate thickener on the plant's tails: its tank, feedwell, bridge and 11 kW rake
   drive, the tails in at the north, the underflow out at the south and the overflow launder's water pipe on the east;
-- tailings_filter, 6 x 6 x 24 (P4): a plate-and-frame press on a steel floor 4 m up, open under the plates over a cake trough that
-  steps down to its chute in the middle (the 2.5 m plates, the moving tail and the ram's rod are drawn by PlantRenderer, which opens them);
+- tailings_filter, 6 x 6 x 24 (P4): a plate-and-frame press on a steel floor 4 m up, open under the plates over an open frame and
+  the cake chute's skirted pans, stepping down to its chute in the middle (the 2.5 m plates, the moving tail and the ram's rod are drawn by PlantRenderer, which opens them);
 - loadout_frame, 12 x 10 x 12 (P4): the load-out's legs and bracing over a 10 m wide, 9 m clear lane, its deck, and the clamshell gate
   and chute hanging under the deck's centre (collision only on the legs, deck and chute, so a truck drives through);
 - loadout_bin, 10 x 7 x 10 (P4): the 400 t steel bin on the frame, its sloped bottom to the gate.
@@ -119,7 +119,7 @@ TF = model("tailings_filter", 6, 6, 24, "grey")
 for z in (0.3, 8.0, 16.0, 23.4):
 	for x in (0.2, 5.5):
 		TF.box((x, 0.0, z), (x + 0.3, 3.8, z + 0.3), "iron")                # the columns
-# the steel floor, open under the plates (x 1.6 to 4.4, z 2.0 to 22.4) so the cakes drop through into the trough
+# the steel floor, open under the plates (x 1.6 to 4.4, z 2.0 to 22.4) so the cakes drop through onto the chute
 TF.box((0.0, 3.8, 0.0), (1.6, 4.0, 24.0), "checker")
 TF.box((4.4, 3.8, 0.0), (6.0, 4.0, 24.0), "checker")
 TF.box((1.6, 3.8, 0.0), (4.4, 4.0, 2.0), "checker")
@@ -130,14 +130,23 @@ TF.box((0.9, 4.0, 1.0), (5.1, 5.9, 2.0), "blue")                            # th
 TF.box((0.9, 4.0, 23.2), (5.1, 5.9, 23.4), "blue")                          # the cylinder's end stand
 # the 78 filter plates, the moving tail and the ram's rod are drawn by PlantRenderer, which opens the press at the end of each cycle
 TF.cylinder("z", (3.0, 5.0), 0.3, 23.4, 23.95, "steel", 10)                 # the hydraulic closing ram's cylinder
-# the cake trough under the floor's opening, its bottom stepping down from each end to the chute over the bin
-for x in (1.4, 4.4):
-	TF.box((x, 0.6, 1.8), (x + 0.2, 3.8, 22.6), "galv")                     # its sides
-TF.box((1.4, 0.6, 1.8), (4.6, 3.8, 2.0), "galv")                            # its ends
-TF.box((1.4, 0.6, 22.4), (4.6, 3.8, 22.6), "galv")
-for z0, z1, y in ((2.0, 5.0, 2.4), (5.0, 7.5, 1.6), (7.5, 9.6, 0.8), (14.4, 16.5, 0.8), (16.5, 19.5, 1.6), (19.5, 22.4, 2.4)):
-	TF.box((1.6, y, z0), (4.4, y + 0.2, z1), "galv")                        # its stepped bottom
+# the cake chute under the floor's opening: its pans stepping down from each end to the chute over the bin, hung on an open frame
+# (fix3-hi04: the trough's 3.2 m solid sides hid the falling cake; as under a real press, the space under the pack is open, and only
+# a 0.5 m skirt along each pan keeps the cake in). The pans' tops are PressOpening.panAt: 2.0, 1.6 and 1.2 m, the chute's 0.6.
+PANS = ((2.0, 5.0, 1.8), (5.0, 7.5, 1.4), (7.5, 9.6, 1.0), (9.6, 14.4, 0.4), (14.4, 16.5, 1.0), (16.5, 19.5, 1.4), (19.5, 22.4, 1.8))
+for z0, z1, y in PANS:
+	if z0 != 9.6:
+		TF.box((1.6, y, z0), (4.4, y + 0.2, z1), "galv")                    # a pan
+	for x in (1.4, 4.4):
+		TF.box((x, y, z0), (x + 0.2, y + 0.7, z1), "galv")                  # its skirts, 0.5 m over its top
+for (_, _, ya), (z, _, yb) in zip(PANS, PANS[1:]):
+	TF.box((1.6, min(ya, yb) + 0.2, z - 0.05), (4.4, max(ya, yb) + 0.2, z + 0.05), "galv")   # the riser between two pans
+TF.box((1.4, 1.8, 1.8), (4.6, 2.5, 2.0), "galv")                            # the end skirts
+TF.box((1.4, 1.8, 22.4), (4.6, 2.5, 22.6), "galv")
 TF.box((1.6, 0.0, 9.6), (4.4, 0.6, 14.4), "galv")                           # the chute into the bin
+for z, y in ((1.8, 1.8), (4.95, 1.4), (7.45, 1.0), (9.55, 0.4), (14.35, 0.4), (16.45, 1.0), (19.45, 1.4), (22.45, 1.8)):
+	for x in (1.42, 4.43):
+		TF.box((x, y, z), (x + 0.15, 3.8, z + 0.15), "iron")                # the open frame's posts, the pans hung from the floor
 TF.pipe([(3.0, 4.6, 0.0), (3.0, 4.6, 1.0)], 6, "rubber")                    # thickened tails in, the north
 TF.pipe([(5.6, 4.3, 12.0), (6.0, 4.3, 12.0)], 4, "pipe_water")             # filtrate out, the east
 motor_box(TF, 0.4, 0.4, 0.6, 0.5)

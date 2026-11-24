@@ -621,6 +621,11 @@ final class PitDryStackGameTests {
 					helper.assertTrue(!filter.pressHeld(), Component.literal("no longer held"));
 					helper.assertTrue(Math.abs(bin.dryKg() - DryStack.BATCH_KG) < 1, Component.literal("a whole 15 t cake: " + bin.dryKg()));
 					helper.assertTrue(binLevels.equals(java.util.Set.of(0L, Math.round(DryStack.BATCH_KG))), Component.literal("all at once, a pulse: the bin read " + binLevels));
+					// fix3-hi04: as drawn, the last chamber (by the head) opens its 0.8 m gap and its cake's slabs have fallen the full
+					// height under the pack, through the open frame, onto the chute by the time the game counts the cake into the bin
+					float last = dev.wildcatter.tailings.pit.PressOpening.openedAt(0) + dev.wildcatter.tailings.pit.PressOpening.allLandedAfter(0);
+					helper.assertTrue(last <= DryStack.CYCLE_SECONDS && dev.wildcatter.tailings.pit.PressOpening.GAP >= 0.8f,
+							Component.literal("the drawn cake has landed (" + last + " s of " + DryStack.CYCLE_SECONDS + ") when the count comes"));
 				})
 				.thenSucceed();
 	}

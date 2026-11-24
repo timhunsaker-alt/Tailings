@@ -77,7 +77,8 @@ import net.minecraft.world.phys.Vec3;
  * edge; a layer laid on it stands, on the loose edge beside it slumps), hi04_bin (the bin's level in its windows falling as the gate
  * fills a truck); the press drops only full 15 t batches (the game holds it at its fill now, not the scene).</li>
  * </ul>
- * Filmed at 2880 x 1620 with a readout card read each tick. HI04_SHOTS=a,b films only those.
+ * Filmed at 2880 x 1620 with a readout card read each tick. HI04_SHOTS=a,b films only those. HI04_DROP_PREVIEW=1 checks the drop's
+ * camera (HI04_DROP_CAM to try another) in a few minutes: the press fed and set near its cycle's end by the scene, never a kept take.
  */
 final class Hi04Scenes {
 	private static final int W = 1440, H = 810;
@@ -171,6 +172,11 @@ final class Hi04Scenes {
 			try {
 				stage();
 				power();
+				if (System.getenv("HI04_DROP_PREVIEW") != null) {
+					previewDrop();   // a camera check only: never a kept take (the scene skips the press's fill and pressing)
+					dropFilm();
+					return;
+				}
 				vehicles();
 				scaleFilm();
 				tracksFilm();
@@ -1682,21 +1688,46 @@ final class Hi04Scenes {
 		showCard(false);
 	}
 
+	/** A camera check of the drop (HI04_DROP_PREVIEW): only the drop is filmed, the press fed and set near its cycle's end by the scene. */
+	private static final boolean PREVIEW = System.getenv("HI04_DROP_PREVIEW") != null;
+	/** The drop's camera, from and to (q-relative: x, y, z, then the point looked at); HI04_DROP_CAM overrides it for camera checks. */
+	private static final double[] DROP_CAM = dropCam();
+
+	private static double[] dropCam() {
+		String env = System.getenv("HI04_DROP_CAM");
+		if (env != null && !env.isBlank()) {
+			return java.util.Arrays.stream(env.split(",")).mapToDouble(Double::parseDouble).toArray();
+		}
+		// east of the press, between its columns at z 58.3 and 66, level with its floor, looking north-west at the head end (the fixed
+		// head is at the north, z 59-60, with the feed pipe; the tail and ram at the south): previews 1 and 2 had the tail end, and a
+		// column and the slurry pipe across the head end
+		return new double[] {27.5, 21.3, 64.5, 20.2, 20.4, 60.8, 26.8, 21.2, 63.6, 20.2, 20.4, 61.0};
+	}
+
+	/** HI04_DROP_PREVIEW: a full batch fed straight into the press and its cycle set to 13:50, so the drop comes within a minute. */
+	private void previewDrop() {
+		server.runOnServer(srv -> filter.back().offer(Product.TAILS_SLURRY, 26_000,
+				SlurryAssay.of(Map.of(DryStack.SOLIDS_KEY, DryStack.UNDERFLOW_SOLIDS, CU.mineralItemId(), 1e-5))));
+		boolean full = waitFor(4000, level -> filter.dryKg() >= DryStack.BATCH_KG - 1 && !filter.pressHeld());
+		server.runOnServer(srv -> filter.setCycle(830 * 20.0));
+		log("preview: press full " + full + ", " + filter.status());
+	}
+
 	/** hi04_drop: the end of a cycle in real time: the press opens and drops its cake into the bin. */
 	private void dropFilm() {
 		if (!wanted("hi04_drop")) {
 			return;   // it waits up to a whole press cycle for the drop
 		}
 		// the last plates shifted at the head end, the drop, and the press closing (the hold comes 25 s into the next cycle)
-		boolean ok = waitFor(60000, level -> filter.cycles() >= 1 && !filter.pressHeld() && filter.cycle() / 20 >= 851);
+		boolean ok = waitFor(60000, level -> (filter.cycles() >= 1 || PREVIEW) && !filter.pressHeld() && filter.cycle() / 20 >= 851);
 		log("press near the end of a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		int[] seen = {-1};
-		// from just above the fixed head (the south end; the tail and its ram are at the north end, over the bin), looking steeply down
-		// into the last chambers as the gap reaches the head: the lumps falling and the cake gathering in the trough under the opened
-		// chambers (fix2: from the side the trough's wall hid the falling cake, and from far off the lumps read only as specks)
-		// straight down over the gap as it travels to the head (a 0.5 m gap between 1.7 m plates shows only from near overhead)
-		film("hi04_drop", 1300, move(qcam(20, 27.2, 77.6, 20, 20.6, 77.9), qcam(20, 27.2, 79.4, 20, 20.6, 79.7), 960), (level, k) -> {
+		// fix3-hi04: a three-quarter view from the east, level with the press's floor, close to the head end: the open frame under
+		// the pack, the 0.8 m gap travelling to the head and each cake's slabs falling past the frame onto the chute's pans (fix2's
+		// views from the side, over the tail and straight above the head did not show the fall: a solid trough wall and a 0.5 m gap)
+		film("hi04_drop", 1300, move(qcam(DROP_CAM[0], DROP_CAM[1], DROP_CAM[2], DROP_CAM[3], DROP_CAM[4], DROP_CAM[5]),
+				qcam(DROP_CAM[6], DROP_CAM[7], DROP_CAM[8], DROP_CAM[9], DROP_CAM[10], DROP_CAM[11]), 1300), (level, k) -> {
 			if (seen[0] < 0) {
 				seen[0] = filter.cycles();
 			}
