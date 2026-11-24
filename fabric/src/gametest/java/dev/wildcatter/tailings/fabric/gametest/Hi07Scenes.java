@@ -1202,8 +1202,9 @@ final class Hi07Scenes {
 		require(waitFor(1200, level -> hoist(level).winder().winding()), "winding");
 		require(waitFor(1200, level -> hoist(level).winder().position() > 0.55), "the skip near the top");
 		double sx = up == 0 ? 2.5 : 5.5;
-		Cam a = Cam.of(c, -9.0, 15.0, -6.0, sx, 16.0, 1.0);
-		Cam e = Cam.of(c, -7.5, 14.0, -5.0, sx, 14.0, 0.5);
+		// fix3-hi07: from above the chute's head on its north-west, so the stream is seen lying on the chute, then falling into the bin
+		Cam a = Cam.of(c, -6.0, 21.5, -6.5, sx + 0.5, 16.5, 1.0);
+		Cam e = Cam.of(c, -5.0, 19.5, -6.5, sx + 0.5, 13.0, -0.5);
 		film("hi07_dump", 640, move(a, e, 640), (level, t) -> {
 			for (int k = 0; k < 2; k++) {
 				ShaftSkipEntity s = skip(level, k);

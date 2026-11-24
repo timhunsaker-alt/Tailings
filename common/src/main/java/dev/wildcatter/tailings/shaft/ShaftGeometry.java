@@ -114,14 +114,17 @@ public final class ShaftGeometry {
 
 	// ---- the ropes on the drums ---------------------------------------------------------------------------------------------------
 
-	/** The hoist house's two drums (shaft.py): along x, 0.8 to 4.3 and 5.3 to 8.8; their centre 3.4 m up and 3 m south; 3 m across. */
+	/**
+	 * The hoist house's two drums (shaft.py): along x, 0.8 to 4.3 and 5.3 to 8.8; their centre 3.4 m up and 3 m south; 3 m across. The
+	 * radius here is the barrel's outer face, where the rope lies: shaft.py's ring of plates 0.2 thick centred on 1.4 m.
+	 */
 	public static final double[][] HOIST_DRUMS = {{0.8, 4.3}, {5.3, 8.8}};
-	public static final double HOIST_DRUM_Y = 3.4, HOIST_DRUM_Z = 3.0, HOIST_DRUM_R = 1.4;
-	/** The cage winder's drum (shaft.py): x 2 to 5, its centre 2.25 m up and 2.5 m south; 2.5 m across. */
+	public static final double HOIST_DRUM_Y = 3.4, HOIST_DRUM_Z = 3.0, HOIST_DRUM_R = 1.4 + 0.1;
+	/** The cage winder's drum (shaft.py): x 2 to 5, its centre 2.25 m up and 2.5 m south; 2.5 m across, its plates 0.18 thick. */
 	public static final double[] CAGE_DRUM = {2.0, 5.0};
-	public static final double CAGE_DRUM_Y = 2.25, CAGE_DRUM_Z = 2.5, CAGE_DRUM_R = Hoisting.CAGE_DRUM_DIAMETER / 2;
-	/** The rope's own radius, m (drawn 8 cm thick): its centre lies this far outside the drum's barrel. */
-	public static final double ROPE_R = 0.04;
+	public static final double CAGE_DRUM_Y = 2.25, CAGE_DRUM_Z = 2.5, CAGE_DRUM_R = Hoisting.CAGE_DRUM_DIAMETER / 2 + 0.09;
+	/** The rope's own radius, m (drawn 10 cm thick): its centre lies this far outside the barrel, clear of its 16 plates' corners. */
+	public static final double ROPE_R = 0.06;
 	/** The coil's pitch, m a wrap (the rope laid beside itself), and the dead wraps always left on a drum. */
 	public static final double PITCH = 0.09, DEAD_WRAPS = 3;
 	/** Room between the coil and a flange, m. */

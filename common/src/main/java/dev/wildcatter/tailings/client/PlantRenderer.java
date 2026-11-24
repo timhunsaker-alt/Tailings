@@ -597,8 +597,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 
 	/** A raise borer's drill string, rpm (proposed: real raise borers turn the reamer at a few to about 20 rpm). */
 	static final float RAISE_RPM = 8;
-	/** The hoist's drums (3 m) and head sheaves (2.9 m): radius, m, as shaft.py draws them. */
-	private static final float DRUM_R = 1.4f, SHEAVE_R = 1.4f;
+	/** The head sheaves (2.9 m): radius, m, as shaft.py draws them (the drums' are in ShaftGeometry). */
+	private static final float SHEAVE_R = 1.4f;
 
 	/**
 	 * Each skip's height on the client, for the drums and sheaves to turn with its rope: the skips hung within this part's reach, west
@@ -676,7 +676,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	 * flange farther from its sheave to where it leaves at its end, laid at {@link ShaftGeometry#PITCH} a wrap, the whole length wound on.
 	 */
 	private static void coilOn(PoseStack at, VertexConsumer v, float[] c, float x0, float x1, float cy, float cz, float r, int light) {
-		TextureAtlasSprite rope = vanilla("black_concrete");
+		// a light steel grey, so the wraps read on the dark barrel (fix3-hi07)
+		TextureAtlasSprite rope = vanilla("light_gray_concrete");
 		double rr = r + ShaftGeometry.ROPE_R;
 		double[] k = ShaftGeometry.coil(x0, x1, c[4], c[3], r);
 		double start = k[0], dir = k[1], front = k[2];
@@ -691,7 +692,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			double x = front - dir * Math.min(Math.abs(front - start), ShaftGeometry.PITCH * sLen / (2 * Math.PI * rr));
 			double[] pt = {x, cy + rr * Math.sin(a), cz + rr * Math.cos(a)};
 			if (prev != null) {
-				GantryRenderer.rod(at.last(), v, rope, (float) prev[0], (float) prev[1], (float) prev[2], (float) pt[0], (float) pt[1], (float) pt[2], 0.08f, light);
+				GantryRenderer.rod(at.last(), v, rope, (float) prev[0], (float) prev[1], (float) prev[2], (float) pt[0], (float) pt[1], (float) pt[2], 0.1f, light);
 			}
 			prev = pt;
 		}
@@ -729,11 +730,12 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float cy = (float) ShaftGeometry.HOIST_DRUM_Y, cz = (float) ShaftGeometry.HOIST_DRUM_Z;
 		float[][] coils = {coil0, coil1};
 		// the shaft's turn: from whichever rope is known, over (west) and under (east) giving the same turn
-		float turn = coil0 != null ? turnOf(coil0, cy, DRUM_R) : coil1 != null ? turnOf(coil1, cy, DRUM_R) : 0;
+		float r = (float) ShaftGeometry.HOIST_DRUM_R;
+		float turn = coil0 != null ? turnOf(coil0, cy, r) : coil1 != null ? turnOf(coil1, cy, r) : 0;
 		for (int k = 0; k < 2; k++) {
 			float x0 = (float) ShaftGeometry.HOIST_DRUMS[k][0], x1 = (float) ShaftGeometry.HOIST_DRUMS[k][1];
 			if (coils[k] != null) {
-				coilOn(at, v, coils[k], x0, x1, cy, cz, DRUM_R, light);
+				coilOn(at, v, coils[k], x0, x1, cy, cz, r, light);
 			}
 			for (int b = 0; b < 4; b++) {
 				PoseStack p = new PoseStack();
