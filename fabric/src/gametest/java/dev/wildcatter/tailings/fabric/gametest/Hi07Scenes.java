@@ -62,7 +62,8 @@ import net.minecraft.world.phys.Vec3;
  * last of it sped up off camera); then a vent fan at its collar blows down a duct to the drive's face;</li>
  * <li>the power: two Wildcatter 1 MW gas sets stepped up to the medium voltage for the hoist and the raise borer; a 500 kW diesel set
  * at the industrial voltage for the fan and, down the raise, the feeder; fuel and gas put in by the scene;</li>
- * <li>a villager (no AI) at the collar for scale, and riding the cage; the cage called with the landings' call buttons.</li>
+ * <li>a villager (no AI) at the collar for scale, and riding the cage; the cage called with the landings' call buttons; the cage on its
+ * own winder beside the hoist house, its drum and its sheave in the headframe turning (fix2-hi07, cage-winder.md).</li>
  * </ul>
  * Filmed at 2880 x 1620 with a readout card read each tick. HI07_SHOTS=a,b films only those.
  */
@@ -82,6 +83,8 @@ final class Hi07Scenes {
 	private static final BlockPos FAN = new BlockPos(-1, 0, -73);
 	/** The track grizzly's north end (it runs 4 m south), the pocket's, the feeder's and the flask's main cells; y from the bottom. */
 	private static final int GRIZ = -4;
+	/** The cage winder's main cell, east of the hoist house: its drum x 13 to 16, z 22.5 (cage-winder.md). */
+	private static final BlockPos CAGE_WINDER = new BlockPos(11, 0, 20);
 	/** The gas sets' panels and the diesel set's. */
 	private static final BlockPos GAS1 = new BlockPos(-40, 0, 24), GAS2 = new BlockPos(-40, 0, 40), DIESEL = new BlockPos(-14, 0, -86);
 
@@ -148,7 +151,11 @@ final class Hi07Scenes {
 				power();
 				parts();
 				pilotFilm();
+				pilotDeepFilm();
 				breakFilm();
+				if (until("hi07_break")) {
+					return;
+				}
 				reamFilm();
 				finishRaise();
 				fanFilm();
@@ -156,11 +163,16 @@ final class Hi07Scenes {
 				trainFilm();
 				flaskFilm();
 				windFilm();
+				if (until("hi07_wind")) {
+					return;
+				}
 				dumpFilm();
 				sheavesFilm();
 				hoistFilm();
 				scaleFilm();
 				rideFilm();
+				cageDrumFilm();
+				cageSheaveFilm();
 				callFilm();
 				powerFilm();
 				wideFilm();
@@ -186,6 +198,11 @@ final class Hi07Scenes {
 		if (!ok) {
 			throw new AssertionError("[hi07] " + what);
 		}
+	}
+
+	/** HI07_UNTIL=id ends the run after that film (a re-take of the first films without the rest). */
+	private static boolean until(String id) {
+		return id.equals(System.getenv("HI07_UNTIL"));
 	}
 
 	private static boolean wanted(String id) {
@@ -321,11 +338,17 @@ final class Hi07Scenes {
 	 * toward it (kept by film()'s beat, so no frame waits on the server).
 	 */
 	private IntFunction<Cam> riding(double x, double z, double up, double tx, double tz, double lookUp, double lo, double hi) {
-		double[] at = {Double.NaN, Double.NaN};
+		double[] at = {Double.NaN, Double.NaN, Double.NaN, 0};
 		return t -> {
 			double[] e = follow;
 			double y = e == null ? c.getY() : e[1];
-			double want = Math.max(c.getY() + lo, Math.min(c.getY() + hi, y + up)), look = y + lookUp;
+			// what it follows moves this far a tick (smoothed): led by that, the eased camera keeps up with it at speed rather than
+			// trailing it (fix2-hi07: framed tighter, a lag of 4 m at 10 m/s would lose the skip)
+			if (!Double.isNaN(at[2])) {
+				at[3] += ((y - at[2]) - at[3]) * 0.3;
+			}
+			at[2] = y;
+			double want = Math.max(c.getY() + lo, Math.min(c.getY() + hi, y + up + at[3] * (1 - 0.12) / 0.12)), look = y + lookUp + at[3] * (1 - 0.18) / 0.18;
 			if (Double.isNaN(at[0])) {
 				at[0] = want;
 				at[1] = look;
@@ -336,6 +359,13 @@ final class Hi07Scenes {
 		};
 	}
 
+	/** The camera's field of view for the next film, degrees (70 unless set: fix2-hi07 zooms the break and frames the riding shots tighter). */
+	private int fov = 70;
+
+	private void fov(int degrees) {
+		fov = degrees;
+	}
+
 	/** Underground films: the camera sees as with night vision (lit for the camera, said on screen). */
 	private void dark(boolean on) {
 		server.runCommand(on ? "effect give @p minecraft:night_vision infinite 0 true" : "effect clear @p minecraft:night_vision");
@@ -343,6 +373,9 @@ final class Hi07Scenes {
 
 	private void film(String id, int move, IntFunction<Cam> path, Beat beat) {
 		boolean want = wanted(id);
+		int view = fov;
+		fov = 70;
+		context.runOnClient(client -> client.options.fov().set(view));
 		dark(id.equals("hi07_break") || id.equals("hi07_ream") || id.equals("hi07_face"));
 		server.runCommand("kill @e[type=minecraft:item]");
 		server.runOnServer(srv -> track(srv.overworld()));
@@ -532,6 +565,8 @@ final class Hi07Scenes {
 			PlantBlockEntity headframe = Trailer.plant(level, Machine.HEADFRAME, c);
 			Trailer.plant(level, Machine.HEADFRAME_BIN, d(2, 0, -4));
 			PlantBlockEntity hoist = Trailer.plant(level, Machine.HOIST_HOUSE, d(0, 0, 20));
+			// the cage's own winder beside the hoist house (fix2-hi07, cage-winder.md), on the same medium-voltage run
+			Trailer.plant(level, Machine.CAGE_WINDER, d(CAGE_WINDER));
 			Trailer.plant(level, Machine.APRON_FEEDER, d(0, b, 0));
 			Trailer.plant(level, Machine.MEASURING_FLASK, d(0, b, 4));
 			ShaftLayout.Frame frame = ShaftLayout.Frame.of(headframe);
@@ -548,6 +583,7 @@ final class Hi07Scenes {
 			log("headframe cell beside the collar post: " + level.getBlockState(d(5, 1, 8)).getBlock() + "; flask cell beside the bottom post: "
 					+ level.getBlockState(d(0, b + 1, 5)).getBlock());
 			log("hoist: " + hoist.status());
+			log("cage winder: " + cageWinder(level).status());
 			PlantBlockEntity borer = Trailer.plant(level, Machine.RAISE_BORER, d(BORER));
 			log("raise borer: " + borer.status());
 		});
@@ -610,6 +646,8 @@ final class Hi07Scenes {
 			List<BlockPos> mv = new ArrayList<>();
 			mv.addAll(path(outs.get(1), d(-30, 0, GAS2.getZ()), d(-30, 0, GAS1.getZ())));
 			mv.addAll(path(outs.get(0), d(-30, 0, GAS1.getZ()), d(-30, 0, 20), d(-1, 0, 20)));
+			// a branch to the cage winder's box (x 10, z 20): off the run at x -2, round the south of the hoist house (fix2-hi07)
+			mv.addAll(path(d(-2, 0, 21), d(-2, 0, 33), d(10, 0, 33), d(10, 0, 20)));
 			for (BlockPos p : mv) {
 				lay(level, wc(MV), p);
 			}
@@ -660,6 +698,10 @@ final class Hi07Scenes {
 
 	private PlantBlockEntity hoist(ServerLevel level) {
 		return level.getBlockEntity(d(0, 0, 20)) instanceof PlantBlockEntity p ? p : null;
+	}
+
+	private PlantBlockEntity cageWinder(ServerLevel level) {
+		return level.getBlockEntity(d(CAGE_WINDER)) instanceof PlantBlockEntity p ? p : null;
 	}
 
 	private PlantBlockEntity borer(ServerLevel level) {
@@ -713,6 +755,8 @@ final class Hi07Scenes {
 			if (s != null) {
 				follow = new double[] {s.getX(), s.getY(), s.getZ()};
 			}
+		} else if (mode.equals("borer") && borer(level) != null && borer(level).raise().phase() == RaiseBoring.Phase.PILOT) {
+			follow = new double[] {0, -borer(level).raise().pilot(), 0};
 		} else if (mode.equals("train") && loco(level) != null) {
 			MineVehicleEntity l = loco(level);
 			follow = new double[] {l.getX(), l.getY(), l.getZ()};
@@ -781,10 +825,14 @@ final class Hi07Scenes {
 				out.add("Headframe bin: " + f1(bin(level).hold().total() / 1000) + " of 100 t");
 			}
 			case "cage" -> {
-				out.add("^CAGE · 4 PEOPLE · 4 m/s");
-				out.add(hoistLine(level));
+				out.add("^CAGE WINDER · 160 kW · 2.5 m DRUM");
+				PlantBlockEntity cw = cageWinder(level);
+				String st = cw.status();
+				out.add((st.startsWith("NOT") || st.startsWith("STOPPED") ? "!" : "+") + cut(st, 50).toUpperCase(Locale.ROOT));
+				dev.wildcatter.tailings.shaft.CageWinder w = cw.cageWinder();
+				out.add("Rope: " + f1(w.speed()) + " m/s of 4; drum " + f1(w.drumDegrees() / 360) + " turns out");
 				ShaftSkipEntity cg = cage(level);
-				out.add("Riders: " + (cg == null ? 0 : cg.getPassengers().size()));
+				out.add("Riders: " + (cg == null ? 0 : cg.getPassengers().size()) + " · Skips: " + cut(hoist(level).status(), 30));
 			}
 			case "power" -> {
 				out.add("^POWER");
@@ -861,6 +909,70 @@ final class Hi07Scenes {
 		});
 	}
 
+	/**
+	 * hi07_pilotdeep (fix2-hi07: the cut showed only the first 4 m of the 112 m pilot): the rock cut away east of the pilot's column from
+	 * the pad down 92 m, 9 m by 5 m and open to the sky, and the camera going down the cut 6.5 m from the string with the bit, at 20 times
+	 * the game's rate (a metre in 0.5 s) to 86 m, then the game's rate again so the breakthrough is left for the drive's film; the rock
+	 * put back after the film.
+	 */
+	private void pilotDeepFilm() {
+		mode = "borer";
+		showCard(true);
+		int from = server.computeOnServer(srv -> borer(srv.overworld()).raise().pilot());
+		java.util.Map<BlockPos, BlockState> cut = new java.util.LinkedHashMap<>();
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			for (int x = 0; x <= 8; x++) {
+				for (int z = RAISE_Z - 2; z <= RAISE_Z + 2; z++) {
+					if (x == 0 && z != RAISE_Z) {
+						continue;
+					}
+					for (int y = x <= 1 ? -2 : -1; y >= -DEEP_CUT; y--) {
+						BlockPos p = d(x, y, z);
+						cut.put(p, level.getBlockState(p));
+						level.setBlock(p, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+					}
+				}
+			}
+			log("rock cut away beside the pilot down " + DEEP_CUT + " m: " + cut.size() + " cells; pilot at " + borer(level).raise().pilot() + " m");
+		});
+		ticks(20);
+		server.runOnServer(srv -> borer(srv.overworld()).fastCycle(20));
+		// the camera in the cut, 6.5 m east of the string and a little south, a little over the bit, led down by the bit's depth; the
+		// drawn string runs about a second behind the server's metre count, so the camera aims 1.5 m over the server's bit
+		double[] at = {Double.NaN, 0, Double.NaN};
+		int move = 900;
+		film("hi07_pilotdeep", move, t -> {
+			double[] e = follow;
+			double bit = e == null ? -from : e[1];
+			if (!Double.isNaN(at[2])) {
+				at[1] += ((bit - at[2]) - at[1]) * 0.3;
+			}
+			at[2] = bit;
+			double want = bit + 3.2 + at[1] * (1 - 0.15) / 0.15;
+			at[0] = Double.isNaN(at[0]) ? want : at[0] + (want - at[0]) * 0.15;
+			double y = Math.max(-DEEP_CUT + 4, Math.min(1.5, at[0]));
+			return Cam.of(c, 7.0, y, RAISE_Z + 1.8, 0.5, y - 1.7, RAISE_Z + 0.5);
+		}, (level, t) -> {
+			if (t % 100 == 0) {
+				event(borer(level).status());
+			}
+			if (borer(level).fast() > 1 && borer(level).raise().pilot() >= DEEP_CUT - 6) {
+				borer(level).fastCycle(1);
+				event("back to the game's rate: " + borer(level).status());
+			}
+		});
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			borer(level).fastCycle(1);
+			cut.forEach((p, st) -> level.setBlock(p, st, Block.UPDATE_ALL));
+			log("the rock put back beside the pilot; pilot at " + borer(level).raise().pilot() + " m");
+		});
+	}
+
+	/** How deep the second pilot film's cut goes below the pad, m. */
+	private static final int DEEP_CUT = 92;
+
 	/** hi07_break: from the drive under it, the pilot bit breaking through its roof (its last 2 m at the game's rate). */
 	private void breakFilm() {
 		int k = server.computeOnServer(srv -> borer(srv.overworld()).raise().drive());
@@ -874,9 +986,11 @@ final class Hi07Scenes {
 			log("pilot " + borer(srv.overworld()).raise().pilot() + " of " + k + " m, into the drive's roof next");
 		});
 		int b = bot();
-		// closer under the spot it breaks through (heavy-iron ep 7 fix: the bit was a dot far down the drive)
-		Cam a = Cam.of(c, -1.4, b + 5.4, RAISE_Z + 4.6, 0.5, b + 9.0, RAISE_Z + 0.5);
-		Cam e = Cam.of(c, -1.2, b + 5.2, RAISE_Z + 3.6, 0.5, b + 8.8, RAISE_Z + 0.5);
+		// closer under the spot it breaks through (heavy-iron ep 7 fix: the bit was a dot far down the drive), and zoomed in (fix2-hi07:
+		// the 300 mm bit still read small in the 4 m drive): a 30 degree view from 4.5 m frames 2.4 m of roof round it
+		Cam a = Cam.of(c, -0.9, b + 5.5, RAISE_Z + 3.4, 0.5, b + 9.0, RAISE_Z + 0.5);
+		Cam e = Cam.of(c, -0.7, b + 5.7, RAISE_Z + 3.0, 0.5, b + 8.9, RAISE_Z + 0.5);
+		fov(30);
 		boolean[] flag = {false};
 		film("hi07_break", 560, move(a, e, 560), (level, t) -> {
 			if (borer(level).raise().phase() == RaiseBoring.Phase.REAM && !flag[0]) {
@@ -1054,13 +1168,20 @@ final class Hi07Scenes {
 	/** hi07_wind: a whole wind in real time, the camera riding with the loaded skip from the bottom up into the headframe. */
 	private void windFilm() {
 		mode = "wind";
-		followSkip = waitForRest();
+		// the west skip at the bottom, the nearer to the section (fix2-hi07: framed tighter, 4 m from it, the camera led by its speed)
+		require(waitFor(4800, level -> {
+			Winder w = hoist(level).winder();
+			return !w.winding() && w.position() < 1e-3 && w.rest() > 3;
+		}), "the west skip resting at the bottom: " + server.computeOnServer(srv -> hoist(srv.overworld()).status()));
+		followSkip = 0;
 		server.runOnServer(srv -> track(srv.overworld()));
 		double z = followSkip == 0 ? 3.5 : 3.5;
 		double sx = followSkip == 0 ? 2.5 : 5.5;
 		long[] wound = {-1};
 		// nearer the skip than the first take's 11 m out in the section (heavy-iron ep 7 fix: the skip read small on the grey wall)
-		film("hi07_wind", 1000, riding(-6.5, z + 1.0, 2.0, sx, z, 1.8, bot() + 2, 22), (level, t) -> {
+		// 5 m out in the section, south of the skip; kept 5 m over the bottom so it clears the ledge, the flask and the button's post
+		fov(55);
+		film("hi07_wind", 1000, riding(-1.5, z + 3.1, 1.8, sx + 0.5, z - 0.5, 1.9, bot() + 5, 22), (level, t) -> {
 			Winder w = hoist(level).winder();
 			if (w.winding() && wound[0] < 0) {
 				wound[0] = t;
@@ -1138,7 +1259,11 @@ final class Hi07Scenes {
 		film("hi07_scale", 900, move(a, e, 900), null);
 	}
 
-	/** hi07_ride: the villager rides the cage down the shaft, called from the bottom landing's button; the camera rides with it. */
+	/**
+	 * hi07_ride: the villager rides the cage down the shaft, called from the bottom landing's button; the camera rides with it, 4.6 m out
+	 * in the section (fix2-hi07: framed tighter, led by its speed), the cage right of centre. The skips go on winding: the cage has its
+	 * own winder.
+	 */
 	private void rideFilm() {
 		server.runOnServer(srv -> {
 			ServerLevel level = srv.overworld();
@@ -1146,53 +1271,94 @@ final class Hi07Scenes {
 			Entity v = level.getEntity(villager);
 			v.setPos(cg.getX() + 1, cg.getY(), cg.getZ() + 1);
 			v.startRiding(cg);
-			log("villager in the cage: " + cg.getPassengers().size() + " riders; cage at " + cg.position());
+			log("villager in the cage: " + cg.getPassengers().size() + " riders; cage at " + cg.position() + "; " + cageWinder(level).status());
 		});
 		ticks(10);
 		mode = "cage";
 		showCard(true);
 		followSkip = 2;
 		server.runOnServer(srv -> track(srv.overworld()));
-		// the button pressed in the skips' rest, as they stand (a call waits for the wind in hand to end)
-		atRestEnd();
-		// the cage right of the frame's centre, the left clear for the episode's figure (heavy-iron ep 7 fix: the card covered it)
-		double[] at = server.computeOnServer(srv -> new double[] {cage(srv.overworld()).getX() - c.getX(), cage(srv.overworld()).getZ() - c.getZ()});
-		log(String.format(Locale.ROOT, "the cage at x %.1f, z %.1f from the headframe", at[0], at[1]));
-		film("hi07_ride", 1000, riding(Math.min(-2.0, at[0] - 6.0), at[1] + 1.2, 1.6, at[0], at[1] - 2.4, 1.4, bot() + 2, 12), (level, t) -> {
+		double[] at = cageCentre();
+		log(String.format(Locale.ROOT, "the cage's centre at x %.1f, z %.1f from the headframe", at[0], at[1]));
+		fov(62);
+		// aimed 2.4 m north of it so it sits right of centre; kept 5 m over the bottom, clear of the ledge, the flask and the post
+		film("hi07_ride", 1000, riding(at[0] - 4.6, at[1] + 1.3, 1.5, at[0], at[1] - 2.4, 1.4, bot() + 5, 12), (level, t) -> {
 			if (t == PAD + 10) {
 				press(level, d(-1, bot() + 1, 6));
-				event("the bottom landing's button pressed: " + hoist(level).status());
+				event("the bottom landing's button pressed: " + cageWinder(level).status() + "; skips: " + hoist(level).status());
 			}
+			cageEvents(level, t);
 		});
 		followSkip = -1;
 	}
 
+	/** The cage's centre across the shaft, from the headframe's main cell. */
+	private double[] cageCentre() {
+		return server.computeOnServer(srv -> new double[] {cage(srv.overworld()).getX() + 1 - c.getX(), cage(srv.overworld()).getZ() + 1 - c.getZ()});
+	}
+
+	private boolean cageMoving;
+
+	/** Logs when the cage starts and stops, and its drum's turns. */
+	private void cageEvents(ServerLevel level, int t) {
+		dev.wildcatter.tailings.shaft.CageWinder w = cageWinder(level).cageWinder();
+		boolean moving = w.speed() > 0;
+		if (moving != cageMoving) {
+			cageMoving = moving;
+			event((moving ? "the cage moving" : "the cage stopped") + String.format(Locale.ROOT, ": %.1f m below the collar, the drum %.2f turns out", w.rope(), w.drumDegrees() / 360));
+		}
+	}
+
 	/**
-	 * Off camera: the pocket and the flask's surge emptied by the scene, so the skips finish the ore in hand and stand (WAITING FOR ORE);
-	 * a call then takes the hoist at once rather than after a wind (said in NOTES).
+	 * hi07_cagedrum (fix2-hi07): the cage winder beside the hoist house, its 2.5 m drum turning through the open north side as the cage is
+	 * called up from the bottom with its rider; the camera draws back and up along the rope toward the headframe.
 	 */
-	private void atRestEnd() {
-		server.runOnServer(srv -> {
-			ServerLevel level = srv.overworld();
-			pocket(level).draw(1_000_000);
-			flask(level).made().take(Double.MAX_VALUE);
-			flask(level).setChanged();
+	private void cageDrumFilm() {
+		mode = "cage";
+		showCard(true);
+		waitFor(600, level -> cageWinder(level).cageWinder().atLanding());
+		Cam a = Cam.of(c, 14.6, 3.3, 16.8, 14.5, 2.3, 22.5);
+		Cam e = Cam.of(c, 19.0, 7.5, 12.5, 9.5, 10.5, 16.0);
+		film("hi07_cagedrum", 900, move(a, e, 900), (level, t) -> {
+			if (t == PAD + 10) {
+				press(level, d(5, 1, 10));
+				event("the collar's button pressed: " + cageWinder(level).status());
+			}
+			cageEvents(level, t);
 		});
-		require(waitFor(3600, level -> hoist(level).status().startsWith("WAITING FOR ORE")), "the skips standing: "
-				+ server.computeOnServer(srv -> hoist(srv.overworld()).status()));
+	}
+
+	/** hi07_cagesheave (fix2-hi07): the cage sheave in the headframe, under the skips' sheaves, turning as the cage goes back down. */
+	private void cageSheaveFilm() {
+		mode = "";
+		showCard(false);
+		waitFor(1600, level -> cageWinder(level).cageWinder().atLanding());
+		// zoomed on its axle (the first take at 70 degrees showed it as one wheel of three)
+		Cam a = Cam.of(c, 0.4, 28.4, 12.6, 4.0, 26.95, 7.25);
+		Cam e = Cam.of(c, 1.2, 28.0, 11.6, 4.0, 26.95, 7.25);
+		fov(40);
+		film("hi07_cagesheave", 900, move(a, e, 900), (level, t) -> {
+			if (t == PAD + 10) {
+				press(level, d(-1, bot() + 1, 6));
+				event("the bottom landing's button pressed: " + cageWinder(level).status());
+			}
+			cageEvents(level, t);
+		});
 	}
 
 	/** hi07_call: at the collar, the call button pressed; the bell, and the cage comes up with its rider. */
 	private void callFilm() {
-		waitFor(600, level -> hoist(level).winder().cageAtLanding() && !hoist(level).winder().cageBusy());
-		atRestEnd();
+		mode = "cage";
+		showCard(true);
+		waitFor(1600, level -> cageWinder(level).cageWinder().atLanding() && !cageWinder(level).cageWinder().up());
 		Cam a = Cam.of(c, 1.2, 2.3, 12.5, 4.6, 1.3, 9.5);
 		Cam e = Cam.of(c, 1.0, 2.6, 13.0, 3.6, 1.6, 6.0);
 		film("hi07_call", 1000, move(a, e, 200), (level, t) -> {
 			if (t == PAD + 10) {
 				press(level, d(5, 1, 10));
-				event("the collar's button pressed: " + hoist(level).status());
+				event("the collar's button pressed: " + cageWinder(level).status());
 			}
+			cageEvents(level, t);
 		});
 	}
 

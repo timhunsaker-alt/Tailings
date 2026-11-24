@@ -330,6 +330,8 @@ final class HiFixScenes {
 			var hoist = Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.HOIST_HOUSE, h.offset(0, 0, 20));
 			Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.MEASURING_FLASK, h.offset(7, -depth, 4));
 			hoist.forceRunning();
+			// the cage's own winder beside the hoist house (cage-winder.md)
+			Trailer.plant(level, dev.wildcatter.tailings.plant.Machine.CAGE_WINDER, h.offset(11, 0, 20)).forceRunning();
 			var frame = dev.wildcatter.tailings.block.ShaftLayout.Frame.of(headframe);
 			dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
 			dev.wildcatter.tailings.entity.ShaftSkipEntity.hang(level, frame);
@@ -355,8 +357,8 @@ final class HiFixScenes {
 		for (int k = 0; k < 10; k++) {
 			context.waitTicks(20);
 			server.runOnServer(srv -> {
-				var hoist = (dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(h.offset(0, 0, 20));
-				log("hoist: " + hoist.status() + "; cage " + hoist.winder().cageAt() + " of " + hoist.winder().cageTravel());
+				var winder = (dev.wildcatter.tailings.block.PlantBlockEntity) srv.overworld().getBlockEntity(h.offset(11, 0, 20));
+				log("cage winder: " + winder.status() + "; cage " + winder.cageWinder().at() + " of " + winder.cageWinder().travel());
 			});
 		}
 		cam(Cam.of(h, 18, -10, 14, 4.5, -14, 5));

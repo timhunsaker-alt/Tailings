@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
+import dev.wildcatter.tailings.block.ShaftLayout;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.pit.DryStack;
 import dev.wildcatter.tailings.plant.PlantMotion;
@@ -73,6 +74,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		boolean pressed;
 		/** The hoist's ropes (films-hi07): each skip's height (west, east compartment), for the drums and head sheaves; NaN for none. */
 		float rope0 = Float.NaN, rope1 = Float.NaN;
+		/** The cage's height, for its winder's drum and its sheave (cage-winder.md); NaN for none. */
+		float ropeCage = Float.NaN;
 		/** A raise borer's pilot bit and reamer face, metres below its base (NaN: not in the hole), and their light. */
 		float pilot = Float.NaN, reamer = Float.NaN;
 		int deepLight;
@@ -98,12 +101,12 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			state.light = plant.getLevel() == null ? state.lightCoords : lightAt(plant, state.turns, new int[] {3, 5, 12});
 			return;
 		}
-		if (machine == Machine.HEADFRAME || machine == Machine.HOIST_HOUSE) {
+		if (machine == Machine.HEADFRAME || machine == Machine.HOIST_HOUSE || machine == Machine.CAGE_WINDER) {
 			state.machine = machine;
 			state.turns = BigParts.turns(plant.getBlockState());
 			ropes(plant, state, partialTick);
 			state.light = plant.getLevel() == null ? state.lightCoords
-					: lightAt(plant, state.turns, machine == Machine.HEADFRAME ? new int[] {4, 27, 5} : new int[] {3, 3, 2});
+					: lightAt(plant, state.turns, machine == Machine.HEADFRAME ? new int[] {4, 27, 5} : machine == Machine.CAGE_WINDER ? new int[] {3, 3, 1} : new int[] {3, 3, 2});
 			return;
 		}
 		if (machine == Machine.RAISE_BORER) {
@@ -219,7 +222,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float press = state.press;
 		boolean pressed = state.pressed;
 		int light = state.light;
-		float rope0 = state.rope0, rope1 = state.rope1, pilot = state.pilot, reamer = state.reamer;
+		float rope0 = state.rope0, rope1 = state.rope1, ropeCage = state.ropeCage, pilot = state.pilot, reamer = state.reamer;
 		int deepLight = state.deepLight;
 		float flaskFill = state.flaskFill;
 		String flaskRock = state.flaskRock;
@@ -242,8 +245,12 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case CLEANER_BANK -> cleanerFroth(at.last(), v, angle, light);
 					case XRT_SORTER -> xrt(at.last(), v, angle, state.share, light);
 					case TAILINGS_FILTER -> press(at.last(), v, press, pressed, light);
-					case HEADFRAME -> sheaves(at, v, rope0, rope1, light);
+					case HEADFRAME -> {
+						sheaves(at, v, rope0, rope1, light);
+						cageSheave(at, v, ropeCage, light);
+					}
 					case HOIST_HOUSE -> drums(at, v, rope0, rope1, light);
+					case CAGE_WINDER -> cageDrum(at, v, ropeCage, light);
 					case VENT_FAN -> impeller(at, v, angle, 1.5f, 1.5f, 0.75f, 0.85f, 8, 0.3f, light);
 					case BOOSTER_FAN -> impeller(at, v, angle, 1.0f, 1.0f, 0.38f, 0.65f, 6, 0.24f, light);
 					case RAISE_BORER -> raiseTools(at, v, angle, pilot, reamer, light, deepLight);
@@ -588,11 +595,11 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 
 	/**
 	 * Each skip's height on the client, for the drums and sheaves to turn with its rope: the skips hung within this part's reach, west
-	 * or east compartment by where they hang across its frame (the hoist house stands in line behind the headframe). The cage is left
-	 * out: it rides when the skips stand.
+	 * or east compartment by where they hang across its frame (the hoist house stands in line behind the headframe). The cage's, for
+	 * its own winder's drum (the cage whose rope leads to it) and its sheave in the headframe (cage-winder.md).
 	 */
 	private static void ropes(PlantBlockEntity plant, State state, float partialTick) {
-		state.rope0 = state.rope1 = Float.NaN;
+		state.rope0 = state.rope1 = state.ropeCage = Float.NaN;
 		if (plant.getLevel() == null) {
 			return;
 		}
@@ -603,6 +610,14 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 						.expandTowards(0, -dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH - 10, 0).expandTowards(0, 40, 0);
 		for (dev.wildcatter.tailings.entity.ShaftSkipEntity skip : plant.getLevel().getEntitiesOfClass(dev.wildcatter.tailings.entity.ShaftSkipEntity.class, around)) {
 			if (skip.cage()) {
+				// the headframe's: the cage in its shaft; the cage winder's: the cage whose rope leads to its drum
+				boolean mine = frame || plant.machine() == Machine.CAGE_WINDER && skip.drum() != null && skip.drum().distManhattan(main) <= 12;
+				if (mine) {
+					state.ropeCage = (float) net.minecraft.util.Mth.lerp(partialTick, skip.yo, skip.getY());
+				}
+				continue;
+			}
+			if (plant.machine() == Machine.CAGE_WINDER) {
 				continue;
 			}
 			if (!frame && (skip.drum() == null || skip.drum().distManhattan(main) > 24)) {
@@ -664,6 +679,56 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				box(p.last(), v, clamp, d[0] + 0.05f, DRUM_R - 0.02f, -0.1f, d[1] - 0.05f, DRUM_R + 0.07f, 0.1f, light);
 				box(p.last(), v, blue, d[0] - 0.14f, 0.25f, -0.12f, d[0] - 0.1f, 1.65f, 0.12f, light);
 				box(p.last(), v, blue, d[1] + 0.1f, 0.25f, -0.12f, d[1] + 0.14f, 1.65f, 0.12f, light);
+			}
+		}
+	}
+
+	/** The cage sheave (shaft.py: 2.5 m, x 4, its axle 26.95 m up and 7.25 m south): six spokes and a hub, turned as far as the cage moved. */
+	private static void cageSheave(PoseStack at, VertexConsumer v, float rope, int light) {
+		if (Float.isNaN(rope)) {
+			return;
+		}
+		TextureAtlasSprite blue = mat("blue"), iron = mat("iron");
+		float r = (float) (dev.wildcatter.tailings.shaft.Hoisting.CAGE_SHEAVE_DIAMETER / 2);
+		float turn = (float) Math.toDegrees(rope / r);
+		for (int b = 0; b < 3; b++) {
+			PoseStack p = new PoseStack();
+			p.last().pose().set(at.last().pose());
+			p.last().normal().set(at.last().normal());
+			p.translate(0, (float) ShaftLayout.CAGE_SHEAVE_Y, (float) ShaftLayout.CAGE_SHEAVE_Z);
+			p.rotateDegrees(Axis.XP, turn + b * 60f);
+			float x = (float) ShaftLayout.CAGE_SHEAVE_X;
+			box(p.last(), v, blue, x - 0.04f, -0.06f, -(r - 0.08f), x + 0.04f, 0.06f, r - 0.08f, light);
+			if (b == 0) {
+				box(p.last(), v, iron, x - 0.12f, -0.18f, -0.18f, x + 0.12f, 0.18f, 0.18f, light);
+				// a yellow mark on one spoke, so its turn reads from the ground
+				box(p.last(), v, vanilla("yellow_concrete"), x - 0.07f, -0.09f, r - 0.6f, x + 0.07f, 0.09f, r - 0.1f, light);
+			}
+		}
+	}
+
+	/**
+	 * The cage winder's drum (shaft.py: 2.5 m, x 2-5, its centre 2.25 m up and 2.5 m south): four rope clamps along it and four spokes on
+	 * each flange, and a yellow mark on the west flange, turned as far as the cage's rope has run on or off it.
+	 */
+	private static void cageDrum(PoseStack at, VertexConsumer v, float rope, int light) {
+		// light clamps on the dark rope and yellow marks on the flanges, so its turn reads on camera (fix2-hi07)
+		TextureAtlasSprite clamp = vanilla("iron_block"), blue = mat("blue"), mark = vanilla("yellow_concrete");
+		float r = (float) (dev.wildcatter.tailings.shaft.Hoisting.CAGE_DRUM_DIAMETER / 2);
+		float turn = Float.isNaN(rope) ? 0 : (float) -dev.wildcatter.tailings.shaft.Hoisting.cageDrumDegrees(rope);
+		float x0 = 2.0f, x1 = 5.0f;
+		for (int b = 0; b < 4; b++) {
+			PoseStack p = new PoseStack();
+			p.last().pose().set(at.last().pose());
+			p.last().normal().set(at.last().normal());
+			p.translate(0, (float) ShaftLayout.CAGE_DRUM_Y, (float) ShaftLayout.CAGE_DRUM_Z);
+			p.rotateDegrees(Axis.XP, turn + b * 90f);
+			box(p.last(), v, clamp, x0 + 0.05f, r - 0.02f, -0.08f, x1 - 0.05f, r + 0.06f, 0.08f, light);
+			box(p.last(), v, blue, x0 - 0.14f, 0.2f, -0.1f, x0 - 0.1f, r + 0.15f, 0.1f, light);
+			box(p.last(), v, blue, x1 + 0.1f, 0.2f, -0.1f, x1 + 0.14f, r + 0.15f, 0.1f, light);
+			if (b == 0) {
+				box(p.last(), v, mark, x0 - 0.16f, r - 0.1f, -0.2f, x0 - 0.1f, r + 0.22f, 0.2f, light);
+				box(p.last(), v, mark, x1 + 0.1f, r - 0.1f, -0.2f, x1 + 0.16f, r + 0.22f, 0.2f, light);
 			}
 		}
 	}

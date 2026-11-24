@@ -83,7 +83,7 @@ public final class TailingsSounds {
 			case REGRIND_MILL -> BALL_MILL;
 			case ELECTROWINNING_BANK -> dev.wildcatter.WildcatterSounds.MOTOR_HUM;
 			case THICKENER, TAILINGS_THICKENER -> WildcatterSounds.MOTOR_HUM;
-			case HOIST_HOUSE -> MINE_HOIST;
+			case HOIST_HOUSE, CAGE_WINDER -> MINE_HOIST;
 			case RAISE_BORER -> WildcatterSounds.MOTOR_HUM;
 			case PASTE_FILTER, PASTE_PUMP -> WildcatterSounds.MOTOR_HUM;
 			case PASTE_MIXER -> AGITATOR;

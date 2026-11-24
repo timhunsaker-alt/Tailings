@@ -102,21 +102,44 @@ class HoistingTest {
 	void theCageRidesAtFourMetresASecond() {
 		// 40 m: 5.3 s up to 4 m/s over 10.7 m, the same down, 18.7 m at speed: about 15.3 s
 		assertEquals(15.33, Hoisting.cageSeconds(40), 0.05);
-		Winder w = new Winder();
-		w.setCageTravel(40);
-		assertTrue(w.cageUp(), "a cage first found stands where it was hung, at the collar");
-		assertTrue(w.callCage(false) && w.cageRinging());
+		CageWinder w = new CageWinder();
+		w.setTravel(40);
+		assertTrue(w.up(), "a cage first found stands where it was hung, at the collar");
+		assertTrue(w.call(false) && w.ringing());
 		double t = 0, fastest = 0;
-		while (!w.windCage(0.05, 1) && t < 120) {
+		while (!w.wind(0.05, 1) && t < 120) {
 			t += 0.05;
-			fastest = Math.max(fastest, w.cageSpeed());
+			fastest = Math.max(fastest, w.speed());
 		}
 		assertEquals(Hoisting.CAGE_BELL_SECONDS + Hoisting.cageSeconds(40), t, 0.6, "the bell, then the trip");
 		assertEquals(Hoisting.CAGE_SPEED, fastest, 1e-9);
-		assertTrue(w.cageAtLanding() && !w.cageUp() && w.cageTrips() == 1);
-		Winder back = new Winder();
+		assertTrue(w.atLanding() && !w.up() && w.trips() == 1);
+		CageWinder back = new CageWinder();
 		back.load(w.save());
-		assertEquals(1, back.cageTrips());
-		assertEquals(0, back.cageAt(), 1e-9);
+		assertEquals(1, back.trips());
+		assertEquals(0, back.at(), 1e-9);
+		// 40 m paid out over the 2.5 m drum: 5.1 turns
+		assertEquals(40 / (Math.PI * 2.5), back.drumDegrees() / 360, 1e-9);
+	}
+
+	@Test
+	void theCageWinderLiftsItsCageOnItsOwnMotor() {
+		// single drum, nothing balancing it: the cage, its rated 1 t and 135 m of 2.7 kg/m rope at 4 m/s, accelerating, at 85 %: 142 kW
+		assertEquals(142.3, Hoisting.cageLiftWatts(120) / 1000, 0.5);
+		assertTrue(Hoisting.cageLiftWatts(120) < Hoisting.CAGE_MOTOR_WATTS, "the 160 kW motor lifts it from 120 m");
+		// MDG 33's single-drum personnel winder: 4 m/s; the Handbook's economic drum speed over 120 m, 0.405 √H: 4.4 m/s
+		assertTrue(Hoisting.CAGE_SPEED <= 0.405 * Math.sqrt(120));
+	}
+
+	@Test
+	void aSkipWinderSavedWithACageStillLoads() {
+		Winder w = new Winder();
+		w.setTravel(100);
+		w.start();
+		w.wind(1, 1);
+		Winder back = new Winder();
+		back.load(w.save() + ";40.0;100.0;0.0;0.0;0;3");   // the cage's state as the hoist once saved it, after the loads
+		assertEquals(w.position(), back.position(), 1e-9);
+		assertEquals(w.travel(), back.travel(), 1e-9);
 	}
 }

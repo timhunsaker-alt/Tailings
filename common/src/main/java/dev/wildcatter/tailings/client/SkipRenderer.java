@@ -95,6 +95,29 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		double ox = entity.getX(), oy = entity.getY(), oz = entity.getZ();
 		float top = (float) (entity.sheaveY() - oy);
 		BlockPos drum = entity.drum();
+		if (skip.cage && drum != null) {
+			// the cage's rope up its compartment's centre to the north side of its own sheave, over its top, and down to the cage
+			// winder's drum (cage-winder.md): the sheave stands its radius south of the rope
+			BlockPos south = TbmMachine.offset(entity.facing(), 0, 0, 1);
+			float r = (float) (dev.wildcatter.tailings.shaft.Hoisting.CAGE_SHEAVE_DIAMETER / 2), sx = south.getX(), sz = south.getZ();
+			float cx = skip.centreX + sx * r, cz = skip.centreZ + sz * r, cy = top - r;
+			float[] pts = new float[3 * 8];
+			int n = 0;
+			pts[n++] = skip.centreX;
+			pts[n++] = bail;
+			pts[n++] = skip.centreZ;
+			for (int k = 0; k <= 5; k++) {
+				double a = Math.toRadians(90.0 * k / 5);
+				pts[n++] = (float) (cx - sx * r * Math.cos(a));
+				pts[n++] = (float) (cy + r * Math.sin(a));
+				pts[n++] = (float) (cz - sz * r * Math.cos(a));
+			}
+			pts[n++] = (float) (drum.getX() + 0.5 - ox);
+			pts[n++] = (float) (drum.getY() + 0.5 - oy);
+			pts[n++] = (float) (drum.getZ() + 0.5 - oz);
+			skip.rope = pts;
+			return;
+		}
 		skip.rope = drum == null ? new float[] {skip.centreX, bail, skip.centreZ, skip.centreX, top, skip.centreZ}
 				: new float[] {skip.centreX, bail, skip.centreZ, skip.centreX, top, skip.centreZ,
 						(float) (drum.getX() + 0.5 - ox), (float) (drum.getY() + 0.5 - oy), (float) (drum.getZ() + 0.5 - oz)};

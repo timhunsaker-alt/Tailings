@@ -36,9 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * bottom-dump cars' pocket (L3), and the skips in balance between them.
  */
 final class ShaftGameTests {
-	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore", "shaft_cage_button"};
+	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore", "shaft_cage_button", "shaft_cage_winder"};
 	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore",
-			"shaft_cage_button");
+			"shaft_cage_button", "shaft_cage_winder");
 	private static final Map<String, Integer> TICKS = Map.of("shaft_hoist", 3400);
 	/** The scenes' collar: the headframe's main cell, its shaft going down from here. */
 	private static final int COLLAR = 155;
@@ -55,6 +55,7 @@ final class ShaftGameTests {
 		out.accept("shaft_cage", ShaftGameTests::cage);
 		out.accept("shaft_raise_bore", ShaftGameTests::raiseBore);
 		out.accept("shaft_cage_button", ShaftGameTests::cageButton);
+		out.accept("shaft_cage_winder", ShaftGameTests::cageWinder);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -69,20 +70,23 @@ final class ShaftGameTests {
 	}
 
 	/** The pieces of one shaft. */
-	record Built(PlantBlockEntity headframe, PlantBlockEntity hoist, PlantBlockEntity bin, PlantBlockEntity flask) {
+	record Built(PlantBlockEntity headframe, PlantBlockEntity hoist, PlantBlockEntity bin, PlantBlockEntity flask, PlantBlockEntity cageWinder) {
 	}
 
 	/**
 	 * A shaft {@code depth} m deep (collar to the flask's bottom): the headframe at (0, COLLAR, 0) over the shaft at x and z 2 to 6, its
-	 * bin touching its north side, the hoist house behind it to the south (z 20 to 31), and the flask beside the shaft bottom at x 7.
+	 * bin touching its north side, the hoist house behind it to the south (z 20 to 31), the cage winder beside the hoist house (x 11 to
+	 * 16, z 20 to 27; cage-winder.md), and the flask beside the shaft bottom at x 7.
 	 */
 	static Built build(GameTestHelper helper, int depth) {
 		PlantBlockEntity headframe = part(helper, Machine.HEADFRAME, new BlockPos(0, COLLAR, 0));
 		PlantBlockEntity bin = part(helper, Machine.HEADFRAME_BIN, new BlockPos(2, COLLAR, -4));
 		PlantBlockEntity hoist = part(helper, Machine.HOIST_HOUSE, new BlockPos(0, COLLAR, 20));
 		PlantBlockEntity flask = part(helper, Machine.MEASURING_FLASK, new BlockPos(7, COLLAR - depth, 4));
+		PlantBlockEntity cageWinder = part(helper, Machine.CAGE_WINDER, new BlockPos(11, COLLAR, 20));
 		hoist.forceRunning();
-		return new Built(headframe, hoist, bin, flask);
+		cageWinder.forceRunning();
+		return new Built(headframe, hoist, bin, flask, cageWinder);
 	}
 
 	static ShaftSkipEntity hang(GameTestHelper helper, PlantBlockEntity headframe) {
@@ -146,8 +150,8 @@ final class ShaftGameTests {
 
 	/**
 	 * The cage (shaft_cage, heavy-iron-fixes): hung beside the skips at the collar, it takes a stack of materials on its deck and a
-	 * rider; the rider's bell rings 5 s and it winds 40 m to the bottom landing at the man-riding 4 m/s, the skips standing; a call from
-	 * the collar brings it back up empty.
+	 * rider; the rider's bell rings 5 s and its own winder winds it 40 m to the bottom landing at the man-riding 4 m/s; a call from the
+	 * collar brings it back up empty.
 	 */
 	private static void cage(GameTestHelper helper) {
 		Built b = build(helper, 40);
@@ -169,26 +173,25 @@ final class ShaftGameTests {
 		long[] start = {helper.getTick()}, arrived = {-1};
 		double[] fastest = {0};
 		helper.onEachTick(() -> {
-			fastest[0] = Math.max(fastest[0], b.hoist().winder().cageSpeed());
-			if (arrived[0] < 0 && b.hoist().winder().cageTrips() == 1) {
+			fastest[0] = Math.max(fastest[0], b.cageWinder().cageWinder().speed());
+			if (arrived[0] < 0 && b.cageWinder().cageWinder().trips() == 1) {
 				arrived[0] = helper.getTick();
 			}
 		});
 		double trip = Hoisting.CAGE_BELL_SECONDS + Hoisting.cageSeconds(40);
 		helper.startSequence()
-				.thenWaitUntil(() -> helper.assertTrue(arrived[0] >= 0, Component.literal("the cage should reach the bottom: " + b.hoist().status())))
+				.thenWaitUntil(() -> helper.assertTrue(arrived[0] >= 0, Component.literal("the cage should reach the bottom: " + b.cageWinder().status())))
 				.thenExecute(() -> {
 					double took = (arrived[0] - start[0]) / 20.0;
 					helper.assertTrue(Math.abs(took - trip) < 1.0, Component.literal(String.format("the bell and the trip should take about %.1f s, took %.1f s", trip, took)));
 					helper.assertTrue(Math.abs(fastest[0] - Hoisting.CAGE_SPEED) < 1e-6, Component.literal("at the man-riding 4 m/s: " + fastest[0]));
 					helper.assertTrue(Math.abs(cage.getY() - (collarY - 40)) < 1e-3, Component.literal("its floor at the bottom landing: " + cage.getY()));
 					helper.assertTrue(cage.hasPassenger(rider) && cage.deck().size() == 1, Component.literal("with its rider and its rail"));
-					helper.assertTrue(b.hoist().winder().dumps() == 0 && !b.hoist().winder().winding(), Component.literal("the skips stood"));
 					rider.stopRiding();
 					cage.call(true);
 				})
-				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
-						Component.literal("called from the collar, it comes up: " + cage.getY() + "; " + b.hoist().status())))
+				.thenWaitUntil(() -> helper.assertTrue(b.cageWinder().cageWinder().trips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
+						Component.literal("called from the collar, it comes up: " + cage.getY() + "; " + b.cageWinder().status())))
 				.thenSucceed();
 	}
 
@@ -225,12 +228,67 @@ final class ShaftGameTests {
 		helper.startSequence()
 				.thenIdle(20)
 				.thenExecute(press[0])
-				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 1 && Math.abs(cage.getY() - (collarY - 60)) < 1e-3,
-						Component.literal("the bottom landing's button brings it down: " + cage.getY() + "; " + b.hoist().status())))
+				.thenWaitUntil(() -> helper.assertTrue(b.cageWinder().cageWinder().trips() == 1 && Math.abs(cage.getY() - (collarY - 60)) < 1e-3,
+						Component.literal("the bottom landing's button brings it down: " + cage.getY() + "; " + b.cageWinder().status())))
 				.thenIdle(40)
 				.thenExecute(press[1])
-				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().cageTrips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
-						Component.literal("the collar's button brings it up: " + cage.getY() + "; " + b.hoist().status())))
+				.thenWaitUntil(() -> helper.assertTrue(b.cageWinder().cageWinder().trips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3,
+						Component.literal("the collar's button brings it up: " + cage.getY() + "; " + b.cageWinder().status())))
+				.thenSucceed();
+	}
+
+	/**
+	 * The cage winder (shaft_cage_winder, cage-winder.md): the cage on its own single drum. Called down 60 m from the bottom landing while
+	 * the skips keep winding ore on their own hoist; its drum turns as far as its rope runs (60 m on a 2.5 m drum, 7.6 turns), at the
+	 * man-riding 4 m/s; with no power its brakes hold the cage where it is, and with power back it goes on and comes back up.
+	 */
+	private static void cageWinder(GameTestHelper helper) {
+		Built b = build(helper, 60);
+		hang(helper, b.headframe());
+		hang(helper, b.headframe());
+		feed(helper, b.flask());
+		ShaftSkipEntity cage = ShaftSkipEntity.hangCage(helper.getLevel(), ShaftLayout.Frame.of(b.headframe()));
+		helper.assertTrue(cage != null, Component.literal("the cage should hang"));
+		int collarY = helper.absolutePos(BlockPos.ZERO).getY() + COLLAR;
+		dev.wildcatter.tailings.shaft.CageWinder w = b.cageWinder().cageWinder();
+		boolean[] both = {false};
+		double[] fastest = {0}, held = {0}, turned = {0};
+		helper.onEachTick(() -> {
+			fastest[0] = Math.max(fastest[0], w.speed());
+			// both winders at speed at once: two drums, two ropes
+			both[0] |= w.speed() > 1 && b.hoist().winder().winding() && b.hoist().winder().speed() > 1;
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(b.hoist().winder().winding(), Component.literal("the skips winding: " + b.hoist().status())))
+				.thenExecute(() -> {
+					helper.assertTrue(w.drumDegrees() == 0 && w.up(), Component.literal("the cage at the collar, its drum wound in: " + b.cageWinder().status()));
+					cage.call(false);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(w.rope() > 20, Component.literal("the cage going down: " + b.cageWinder().status())))
+				.thenExecute(() -> {
+					b.cageWinder().stopForced();
+					held[0] = w.rope();
+				})
+				.thenExecuteAfter(40, () -> {
+					helper.assertTrue(w.speed() == 0 && Math.abs(w.rope() - held[0]) < 1e-6, Component.literal("the brakes hold the cage at " + held[0] + " m, now " + w.rope()));
+					helper.assertTrue(b.cageWinder().status().startsWith("STOPPED"), Component.literal("STOPPED, got " + b.cageWinder().status()));
+					helper.assertTrue(Math.abs(cage.getY() - (collarY - held[0])) < 1e-3, Component.literal("the cage where its rope holds it: " + cage.getY()));
+					b.cageWinder().forceRunning();
+				})
+				.thenWaitUntil(() -> helper.assertTrue(w.trips() == 1 && Math.abs(cage.getY() - (collarY - 60)) < 1e-3,
+						Component.literal("at the bottom landing: " + cage.getY() + "; " + b.cageWinder().status())))
+				.thenExecute(() -> {
+					turned[0] = w.drumDegrees() / 360;
+					double expected = 60 / (Math.PI * Hoisting.CAGE_DRUM_DIAMETER);
+					helper.assertTrue(Math.abs(turned[0] - expected) < 1e-6, Component.literal(String.format("its drum turned %.2f times, expected %.2f", turned[0], expected)));
+					helper.assertTrue(Math.abs(fastest[0] - Hoisting.CAGE_SPEED) < 1e-6, Component.literal("at the man-riding 4 m/s: " + fastest[0]));
+					helper.assertTrue(both[0], Component.literal("the skips wound while the cage ran, each on its own winder"));
+					cage.call(true);
+				})
+				.thenWaitUntil(() -> helper.assertTrue(w.trips() == 2 && Math.abs(cage.getY() - collarY) < 1e-3 && w.drumDegrees() < 1e-6,
+						Component.literal("back up, its drum wound in: " + cage.getY() + "; " + b.cageWinder().status())))
+				.thenExecute(() -> dev.wildcatter.tailings.Tailings.LOGGER.info("shaft_cage_winder: 60 m, the drum {} turns, fastest {} m/s; hoist {}", turned[0], fastest[0],
+						b.hoist().status()))
 				.thenSucceed();
 	}
 
