@@ -40,6 +40,10 @@ import org.jspecify.annotations.Nullable;
  * crest it pushes the load over; along a crest it drops a berm. Standing hard rock stops it. Set to SPREAD (CARRY's third setting), it
  * lays its load in a 1 m lift at the level its tracks stand on, filling the ground in front of the blade, a block a column a metre:
  * pushing a tipped load across a stack's lift it spreads it into that lift (heavy-iron-fixes).
+ * <p>
+ * Tim, 2026-11-23: it runs itself in an area marked by two DOZE AREA stakes (its autopilot: the survey book starts and stops it, a
+ * player in its cab takes it over), working lanes a blade wide across the area in SPREAD, back to each lane's start in reverse; and a
+ * pass of its tracks compacts the loose cake (dry tails) under it ({@link dev.wildcatter.tailings.block.DryTailsBlock}).
  */
 public class TrackDozerEntity extends PitVehicleEntity {
 	public enum Blade {
@@ -77,6 +81,36 @@ public class TrackDozerEntity extends PitVehicleEntity {
 	private boolean dozing;
 	private boolean lastSprint;
 	private int spillSide = 1;
+	/** Loose cake its tracks have compacted (tests, readout). */
+	private int compactedBlocks;
+
+	/**
+	 * Its autopilot's legs (Tim, 2026-11-23): back down the lane it pushed to its start, over to the next lane's start, squared up to the
+	 * push, pushing the lane.
+	 */
+	public enum Leg {
+		BACK, TO_LANE, ALIGN, PUSH
+	}
+
+	/** The autopilot's area: its corners' block x and z, inclusive {minX, minZ, maxX, maxZ}, or null; whether it runs. */
+	private int @Nullable [] autoArea;
+	private boolean autoOn;
+	private float pushYaw;
+	private int lane;
+	/** The lane it is reversing back down. */
+	private int backLane;
+	private int laneStep = 1;
+	private int passes;
+	private Leg leg = Leg.TO_LANE;
+	private int stuckTicks;
+	private boolean autoWaiting;
+	/** The autopilot's speed limit now, m/s. */
+	private double autoCap = Double.MAX_VALUE;
+	/** Pivoting on its tracks, degrees a tick at most; and how close counts as at a lane's start, m. */
+	private static final float PIVOT = 3F;
+	private static final double ARRIVED = 0.45;
+	/** Reversing between lanes it goes no faster than this, m/s (9 km/h), slowing to a crawl over its last 3 m. */
+	private static final double BACK_SPEED = 2.5;
 
 	public TrackDozerEntity(EntityType<?> type, Level level) {
 		super(type, level);
@@ -128,7 +162,8 @@ public class TrackDozerEntity extends PitVehicleEntity {
 
 	@Override
 	protected double speedCap() {
-		return blade != Blade.RAISED && (bladeBlocks > 0 || blade == Blade.CUT) ? PitDrive.DOZING_SPEED : Double.MAX_VALUE;
+		double cap = blade != Blade.RAISED && (bladeBlocks > 0 || blade == Blade.CUT) ? PitDrive.DOZING_SPEED : Double.MAX_VALUE;
+		return autoOn && !isVehicle() ? Math.min(cap, autoCap) : cap;
 	}
 
 	public Blade blade() {
@@ -251,7 +286,9 @@ public class TrackDozerEntity extends PitVehicleEntity {
 			return;
 		}
 		if (blade == Blade.RAISED) {
-			status = "travelling, blade raised";
+			if (!autoOn) {
+				status = "travelling, blade raised";
+			}
 			return;
 		}
 		if (blade == Blade.CUT) {
@@ -453,6 +490,380 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		refreshLoad();
 	}
 
+	// ---- compaction (Tim, 2026-11-23) ---------------------------------------------------------------------------------------------
+
+	/** Moving, its tracks compact the loose cake under it: each cell of dry tails under its box, a pass. */
+	@Override
+	protected void work(ServerLevel level) {
+		if (Math.abs(speed()) <= 0.05) {
+			return;
+		}
+		int y = (int) Math.floor(getY() + 0.01) - 1;
+		net.minecraft.world.phys.AABB box = getBoundingBox();
+		Vec3 f = ahead(), r = right();
+		double hl = spec().length() / 2 - 0.3, hw = spec().width() / 2 - 0.2;
+		for (int x = (int) Math.floor(box.minX); x <= (int) Math.floor(box.maxX); x++) {
+			for (int z = (int) Math.floor(box.minZ); z <= (int) Math.floor(box.maxZ); z++) {
+				double dx = x + 0.5 - getX(), dz = z + 0.5 - getZ();
+				if (Math.abs(dx * f.x + dz * f.z) <= hl && Math.abs(dx * r.x + dz * r.z) <= hw
+						&& dev.wildcatter.tailings.block.DryTailsBlock.compact(level, new BlockPos(x, y, z))) {
+					compactedBlocks++;
+				}
+			}
+		}
+	}
+
+	/** Loose cake its tracks have compacted since it was made. */
+	public int compactedBlocks() {
+		return compactedBlocks;
+	}
+
+	// ---- the autopilot (Tim, 2026-11-23; open-pit-p4-dry-stack.md, "Dozer autopilot") -------------------------------------------
+
+	public boolean autoRunning() {
+		return autoOn;
+	}
+
+	public int lane() {
+		return lane;
+	}
+
+	public int lanes() {
+		return autoArea == null ? 0 : laneCount();
+	}
+
+	public int passes() {
+		return passes;
+	}
+
+	public Leg leg() {
+		return leg;
+	}
+
+	public int @Nullable [] autoArea() {
+		return autoArea == null ? null : autoArea.clone();
+	}
+
+	/**
+	 * The survey book's route as its area: two DOZE AREA stakes at opposite corners. Starts the autopilot, pushing the way it faces,
+	 * squared; the same area again stops it. Returns what is wrong, or null (its status says what it did).
+	 */
+	public @Nullable String setAutoArea(ServerLevel level, java.util.List<BlockPos> stakes) {
+		if (stakes.size() != 2 || stakes.stream().anyMatch(p -> dev.wildcatter.tailings.block.SurveyStakeBlock.kind(level.getBlockState(p)) != dev.wildcatter.tailings.pit.StopKind.DOZE_AREA)) {
+			return "the book needs just the two DOZE AREA stakes at the area's corners";
+		}
+		BlockPos a = stakes.get(0), b = stakes.get(1);
+		int[] area = {Math.min(a.getX(), b.getX()), Math.min(a.getZ(), b.getZ()), Math.max(a.getX(), b.getX()), Math.max(a.getZ(), b.getZ())};
+		if (autoOn && autoArea != null && java.util.Arrays.equals(area, autoArea)) {
+			stopAuto("autopilot stopped");
+			return null;
+		}
+		float yaw = Math.round(net.minecraft.util.Mth.wrapDegrees(getYRot()) / 90F) * 90F;
+		autoArea = area;
+		pushYaw = net.minecraft.util.Mth.wrapDegrees(yaw);
+		double[] line = laneLine(0);
+		if (Math.abs(line[3] - line[1]) + Math.abs(line[2] - line[0]) < 2) {
+			autoArea = null;
+			return "the area is too short to push across: at least " + (int) Math.ceil(spec().length() + 4) + " m the way it faces";
+		}
+		autoOn = true;
+		lane = 0;
+		laneStep = 1;
+		passes = 0;
+		leg = Leg.TO_LANE;
+		stuckTicks = 0;
+		status = "AUTO: started, " + laneCount() + " lanes, pushing " + net.minecraft.core.Direction.fromYRot(pushYaw).getName();
+		return null;
+	}
+
+	/** Stops the autopilot where it stands; its area is kept for the book to start it again. */
+	public void stopAuto(String why) {
+		autoOn = false;
+		autoCap = Double.MAX_VALUE;
+		autoWaiting = false;
+		status = why;
+	}
+
+	@Override
+	protected void onSurveyBook(ServerLevel level, Player player, net.minecraft.world.item.ItemStack book) {
+		String why = setAutoArea(level, dev.wildcatter.tailings.item.SurveyBookItem.route(book));
+		say(player, why == null ? status : why);
+	}
+
+	@Override
+	public boolean selfRunning() {
+		return autoOn;
+	}
+
+	@Override
+	protected void takenOver() {
+		if (autoOn) {
+			stopAuto("driven by hand: autopilot off");
+		}
+	}
+
+	@Override
+	protected String routeInfo() {
+		if (autoArea == null) {
+			return "";
+		}
+		return autoOn ? String.format(java.util.Locale.ROOT, "AUTO: lane %d of %d, pass %d", lane + 1, laneCount(), passes + 1) : "autopilot off";
+	}
+
+	private int laneCount() {
+		boolean alongZ = Math.abs(Math.cos(Math.toRadians(pushYaw))) > 0.5;
+		int across = alongZ ? autoArea[2] + 1 - autoArea[0] : autoArea[3] + 1 - autoArea[1];
+		return Math.max(1, (int) Math.ceil(across / (double) (2 * BLADE_HALF + 1)));
+	}
+
+	/** Lane k's start and end for its centre, {startX, startZ, endX, endZ}: its back at the near edge, its blade at the far edge. */
+	private double[] laneLine(int k) {
+		double yaw = Math.toRadians(pushYaw);
+		double fx = Math.round(-Math.sin(yaw)), fz = Math.round(Math.cos(yaw));
+		boolean alongZ = Math.abs(fz) > 0.5;
+		double aLo = alongZ ? autoArea[1] : autoArea[0], aHi = (alongZ ? autoArea[3] : autoArea[2]) + 1;
+		double cLo = alongZ ? autoArea[0] : autoArea[1], cHi = (alongZ ? autoArea[2] : autoArea[3]) + 1;
+		double s = alongZ ? fz : fx;
+		double half = spec().length() / 2, w = 2 * BLADE_HALF + 1;
+		// its tail a metre in from the near edge (it may coast a little past a lane's start, reversing to it)
+		double near = s > 0 ? aLo + half + 1.0 : aHi - half - 1.0, far = s > 0 ? aHi - half - 0.5 : aLo + half + 0.5;
+		double c = cHi - cLo <= w ? (cLo + cHi) / 2 : Math.min(cLo + w / 2 + w * k, cHi - w / 2);
+		return alongZ ? new double[] {c, near, c, far} : new double[] {near, c, far, c};
+	}
+
+	/** Turns toward {@code want} degrees by up to the pivot rate, on its tracks, if its box has room; true once squared to it. */
+	private boolean pivot(ServerLevel level, float want, float most) {
+		float err = net.minecraft.util.Mth.wrapDegrees(want - getYRot());
+		if (Math.abs(err) < 0.3F) {
+			if (err != 0) {
+				setYRot(getYRot() + err);
+			}
+			return true;
+		}
+		float turned = getYRot() + Math.max(-most, Math.min(most, err));
+		if (level.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
+			setYRot(turned);
+			turnBlocked = 0;
+		} else if (clearSwing(level, turned) && level.noCollision(this, boxAt(position(), turned).deflate(0.05))) {
+			setYRot(turned);
+			turnBlocked = 0;
+		} else {
+			turnBlocked++;
+		}
+		return false;
+	}
+
+	/**
+	 * A windrow or a pile of loose ground or cake at its tracks' level in the way of its swing is pushed aside into the blade as it
+	 * turns, as its blade takes what it drives into; false (nothing moved) if anything else is in the way.
+	 */
+	private boolean clearSwing(ServerLevel level, float yaw) {
+		net.minecraft.world.phys.AABB box = boxAt(position(), yaw).deflate(0.05);
+		int y0 = (int) Math.floor(box.minY + 0.01);
+		java.util.List<BlockPos> loose = new java.util.ArrayList<>();
+		for (BlockPos p : BlockPos.betweenClosed((int) Math.floor(box.minX), y0, (int) Math.floor(box.minZ), (int) Math.floor(box.maxX), (int) Math.floor(box.maxY - 0.01), (int) Math.floor(box.maxZ))) {
+			BlockState state = level.getBlockState(p);
+			if (state.getCollisionShape(level, p).isEmpty()) {
+				continue;
+			}
+			boolean soft = state.getBlock() == TailingsBlocks.MUCK || PitMass.soft(PitMass.dugAs(BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString()));
+			if (!soft || p.getY() > y0 + 1) {
+				return false;
+			}
+			loose.add(p.immutable());
+		}
+		for (BlockPos p : loose) {
+			take(level, p, level.getBlockState(p));
+		}
+		return !loose.isEmpty();
+	}
+
+	/** Ticks its pivot has found no room. */
+	private int turnBlocked;
+
+	/** Something in its way within 3 m of the blade (forward) or of its tail (reversing): a mob, a player not watching, a machine. */
+	private boolean inTheWay(ServerLevel level, boolean forward) {
+		Vec3 c = local(0, 0, (forward ? 1 : -1) * (spec().length() / 2 + 1.5));
+		net.minecraft.world.phys.AABB box = new net.minecraft.world.phys.AABB(c.x - 3, getY() - 1, c.z - 3, c.x + 3, getY() + 4, c.z + 3);
+		return !level.getEntities(this, box, e -> !hasPassenger(e) && !e.isSpectator()
+				&& (e instanceof net.minecraft.world.entity.LivingEntity || e instanceof PitVehicleEntity)).isEmpty();
+	}
+
+	@Override
+	protected @Nullable Drive autopilot(ServerLevel level) {
+		if (!autoOn || autoArea == null) {
+			return null;
+		}
+		if (outOfFuel()) {
+			stopAuto("AUTO STOPPED: out of fuel");
+			return Drive.STAND;
+		}
+		double[] line = laneLine(lane);
+		double yaw = Math.toRadians(pushYaw);
+		double fx = Math.round(-Math.sin(yaw)), fz = Math.round(Math.cos(yaw));
+		switch (leg) {
+			case BACK -> {
+				// straight back down the lane it has just pushed clear, blade raised, to the lane's start
+				if (blade != Blade.RAISED) {
+					setBlade(Blade.RAISED);
+				}
+				double[] back = laneLine(backLane);
+				double behind = (getX() - back[0]) * fx + (getZ() - back[1]) * fz;
+				if (behind < ARRIVED) {
+					leg = Leg.TO_LANE;
+					autoCap = 0;
+					stuckTicks = 0;
+					return Drive.STAND;
+				}
+				pivot(level, pushYaw, 1F);
+				if (inTheWay(level, false)) {
+					autoWaiting = true;
+					status = "AUTO: waiting: something in its way";
+					return Drive.STAND;
+				}
+				if (dropBehind(level)) {
+					stopAuto("AUTO STOPPED: a drop behind it");
+					return Drive.STAND;
+				}
+				autoWaiting = false;
+				autoCap = Math.max(0.3, Math.min(BACK_SPEED, behind * 0.6));
+				if (stuck()) {
+					stopAuto("AUTO STOPPED: stuck backing down lane " + (backLane + 1));
+					return Drive.STAND;
+				}
+				status = "AUTO: backing down lane " + (backLane + 1);
+				return new Drive(-1, 0, false);
+			}
+			case TO_LANE -> {
+				if (blade != Blade.RAISED) {
+					setBlade(Blade.RAISED);
+				}
+				double dx = line[0] - getX(), dz = line[1] - getZ();
+				double dist = Math.hypot(dx, dz);
+				if (dist < ARRIVED) {
+					leg = Leg.ALIGN;
+					autoCap = 0;   // it brakes at the lane's start: a 70 t dozer coasting from a crawl rolls on for metres
+					return Drive.STAND;
+				}
+				// to the lane's start, the rear aimed at it (reversing) or the nose (forward), whichever needs the less turning
+				float fwd = (float) Math.toDegrees(Math.atan2(-dx, dz));
+				float rev = net.minecraft.util.Mth.wrapDegrees(fwd + 180F);
+				boolean back = Math.abs(net.minecraft.util.Mth.wrapDegrees(rev - getYRot())) <= Math.abs(net.minecraft.util.Mth.wrapDegrees(fwd - getYRot()));
+				float want = back ? rev : fwd;
+				float err = Math.abs(net.minecraft.util.Mth.wrapDegrees(want - getYRot()));
+				if (err > 4F && Math.abs(speed()) < 0.3) {
+					pivot(level, want, PIVOT);
+					if (turnBlocked > 200) {
+						stopAuto("AUTO STOPPED: no room to turn for lane " + (lane + 1));
+						return Drive.STAND;
+					}
+					status = "AUTO: turning for lane " + (lane + 1);
+					return Drive.STAND;
+				}
+				pivot(level, want, 1F);
+				if (inTheWay(level, !back)) {
+					autoWaiting = true;
+					status = "AUTO: waiting: something in its way";
+					return Drive.STAND;
+				}
+				if (back && dropBehind(level)) {
+					stopAuto("AUTO STOPPED: a drop behind it");
+					return Drive.STAND;
+				}
+				autoWaiting = false;
+				autoCap = Math.max(0.3, Math.min(BACK_SPEED, dist * 0.6));
+				if (stuck()) {
+					stopAuto("AUTO STOPPED: stuck on its way to lane " + (lane + 1));
+					return Drive.STAND;
+				}
+				status = "AUTO: over to lane " + (lane + 1);
+				return new Drive(back ? -1 : 1, 0, false);
+			}
+			case ALIGN -> {
+				if (Math.abs(speed()) > 0.05) {
+					return Drive.STAND;
+				}
+				if (!pivot(level, pushYaw, PIVOT)) {
+					if (turnBlocked > 200) {
+						stopAuto("AUTO STOPPED: no room to square up to lane " + (lane + 1));
+						return Drive.STAND;
+					}
+					status = "AUTO: squaring up to lane " + (lane + 1);
+					return Drive.STAND;
+				}
+				setBlade(Blade.CARRY);
+				setSpread();
+				leg = Leg.PUSH;
+				autoCap = PitDrive.DOZING_SPEED;
+				stuckTicks = 0;
+				return Drive.STAND;
+			}
+			default -> {
+				double left = (line[2] - getX()) * fx + (line[3] - getZ()) * fz;
+				boolean ended = left <= 0.05 || status.startsWith("hard rock") || status.startsWith("blocked") || status.startsWith("at the crest");
+				if (!ended && inTheWay(level, true)) {
+					autoWaiting = true;
+					status = "AUTO: waiting: something in its way";
+					return Drive.STAND;
+				}
+				autoWaiting = false;
+				if (!ended && stuck()) {
+					ended = true;
+				}
+				if (ended) {
+					if (bladeBlocks > 0) {
+						// what it still carries is left at the area's end, as reversing in CARRY leaves it
+						int n = Loose.blocks(load);
+						spill(level, load, BlockPos.containing(local(0, 0.5, spec().length() / 2 + 1.0 + Pour.reach(n))), 0, 12, Math.min(40, 3 * n));
+						emptied();
+					}
+					setBlade(Blade.RAISED);
+					backLane = lane;
+					int lanes = laneCount();
+					if (lanes > 1) {
+						if (lane + laneStep < 0 || lane + laneStep >= lanes) {
+							laneStep = -laneStep;   // across the area and back: each sweep across is a pass
+							passes++;
+						}
+						lane += laneStep;
+					} else {
+						passes++;
+					}
+					leg = Leg.BACK;
+					stuckTicks = 0;
+					autoCap = 0;   // it stops at the lane's end before it reverses
+					return Drive.STAND;
+				}
+				pivot(level, pushYaw, 1F);
+				autoCap = left < 1.5 ? 0.4 : PitDrive.DOZING_SPEED;   // it dozes at 3.5 km/h, loaded or not
+				return new Drive(1, 0, false);
+			}
+		}
+	}
+
+	/** No headway for 10 s while it means to move. */
+	private boolean stuck() {
+		stuckTicks = Math.abs(speed()) < 0.05 ? stuckTicks + 1 : 0;
+		return stuckTicks > 200;
+	}
+
+	/**
+	 * Reversing, a crest just behind its tail: a drop of {@link DryStack#CREST_DROP} m or more, as a truck's crest (backing off a pile
+	 * or a lift's 1 or 2 m edge is not one).
+	 */
+	private boolean dropBehind(ServerLevel level) {
+		dev.wildcatter.tailings.pit.Crest.Ground ground = HaulTruckEntity.crestGround(level);
+		int y = (int) Math.floor(getY() + 0.01);
+		Vec3 tail = local(0, 0, -(spec().length() / 2 + 1.0));
+		int x = (int) Math.floor(tail.x), z = (int) Math.floor(tail.z);
+		for (int d = 1; d <= DryStack.CREST_DROP; d++) {
+			if (ground.solid(x, y - d, z)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public Component readout() {
 		return Component.literal(super.readout().getString() + "; blade " + blade.name() + describeSetting() + ", " + bladeBlocks + " of " + BLADE_BLOCKS + " blocks");
@@ -471,6 +882,20 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		bermHigh = Math.max(0, Math.min(2, input.getIntOr("berm_high", 1)));
 		bladeBlocks = input.getIntOr("blade_blocks", 0);
 		setLift(blade.lift());
+		int[] area = input.getIntArray("auto_area").orElse(new int[0]);
+		autoArea = area.length == 4 ? area : null;
+		autoOn = autoArea != null && input.getBooleanOr("auto_on", false);
+		pushYaw = input.getFloatOr("push_yaw", 0F);
+		lane = input.getIntOr("auto_lane", 0);
+		backLane = input.getIntOr("auto_back_lane", lane);
+		laneStep = input.getIntOr("auto_step", 1) < 0 ? -1 : 1;
+		passes = input.getIntOr("auto_passes", 0);
+		try {
+			leg = Leg.valueOf(input.getStringOr("auto_leg", "TO_LANE"));
+		} catch (IllegalArgumentException ex) {
+			leg = Leg.TO_LANE;
+		}
+		compactedBlocks = input.getIntOr("compacted", 0);
 	}
 
 	@Override
@@ -480,5 +905,16 @@ public class TrackDozerEntity extends PitVehicleEntity {
 		output.putString("grade", grade.name());
 		output.putInt("berm_high", bermHigh);
 		output.putInt("blade_blocks", bladeBlocks);
+		if (autoArea != null) {
+			output.putIntArray("auto_area", autoArea);
+			output.putBoolean("auto_on", autoOn);
+			output.putFloat("push_yaw", pushYaw);
+			output.putInt("auto_lane", lane);
+			output.putInt("auto_back_lane", backLane);
+			output.putInt("auto_step", laneStep);
+			output.putInt("auto_passes", passes);
+			output.putString("auto_leg", leg.name());
+		}
+		output.putInt("compacted", compactedBlocks);
 	}
 }

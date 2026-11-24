@@ -555,6 +555,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	private int flaskStepSent = -1;
 	private String flaskRockSent = "";
 	private double cycleSentAt = Double.NaN;
+	/** A tailings filter held at the end of its fill till its chambers hold a full batch (Tim, 2026-11-23); sent to the client. */
+	private boolean pressHeld;
+	/** A load-out bin's level (0 to 1) as last sent to the client, and on the server the step (a 100th) last sent (Tim, 2026-11-23). */
+	private float binFill;
+	private int binStepSent = -1;
 	private Motor motor;
 	/** The second pinion's motor of a twin-pinion mill (sag-mill-line.md, P7b), its box on the west face 4 m south of the main cell; else null. */
 	private @Nullable Motor motor2;
@@ -647,6 +652,9 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		}
 		intake();
 		stage().tick(this);
+		if (machine() == Machine.LOADOUT_BIN) {
+			showBin();
+		}
 		runOn = demand ? dev.wildcatter.tailings.plant.PlantRates.MOTOR_RUN_ON_SECONDS * 20 : Math.max(0, runOn - 1);
 		soundHold = running() && demand ? SOUND_HOLD_TICKS : Math.max(0, soundHold - 1);
 		boolean now = soundHold > 0;
@@ -727,6 +735,11 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			tag.putDouble("dry_kg", dryKg);
 			tag.putInt("cycles", cycles);
 			tag.putDouble("cycle_ticks", dev.wildcatter.tailings.pit.DryStack.CYCLE_SECONDS * 20.0 / fast);
+			tag.putBoolean("press_held", pressHeld);
+		}
+		if (machine() == Machine.LOADOUT_BIN) {
+			// the bin's level drawn on it (Tim, 2026-11-23)
+			tag.putFloat("bin_fill", (float) Math.min(1, dryKg / dev.wildcatter.tailings.pit.DryStack.BIN_KG));
 		}
 		return tag;
 	}
@@ -802,7 +815,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 			return -1;
 		}
 		double ticks = cycle;
-		if (moving && !Double.isNaN(cycleSentAt)) {
+		if (moving && !pressHeld && !Double.isNaN(cycleSentAt)) {
 			ticks += Math.max(0, Math.min(200, now - cycleSentAt));
 		}
 		return Math.min(1, ticks / cycleTicksSent) * dev.wildcatter.tailings.pit.DryStack.CYCLE_SECONDS;
@@ -956,6 +969,40 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 	public void setCycle(double ticks) {
 		cycle = ticks;
 		setChanged();
+	}
+
+	/** A tailings filter held at the end of its fill, waiting for a full batch. */
+	public boolean pressHeld() {
+		return pressHeld;
+	}
+
+	public void setPressHeld(boolean held) {
+		if (held != pressHeld) {
+			pressHeld = held;
+			setChanged();
+			if (level != null && !level.isClientSide()) {
+				level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+			}
+		}
+	}
+
+	/** On the client: a load-out bin's level, 0 to 1, as last sent; on the server, its level now. */
+	public float binFill() {
+		return level != null && !level.isClientSide() ? (float) Math.min(1, dryKg / dev.wildcatter.tailings.pit.DryStack.BIN_KG) : binFill;
+	}
+
+	/** On the server: the level step (a 100th of the bin) last sent to the client, -1 before any (tests). */
+	public int binStepSent() {
+		return binStepSent;
+	}
+
+	/** On the server: tells the client a load-out bin's level when it moves by a 100th of the bin (Tim, 2026-11-23). */
+	private void showBin() {
+		int step = (int) Math.round(Math.min(1, dryKg / dev.wildcatter.tailings.pit.DryStack.BIN_KG) * 100);
+		if (step != binStepSent) {
+			binStepSent = step;
+			level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+		}
 	}
 
 	/** Cake drops so far. */
@@ -1842,6 +1889,7 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		output.putDouble("dry_kg", dryKg);
 		output.putDouble("cake_out", cakeOut);
 		output.putDouble("cycle", cycle);
+		output.putBoolean("press_held", pressHeld);
 		output.putDouble("water_out", waterOut);
 		output.putDouble("water_returned", waterReturned);
 		output.putInt("cycles", cycles);
@@ -1916,6 +1964,8 @@ public class PlantBlockEntity extends BlockEntity implements CircuitPart, dev.wi
 		cycleSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		raiseFast = Math.max(1, input.getIntOr("raise_fast", 1));
 		flaskFill = input.getFloatOr("flask_fill", 0f);
+		pressHeld = input.getBooleanOr("press_held", false);
+		binFill = input.getFloatOr("bin_fill", 0f);
 		flaskRock = input.getStringOr("flask_rock", "");
 		raiseSentAt = level != null && level.isClientSide() ? level.getGameTime() : Double.NaN;
 		waterOut = input.getDoubleOr("water_out", 0);

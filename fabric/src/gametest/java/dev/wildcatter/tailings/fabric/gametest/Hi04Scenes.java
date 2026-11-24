@@ -71,7 +71,11 @@ import net.minecraft.world.phys.Vec3;
  * load-out, filled under the gate, round its loop to a DUMP POINT on the stack's lift (a paddock); it tips; the dozer, set to SPREAD,
  * pushes the load to the lift's edge and lays it as a 1 m lift;</li>
  * <li>the dozer and the trucks burn their own diesel (tanks filled at the start); the press, the thickener and the gate run on the set;
- * the dozer is driven by the scene's keys, as a player drives it (it has no autopilot); a villager stands at its blade for scale.</li>
+ * the dozer is driven by the scene's keys, as a player drives it, except in hi04_auto, where it runs itself on its autopilot in an
+ * area marked by two DOZE AREA stakes; a villager stands at its blade for scale;</li>
+ * <li>Tim's decisions of 2026-11-23: hi04_auto (the autopilot spreading and compacting), hi04_slump (a dozer pass compacts the lift's
+ * edge; a layer laid on it stands, on the loose edge beside it slumps), hi04_bin (the bin's level in its windows falling as the gate
+ * fills a truck); the press drops only full 15 t batches (the game holds it at its fill now, not the scene).</li>
  * </ul>
  * Filmed at 2880 x 1620 with a readout card read each tick. HI04_SHOTS=a,b films only those.
  */
@@ -121,16 +125,6 @@ final class Hi04Scenes {
 	private double engineKw;
 	private String lastStatus = "";
 	private String note = "";
-	/**
-	 * The press is sized for 60 t/h and the thickener works the plant's 50 t/h, so with no buffer a batch ends at 12.5 t. As a plant runs
-	 * a press bigger than its feed, the scene holds it (its selector to OFF) once it has closed after each drop, until the thickener's
-	 * cone holds its 20 t of underflow, then runs it again: every batch after that is a full 15 t cake.
-	 */
-	private boolean pressHeld;
-	private volatile int fullBatch = -1;
-	private int heldAfter = -1;
-	/** The thickener's cone: the underflow it holds for the press (DryStackStages.UNDERFLOW_HOLD). */
-	private static final double CONE_KG = 20_000;
 
 	private static final Mineral CU = Mineral.COPPER;
 	/** Copper in a kg of the fines slurry (as Rtm08Scenes.RICH); the tails carry the quarter flotation leaves. */
@@ -190,6 +184,9 @@ final class Hi04Scenes {
 				loadoutFilm();
 				stackFilm();
 				spreadFilm();
+				slumpFilm();
+				autoFilm();
+				binFilm();
 				powerFilm();
 				pressFilm();
 				dropFilm();
@@ -929,7 +926,6 @@ final class Hi04Scenes {
 			s1.out().offer(Product.TAILS_SLURRY, 400 - s1.out().held(Product.TAILS_SLURRY), tails());   // as if from the flotation bank
 		}
 		solids(thick);   // the underflow's solids as last seen, so the card has it from the first frame
-		holdPress(level);
 		for (BlockPos at : tanks) {
 			if (level.getBlockEntity(at) instanceof DayTankBlockEntity tank) {
 				drained += tank.waterLevel() * 1000;
@@ -1039,26 +1035,6 @@ final class Hi04Scenes {
 		return st.length() > 30 ? st.substring(0, 30) : st;
 	}
 
-	/** Once a second: hold the press after it has closed from a drop until the thickener's cone is full, then run it (see pressHeld). */
-	private void holdPress(ServerLevel level) {
-		if (filter == null || thick == null) {
-			return;
-		}
-		if (pressHeld) {
-			if (thick.out().held(Product.TAILS_SLURRY) >= CONE_KG - 300) {
-				setHoa(filter, "HAND");
-				pressHeld = false;
-				fullBatch = filter.cycles();
-				log(String.format(Locale.ROOT, "press run again: the cone holds %.1f t of underflow", thick.out().held(Product.TAILS_SLURRY) / 1000));
-			}
-		} else if (filter.cycles() >= 1 && filter.cycles() > heldAfter && filter.cycle() / 20 >= 25 && filter.cycle() / 20 < 100) {
-			setHoa(filter, "OFF");
-			pressHeld = true;
-			heldAfter = filter.cycles();
-			log(String.format(Locale.ROOT, "press held after drop %d until the cone fills (%.1f t in it)", filter.cycles(), thick.out().held(Product.TAILS_SLURRY) / 1000));
-		}
-	}
-
 	private final Map<BlockPos, Double> lastSolids = new java.util.HashMap<>();
 
 	/**
@@ -1089,9 +1065,10 @@ final class Hi04Scenes {
 
 	private String[] pressCard(ServerLevel level) {
 		int sec = (int) (filter.cycle() / 20);
+		String phase = filter.pressHeld() ? "filling: waiting for a full batch" : DryStack.phase(sec);
 		List<String> l = new ArrayList<>(List.of("^TAILINGS FILTER · BATCH PRESS", rd(filter, "Filter press", "150 kW"),
-				String.format(Locale.ROOT, "  cycle %d:%02d of 15:00 (%s)", sec / 60, sec % 60, DryStack.phase(sec)), String.format(Locale.ROOT, "  in the press: %.1f t", filter.dryKg() / 1000),
-				"Cakes dropped: " + filter.cycles() + " (up to 15 t each, 85 % solids)", String.format(Locale.ROOT, "Load-out bin under it: %.1f t (holds 400 t)", bin.dryKg() / 1000),
+				String.format(Locale.ROOT, "  cycle %d:%02d of 15:00 (%s)", sec / 60, sec % 60, phase), String.format(Locale.ROOT, "  in the press: %.1f t", filter.dryKg() / 1000),
+				"Cakes dropped: " + filter.cycles() + " (15 t each, 85 % solids)", String.format(Locale.ROOT, "Load-out bin under it: %.1f t (holds 400 t)", bin.dryKg() / 1000),
 				setLine(level, 0, "Diesel set")));
 		if (!note.isEmpty()) {
 			l.add(note);
@@ -1398,17 +1375,12 @@ final class Hi04Scenes {
 		if (!wanted("hi04_press")) {
 			return;
 		}
-		// a full batch (run again after the hold with the thickener's cone full), squeezing
-		boolean ok = waitFor(40000, level -> fullBatch >= 0 && filter.cycles() == fullBatch && !pressHeld && filter.cycle() / 20 >= 150 && filter.cycle() / 20 <= 260);
+		// squeezing a batch (every batch is a full 15 t: the press holds at its fill till it is)
+		boolean ok = waitFor(40000, level -> !filter.pressHeld() && filter.dryKg() > DryStack.BATCH_KG - 1 && filter.cycle() / 20 >= 150 && filter.cycle() / 20 <= 260);
 		log("press squeezing a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		// above the press's floor, east of it, down its length from the fixed head to the moving tail
-		film("hi04_press", 1000, move(qcam(30, 25, 60, 20, 21.5, 64), qcam(31, 24.5, 76, 20, 21.5, 74), 1000), (level, k) -> {
-			if (k == PAD + 10) {
-				note = HELD;
-			}
-			card(pressCard(level));
-		});
+		film("hi04_press", 1000, move(qcam(30, 25, 60, 20, 21.5, 64), qcam(31, 24.5, 76, 20, 21.5, 74), 1000), (level, k) -> card(pressCard(level)));
 		note = "";
 		showCard(false);
 	}
@@ -1544,6 +1516,163 @@ final class Hi04Scenes {
 		});
 	}
 
+	// ---- Tim's decisions of 2026-11-23: compaction and the slump, the autopilot, the bin's level ---------------------------------------
+
+	private int standing(ServerLevel level, int x0, int x1) {
+		int n = 0;
+		for (int x = x0; x <= x1; x++) {
+			if (level.getBlockState(d(x, 0, LIFT_EDGE + 1)).is(TailingsBlocks.DRY_TAILS)) {
+				n++;
+			}
+		}
+		return n;
+	}
+
+	/**
+	 * hi04_slump: driven by the scene's keys along the lift's edge, its blade raised, the dozer's tracks compact the loose cake (pale, in
+	 * clods) to compacted (dark, smooth); then the scene lays a row of cake flush on the edge where it passed and on the loose edge to the
+	 * west: on the loose edge the row slumps off, on the compacted edge it stands.
+	 */
+	private void slumpFilm() {
+		placeDozer(QX + 4.5, LIFT_EDGE + 3.6, 270, TrackDozerEntity.Blade.RAISED);
+		showCard(true);
+		int[] st = {0, -1};
+		film("hi04_slump", 1300, via(qcam(2, 10, -47, 4, -1, -34), qcam(2, 6, -48, 2, -1, -36), qcam(2, 4, -47, 2, -0.5, -36), 1300), (level, k) -> {
+			TrackDozerEntity dz = dozer(level);
+			if (k == PAD) {
+				keys(dz, FORWARD);
+				note = "-Driven by the scene's keys, blade raised";
+				event("dozer forward along the edge");
+				st[0] = 1;
+			}
+			if (st[0] == 1 && dz != null && dz.getX() - q.getX() >= 17) {
+				keys(dz, Input.EMPTY);
+				st[0] = 2;
+				st[1] = k;
+				event("dozer stopped: compacted " + dz.compactedBlocks());
+			}
+			if (st[0] == 2 && k == st[1] + 100) {
+				for (int x = -8; x <= -4; x++) {
+					level.setBlock(d(x, 0, LIFT_EDGE + 1), TailingsBlocks.DRY_TAILS.defaultBlockState(), Block.UPDATE_ALL);
+				}
+				for (int x = 8; x <= 12; x++) {
+					level.setBlock(d(x, 0, LIFT_EDGE + 1), TailingsBlocks.DRY_TAILS.defaultBlockState(), Block.UPDATE_ALL);
+				}
+				note = "-Rows laid by the scene, as a truck tips";
+				event("rows laid on the loose and the compacted edge");
+				st[0] = 3;
+			}
+			if (st[0] == 3 && k > st[1] + 420) {
+				endMove = true;
+			}
+			card("^DRY STACK · LOOSE AND COMPACTED CAKE", dz == null ? "Dozer: -" : "Dozer: compacted " + dz.compactedBlocks() + " blocks under its tracks",
+					st[0] >= 3 ? "Row on the loose edge: " + standing(level, -8, -4) + " of 5 standing" : "West: loose, as laid",
+					st[0] >= 3 ? "Row on the compacted edge: " + standing(level, 8, 12) + " of 5 standing" : "East: compacted by its pass", note);
+		});
+		note = "";
+		showCard(false);
+		server.runOnServer(srv -> log("slump: loose row " + standing(srv.overworld(), -8, -4) + " of 5 standing, compacted row " + standing(srv.overworld(), 8, 12) + " of 5"));
+	}
+
+	/**
+	 * hi04_auto: two DOZE AREA stakes at the corners of a 20 x 34 m area over the lift's north part and past its edge; started as the
+	 * survey book starts it, the dozer works the area by itself: lanes a blade wide, pushing north and spreading at the lift's edge, back
+	 * in reverse to the next lane, its tracks compacting the lift. Two tipped piles are laid by the scene.
+	 */
+	private void autoFilm() {
+		placeDozer(QX + 16.5, -16.5, 180, TrackDozerEntity.Blade.RAISED);
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			BlockPos a = d(14, 0, -12), b = d(33, -1, -45);
+			for (BlockPos at : List.of(a, b)) {
+				level.setBlock(at, TailingsBlocks.SURVEY_STAKE.defaultBlockState().setValue(SurveyStakeBlock.KIND, StopKind.DOZE_AREA), Block.UPDATE_ALL);
+			}
+			int[][] piles = {{20, 23, -25, -22}, {28, 32, -30, -27}};
+			for (int[] p : piles) {
+				for (int x = p[0]; x <= p[1]; x++) {
+					for (int z = p[2]; z <= p[3]; z++) {
+						level.setBlock(d(x, 0, z), TailingsBlocks.DRY_TAILS.defaultBlockState(), Block.UPDATE_ALL);
+						if (x > p[0] && x < p[1] && z > p[2] && z < p[3]) {
+							level.setBlock(d(x, 1, z), TailingsBlocks.DRY_TAILS.defaultBlockState(), Block.UPDATE_ALL);
+						}
+					}
+				}
+			}
+			TrackDozerEntity dz = dozer(level);
+			log("autopilot: " + dz.setAutoArea(level, List.of(a, b)) + "; " + dz.status());
+		});
+		showCard(true);
+		int[] lastLane = {-1};
+		film("hi04_auto", 2600, move(qcam(5, 11, -46, 20, -1, -28), qcam(7, 10, -40, 22, -1, -28), 2600), (level, k) -> {
+			TrackDozerEntity dz = dozer(level);
+			if (k == PAD) {
+				note = "-Piles laid by the scene, as trucks tip them";
+			}
+			if (dz != null && dz.lane() != lastLane[0]) {
+				lastLane[0] = dz.lane();
+				event("autopilot lane " + (dz.lane() + 1) + ", pass " + (dz.passes() + 1));
+			}
+			card(dozerCard(level, k, dz == null ? "" : String.format(Locale.ROOT, "Autopilot: lane %d of %d, pass %d", dz.lane() + 1, dz.lanes(), dz.passes() + 1),
+					"No one in the cab: two DOZE AREA stakes", dz == null ? "" : "Compacted: " + dz.compactedBlocks() + " blocks under its tracks"));
+		});
+		note = "";
+		showCard(false);
+		server.runOnServer(srv -> {
+			TrackDozerEntity dz = dozer(srv.overworld());
+			log("autopilot after the film: " + dz.status() + "; lane " + (dz.lane() + 1) + ", pass " + (dz.passes() + 1) + ", compacted " + dz.compactedBlocks());
+			dz.stopAuto("autopilot stopped");
+		});
+	}
+
+	/** hi04_bin: the bin's sight windows as the gate fills a truck under it: the level falls (the bin stocked before filming). */
+	private void binFilm() {
+		if (!wanted("hi04_bin")) {
+			return;
+		}
+		server.runOnServer(srv -> {
+			ServerLevel level = srv.overworld();
+			bin.setDryKg(Math.max(bin.dryKg(), 160_000));
+			HaulTruckEntity t = TailingsEntities.HAUL_TRUCK.create(level, EntitySpawnReason.COMMAND);
+			t.setPos(q.getX() + 19.5, q.getY(), q.getZ() + 34);
+			t.setYRot(0);
+			t.setFuel(t.tank());
+			level.addFreshEntity(t);
+			log("truck for the bin film: " + t.takeRoute(level, truckRoute));
+			truckId = t.getUUID();
+		});
+		ticks(20);
+		boolean near = waitFor(4400, level -> {
+			HaulTruckEntity t = truck(level);
+			return t == null || t.status().startsWith("loading") || t.status().startsWith("waiting to load");
+		});
+		log("bin film: truck at the gate " + near);
+		showCard(true);
+		int[] full = {-1};
+		film("hi04_bin", 2000, move(qcam(31, 14.5, 71, 25, 14.5, 68), qcam(30.5, 14.3, 70, 25, 14.5, 68), 2000), (level, k) -> {
+			HaulTruckEntity t = truck(level);
+			if (k == PAD + 10) {
+				note = "-Bin stocked before filming";
+			}
+			if (t != null && full[0] < 0 && t.load().room() <= 0) {
+				full[0] = k;
+				event("truck full; bin " + f1(bin.dryKg() / 1000) + " t");
+			}
+			if (full[0] > 0 && k > full[0] + 60) {
+				endMove = true;
+			}
+			card("^LOAD-OUT BIN · 400 T", String.format(Locale.ROOT, "Holds: %.1f t (%.0f %%)", bin.dryKg() / 1000, bin.dryKg() / DryStack.BIN_KG * 100),
+					"Windows: a mark every 100 t", frame.running() ? "+Gate: filling the truck at 2 t/s" : "Gate: waiting for a truck", note);
+		});
+		note = "";
+		showCard(false);
+		server.runOnServer(srv -> {
+			HaulTruckEntity t = truck(srv.overworld());
+			if (t != null) {
+				t.discard();
+			}
+		});
+	}
+
 	/** hi04_power: the diesel set west of the road and its run to the press and the gate. */
 	private void powerFilm() {
 		showCard(true);
@@ -1553,23 +1682,23 @@ final class Hi04Scenes {
 		showCard(false);
 	}
 
-	private static final String HELD = "-Held by the scene till the thickener's cone is full";
-
 	/** hi04_drop: the end of a cycle in real time: the press opens and drops its cake into the bin. */
 	private void dropFilm() {
 		if (!wanted("hi04_drop")) {
 			return;   // it waits up to a whole press cycle for the drop
 		}
 		// the last plates shifted at the head end, the drop, and the press closing (the hold comes 25 s into the next cycle)
-		boolean ok = waitFor(60000, level -> fullBatch >= 0 && filter.cycles() == fullBatch && !pressHeld && filter.cycle() / 20 >= 866);
+		boolean ok = waitFor(60000, level -> filter.cycles() >= 1 && !filter.pressHeld() && filter.cycle() / 20 >= 851);
 		log("press near the end of a full batch: " + ok + ", " + filter.status());
 		showCard(true);
 		int[] seen = {-1};
-		// from just south-east of the head at the plates' height, looking into the last chambers as they open (the head behind them)
-		film("hi04_drop", 1000, move(qcam(28, 23, 64, 20, 21.5, 61.2), qcam(27.5, 22.8, 62.8, 20, 21.4, 61.2), 1000), (level, k) -> {
+		// from just above the fixed head (the south end; the tail and its ram are at the north end, over the bin), looking steeply down
+		// into the last chambers as the gap reaches the head: the lumps falling and the cake gathering in the trough under the opened
+		// chambers (fix2: from the side the trough's wall hid the falling cake, and from far off the lumps read only as specks)
+		// straight down over the gap as it travels to the head (a 0.5 m gap between 1.7 m plates shows only from near overhead)
+		film("hi04_drop", 1300, move(qcam(20, 27.2, 77.6, 20, 20.6, 77.9), qcam(20, 27.2, 79.4, 20, 20.6, 79.7), 960), (level, k) -> {
 			if (seen[0] < 0) {
 				seen[0] = filter.cycles();
-				note = HELD;
 			}
 			if (filter.cycles() > seen[0] && !note.startsWith("+")) {
 				note = "+The cake dropped into the bin";

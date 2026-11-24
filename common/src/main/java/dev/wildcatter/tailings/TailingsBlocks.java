@@ -185,7 +185,7 @@ public final class TailingsBlocks {
 			.sound(SoundType.METAL).noOcclusion().noLootTable()));
 	public static final BlockEntityType<dev.wildcatter.tailings.block.BatteryChargerBlockEntity> BATTERY_CHARGER_ENTITY = new BlockEntityType<>(dev.wildcatter.tailings.block.BatteryChargerBlockEntity::new, Set.of(BATTERY_CHARGER));
 	/** The tailings filter's cake as a placed block (open-pit-p4-dry-stack.md): 1 m³ at 1.8 t, falling like sand. */
-	public static final Block DRY_TAILS = block("dry_tails", props -> new net.minecraft.world.level.block.ColoredFallingBlock(new net.minecraft.util.ColorRGBA(0x9a8f7f),
+	public static final Block DRY_TAILS = block("dry_tails", props -> new dev.wildcatter.tailings.block.DryTailsBlock(
 			props.mapColor(MapColor.TERRACOTTA_LIGHT_GRAY).strength(0.6F).sound(SoundType.SAND)));
 	/** A haul road's survey stake (open-pit.md, P2a): no collision, so trucks drive over it. */
 	public static final Block SURVEY_STAKE = block("survey_stake", props -> new dev.wildcatter.tailings.block.SurveyStakeBlock(props.mapColor(MapColor.COLOR_ORANGE)
