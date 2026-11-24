@@ -50,10 +50,12 @@ import net.minecraft.world.level.block.state.BlockState;
  */
 final class PitBlastGameTests {
 	static final String[] SCENES = {"pit_drill_pattern", "pit_drill_short", "pit_charge", "pit_prime_stem", "pit_blast", "pit_blast_blowout",
-			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc", "pit_blast_flyrock", "pit_blast_reach", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc"};
+			"pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc", "pit_blast_flyrock", "pit_blast_reach", "pit_drill_built", "pit_drill_parts_run", "pit_drill_plc",
+			"pit_muck_shape", "pit_cable_drape", "pit_drill_hose"};
 	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_drill_pattern", 6000), Map.entry("pit_drill_short", 1200), Map.entry("pit_charge", 2400),
 			Map.entry("pit_blast", 1200), Map.entry("pit_blast_blowout", 1200), Map.entry("pit_blast_boxcut", 1200), Map.entry("pit_misfire", 1200),
-			Map.entry("pit_blast_plc", 1200), Map.entry("pit_blast_flyrock", 1200), Map.entry("pit_blast_reach", 1200), Map.entry("pit_drill_built", 400), Map.entry("pit_drill_parts_run", 4000), Map.entry("pit_drill_plc", 6000));
+			Map.entry("pit_blast_plc", 1200), Map.entry("pit_blast_flyrock", 1200), Map.entry("pit_blast_reach", 1200), Map.entry("pit_drill_built", 400), Map.entry("pit_drill_parts_run", 4000), Map.entry("pit_drill_plc", 6000),
+			Map.entry("pit_muck_shape", 200), Map.entry("pit_cable_drape", 40), Map.entry("pit_drill_hose", 40));
 	static final Map<String, Integer> PADDING = Map.ofEntries(Map.entry("pit_drill_pattern", 80), Map.entry("pit_blast", 160), Map.entry("pit_blast_blowout", 140),
 			Map.entry("pit_blast_boxcut", 100), Map.entry("pit_misfire", 120), Map.entry("pit_blast_guard", 120), Map.entry("pit_blast_plc", 120), Map.entry("pit_blast_flyrock", 140), Map.entry("pit_blast_reach", 200),
 			Map.entry("pit_charge", 60), Map.entry("pit_drill_built", 80), Map.entry("pit_drill_parts_run", 80), Map.entry("pit_drill_plc", 80));
@@ -69,6 +71,7 @@ final class PitBlastGameTests {
 			case "pit_blast_reach" -> new int[] {-2, 4, -2, 12};
 			case "pit_blast_blowout" -> new int[] {-2, 4, -2, 6};
 			case "pit_blast_boxcut", "pit_misfire", "pit_blast_guard", "pit_blast_plc" -> new int[] {-1, 4, -1, 6};
+			case "pit_muck_shape", "pit_cable_drape", "pit_drill_hose" -> new int[] {0, 1, 0, 1};
 			default -> PitBigGameTests.reach(scene);
 		};
 	}
@@ -463,6 +466,20 @@ final class PitBlastGameTests {
 		check(helper, machine.fire().startsWith("SIREN"), "it fires");
 		machine.sirenNow();
 		helper.startSequence()
+				// its fragments are drawn 0.5-1.1 m, so they read from outside the zone (Heavy Iron fix of 2026-11-23)
+				.thenWaitUntil(() -> check(helper, !helper.getLevel().getEntitiesOfClass(dev.wildcatter.tailings.entity.FlyrockEntity.class,
+						new net.minecraft.world.phys.AABB(collar).inflate(120)).isEmpty(), "its fragments should be drawn"))
+				.thenExecute(() -> {
+					int n = 0;
+					for (var e : helper.getLevel().getEntitiesOfClass(dev.wildcatter.tailings.entity.FlyrockEntity.class, new net.minecraft.world.phys.AABB(collar).inflate(120))) {
+						for (var arc : e.arcs()) {
+							n++;
+							check(helper, arc.size() >= 0.5 - 1e-6 && arc.size() <= Blasting.FRAGMENT_MAX_M + 1e-6 || arc.size() == (float) Blasting.BLOCK_FLYROCK_M,
+									"a fragment drawn 0.5 m or more, to be seen at range: " + arc.size());
+						}
+					}
+					check(helper, n >= Blasting.FACE_FRAGMENTS + Blasting.COLLAR_FRAGMENTS, "every fragment drawn: " + n);
+				})
 				.thenWaitUntil(() -> check(helper, !machine.firing() && machine.lastShot() != null, "the shot should fire: " + machine.status()))
 				.thenExecute(() -> {
 					Shot shot = machine.lastShot();
@@ -762,5 +779,131 @@ final class PitBlastGameTests {
 					System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_drill_plc: %d pulses, DONE, POWER up to %.1f mA; %s%n", house.readPulses(base + 3), mostMa[0], d.status());
 				})
 				.thenSucceed();
+	}
+
+	// ---- Heavy Iron fixes of 2026-11-23: the muck's shape, the trailing cable's drape, the drill's hose ---------------------------------
+
+	/**
+	 * A small pile: a 3 x 3 layer of muck, one block on its middle. The middle of the layer, under the block, is a whole cube; its edges
+	 * and corners are on the surface, rounded off toward their open sides only; the top block is open all round. The collision stays a
+	 * whole cube (the settle rule and the buckets work in cells); the shape it is drawn and lit by is lowered. A block dropped on a
+	 * surface block closes it; one dug off opens its neighbours again.
+	 */
+	static void muckShape(GameTestHelper helper) {
+		fill(helper, Blocks.STONE, 0, 6, 0, 0, 0, 6);
+		fill(helper, TailingsBlocks.MUCK, 2, 4, 1, 1, 2, 4);
+		helper.setBlock(new BlockPos(3, 2, 3), TailingsBlocks.MUCK.defaultBlockState());
+		ServerLevel level = helper.getLevel();
+		helper.startSequence()
+				.thenIdle(10)
+				.thenExecute(() -> {
+					BlockState under = helper.getBlockState(new BlockPos(3, 1, 3));
+					BlockState top = helper.getBlockState(new BlockPos(3, 2, 3));
+					BlockState corner = helper.getBlockState(new BlockPos(2, 1, 2));
+					BlockState edge = helper.getBlockState(new BlockPos(3, 1, 2));
+					check(helper, under.getBlock() == TailingsBlocks.MUCK && !under.getValue(dev.wildcatter.tailings.block.MuckBlock.UP), "under the top block: a whole cube: " + under);
+					check(helper, top.getValue(dev.wildcatter.tailings.block.MuckBlock.UP) && top.getValue(dev.wildcatter.tailings.block.MuckBlock.NORTH)
+							&& top.getValue(dev.wildcatter.tailings.block.MuckBlock.EAST) && top.getValue(dev.wildcatter.tailings.block.MuckBlock.SOUTH)
+							&& top.getValue(dev.wildcatter.tailings.block.MuckBlock.WEST), "the top block: open all round: " + top);
+					check(helper, corner.getValue(dev.wildcatter.tailings.block.MuckBlock.UP) && corner.getValue(dev.wildcatter.tailings.block.MuckBlock.NORTH)
+							&& corner.getValue(dev.wildcatter.tailings.block.MuckBlock.WEST) && !corner.getValue(dev.wildcatter.tailings.block.MuckBlock.SOUTH)
+							&& !corner.getValue(dev.wildcatter.tailings.block.MuckBlock.EAST), "the north-west corner: open north and west only: " + corner);
+					check(helper, edge.getValue(dev.wildcatter.tailings.block.MuckBlock.NORTH) && !edge.getValue(dev.wildcatter.tailings.block.MuckBlock.WEST)
+							&& !edge.getValue(dev.wildcatter.tailings.block.MuckBlock.EAST), "the north edge: open north only: " + edge);
+					BlockPos at = helper.absolutePos(new BlockPos(2, 1, 2));
+					check(helper, net.minecraft.world.level.block.Block.isShapeFullBlock(corner.getCollisionShape(level, at)), "its collision stays a whole cube");
+					check(helper, !net.minecraft.world.level.block.Block.isShapeFullBlock(dev.wildcatter.tailings.block.MuckBlock.shapeOf(corner))
+							&& dev.wildcatter.tailings.block.MuckBlock.shapeOf(corner).max(net.minecraft.core.Direction.Axis.Y) == 1.0
+							&& dev.wildcatter.tailings.block.MuckBlock.shapeOf(corner).min(net.minecraft.core.Direction.Axis.Y) == 0.0, "drawn lowered at its corner, whole in its middle");
+					check(helper, !corner.useShapeForLightOcclusion() || !corner.isSolidRender(), "light reaches its lowered parts");
+					// a block dropped on the corner closes it; the top block dug off opens the one under it
+					helper.setBlock(new BlockPos(2, 2, 2), TailingsBlocks.MUCK.defaultBlockState());
+					helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR.defaultBlockState());
+				})
+				.thenIdle(10)
+				.thenExecute(() -> {
+					BlockState corner = helper.getBlockState(new BlockPos(2, 1, 2));
+					BlockState under = helper.getBlockState(new BlockPos(3, 1, 3));
+					check(helper, !corner.getValue(dev.wildcatter.tailings.block.MuckBlock.UP), "covered: a whole cube again: " + corner);
+					check(helper, under.getValue(dev.wildcatter.tailings.block.MuckBlock.UP) && !under.getValue(dev.wildcatter.tailings.block.MuckBlock.NORTH),
+							"the middle, uncovered: on the surface, closed round: " + under);
+					check(helper, count(helper, TailingsBlocks.MUCK, 0, 6, 1, 2, 0, 6) == 10, "nothing rolled: the shape is only how it is drawn");
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * The trailing cable off a 12 m bench: on the bench top it lies on the ground; off the crest it hangs clear of the face and touches
+	 * down on the floor beyond the toe, never steeper than about 2 m in a metre (it ran straight down the face, 12 m in one); never under
+	 * the ground; on the floor beyond, on the ground again. Climbing a face the same, the other way.
+	 */
+	static void cableDrape(GameTestHelper helper) {
+		double[] ground = new double[40];
+		for (int i = 0; i < ground.length; i++) {
+			ground[i] = i <= 15 ? 12 : 0;   // the crest's lip at 15, the toe at 16
+		}
+		double[] hung = dev.wildcatter.tailings.pit.CableDrape.drape(ground);
+		for (int i = 0; i < ground.length; i++) {
+			check(helper, hung[i] >= ground[i] - 1e-9, "never under the ground: " + i + " " + hung[i]);
+		}
+		check(helper, hung[15] == 12 && hung[5] == 12, "on the bench top it lies on the ground");
+		check(helper, hung[16] > 8, "off the lip it hangs clear of the face: " + hung[16]);
+		check(helper, dev.wildcatter.tailings.pit.CableDrape.steepest(hung) <= 2.2, "no straight drop down the face: " + dev.wildcatter.tailings.pit.CableDrape.steepest(hung));
+		int touch = 16;
+		while (touch < ground.length && hung[touch] > 0.01) {
+			touch++;
+		}
+		check(helper, touch > 22 && touch <= 28, "it touches down beyond the toe, 7-12 m out: " + (touch - 15));
+		check(helper, hung[39] == 0 && hung[30] == 0, "on the floor beyond, it lies on the ground");
+		for (int i = 17; i < touch; i++) {
+			check(helper, hung[i] <= hung[i - 1], "it only comes down, flattening as it lands");
+		}
+		double[] up = new double[40];
+		for (int i = 0; i < up.length; i++) {
+			up[i] = ground[39 - i];
+		}
+		double[] climb = dev.wildcatter.tailings.pit.CableDrape.drape(up);
+		for (int i = 0; i < up.length; i++) {
+			check(helper, Math.abs(climb[i] - hung[39 - i]) < 1e-9, "climbing a face it hangs the same, the other way: " + i);
+		}
+		double[] flat = {0, 0.5, 1, 1, 0.5, 0, 0};
+		check(helper, java.util.Arrays.equals(dev.wildcatter.tailings.pit.CableDrape.drape(flat), flat), "over a low berm it lies on the ground");
+		System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_cable_drape: off a 12 m crest, steepest %.2f m a metre, down %.1f m out%n",
+				dev.wildcatter.tailings.pit.CableDrape.steepest(hung), (double) touch - 15);
+		helper.succeed();
+	}
+
+	/**
+	 * The drill's air hose: off the compressor's top, up the mast to its clamp, and in a loop into the rotary head's gooseneck wherever
+	 * the head is. The loop hangs lower as the head comes down, keeps its length while it hangs free, and never goes below the
+	 * compressor's top.
+	 */
+	static void drillHose(GameTestHelper helper) {
+		double lastBottom = Double.MAX_VALUE;
+		for (double lift = 0; lift <= 1.0001; lift += 0.125) {
+			double[] p = dev.wildcatter.tailings.pit.DrillHose.points(lift);
+			int n = p.length;
+			double top = dev.wildcatter.tailings.pit.DrillHose.headTop(lift);
+			check(helper, Math.abs(p[n - 2] - (top - dev.wildcatter.tailings.pit.DrillHose.UNDER_TOP)) < 1e-9 && p[n - 1] == dev.wildcatter.tailings.pit.DrillHose.INTO_HEAD_Z,
+					"it ends in the head's gooseneck at lift " + lift + ": " + p[n - 2]);
+			check(helper, Math.abs(p[1] - 4.05) < 1e-9, "it starts on the compressor's top");
+			double lowest = Double.MAX_VALUE;
+			for (int i = 1; i < n; i += 3) {
+				lowest = Math.min(lowest, p[i]);
+			}
+			double bottom = dev.wildcatter.tailings.pit.DrillHose.loopBottom(lift);
+			check(helper, lowest >= 4.0 && bottom >= dev.wildcatter.tailings.pit.DrillHose.LOWEST, "never under the compressor's top: " + lowest);
+			check(helper, bottom <= lastBottom + 1e-9, "the loop hangs lower as the head comes down: " + bottom);
+			lastBottom = bottom;
+			if (bottom > dev.wildcatter.tailings.pit.DrillHose.LOWEST) {
+				double len = dev.wildcatter.tailings.pit.DrillHose.loopLength(p);
+				check(helper, Math.abs(len - dev.wildcatter.tailings.pit.DrillHose.LOOP) < 1.5, "hanging free it keeps its length: " + len + " at lift " + lift);
+			}
+		}
+		check(helper, dev.wildcatter.tailings.pit.DrillHose.loopBottom(0) > 10 && dev.wildcatter.tailings.pit.DrillHose.loopBottom(1) == dev.wildcatter.tailings.pit.DrillHose.LOWEST,
+				"high with the head at the top, on the compressor with it at the bottom");
+		System.out.printf(java.util.Locale.ROOT, "[tailings-test] pit_drill_hose: loop bottom %.1f m (head up) to %.1f m (head down)%n",
+				dev.wildcatter.tailings.pit.DrillHose.loopBottom(0), dev.wildcatter.tailings.pit.DrillHose.loopBottom(1));
+		helper.succeed();
 	}
 }

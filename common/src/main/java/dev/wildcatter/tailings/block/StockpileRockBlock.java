@@ -39,6 +39,7 @@ public class StockpileRockBlock extends MuckBlock {
 		}
 		// only a block on the pile's top rolls: one with something on it is held by it
 		if (!FallingBlock.isFree(level.getBlockState(pos.above()))) {
+			reshape(level, pos, state);
 			return;
 		}
 		BlockPos to = Loose.wouldRoll(level, pos);
@@ -49,6 +50,8 @@ public class StockpileRockBlock extends MuckBlock {
 				muck.set(held);
 			}
 			stir(level, pos);
+		} else {
+			reshape(level, pos, state);
 		}
 	}
 

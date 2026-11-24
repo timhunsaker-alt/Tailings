@@ -68,3 +68,47 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 `build` passes. The full NeoForge suite (with `build`, 26 min) failed one test, `pit_dozer_cut` ("it should cut 20 m: at 15.5 ...
 at the crest"), the known flaky one (ROADMAP, since 2026-11-18; this branch touches no dozer code). Run again with no change: all 306
 required tests passed. The client scenes (TAILINGS_ONLY=hi03) ran three times end to end.
+
+## Second cleanup (2026-11-23, branch `fix2-hi02-03`)
+Branch `fix2-hi02-03` (off main 105dee5e). Tim: "Let's keep fixing weak spots as we find them." Episode 3 re-filmed whole and rebuilt
+in English and Spanish; P30-P32 re-voiced (they described the camera in the zone), the rest of the narration unchanged. Footage
+notes: `videos/footage/films-hi03/NOTES.md`.
+
+### Fixed
+1. **The drill has an air hose.** The compressor's main air hose runs from the compressor's top up the front of the mast's leg to a
+   clamp 14 m up, then hangs in a loop down and back up into the rotary head. Its 16 m loop hangs lower as the head comes down the
+   mast (its bottom from 11 m with the head at the top to the compressor's top, 4.6 m, with it at the bottom). `pit/DrillHose`, drawn
+   by `PitVehicleRenderer` (drawing only). Seen in `hi03_drill`, `hi03_head` and `hi03_tram`. NeoForge scene `pit_drill_hose`.
+2. **The blast fragments read at range.** Drawn 0.5-1.1 m (were 0.3-0.7 m; real flyrock is mostly 0.1-0.5 m), each with a trail of
+   three smaller chips behind it along its arc (`Blasting.FRAGMENT_MIN_M`/`MAX_M`, `FlyrockRenderer`). Drawing only: the count (8 off
+   the face, 5 out of each collar), the arcs, the strikes and the reach are unchanged. `pit_blast_flyrock` now checks every fragment
+   is drawn 0.5 m or more.
+3. **The muck pile reads as a pile, not a staircase.** A muck (or stockpile rock) block with nothing over it is drawn as a 3 x 3 grid
+   of columns, lowered toward its open sides: an open edge's middle 5-11 px, a corner between two open sides 1-4 px, each picked at
+   random per block (weighted models), so the step edges of a 37 degree pile break up instead of running in straight lines, and the
+   heave over each hole is a lump, not a tower. Its collision stays a whole cube, so the settle rule, the buckets, the wheels and
+   every count work in cells as before; its occlusion and light follow the drawn shape. `MuckBlock` (block state `up` and the four
+   sides, set in its tick and on its neighbours' changes), `tools/models/muck_shape.py` (writes the models). NeoForge scene
+   `pit_muck_shape`.
+4. **The siren is filmed from outside the zone (Tim's decision: keep the 50 m zone, re-film the siren shot with the camera outside
+   it).** The camera stands 67-69 m behind pattern A, west of its shelter, where it sees the villager under the roof and the bench
+   beyond; FIRE with nobody in the zone starts the 10 s siren at once (FIRE 6.0 s, FIRING 16.0 s, FIRED 20.6 s). The card reads the
+   machine, "Zone to clear: 50 m; no one in it" and the camera's distance. **Re-voiced, English and Spanish** (the old lines described
+   the camera in the zone and walking out): P30 "Here the camera stands sixty-eight metres behind the pattern, outside the zone. FIRE
+   is pressed. With nobody in the zone, the siren starts at once." P31 "A siren sounds for ten seconds. Had a player been in the zone,
+   the machine would have stopped and asked for a second press, and told them every second to clear the zone or take cover." (now
+   over the blasting machine in its shelter) P32 "The villager in the shelter stands under its roof, fifty-nine metres from the
+   nearest hole." P33 unchanged. Label "Camera outside the zone". Transcribed: every word as written.
+5. **The readout card is brief evidence (rev2):** every carded shot cropped clear of it except where a figure on it is said (3 s of
+   the full frame first; 4 s for ARM's readout).
+
+### Accepted by Tim 2026-11-23
+- **The rotary head turns at 60 rpm** (decision 6): accepted.
+- **6 m of stemming** (decision 1; the collar's flyrock to 43 m, the zone the blast's 50 m): accepted.
+- **The 50 m blast zone** kept (decision 4 above).
+
+### Still weak
+- The emulsion truck's hose still hangs from its reel, not run into the hole (tried and reverted in the first pass).
+- P35 says the fragments are "drawn a little larger than real flyrock"; they are now about twice real size. Not wrong, so not
+  re-voiced.
+- The cropped shots are 1.5x enlargements of 1080p films; the drill's crops lose the top of its mast.

@@ -110,6 +110,17 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		}
 		state.cable = entity.cableHouse().map(house -> cable(entity, house, partialTick)).orElse(NO_CABLE);
 		state.ropes = state.kind == 7 ? ropes(state.yaw, state.swing, state.cycle) : state.kind == 8 ? draglineRopes(state) : NO_CABLE;
+		state.hose = state.kind == 2 ? hose(state.yaw, state.lift) : NO_CABLE;
+	}
+
+	/** The drill's air hose, from its compressor up the mast and in a loop down to its rotary head, as a line of points (DrillHose). */
+	private static float[] hose(float yaw, float lift) {
+		double[] p = dev.wildcatter.tailings.pit.DrillHose.points(lift);
+		float[] out = new float[p.length];
+		for (int i = 0; i + 2 < p.length; i += 3) {
+			put(out, i, yaw, 0, p[i], p[i + 1], p[i + 2]);
+		}
+		return out;
 	}
 
 	/**
@@ -239,11 +250,14 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 	/** The most metres of trailing cable drawn: four reels. */
 	private static final int MOST_METRES = 1600;
 	private static final float CABLE_THICK = 0.12f;
+	/** The drill's air hose: about 100 mm, drawn a little thicker to be seen on the 26 m mast. */
+	private static final float HOSE_THICK = 0.16f;
 
 	/**
 	 * Its trailing cable's points, from the entity: off the switch house's coupler, down to the ground, then a point every metre along the
-	 * straight line to the machine, lying on whatever ground is there (over a berm, down a bench's face and along the pit floor), and up to
-	 * its reel at its back (P5a; the path it has driven is counted, not drawn).
+	 * straight line to the machine, lying on whatever ground is there (over a berm, along the pit floor), hanging off a crest in a curve
+	 * that touches down beyond the toe ({@link dev.wildcatter.tailings.pit.CableDrape}), and up to its reel at its back (P5a; the path it
+	 * has driven is counted, not drawn).
 	 */
 	private static float[] cable(PitVehicleEntity entity, net.minecraft.core.BlockPos house, float partialTick) {
 		net.minecraft.world.level.Level level = entity.level();
@@ -267,12 +281,17 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		out[n++] = (float) (from.y - oy);
 		out[n++] = (float) (from.z - oz);
 		double floor = from.y;
+		double[] ground = new double[metres];
 		for (int m = 1; m <= metres; m++) {
-			double wx = from.x + dx / run * m, wz = from.z + dz / run * m;
-			floor = groundAt(level, wx, wz, floor);
-			out[n++] = (float) (wx - ox);
-			out[n++] = (float) (floor + 0.06 - oy);
-			out[n++] = (float) (wz - oz);
+			floor = groundAt(level, from.x + dx / run * m, from.z + dz / run * m, floor);
+			ground[m - 1] = floor;
+		}
+		// off a crest it hangs clear of the face and touches down beyond the toe, not straight down the face (CableDrape)
+		double[] hung = dev.wildcatter.tailings.pit.CableDrape.drape(ground);
+		for (int m = 1; m <= metres; m++) {
+			out[n++] = (float) (from.x + dx / run * m - ox);
+			out[n++] = (float) (hung[m - 1] + 0.06 - oy);
+			out[n++] = (float) (from.z + dz / run * m - oz);
 		}
 		out[n++] = (float) (rx - ox);
 		out[n++] = 1.0f;
@@ -373,6 +392,18 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 						}
 					});
 		}
+		float[] h = state.hose;
+		if (h.length >= 6) {
+			net.minecraft.client.renderer.texture.TextureAtlasSprite rubber = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
+					.getAtlasOrThrow(net.minecraft.data.AtlasIds.BLOCKS).getSprite(Identifier.withDefaultNamespace("block/black_concrete"));
+			int light = state.lightCoords;
+			collector.submitCustomGeometry(pose, net.minecraft.client.renderer.rendertype.RenderTypes.entityCutout(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS),
+					(at, v) -> {
+						for (int i = 0; i + 5 < h.length; i += 3) {
+							GantryRenderer.rod(at, v, rubber, h[i], h[i + 1], h[i + 2], h[i + 3], h[i + 4], h[i + 5], HOSE_THICK, light);
+						}
+					});
+		}
 		float[] p = state.cable;
 		if (p.length >= 6) {
 			net.minecraft.client.renderer.texture.TextureAtlasSprite sprite = net.minecraft.client.Minecraft.getInstance().getAtlasManager()
@@ -414,6 +445,8 @@ public class PitVehicleRenderer extends EntityRenderer<PitVehicleEntity, PitVehi
 		public float bucketOut;
 		public float bucketUp;
 		public float walk;
+		/** The blasthole drill's air hose, a line of points from it; empty for any other machine. */
+		public float[] hose = NO_CABLE;
 		/** The rope shovel's or dragline's ropes, pairs of points from it; empty for any other machine. */
 		public float[] ropes = NO_CABLE;
 		/** A dragline going down with a slide: degrees tipped, toward x z (a unit vector), metres dropped and slid out, and its pivot's distance out. */

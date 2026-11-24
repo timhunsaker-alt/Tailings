@@ -22,10 +22,13 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Draws a firing hole's flyrock and fragments ({@link FlyrockEntity}): each piece a small block of its rock, tumbling along its arc
- * from the hole until it lands.
+ * from the hole until it lands, with a short trail of smaller chips behind it so its flight reads from outside the zone.
  */
 public class FlyrockRenderer extends EntityRenderer<FlyrockEntity, FlyrockRenderer.State> {
 	private static final BlockDisplayContext CONTEXT = BlockDisplayContext.create();
+	/** Each piece's trail: this many smaller pieces behind it, each this many ticks back along its arc. */
+	private static final int TRAIL = 3;
+	private static final double TRAIL_TICKS = 1.5;
 
 	private final BlockModelResolver resolver;
 	private final Map<BlockState, BlockModelRenderState> models = new HashMap<>();
@@ -77,9 +80,20 @@ public class FlyrockRenderer extends EntityRenderer<FlyrockEntity, FlyrockRender
 			// each piece tumbles at its own rate, about two axes, as a thrown stone does
 			int seed = a.from().hashCode() * 31 + i;
 			float spinA = (float) (t * (14 + (seed & 15))), spinB = (float) (t * (9 + ((seed >>> 4) & 15)));
+			float light = light(entity.level(), p);
 			state.drawn.add(model(a.state()));
-			state.at.add(new float[] {(float) (p.x - state.x), (float) (p.y - state.y), (float) (p.z - state.z), a.size(), spinA, spinB,
-					light(entity.level(), p)});
+			state.at.add(new float[] {(float) (p.x - state.x), (float) (p.y - state.y), (float) (p.z - state.z), a.size(), spinA, spinB, light});
+			// its trail: chips and dust thrown with it, smaller and smaller back along its arc, so its flight reads at range
+			for (int k = 1; k <= TRAIL; k++) {
+				double back = now - k * TRAIL_TICKS;
+				if (back <= a.launch()) {
+					break;
+				}
+				Vec3 q = a.at(back);
+				state.drawn.add(model(a.state()));
+				state.at.add(new float[] {(float) (q.x - state.x), (float) (q.y - state.y), (float) (q.z - state.z), a.size() * (1 - 0.22F * k), spinB + 40 * k,
+						spinA - 25 * k, light});
+			}
 		}
 	}
 

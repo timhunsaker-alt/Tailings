@@ -162,8 +162,12 @@ public final class Blasting {
 	public static final double FLYROCK_K = 13.5;
 	/** Fragments drawn and flown from each firing hole: off its free face, and up out of its collar. */
 	public static final int FACE_FRAGMENTS = 8, COLLAR_FRAGMENTS = 5;
-	/** A fragment's size on screen, metres (real flyrock is mostly 0.1-0.5 m; drawn a little larger to be seen at range). */
-	public static final double FRAGMENT_MIN_M = 0.3, FRAGMENT_MAX_M = 0.7;
+	/**
+	 * A fragment's size on screen, metres. Real flyrock is mostly 0.1-0.5 m; drawn larger, 0.5-1.1 m, with a short trail behind it
+	 * (FlyrockRenderer), so it reads from 60-80 m, where a shot is filmed from outside its zone (Heavy Iron fix of 2026-11-23; it was
+	 * 0.3-0.7 m and read as specks).
+	 */
+	public static final double FRAGMENT_MIN_M = 0.5, FRAGMENT_MAX_M = 1.1;
 	/** A thrown block of flyrock (a blowout's, a short burden's, an overcharge's) is drawn its whole metre. */
 	public static final double BLOCK_FLYROCK_M = 1.0;
 

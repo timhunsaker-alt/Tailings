@@ -20,7 +20,6 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ParticleStatus;
 import net.minecraft.server.level.ServerLevel;
@@ -41,8 +40,8 @@ import net.minecraft.world.phys.Vec3;
  * patterns on it, A (x 28-64), B (x 128-164) and C (x 228-264), each 15 holes, 7 x 8 m staggered, 16 m deep; a blast shelter with
  * its blasting machine 55-60 m behind each;</li>
  * <li>A is drilled in real time for its first two holes (the rest at 40x, off camera), charged by the truck in real time at its first
- * stand (the rest pumped 10x, off camera), stemmed 6 m with its own cuttings, logged, armed and fired with the camera standing in the
- * zone and walking out of it through the siren; B and C are drilled at 40x and charged off camera, and fired for the side-on shot (B,
+ * stand (the rest pumped 10x, off camera), stemmed 6 m with its own cuttings, logged, armed and fired with the camera outside the
+ * 50 m zone, by A's shelter; B and C are drilled at 40x and charged off camera, and fired for the side-on shot (B,
  * real time) and the slowed shot (C, the game at a quarter speed, tick rate 5);</li>
  * <li>the drill and the truck run on their own diesel; a villager stands at the drill's mast for scale, removed before anything is
  * fired; one stands in A's shelter, under its roof, 59 m from the nearest hole.</li>
@@ -881,66 +880,25 @@ final class Hi03Scenes {
 		showCard(false);
 	}
 
-	private static java.lang.reflect.Field overlayText, overlayTime;
-
-	/** The action-bar message the game is showing the camera's player now, or "". */
-	private String overlayNow() {
-		return context.computeOnClient(client -> {
-			try {
-				if (overlayText == null) {
-					overlayText = net.minecraft.client.gui.Hud.class.getDeclaredField("overlayMessageString");
-					overlayText.setAccessible(true);
-					overlayTime = net.minecraft.client.gui.Hud.class.getDeclaredField("overlayMessageTime");
-					overlayTime.setAccessible(true);
-				}
-				Object c = overlayText.get(client.gui.hud);
-				int left = overlayTime.getInt(client.gui.hud);
-				return c instanceof Component comp && left > 0 ? comp.getString() : "";
-			} catch (ReflectiveOperationException ex) {
-				return "?";
-			}
-		});
-	}
-
 	/**
-	 * hi03_siren: the camera's player (creative, not a spectator) stands 36 m behind pattern A, in the zone. A is armed; FIRE asks a
-	 * second press while a player is in the zone; the second starts the 10 s siren. Through it the player is told each second how long
-	 * is left; the camera walks out to 67 m, by A's shelter, and the shot goes. It holds as the muck spills and slumps.
+	 * hi03_siren: the camera stands outside the zone, 67-69 m behind pattern A, west of A's shelter, where it sees the villager under the
+	 * shelter's roof and the bench beyond it (Tim, 2026-11-23: keep the 50 m zone, film the siren from outside it; it stood in the zone
+	 * and walked out). A is armed; FIRE with nobody in the zone starts the 10 s siren at once; the shot goes and the muck spills and
+	 * slumps. The card reads the machine, the camera's distance and the zone.
 	 */
 	private void sirenFilm() {
-		server.runCommand("gamemode creative @p");
-		context.waitTicks(10);
 		showCard(true);
 		String[] machineSays = {""};
-		String[] told = {""};
-		Cam s = dcam(AX - 24, 12, 55, AX - 18, -1, 14);
-		Cam e = dcam(AX - 24, 5, 88, AX - 18, -3, 12);
-		int fire2 = PAD + 90;
-		IntFunction<Cam> walk = moveBetween(s, e, 110, 270);
-		String[] seen = {""};
-		int[] seenAt = {0};
-		int[] step = {0};
-		film("hi03_siren", 540, t -> {
-			// what the game shows the player now (its action bar, hidden with the HUD): fresh only while the siren keeps sending it
-			String now = overlayNow();
-			step[0]++;
-			if (!now.equals(seen[0])) {
-				seen[0] = now;
-				seenAt[0] = step[0];
-			}
-			told[0] = step[0] - seenAt[0] < 30 ? now : "";
-			return walk.apply(t);
-		}, (level, t) -> {
+		Cam s = dcam(AX - 29.5, 6.2, 89, AX - 18, -2, 12);
+		Cam e = dcam(AX - 28, 5.5, 87, AX - 18, -2, 12);
+		film("hi03_siren", 540, move(s, e, 540), (level, t) -> {
 			BlastingMachineBlockEntity m = machine(level, machineA);
 			if (t == PAD) {
 				machineSays[0] = m.arm();
 				event("ARM: " + machineSays[0]);
-			} else if (t == PAD + 30) {
+			} else if (t == PAD + 60) {
 				machineSays[0] = m.fire();
 				event("FIRE: " + machineSays[0]);
-			} else if (t == fire2) {
-				machineSays[0] = m.fire();
-				event("FIRE again: " + machineSays[0]);
 			}
 			String st = m.status();
 			if (!st.equals(machineSays[0])) {
@@ -951,17 +909,13 @@ final class Hi03Scenes {
 			double near = nearestHole(holesA, me);
 			double zone = m.zone();
 			java.util.regex.Matcher fly = java.util.regex.Pattern.compile("flyrock to (\\d+) m: clear (\\d+) m").matcher(st);
-			String machineLine = st.startsWith("PLAYER IN DANGER ZONE") ? "PLAYER IN DANGER ZONE: press FIRE again"
-					: st.startsWith("ARMED") && fly.find() ? "ARMED: flyrock to " + fly.group(1) + " m, clear " + fly.group(2) + " m"
+			String machineLine = st.startsWith("ARMED") && fly.find() ? "ARMED: flyrock to " + fly.group(1) + " m, clear " + fly.group(2) + " m"
 					: st.startsWith("FIRED") && st.split(",").length > 1 ? st.split(",")[0] + ", " + st.split(",")[1].trim() : st.length() > 44 ? st.substring(0, 44) : st;
 			card("^Blasting machine: FIRE", "Machine: " + machineLine,
-					String.format(Locale.ROOT, "Camera: %.0f m from the nearest hole: %s", near, zone > 0 && near < zone ? "IN THE ZONE" : "clear"),
-					"Told to a player in the zone:", "  " + (told[0].isEmpty() ? "-" : told[0].replace(". ", ".|").split("\\|")[0]),
-					"  " + (told[0].contains(". ") ? told[0].substring(told[0].indexOf(". ") + 2) : ""));
+					String.format(Locale.ROOT, "Zone to clear: %s", zone > 0 ? String.format(Locale.ROOT, "%.0f m; no one in it", zone) : "-"),
+					String.format(Locale.ROOT, "Camera: %.0f m from the nearest hole, outside it", near));
 		});
 		showCard(false);
-		server.runCommand("gamemode spectator @p");
-		context.waitTicks(5);
 		server.runOnServer(srv -> {
 			var m = machine(srv.overworld(), machineA);
 			Shot shot = m.lastShot();

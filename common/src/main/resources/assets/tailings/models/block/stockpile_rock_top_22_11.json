@@ -1,0 +1,43 @@
+{
+  "textures": {
+    "all": "tailings:block/stockpile_rock",
+    "particle": "tailings:block/stockpile_rock"
+  },
+  "elements": [
+    {
+      "from": [
+        11,
+        0,
+        11
+      ],
+      "to": [
+        16,
+        11,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#all"
+        },
+        "down": {
+          "texture": "#all",
+          "cullface": "down"
+        },
+        "north": {
+          "texture": "#all"
+        },
+        "south": {
+          "texture": "#all",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#all"
+        },
+        "east": {
+          "texture": "#all",
+          "cullface": "east"
+        }
+      }
+    }
+  ]
+}

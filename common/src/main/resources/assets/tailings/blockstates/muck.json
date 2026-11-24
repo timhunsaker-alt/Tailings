@@ -1,7 +1,416 @@
 {
-  "variants": {
-    "": {
-      "model": "tailings:block/muck"
+  "multipart": [
+    {
+      "when": {
+        "up": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_00_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "true",
+        "north": "false"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_00_5"
+        },
+        {
+          "model": "tailings:block/muck_top_00_7"
+        },
+        {
+          "model": "tailings:block/muck_top_00_9"
+        },
+        {
+          "model": "tailings:block/muck_top_00_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "false",
+        "north": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_00_5"
+        },
+        {
+          "model": "tailings:block/muck_top_00_7"
+        },
+        {
+          "model": "tailings:block/muck_top_00_9"
+        },
+        {
+          "model": "tailings:block/muck_top_00_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "true",
+        "north": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_00_1"
+        },
+        {
+          "model": "tailings:block/muck_top_00_2"
+        },
+        {
+          "model": "tailings:block/muck_top_00_4"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_01_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_01_5"
+        },
+        {
+          "model": "tailings:block/muck_top_01_7"
+        },
+        {
+          "model": "tailings:block/muck_top_01_9"
+        },
+        {
+          "model": "tailings:block/muck_top_01_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_02_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "true",
+        "south": "false"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_02_5"
+        },
+        {
+          "model": "tailings:block/muck_top_02_7"
+        },
+        {
+          "model": "tailings:block/muck_top_02_9"
+        },
+        {
+          "model": "tailings:block/muck_top_02_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "false",
+        "south": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_02_5"
+        },
+        {
+          "model": "tailings:block/muck_top_02_7"
+        },
+        {
+          "model": "tailings:block/muck_top_02_9"
+        },
+        {
+          "model": "tailings:block/muck_top_02_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "west": "true",
+        "south": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_02_1"
+        },
+        {
+          "model": "tailings:block/muck_top_02_2"
+        },
+        {
+          "model": "tailings:block/muck_top_02_4"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_10_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "north": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_10_5"
+        },
+        {
+          "model": "tailings:block/muck_top_10_7"
+        },
+        {
+          "model": "tailings:block/muck_top_10_9"
+        },
+        {
+          "model": "tailings:block/muck_top_10_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_11_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_12_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "south": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_12_5"
+        },
+        {
+          "model": "tailings:block/muck_top_12_7"
+        },
+        {
+          "model": "tailings:block/muck_top_12_9"
+        },
+        {
+          "model": "tailings:block/muck_top_12_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "false",
+        "north": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_20_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "true",
+        "north": "false"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_20_5"
+        },
+        {
+          "model": "tailings:block/muck_top_20_7"
+        },
+        {
+          "model": "tailings:block/muck_top_20_9"
+        },
+        {
+          "model": "tailings:block/muck_top_20_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "false",
+        "north": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_20_5"
+        },
+        {
+          "model": "tailings:block/muck_top_20_7"
+        },
+        {
+          "model": "tailings:block/muck_top_20_9"
+        },
+        {
+          "model": "tailings:block/muck_top_20_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "true",
+        "north": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_20_1"
+        },
+        {
+          "model": "tailings:block/muck_top_20_2"
+        },
+        {
+          "model": "tailings:block/muck_top_20_4"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_21_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_21_5"
+        },
+        {
+          "model": "tailings:block/muck_top_21_7"
+        },
+        {
+          "model": "tailings:block/muck_top_21_9"
+        },
+        {
+          "model": "tailings:block/muck_top_21_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "false",
+        "south": "false"
+      },
+      "apply": {
+        "model": "tailings:block/muck_top_22_16"
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "true",
+        "south": "false"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_22_5"
+        },
+        {
+          "model": "tailings:block/muck_top_22_7"
+        },
+        {
+          "model": "tailings:block/muck_top_22_9"
+        },
+        {
+          "model": "tailings:block/muck_top_22_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "false",
+        "south": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_22_5"
+        },
+        {
+          "model": "tailings:block/muck_top_22_7"
+        },
+        {
+          "model": "tailings:block/muck_top_22_9"
+        },
+        {
+          "model": "tailings:block/muck_top_22_11"
+        }
+      ]
+    },
+    {
+      "when": {
+        "up": "true",
+        "east": "true",
+        "south": "true"
+      },
+      "apply": [
+        {
+          "model": "tailings:block/muck_top_22_1"
+        },
+        {
+          "model": "tailings:block/muck_top_22_2"
+        },
+        {
+          "model": "tailings:block/muck_top_22_4"
+        }
+      ]
     }
-  }
+  ]
 }

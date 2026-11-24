@@ -136,3 +136,30 @@ not this change: `pit_switch_house` (tripped 17 ticks after its overload, agains
 first, `pit_dozer_cut` ("it should cut 20 m", stopped at the crest on tick 1602) in the second; on the same code it then failed
 once and passed three times alone. Neither touches the shovel's cut or the renderer. `pit_rope_shovel` passes (362.5 t in four
 passes, 3,500 kW peak). Worth a look (needs Tim): `pit_dozer_cut` is not deterministic.
+
+## Second cleanup (2026-11-23, branch `fix2-hi02-03`)
+Branch `fix2-hi02-03` (off main 105dee5e). Tim: "Let's keep fixing weak spots as we find them." Episode 2 re-filmed whole (one run) and
+rebuilt in English and Spanish with the same narration (nothing re-voiced). Footage notes: `videos/footage/films-hi02/NOTES.md`.
+
+### Fixed
+1. **The trailing cable hangs off the crest instead of dropping straight down the bench face.** Its run is still laid metre by metre
+   on the ground, but where the ground drops more than 1.5 m in a metre (a crest) it now hangs from the lip in a curve, steepest at
+   the lip and flat where it lands, and touches down on the floor beyond the toe: 0.8 m out for every metre of drop plus 2 (12 m out
+   off this 12 m bench; about 2 m a metre at its steepest, where it was 12 m in one). A face it climbs is the same curve the other way;
+   a low berm it lies over as before. `pit/CableDrape` (plain Java), used by `PitVehicleRenderer.cable`; drawing only. The dragline's
+   cable is drawn by the same code. Chosen over routing the cable down the ramp: a trailing cable is laid where the machine has
+   walked, and the game counts that path but does not keep it. NeoForge scene `pit_cable_drape`.
+2. **The muck pile reads as a pile** (shared with episode 3, see films-hi03.md): a muck block on a pile's surface is drawn rounded off
+   toward its open sides, at heights picked per block, so a pile's step edges break up. The staged pile here and every tipped load
+   show it.
+3. **The readout card is brief evidence (rev2).** Every shot on a carded film is cropped clear of the card except where a figure on it
+   is said: there the full frame plays first (3 s; 7 s for P21's 3,500 then 600 kW), then the crop. P35 (about the card itself) keeps
+   it. **The 1.4 t dipper card** (P34, "Its reach sets the shape of the pit") is gone: P34 is cropped throughout, the dipper in the
+   face without the card.
+
+### Accepted by Tim 2026-11-23
+- **The cut follows the dipper's teeth** (decision "Fixed after release" 3, `RopeShovelEntity.teethUp`): accepted as built.
+
+### Still weak
+- The handle is drawn shorter than its modelled box (decision 1), as before.
+- The cropped shots are 1.5x enlargements of 1080p films (as episodes 5-7's).
