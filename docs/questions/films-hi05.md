@@ -77,7 +77,7 @@ Decided while Tim was away, on the best recommendation; each is open for review.
 - **A launch frame at the portal** (optional): the first rings stand in the open at the portal, as a real machine's temporary launch
   rings do, but with nothing for them to push against. A reaction frame would be a new part.
 - **Real-world power:** the game's 1 MW beam is about a third of a real 8 m main-beam drive (3,300 kW). A rule change, not a film fix.
-- **The game bores close to a hundred times faster than a real machine** (3 m a minute against 40-60 m a day): a game-pace choice.
+- **(Accepted by Tim 2026-11-23: keep the fast boring speed.)** **The game bores close to a hundred times faster than a real machine** (3 m a minute against 40-60 m a day): a game-pace choice.
 
 ## Tests
 `build` passes. The full NeoForge suite on this branch (the round models and shapes in): all 306 required tests passed. The client
@@ -122,3 +122,45 @@ rebuilt in English and Spanish, the narration unchanged but for paragraph 28. Fo
 5. **Tests:** `build` passes; the full NeoForge suite on this branch: all 306 required tests passed. The client scenes ran four
    times (fix runs 1-4), every kept film real time.
 6. **The probe switch** (`HI05_PROBE`) stays in `Hi05Scenes` for the record; an empty value is off (fix run 1 ran it by mistake).
+
+
+## Second pass (2026-11-23)
+Branch `fix2-hi05-06` (off main 105dee5e). Tim: "Let's keep fixing weak spots as we find them." Decided on the best recommendation
+while Tim was away; each is open for review. Narration unchanged in English and Spanish. Footage notes: `videos/footage/films-hi05/NOTES.md`.
+
+### Fixed
+1. **The bore's lower corners were square.** Where the floor is flat the drill now sets a cove in the open cell at each wall's foot as
+   it lays the floor behind the track layer (`DriveCourse.roundedFoot`, `TunnelDrill.line`): `lining[corner=true,foot=true,facing=<the
+   wall>]`, the shoulder's quarter-round fillet turned upside down (`models/block/lining_foot.json`, its collision in 4 px strips), so
+   the bore reads round-cornered at the floor as at the crown. Only beside a crafted segment (a rock-cut ring stays square, as at the
+   crown), only into air, and not on the decline (the floor slopes under the wall there; see Still weak). It is the drive's finish from
+   no stock: the ring stays 18 segments and the cove drops nothing (`LiningBlock.getDrops`). It stays under the gantries' deck line
+   except against the wall, where their frame posts stand in its lowest half metre; the trailing cable now lies on whatever shape is
+   under its point (`GantryRenderer.floorAt`), so it rides over the cove rather than a cell up. The machine's clearance check is ahead
+   of the floor, so a cove never blocks it. The section films cut the east cove away with the east wall (`Hi05Scenes.cutSection`).
+   Tests: `TunnelDrillTest` (two coves, flat only, not segments); NeoForge `tbm_bore_feet` (bores eleven metres: a cove at each wall's
+   foot beside the rings, facing the wall, inside its cell, dropping nothing; the ring still 18; none outside the ridge).
+   Paragraph 20 ("six blocks wide and six high, its corners stepped in: a circle, drawn in blocks") still holds and is unchanged.
+
+2. **The villager stood near the frame's edge and the head was cut off.** The portal film now ends back from the face (from over the
+   beam to 4 m west, 12 m back, 4.5 m up off the cutterhead's cell, `Hi05Scenes.portalFilm`), so the whole 8 m head and the villager
+   at its foot are both in the frame, the villager well inside it. Paragraph 3 plays it from 44 s on the full frame: the card's
+   "Cutterhead 8 m across" is the figure said, so it stays as evidence; the hero sits left of the villager.
+3. **The bore film's locomotive filled a corner.** The camera now runs along the east track above the train's height and stops at
+   the portal (`Hi05Scenes.boreFilm`); paragraphs 33-34 crop right of the locomotive and below the card.
+4. **The ending showed empty grass.** Paragraphs 35-36 use the aerial while the machine shows in the cut (from 21 s and 33 s), not its
+   later turn over the trench and grass, and the outro is the train at the loading point (`hi05_train` from 36 s).
+5. **Every hi05 film re-filmed** in one run (fix2 run 1), all real time; the rest framed as before, the west cove in sight at the far
+   wall's foot in the section films. Episode 5 rebuilt in English and Spanish with the narration unchanged.
+
+### Accepted by Tim 2026-11-23
+- **The fast boring speed** (3 m a minute against a real 40-60 m a day): kept as a game-pace choice.
+
+### Still weak
+- On the decline the lower corners stay square: the floor slopes under the wall there, and a cove for the slope pieces would need its
+  own shapes. The episode's films are all on the flat.
+- The coves are drawn in 2 px strips (the shoulders' look), so close up they read as fine steps rather than a smooth curve.
+- The gantries' corner posts stand in the cove's lowest half metre where they pass along the wall (a few pixels from the wall; not
+  noticeable in the films).
+- The section cut still leaves a flat stone trench beside the ridge in the aerial; the episode now uses only the part with the machine.
+- The game's 1 MW beam against a real 3,300 kW drive is unchanged (a rule, not a film fix).

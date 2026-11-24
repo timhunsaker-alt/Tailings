@@ -75,12 +75,12 @@ The trolley locomotive's sound borrowed by the battery locomotive is moot here: 
 - The aerial's far edge shows unrendered sections after about 45 s (not used).
 
 ## Needs Tim
-- **The game's battery locomotive is about half as strong again as the real 8 t class** (2 x 22 kW against 2 x 11 or 2 x 15 kW in two
+- **(Accepted by Tim 2026-11-23: the locomotive stays as it is, power and speed.)** **The game's battery locomotive is about half as strong again as the real 8 t class** (2 x 22 kW against 2 x 11 or 2 x 15 kW in two
   makers' tables), and faster (3 m/s, 10.8 km/h, against 6.2-7.8 km/h). The battery (440 Ah, 58 kWh) is right. A rule change (it would
   move the climb test's 0.20 m/s to about 0.14), not a film fix; the episode says the game is stronger.
-- **`Battery.java` still defines the battery as 132 V x 440 Ah** to get its 58,080 Wh. It is a battery rating, not a grid voltage, and
+- **(Accepted 2026-11-23, checked in fix2-hi05-06: not wrong.)** **`Battery.java` still defines the battery as 132 V x 440 Ah** to get its 58,080 Wh. It is a battery rating, not a grid voltage, and
   is never shown now; say if it should be held as watt-hours instead.
-- **A 1-in-2 decline for rail** is far steeper than any real mine railway (the TBM's grade); the episode says so.
+- **(Accepted by Tim 2026-11-23: the 1-in-2 grade stays.)** **A 1-in-2 decline for rail** is far steeper than any real mine railway (the TBM's grade); the episode says so.
 
 ## Tests
 `build` passes. The full NeoForge suite on this branch (the bridge rail, the swinging doors, the rock shower and the battery-out
@@ -120,3 +120,28 @@ time) and episode 6 rebuilt in English and Spanish with the narration unchanged.
    in-points are unchanged.
 6. **Tests:** `build` passes; the full NeoForge suite on this branch: all 306 required tests passed.
 
+
+## Second pass (2026-11-23)
+Branch `fix2-hi05-06` (off main 105dee5e). Tim: "Let's keep fixing weak spots as we find them." Decided on the best recommendation
+while Tim was away; each is open for review. Narration unchanged in English and Spanish. Footage notes: `videos/footage/films-hi06/NOTES.md`.
+
+### Fixed
+1. **The dump shots cropped off the car tops to keep the readout card out of frame.** `hi06_dump` is re-filmed from back and up
+   (`Hi06Scenes.dumpFilm`: from 5, 1.2 to 9.5, 3.2 off the grizzly's east side), so the train runs through the middle of the frame
+   with the car tops below the card, and the pocket's front and its fill under the bars below. Paragraphs 24, 25 and 28 crop to the
+   dump station with the cars whole; paragraph 27 (the pocket's 5,760, the card's figure) plays the full frame for 6 s first, then
+   the same crop (rev2 evidence + then_crop). The events landed as in the earlier take (doors 12.3, 13.2, 14.1 s), so the in-points
+   hold. Episode 6 rebuilt in English and Spanish.
+
+### Accepted by Tim 2026-11-23
+- **The battery locomotive stays as it is:** its 2 x 22 kW, its 3 m/s and the 1-in-2 grade (the episode already says the game is
+  stronger and steeper than a real mine railway).
+- **Battery V x Ah:** checked, not wrong. `Battery.java` holds 132 V x 440 Ah = 58,080 Wh; the makers' 8 t tables give 440 Ah at 110
+  to 144 V, so 132 V sits inside that range and the 58 kWh (46 kWh usable at 80 %) in the episode and the card matches it. It is a
+  battery rating, never shown on screen.
+
+### Still weak
+- The dump film is farther than before, so the pocket and the falling rock are smaller in the frame; the grizzly film stays the close
+  view of the doors.
+- In the grizzly film the far end of the track runs up toward the card, so the train's first seconds are cropped at the top; the dump
+  itself (12-16 s) is whole.

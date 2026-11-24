@@ -117,6 +117,18 @@ public final class DriveCourse {
 		return isOutside(across - 1, up) ? -1 : isOutside(across + 1, up) ? 1 : 0;
 	}
 
+	/**
+	 * For the bore's two lower corners, the open cells where a wall meets the floor (one up from the floor row, a lining wall beside
+	 * them): -1 or 1, the step across toward that wall; else 0. On a flat floor a cove goes in each (fix2-hi05-06), so the lower corners
+	 * read rounded like the crown's shoulders. Not a ring segment: the ring stays 18.
+	 */
+	public static int roundedFoot(int across, int up) {
+		if (isLining(across, up) || isOutside(across, up) || !isFloor(across, up - 1)) {
+			return 0;
+		}
+		return isLining(across - 1, up) ? -1 : isLining(across + 1, up) ? 1 : 0;
+	}
+
 	public static boolean isFloor(int across, int up) {
 		return up == 1 && across >= 1 && across <= CLEAR;
 	}

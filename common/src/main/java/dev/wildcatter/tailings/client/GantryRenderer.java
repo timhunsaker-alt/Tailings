@@ -121,7 +121,16 @@ public class GantryRenderer extends PitchedCellsRenderer<GantryEntity> {
 			BlockState state = level.getBlockState(pos);
 			VoxelShape shape = state.getCollisionShape(level, pos);
 			if (!shape.isEmpty()) {
-				return y + shape.max(Direction.Axis.Y);
+				// the top of the shape under this very point: a cove at the bore's foot is low by the wall, not a whole cell
+				double fx = x - pos.getX(), fz = z - pos.getZ(), high = -1;
+				for (net.minecraft.world.phys.AABB box : shape.toAabbs()) {
+					if (fx >= box.minX && fx <= box.maxX && fz >= box.minZ && fz <= box.maxZ) {
+						high = Math.max(high, box.maxY);
+					}
+				}
+				if (high >= 0) {
+					return y + high;
+				}
 			}
 		}
 		return last;

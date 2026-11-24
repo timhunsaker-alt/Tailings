@@ -871,8 +871,10 @@ final class Hi06Scenes {
 	/** hi06_dump: from the top of the decline, the train runs over the track grizzly and every car drops its load on the move. */
 	private void dumpFilm() {
 		showPocket = true;
-		// the rail's top and the train at the floor (y 0); the pocket's fill seen under its bars in the open floor beside the track
-		Cam a = Cam.of(c, 5.0, 1.2, GRIZ + 0.5, 0.5, -0.8, GRIZ + 2.5);
+		// the rail's top and the train at the floor (y 0); the pocket's fill seen under its bars in the open floor beside the track.
+		// Back and up from the first takes' (5, 1.2): the cars run through the middle of the frame, their tops below the readout card,
+		// so the episode no longer crops them to keep the card out (fix2-hi05-06)
+		Cam a = Cam.of(c, 9.5, 3.2, GRIZ + 1.0, 0.5, 0.0, GRIZ + 2.5);
 		film("hi06_dump", 800, t -> a, (level, t) -> {
 			MineVehicleEntity l = loco(level);
 			if (t == PAD + 10) {

@@ -47,8 +47,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  */
 final class TbmGapsGameTests {
 	static final String[] SCENES = {"tbm_gantry_derail", "tbm_train_fills", "tbm_quench_gantry", "tbm_screen_follows", "tbm_transformer",
-			"tbm_recipes", "track_too_long", "rectifier_busway"};
-	static final Set<String> LONG = Set.of("tbm_train_fills", "tbm_transformer", "rectifier_busway", "track_too_long");
+			"tbm_recipes", "track_too_long", "rectifier_busway", "tbm_bore_feet"};
+	static final Set<String> LONG = Set.of("tbm_bore_feet", "tbm_train_fills", "tbm_transformer", "rectifier_busway", "track_too_long");
 	private static final Map<String, Integer> PADDING = Map.of("tbm_train_fills", 110);
 
 	private TbmGapsGameTests() {
@@ -63,6 +63,66 @@ final class TbmGapsGameTests {
 		out.accept("tbm_recipes", TbmGapsGameTests::recipes);
 		out.accept("track_too_long", TbmGapsGameTests::trackTooLong);
 		out.accept("rectifier_busway", TbmGapsGameTests::rectifierBusway);
+		out.accept("tbm_bore_feet", TbmGapsGameTests::boreFeet);
+	}
+
+	// ---- the bore's lower corners rounded (fix2-hi05-06) ------------------------------------------------------------------------
+
+	/**
+	 * Driving on the flat, the drill puts a cove at each wall's foot behind the track layer, beside the ring set there eight metres
+	 * earlier: lining[corner,foot] facing its wall, low enough for the gantries' frames to pass over, and dropping nothing (it is the
+	 * drive's finish, from no stock). The ring there stays 18 segments; outside the ridge, where no ring stands, none.
+	 */
+	private static void boreFeet(GameTestHelper helper) {
+		BlockPos c = new BlockPos(4, 40, 20);
+		DrillBlockEntity cab = TailingsGameTests.tbm(helper, c, 16, true);
+		TailingsGameTests.feed(helper, c);
+		boolean[] stopped = {false};
+		helper.onEachTick(() -> {
+			TbmEntity machine = TailingsGameTests.machine(helper, c);
+			if (machine != null) {
+				for (int i = dev.wildcatter.tailings.block.TbmCore.INPUTS; i < dev.wildcatter.tailings.block.TbmCore.SLOTS; i++) {
+					machine.setItem(i, ItemStack.EMPTY);   // the muck taken off, so it keeps boring
+				}
+			}
+			if (machine != null && machine.core().drill().advanceCount() >= 11) {
+				machine.core().setRunning(false);   // stopped on the flat: it sets down as blocks
+				stopped[0] = true;
+			}
+		});
+		TailingsGameTests.go(cab, 10);
+		helper.succeedWhen(() -> {
+			TbmEntity machine = TailingsGameTests.machine(helper, c);
+			helper.assertTrue(stopped[0] && machine == null, Component.literal("it should bore eleven metres, line behind itself and set down"));
+			for (int z : new int[] {2, 1}) {
+				for (int[] side : new int[][] {{1, 0}, {6, 1}}) {
+					BlockState foot = helper.getBlockState(c.offset(side[0], 2, z));
+					Direction wall = side[1] == 0 ? Direction.WEST : Direction.EAST;
+					helper.assertTrue(foot.getBlock() == TailingsBlocks.LINING && foot.getValue(dev.wildcatter.tailings.block.LiningBlock.FOOT)
+							&& foot.getValue(dev.wildcatter.tailings.block.LiningBlock.CORNER) && foot.getValue(dev.wildcatter.tailings.block.LiningBlock.FACING) == wall,
+							Component.literal("a cove toward the " + wall + " wall at its foot, z " + z + ", got " + foot));
+					BlockPos at = helper.absolutePos(c.offset(side[0], 2, z));
+					helper.assertTrue(foot.getCollisionShape(helper.getLevel(), at).max(Direction.Axis.Y) <= 1.0
+							&& foot.getCollisionShape(helper.getLevel(), at).bounds().getXsize() * foot.getCollisionShape(helper.getLevel(), at).bounds().getZsize() <= 1.0,
+							Component.literal("the cove inside its cell"));
+					helper.assertTrue(Block.getDrops(foot, helper.getLevel(), at, null).isEmpty(), Component.literal("the cove drops nothing, got " + Block.getDrops(foot, helper.getLevel(), at, null) + " for " + foot));
+				}
+				int lined = 0;
+				for (int x = 0; x < 8; x++) {
+					for (int y = 0; y < 8; y++) {
+						BlockState s = helper.getBlockState(c.offset(x, y, z));
+						if (s.getBlock() == TailingsBlocks.LINING && !s.getValue(dev.wildcatter.tailings.block.LiningBlock.FOOT)) {
+							lined++;
+						}
+					}
+				}
+				helper.assertTrue(lined == dev.wildcatter.tailings.mine.DriveCourse.SEGMENTS_PER_RING, Component.literal("the ring there still 18, got " + lined));
+			}
+			BlockState plain = helper.getBlockState(c.offset(0, 2, 2));
+			helper.assertTrue(!Block.getDrops(plain, helper.getLevel(), helper.absolutePos(c.offset(0, 2, 2)), null).isEmpty(), Component.literal("a ring segment still drops itself"));
+			helper.assertTrue(helper.getBlockState(c.offset(1, 2, 8)).isAir(), Component.literal("no cove where no ring stands"));
+			helper.assertTrue(helper.getBlockState(c.offset(3, 2, 2)).isAir(), Component.literal("the middle of the floor open"));
+		});
 	}
 
 	static int padding(String scene, int otherwise) {

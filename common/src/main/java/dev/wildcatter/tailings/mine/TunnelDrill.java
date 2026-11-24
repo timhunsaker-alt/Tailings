@@ -357,6 +357,14 @@ public final class TunnelDrill {
 			int across = i + 1;
 			ground.placeFloor(worldX(across, floorAhead), worldY(1, floorAhead), worldZ(across, floorAhead), pendingFloor[i], pendingFloorRock[i]);
 		}
+		// the bore's lower corners rounded where the floor is flat beside the wall: a cove in each (on a decline the floor slopes under them)
+		for (int across = 1; across <= DriveCourse.CLEAR; across++) {
+			int toward = DriveCourse.roundedFoot(across, 2);
+			if (toward != 0 && pendingFloor[across - 1] == FloorPiece.FLAT_ROCK) {
+				int x = worldX(across, floorAhead), z = worldZ(across, floorAhead);
+				ground.placeLiningFoot(x, worldY(2, floorAhead), z, worldX(across + toward, floorAhead) - x, worldZ(across + toward, floorAhead) - z);
+			}
+		}
 		ringPending = false;
 		pendingRing = null;
 		pendingFloor = null;
