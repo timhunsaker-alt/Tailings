@@ -130,7 +130,10 @@ final class DryStackStages {
 		return DryStack.CYCLE_SECONDS * 20.0 / part.fast();
 	}
 
-	/** The tailings filter: a batch press on thickened tails, dropping its cake each cycle. */
+	/**
+	 * The tailings filter: a batch press on thickened tails. It fills until its chambers hold a full 15 t (its cycle held at the end of
+	 * the fill till then), squeezes, blows and opens, and drops the whole cake at the end of its cycle: its output comes in pulses.
+	 */
 	static final Stage FILTER = new Stage() {
 		@Override
 		public void tick(PlantBlockEntity part) {
@@ -159,10 +162,12 @@ final class DryStackStages {
 			}
 			double ticks = cycleTicks(part);
 			double seconds = part.cycle() / ticks * DryStack.CYCLE_SECONDS;
-			double pressing = (DryStack.FILL_SECONDS + DryStack.SQUEEZE_SECONDS + DryStack.BLOW_SECONDS) / (double) DryStack.CYCLE_SECONDS * ticks;
-			if (part.cycle() < pressing && waiting > 1e-6) {
-				// the chambers fill to the batch over the pressing time: 15 t in 7.5 minutes
-				double perTick = DryStack.BATCH_KG / pressing * part.strength();
+			double fill = DryStack.FILL_SECONDS / (double) DryStack.CYCLE_SECONDS * ticks;
+			boolean full = part.dryKg() >= DryStack.BATCH_KG - 0.5;
+			if (part.cycle() < fill + 1e-6 && !full && waiting > 1e-6) {
+				// the chambers fill: a whole batch in its 2 minutes if the feed is there, and they go on filling, the cycle held at the end
+				// of the fill, until they hold the full 15 t (Tim, 2026-11-23: only full batches drop)
+				double perTick = DryStack.BATCH_KG / fill * part.strength();
 				double solidsKg = Math.min(perTick, Math.max(0, DryStack.BATCH_KG - part.dryKg()));
 				double slurry = Math.min(waiting, solidsKg / DryStack.UNDERFLOW_SOLIDS);
 				if (slurry > 1e-6) {
@@ -171,11 +176,19 @@ final class DryStackStages {
 					part.setDryKg(part.dryKg() + dry);
 					part.overflow(dry * DryStack.filtratePerKgSolids());
 				}
+				full = part.dryKg() >= DryStack.BATCH_KG - 0.5;
 			}
 			if (part.dryKg() <= 0) {
 				part.say("waiting for thickened tails");
 				return;
 			}
+			if (!full && part.cycle() + part.strength() >= fill) {
+				part.setCycle(Math.max(part.cycle(), fill));
+				part.setPressHeld(true);
+				part.say(String.format(java.util.Locale.ROOT, "filling: waiting for a full batch, %.1f of %.0f t in the press", part.dryKg() / 1000, DryStack.BATCH_KG / 1000));
+				return;
+			}
+			part.setPressHeld(false);
 			part.setCycle(part.cycle() + part.strength());
 			part.say(DryStack.phase(seconds) + String.format(java.util.Locale.ROOT, ": %.1f t in the press", part.dryKg() / 1000));
 			if (part.cycle() >= ticks) {

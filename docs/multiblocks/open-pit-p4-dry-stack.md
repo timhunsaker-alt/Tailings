@@ -116,8 +116,8 @@ and is to be checked before approval.
 | Fuel | about **1,200 L** tank *(unverified)*; burns by work as `PitFuel`, dozing at 80 % of rated power *(proposed)* |
 | Mass | 70.2 t |
 
-- **An entity** like the loader (`PitVehicleEntity`), driven by a player. It does not run itself *(proposed; real autonomous
-  dozers exist and are left out)*.
+- **An entity** like the loader (`PitVehicleEntity`), driven by a player, or running by itself in an area marked by two DOZE AREA
+  stakes (Tim, 2026-11-23: below).
 - **The blade has three positions**, stepped with jump:
   - **CARRY** (default): the blade at track level. Driving forward, it takes the loose ground and muck in the 5 x 2 cells in front of
     it, at and above its tracks, into the blade's load, up to 18 blocks. Past 18 the extra spills off the blade's ends as two windrows
@@ -138,11 +138,11 @@ and is to be checked before approval.
 - **Sound:** the diesel loops; a track clatter *(new)*.
 
 ## Left out (to ROADMAP)
-- Compaction and the stack's water content, stability and dust; rain on the stack.
+- The stack's water content and dust; rain on the stack (compaction and a simple slump rule: Tim, 2026-11-23, below).
 - Flocculant and its make-up plant.
 - A radial stacker conveyor building the stack without trucks.
 - Rehandle and reclamation; topsoil.
-- The dozer's ripper; an autonomous dozer.
+- The dozer's ripper (an autonomous dozer: Tim, 2026-11-23, below).
 - Dump failure and crest collapse under a truck.
 
 ## Game tests to add
@@ -195,6 +195,62 @@ Episode 4 of Heavy Iron films the dozer (../questions/heavy-iron-fixes.md, 6-8).
 - **No compaction** (left out): the real one is a number of roller or track passes to a density; the game has no density for a
   block, nothing that a firmer stack would change, and dry tails is a plain falling block.
 - **Game test:** `pit_dozer_spread` (18 blocks laid 5 wide at the lift's level from its edge, the dozer driving on along it).
+
+## Tim's decisions of 2026-11-23: the dozer runs itself, cake is compacted, the press drops full batches, the bin shows its level
+Decided by Tim for Heavy Iron episode 4 (`docs/questions/films-hi04.md`, "Decided by Tim 2026-11-23"). They replace "It does not run
+itself", "No compaction" and the press's fill-over-the-pressing-time above.
+
+### 1. Dozer autopilot (a marked area, a start/stop, its own diesel)
+- **Real counterpart:** semi-autonomous dozing systems at large mines, such as Caterpillar's **Command for dozing**: a supervisor
+  draws the area and the push direction, the dozer works passes across it by itself (blade down to push, back to the start, over to
+  the next slot), and stops for anything in its way; an operator can take it over. (Named here only; the videos name no brand.)
+- **The area: two `DOZE AREA` survey stakes** (a new kind on the survey stake, stepped with an empty hand after PARK, a yellow flag)
+  at opposite corners mark a rectangle, as the trucks' and loaders' stakes mark their work. Click the two stakes into the survey book,
+  then click the dozer with the book: it **starts** on the area. Click it again with the same book: it **stops**. A player sitting in
+  its cab takes it over and it stops (it is still driven by hand as before).
+- **How it works the area** *(proposed)*: it pushes the way it faced when started, squared to the nearest compass direction. The area
+  is cut into lanes a blade wide (5 m) across that direction. Each lane: from the near end, blade set to **SPREAD**, it drives to the
+  far end at dozing speed, taking loose cake and ground into its blade and laying it where the ground in front of the blade is open
+  (a hollow, or a lift's edge inside the area), as SPREAD does by hand. At the far end it leaves anything still on the blade in front
+  (as reversing in CARRY does), raises the blade, reverses straight back down the lane it has just pushed clear, and crosses over to
+  the next lane's start, squaring up on its tracks; the lanes go across and back (0, 1, ..., last, ..., 1, 0). Its readout says "AUTO: lane n of m, pass p" and what it is doing.
+- **It stops or waits:** for something in its way (a mob, a player not in spectator, another machine) within 3 m ahead of the blade
+  or behind it while reversing it waits, "AUTO: waiting: something in its way"; hard rock or a crest ends the lane; out of fuel or
+  stuck (no headway for 10 s) it stops: "AUTO STOPPED".
+- **Power:** its own diesel, burnt by its work as when driven; it idles between moves while the autopilot runs.
+
+### 2. Compaction (loose and compacted cake)
+- **Real counterpart:** filtered tails are placed in thin lifts and compacted by rollers or dozer track passes to a target density;
+  a stack of loose, uncompacted cake is weak and its faces slump, and a lift placed on an uncompacted one loads it before it can
+  carry the weight. (Practice; lifts of about 0.3 m and the density target are *unverified* here.)
+- **In the game** *(proposed, kept simple)*: `dry_tails` has two looks, **loose** (as the press, a truck, a pour or the dozer's
+  blade places it: paler, in clods) and **compacted** (darker, smooth, with track marks). **A dozer driving over loose cake
+  compacts it**, a pass under its tracks, by hand or on autopilot; nothing else does.
+- **The slump rule:** loose cake standing on **loose** cake, at the top of an edge with a drop of 2 m or more beside it, slides off
+  the edge and comes to rest below by the settle rule (37°). On compacted cake, or on anything else, it stands as before. So a load
+  tipped at the edge of an uncompacted lift, or a second lift laid on an uncompacted one, slumps at the edge; on a compacted lift the
+  same load stands. Lifts and piles less than 2 m high at an edge never move.
+
+### 3. The press drops full batches
+- **Real counterpart:** a plate press fills until its chambers are full (its feed pressure up, the feed flow down), then squeezes,
+  blows and opens; the cake comes out in drops, one batch at a time, and a press on a short feed simply fills longer.
+- **In the game:** the fill phase runs its 2 minutes and then **holds** ("filling: waiting for a full batch") until the chambers
+  hold the full **15 t**; then the timed squeeze (3.5), blow (2) and open-and-drop (7.5). Only a full 15 t cake drops, at the end of
+  its cycle, into the bin: the output comes in **pulses**, not a steady rate. At 60 t/h of thickened tails or more the cycle is its
+  15 minutes; on the plant's 50 t/h it is about 18. (It was: filling over the whole pressing time and dropping whatever it held,
+  12.5 t on the plant's feed.)
+
+### 4. The bin's level drawn on the bin
+- **Real counterpart:** bins carry level transmitters (the bin's LEVEL point, 4-20 mA, above) and often a level gauge or marks.
+- **In the game:** the load-out bin draws the dry tails inside it at their level (the static full-looking fill in its model is
+  gone), and a **sight window** on each wall with the fill risen in it and a mark every 100 t. The server sends the level whenever
+  it moves by a 100th of the bin.
+
+### Game tests
+`pit_dozer_auto` (the autopilot works its lanes inside the stakes, spreads a tipped pile, compacts the lift, stops on the book
+again), `pit_cake_slump` (a load at the edge of a loose lift slides off; on a compacted lift it stands; a dozer pass compacts),
+`pit_filter_batch` (on a short feed the press holds at its fill and drops only a full 15 t), `pit_bin_level` (the bin sends its
+level to the client as the cake drops and the truck loads).
 
 ## Sources
 - R. Kaswalder, filter press paper (ACG Paste 2017 proceedings): one unit with 2,500 x 2,500 mm plates about 1,800 t/day (average

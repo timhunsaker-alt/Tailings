@@ -79,6 +79,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		/** A measuring flask's fill (0 to 1) and its commonest rock's block (heavy-iron ep 7 fix). */
 		float flaskFill;
 		String flaskRock = "";
+		/** A load-out bin's level, 0 to 1 (Tim, 2026-11-23). */
+		float binFill;
 	}
 
 	@Override
@@ -123,6 +125,13 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			// lit as the open cell under the bit (the drive, as it breaks through) or under the reamer, not the rock round the string
 			float deep = Float.isNaN(state.reamer) ? state.pilot + 1 : state.reamer + 1.5f;
 			state.deepLight = Float.isNaN(deep) ? state.light : lightAt(plant, state.turns, new int[] {2, -(int) Math.ceil(deep), 3});
+			return;
+		}
+		if (machine == Machine.LOADOUT_BIN) {
+			state.machine = machine;
+			state.turns = BigParts.turns(plant.getBlockState());
+			state.binFill = plant.binFill();
+			state.light = plant.getLevel() == null ? state.lightCoords : Math.max(lightAt(plant, state.turns, new int[] {5, 7, 5}), lightAt(plant, state.turns, new int[] {-1, 4, 5}));
 			return;
 		}
 		if (machine == Machine.MEASURING_FLASK) {
@@ -223,6 +232,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		int deepLight = state.deepLight;
 		float flaskFill = state.flaskFill;
 		String flaskRock = state.flaskRock;
+		float binFill = state.binFill;
 		collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (p, v) -> {
 			PoseStack at = new PoseStack();
 			at.last().pose().set(p.pose());
@@ -248,6 +258,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 					case BOOSTER_FAN -> impeller(at, v, angle, 1.0f, 1.0f, 0.38f, 0.65f, 6, 0.24f, light);
 					case RAISE_BORER -> raiseTools(at, v, angle, pilot, reamer, light, deepLight);
 					case MEASURING_FLASK -> flask(at.last(), v, flaskFill, flaskRock, light);
+					case LOADOUT_BIN -> bin(at.last(), v, binFill, light);
 				default -> {
 				}
 			}
@@ -562,20 +573,85 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				continue;
 			}
 			for (int j = 0; j < 5; j++) {
-				// as it falls it breaks into lumps, the lowest first, each tumbling a little out of the chamber's plane
+				// as it falls it breaks into lumps, the lowest first, each tumbling a little out of the chamber's plane; clear of the plates
+				// (under their bottom edge, 4.1 m) the lumps open out to half a metre and more, so they read from the press's side
 				float fall = Math.max(0, t - CAKE_HANG - 0.05f * (j % 3));
 				float drop = 4.9f * fall * fall;
 				float grow = Math.min(1, fall / 0.15f);
-				float half = 0.04f + 0.13f * grow * (0.7f + 0.6f * hash(k, j + 7));
-				float wide = 0.28f + 0.14f * hash(k, j + 13);
+				float wide = 0.3f + 0.16f * hash(k, j + 13);
 				float x = 1.95f + wide + (2.1f - 2 * wide) * hash(k, j + 3);
-				float y0 = 4.15f + 0.3f * j - drop, y1 = y0 + 0.3f + 0.15f * hash(k, j + 21);
+				float y0 = 4.15f + 0.3f * j - drop, y1 = y0 + 0.4f + 0.2f * hash(k, j + 21);
 				if (y0 < troughAt(z) + 0.2f) {
 					continue;
 				}
+				float clear = Math.max(0, Math.min(1, (4.1f - y1) / 0.6f));
+				float half = 0.04f + 0.13f * grow * (0.7f + 0.6f * hash(k, j + 7)) + 0.16f * clear;
 				float dz = (OPEN / 2 + (hash(k, j + 31) - 0.5f) * 0.12f) * grow;   // into the middle of the opened gap
 				box(p, v, cake, x - wide, y0, z + dz - half, x + wide, y1, z + dz + half, light);
 			}
+		}
+		// the cake gathers in the trough under each chamber that has dropped, till the game counts the whole batch into the bin at the
+		// cycle's end (the trough is then empty again)
+		for (int k = 0; k <= PLATES; k++) {
+			float opened = k == PLATES ? OPEN_AT : shiftAt(k);
+			float landed = s - opened - CAKE_HANG - 0.7f;
+			if (landed < 0) {
+				continue;
+			}
+			float z = PLATE_Z0 + Math.min(PLATES - 1, k) * PLATE_PITCH;
+			float floor = troughAt(z);
+			float h = (0.35f + 0.25f * hash(k, 41)) * Math.min(1, landed / 0.4f);
+			float w = 0.55f + 0.25f * hash(k, 43);
+			box(p, v, cake, 3.0f - w, floor, z - 0.02f, 3.0f + w, floor + h, z + PLATE_PITCH + 0.02f, light);
+		}
+	}
+
+	// ---- the load-out bin's level (Tim, 2026-11-23) --------------------------------------------------------------------------------
+
+	/** The bin's inside (pit.py: walls 0.3 m thick round 10 x 10, from 2 m up to 7) and its level's range: empty at 2.1, full at 6.6. */
+	private static final float BIN_IN0 = 0.3f, BIN_IN1 = 9.7f, BIN_EMPTY = 2.1f, BIN_FULL = 6.6f;
+	/** The sight windows, on each wall: across 6.4 to 7.8 m, up 2.2 to 6.8. */
+	private static final float BWIN_A = 6.4f, BWIN_B = 7.8f, BWIN_Y0 = 2.2f, BWIN_Y1 = 6.8f;
+
+	/**
+	 * The dry tails in the bin at their level, heaped a little under the press's chute in the middle, and a sight window on each wall:
+	 * dark glass with the cake risen to the level, a frame, and a yellow mark at each 100 t.
+	 */
+	private static void bin(PoseStack.Pose p, VertexConsumer v, float fill, int light) {
+		TextureAtlasSprite cake = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(Identifier.fromNamespaceAndPath("tailings", "block/dry_tails"));
+		TextureAtlasSprite dark = vanilla("black_concrete"), yellow = vanilla("yellow_concrete"), frame = mat("iron");
+		fill = Math.max(0, Math.min(1, fill));
+		float top = BIN_EMPTY + (BIN_FULL - BIN_EMPTY) * fill;
+		if (fill > 0.004f) {
+			box(p, v, cake, BIN_IN0, BIN_EMPTY - 0.1f, BIN_IN0, BIN_IN1, top, BIN_IN1, light);
+			float heap = Math.min(0.35f, 0.05f + fill);
+			box(p, v, cake, 3.0f, top, 3.0f, 7.0f, Math.min(BIN_FULL + 0.3f, top + heap), 7.0f, light);
+		}
+		float wTop = BWIN_Y0 + (BWIN_Y1 - BWIN_Y0) * fill;
+		for (int side = 0; side < 4; side++) {
+			binBox(p, v, dark, side, BWIN_A, BWIN_B, BWIN_Y0, BWIN_Y1, 0.005f, light);
+			if (fill > 0.004f) {
+				binBox(p, v, cake, side, BWIN_A, BWIN_B, BWIN_Y0, wTop, 0.012f, light);
+			}
+			binBox(p, v, frame, side, BWIN_A - 0.08f, BWIN_A, BWIN_Y0 - 0.08f, BWIN_Y1 + 0.08f, 0.03f, light);
+			binBox(p, v, frame, side, BWIN_B, BWIN_B + 0.08f, BWIN_Y0 - 0.08f, BWIN_Y1 + 0.08f, 0.03f, light);
+			binBox(p, v, frame, side, BWIN_A, BWIN_B, BWIN_Y0 - 0.08f, BWIN_Y0, 0.03f, light);
+			binBox(p, v, frame, side, BWIN_A, BWIN_B, BWIN_Y1, BWIN_Y1 + 0.08f, 0.03f, light);
+			for (int q = 1; q <= 3; q++) {
+				float y = BWIN_Y0 + (BWIN_Y1 - BWIN_Y0) * q / 4f;
+				binBox(p, v, yellow, side, BWIN_A - 0.15f, BWIN_A + 0.25f, y - 0.03f, y + 0.03f, 0.035f, light);   // 100, 200, 300 t
+			}
+		}
+	}
+
+	/** A thin box on one wall of the bin (0 north, 1 south, 2 west, 3 east), across {@code a} to {@code b}, {@code out} proud of it. */
+	private static void binBox(PoseStack.Pose p, VertexConsumer v, TextureAtlasSprite s, int side, float a, float b, float y0, float y1, float out, int light) {
+		float t = 0.004f;
+		switch (side) {
+			case 0 -> box(p, v, s, a, y0, -out - t, b, y1, -out, light);
+			case 1 -> box(p, v, s, 10 - b, y0, 10 + out, 10 - a, y1, 10 + out + t, light);
+			case 2 -> box(p, v, s, -out - t, y0, 10 - b, -out, y1, 10 - a, light);
+			default -> box(p, v, s, 10 + out, y0, a, 10 + out + t, y1, b, light);
 		}
 	}
 

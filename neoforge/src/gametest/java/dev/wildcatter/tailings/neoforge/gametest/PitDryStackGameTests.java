@@ -43,9 +43,11 @@ import net.minecraft.world.phys.AABB;
  */
 final class PitDryStackGameTests {
 	static final String[] SCENES = {"pit_thickener", "pit_filter_cycle", "pit_loadout", "pit_loadout_haul", "pit_berm", "pit_no_berm", "pit_over_crest",
-			"pit_dump_advance", "pit_dozer_cut", "pit_dozer_berm", "pit_dozer_hard", "pit_dozer_push", "pit_dozer_spread"};
-	static final Map<String, Integer> TICKS = Map.of("pit_thickener", 1200, "pit_filter_cycle", 1600, "pit_loadout", 1600, "pit_loadout_haul", 9000,
-			"pit_berm", 3600, "pit_no_berm", 3600, "pit_over_crest", 1200, "pit_dozer_cut", 1600, "pit_dozer_berm", 1600, "pit_dozer_push", 1600);
+			"pit_dump_advance", "pit_dozer_cut", "pit_dozer_berm", "pit_dozer_hard", "pit_dozer_push", "pit_dozer_spread",
+			"pit_dozer_auto", "pit_cake_slump", "pit_filter_batch", "pit_bin_level"};
+	static final Map<String, Integer> TICKS = Map.ofEntries(Map.entry("pit_thickener", 1200), Map.entry("pit_filter_cycle", 1600), Map.entry("pit_loadout", 1600), Map.entry("pit_loadout_haul", 9000),
+			Map.entry("pit_berm", 3600), Map.entry("pit_no_berm", 3600), Map.entry("pit_over_crest", 1200), Map.entry("pit_dozer_cut", 1600), Map.entry("pit_dozer_berm", 1600),
+			Map.entry("pit_dozer_push", 1600), Map.entry("pit_dozer_auto", 9000), Map.entry("pit_cake_slump", 1200), Map.entry("pit_filter_batch", 1600), Map.entry("pit_bin_level", 1600));
 	static final Map<String, Integer> PADDING = Map.of("pit_loadout_haul", 180, "pit_berm", 120, "pit_no_berm", 120);
 
 	private static final Input FORWARD = new Input(true, false, false, false, false, false, false);
@@ -58,7 +60,7 @@ final class PitDryStackGameTests {
 		return switch (scene) {
 			case "pit_loadout_haul" -> new int[] {-3, 5, -3, 9};
 			case "pit_berm", "pit_no_berm" -> new int[] {-2, 4, -1, 6};
-			case "pit_filter_cycle" -> new int[] {-1, 3, -1, 3};
+			case "pit_filter_cycle", "pit_filter_batch", "pit_bin_level" -> new int[] {-1, 3, -1, 3};
 			default -> new int[] {-1, 3, -1, 4};
 		};
 	}
@@ -467,6 +469,183 @@ final class PitDryStackGameTests {
 					helper.assertTrue(count(helper, Blocks.SAND, 0, 20, 53, 58, 31, 45) >= 15, Component.literal("the sand ran down the face: " + count(helper, Blocks.SAND, 0, 20, 53, 58, 31, 45)));
 					helper.assertTrue(dozer.getY() >= helper.absolutePos(new BlockPos(0, 59, 0)).getY() - 0.01, Component.literal("the dozer stays on the bench"));
 				})
+				.thenSucceed();
+	}
+
+	// ---- Tim, 2026-11-23: the dozer's autopilot, compaction and the slump, full batches, the bin's level --------------------------
+
+	/**
+	 * Two DOZE AREA stakes mark a 20 x 35 m area over a loose 1 m lift with a tipped pile on it and its edge inside the area: started,
+	 * the dozer works the area's four lanes by itself, pushing the pile off the lift's top and spreading it past the lift's edge,
+	 * compacting the lift under its tracks and staying inside the stakes, on its own diesel; the book on it again stops it.
+	 */
+	static void dozerAuto(GameTestHelper helper) {
+		floor(helper, 0, 34, 50, 55, 0, 46);
+		for (int x = 4; x <= 28; x++) {
+			for (int z = 2; z <= 30; z++) {
+				helper.setBlock(new BlockPos(x, 56, z), TailingsBlocks.DRY_TAILS);
+			}
+		}
+		for (int x = 13; x <= 17; x++) {
+			for (int z = 18; z <= 20; z++) {
+				helper.setBlock(new BlockPos(x, 57, z), TailingsBlocks.DRY_TAILS);   // a tipped pile, 15 blocks
+			}
+		}
+		BlockPos a = stake(helper, 6, 57, 4, StopKind.DOZE_AREA), b = stake(helper, 25, 57, 38, StopKind.DOZE_AREA);
+		TrackDozerEntity dozer = vehicle(helper, TailingsEntities.TRACK_DOZER, 15.5, 57, 8.0, 0);
+		dozer.setFuel(dozer.tank());
+		String why = dozer.setAutoArea(helper.getLevel(), List.of(a, b));
+		helper.assertTrue(why == null && dozer.autoRunning(), Component.literal("it should start on the area: " + why));
+		helper.assertTrue(dozer.lanes() == 4, Component.literal("a 20 m wide area is 4 lanes a blade wide: " + dozer.lanes()));
+		double[] box = {Double.MAX_VALUE, -Double.MAX_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE};
+		java.util.Set<Integer> lanes = new java.util.HashSet<>();
+		helper.onEachTick(() -> {
+			if (dozer.leg() == TrackDozerEntity.Leg.PUSH) {
+				lanes.add(dozer.lane());
+				box[0] = Math.min(box[0], relX(helper, dozer));
+				box[1] = Math.max(box[1], relX(helper, dozer));
+				box[2] = Math.min(box[2], relZ(helper, dozer));
+				box[3] = Math.max(box[3], relZ(helper, dozer));
+			}
+		});
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(dozer.passes() >= 1 && dozer.leg() == TrackDozerEntity.Leg.PUSH, Component.literal("it should work across the area by itself: lane "
+						+ (dozer.lane() + 1) + ", pass " + dozer.passes() + ", " + dozer.leg() + "; " + dozer.status() + " " + where(helper, dozer))))
+				.thenExecute(() -> {
+					helper.assertTrue(lanes.size() == 4, Component.literal("all four lanes pushed: " + lanes));
+					helper.assertTrue(box[0] >= 6 + 2.0 && box[1] <= 26 - 2.0 && box[2] >= 4 + 4.0 && box[3] <= 39 - 4.0,
+							Component.literal("pushing, it stays inside the stakes (x 6-26, z 4-39): x " + box[0] + ".." + box[1] + ", z " + box[2] + ".." + box[3]));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 13, 17, 57, 58, 15, 22) == 0, Component.literal("the pile is pushed off the lift's top: "
+							+ count(helper, TailingsBlocks.DRY_TAILS, 13, 17, 57, 58, 15, 22)));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 6, 25, 56, 56, 31, 39) >= 10, Component.literal("and spread past the lift's edge: "
+							+ count(helper, TailingsBlocks.DRY_TAILS, 6, 25, 56, 56, 31, 39)));
+					int compacted = 0;
+					for (int x = 6; x <= 25; x++) {
+						for (int z = 10; z <= 28; z++) {
+							if (dev.wildcatter.tailings.block.DryTailsBlock.compacted(helper.getBlockState(new BlockPos(x, 56, z)))) {
+								compacted++;
+							}
+						}
+					}
+					helper.assertTrue(compacted >= 300, Component.literal("its tracks compact the lift: " + compacted + " of 380"));
+					helper.assertTrue(dev.wildcatter.tailings.block.DryTailsBlock.loose(helper.getBlockState(new BlockPos(4, 56, 20))), Component.literal("outside the area it stays loose"));
+					helper.assertTrue(dozer.fuel() < dozer.tank() - 1, Component.literal("on its own diesel: " + dozer.fuel()));
+					helper.assertTrue(dozer.setAutoArea(helper.getLevel(), List.of(a, b)) == null && !dozer.autoRunning(), Component.literal("the book again stops it: " + dozer.status()));
+				})
+				.thenIdle(60)
+				.thenExecute(() -> helper.assertTrue(Math.abs(dozer.speed()) < 0.05, Component.literal("stopped, it stands: " + dozer.speed())))
+				.thenSucceed();
+	}
+
+	/**
+	 * A row of cake laid flush on the edge of a loose 1 m lift slides off it (a 2 m face of loose on loose); the same row on a compacted
+	 * lift stands. A dozer driven over a loose lift compacts the cake under its tracks, and only there.
+	 */
+	static void cakeSlump(GameTestHelper helper) {
+		floor(helper, 0, 40, 50, 55, 0, 30);
+		net.minecraft.world.level.block.state.BlockState loose = TailingsBlocks.DRY_TAILS.defaultBlockState();
+		net.minecraft.world.level.block.state.BlockState firm = loose.setValue(dev.wildcatter.tailings.block.DryTailsBlock.COMPACTED, true);
+		for (int z = 2; z <= 6; z++) {
+			for (int x = 2; x <= 8; x++) {
+				helper.setBlock(new BlockPos(x, 56, z), loose);
+				helper.setBlock(new BlockPos(x + 10, 56, z), firm);
+			}
+		}
+		for (int x = 22; x <= 34; x++) {
+			for (int z = 0; z <= 24; z++) {
+				helper.setBlock(new BlockPos(x, 56, z), loose);
+			}
+		}
+		TrackDozerEntity dozer = vehicle(helper, TailingsEntities.TRACK_DOZER, 28.5, 57, 3.0, 0);
+		dozer.setBlade(TrackDozerEntity.Blade.RAISED);
+		helper.startSequence()
+				.thenIdle(10)
+				.thenExecute(() -> {
+					for (int x = 3; x <= 7; x++) {
+						helper.setBlock(new BlockPos(x, 57, 6), loose);       // a layer on the loose lift, flush with its edge
+						helper.setBlock(new BlockPos(x + 10, 57, 6), loose);  // and on the compacted one
+					}
+					dozer.testDrive(FORWARD);
+				})
+				.thenIdle(40)
+				.thenExecute(() -> {
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 3, 7, 57, 57, 6, 6) == 0, Component.literal("on the loose lift the edge slumps: "
+							+ count(helper, TailingsBlocks.DRY_TAILS, 3, 7, 57, 57, 6, 6) + " still stand"));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 1, 9, 56, 56, 7, 10) >= 4, Component.literal("and comes to rest below the edge: "
+							+ count(helper, TailingsBlocks.DRY_TAILS, 1, 9, 56, 56, 7, 10)));
+					helper.assertTrue(count(helper, TailingsBlocks.DRY_TAILS, 13, 17, 57, 57, 6, 6) == 5, Component.literal("on the compacted lift it stands: "
+							+ count(helper, TailingsBlocks.DRY_TAILS, 13, 17, 57, 57, 6, 6)));
+				})
+				.thenWaitUntil(() -> helper.assertTrue(relZ(helper, dozer) > 14, Component.literal("the dozer drives over the loose lift: " + where(helper, dozer))))
+				.thenExecute(() -> {
+					dozer.testDrive(Input.EMPTY);
+					for (int z = 6; z <= 10; z++) {
+						helper.assertTrue(dev.wildcatter.tailings.block.DryTailsBlock.compacted(helper.getBlockState(new BlockPos(28, 56, z))),
+								Component.literal("a pass of its tracks compacts the cake under it at z " + z));
+					}
+					helper.assertTrue(dev.wildcatter.tailings.block.DryTailsBlock.loose(helper.getBlockState(new BlockPos(23, 56, 10))), Component.literal("beside its path it stays loose"));
+					helper.assertTrue(dozer.compactedBlocks() > 40, Component.literal("it counts what it compacted: " + dozer.compactedBlocks()));
+				})
+				.thenSucceed();
+	}
+
+	/**
+	 * Only full batches drop: fed 9 t of solids, the press fills, then holds at the end of its fill ("waiting for a full batch") and
+	 * drops nothing; fed the rest, it squeezes, blows and opens and the whole 15 t cake drops into the bin at once, a pulse.
+	 */
+	static void filterBatch(GameTestHelper helper) {
+		floor(helper, 0, 20, 0, 0, 0, 30);
+		PlantBlockEntity bin = plant(helper, Machine.LOADOUT_BIN, new BlockPos(0, 1, 0));
+		PlantBlockEntity filter = plant(helper, Machine.TAILINGS_FILTER, new BlockPos(2, 8, 0));
+		filter.forceRunning();
+		filter.fastCycle(60);
+		filter.back().offer(Product.TAILS_SLURRY, 15_000, thickened());
+		java.util.Set<Long> binLevels = new java.util.TreeSet<>();
+		helper.onEachTick(() -> binLevels.add(Math.round(bin.dryKg())));
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(filter.pressHeld() && filter.status().startsWith("filling: waiting for a full batch"),
+						Component.literal("short of a batch it holds at its fill: " + filter.status())))
+				.thenIdle(200)
+				.thenExecute(() -> {
+					helper.assertTrue(filter.cycles() == 0 && bin.dryKg() == 0, Component.literal("and drops nothing: " + filter.cycles() + " drops, bin " + bin.dryKg()));
+					helper.assertTrue(Math.abs(filter.dryKg() - 9_000) < 1, Component.literal("9 t in the press: " + filter.dryKg()));
+					helper.assertTrue(filter.cycle() <= DryStack.FILL_SECONDS * 20.0 / 60 + 1e-6, Component.literal("its cycle held at the fill's end: " + filter.cycle()));
+					filter.back().offer(Product.TAILS_SLURRY, 15_000, thickened());
+				})
+				.thenWaitUntil(() -> helper.assertTrue(filter.cycles() == 1, Component.literal("fed the rest, it drops: " + filter.status())))
+				.thenExecute(() -> {
+					helper.assertTrue(!filter.pressHeld(), Component.literal("no longer held"));
+					helper.assertTrue(Math.abs(bin.dryKg() - DryStack.BATCH_KG) < 1, Component.literal("a whole 15 t cake: " + bin.dryKg()));
+					helper.assertTrue(binLevels.equals(java.util.Set.of(0L, Math.round(DryStack.BATCH_KG))), Component.literal("all at once, a pulse: the bin read " + binLevels));
+				})
+				.thenSucceed();
+	}
+
+	/** The bin sends its level to the client as the cake drops into it and as it is drawn down, a 100th of the bin at a time. */
+	static void binLevel(GameTestHelper helper) {
+		floor(helper, 0, 20, 0, 0, 0, 30);
+		PlantBlockEntity bin = plant(helper, Machine.LOADOUT_BIN, new BlockPos(0, 1, 0));
+		PlantBlockEntity filter = plant(helper, Machine.TAILINGS_FILTER, new BlockPos(2, 8, 0));
+		filter.forceRunning();
+		filter.fastCycle(60);
+		filter.back().offer(Product.TAILS_SLURRY, 26_000, thickened());
+		helper.startSequence()
+				.thenWaitUntil(() -> helper.assertTrue(bin.binStepSent() == 0, Component.literal("empty, it sends 0: " + bin.binStepSent())))
+				.thenWaitUntil(() -> helper.assertTrue(filter.cycles() == 1, Component.literal("a cake should drop: " + filter.status())))
+				.thenIdle(2)
+				.thenExecute(() -> {
+					helper.assertTrue(bin.binStepSent() == 4, Component.literal("15 t of 400 is 4 hundredths: " + bin.binStepSent()));
+					net.minecraft.nbt.CompoundTag tag = bin.getUpdateTag(helper.getLevel().registryAccess());
+					helper.assertTrue(Math.abs(tag.getFloatOr("bin_fill", -1) - 15.0f / 400) < 1e-4, Component.literal("its update carries the level: " + tag));
+					bin.setDryKg(200_000);
+				})
+				.thenIdle(2)
+				.thenExecute(() -> {
+					helper.assertTrue(bin.binStepSent() == 50 && Math.abs(bin.binFill() - 0.5f) < 1e-4, Component.literal("half full: " + bin.binStepSent() + ", " + bin.binFill()));
+					bin.setDryKg(198_000);
+				})
+				.thenIdle(2)
+				.thenExecute(() -> helper.assertTrue(bin.binStepSent() == 50, Component.literal("2 t drawn is under a 100th: no update: " + bin.binStepSent())))
 				.thenSucceed();
 	}
 }

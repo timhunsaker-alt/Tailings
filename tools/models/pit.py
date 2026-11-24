@@ -181,7 +181,7 @@ for i in range(4):
 for x in (0.0, 9.6):
 	for z in (0.0, 9.6):
 		LB.box((x, 0.0, z), (x + 0.4, 2.0, z + 0.4), "steel")               # its seats on the deck
-LB.box((0.3, 6.0, 0.3), (9.7, 6.5, 9.7), "polymer")                         # the dry tails in it
+# the dry tails in it are drawn at their level by PlantRenderer.bin (Tim, 2026-11-23)
 LB.box((0.0, 6.9, 4.7), (10.0, 7.0, 5.3), "grating")                        # the walkway over it
 LB.decal((4.0, 4.0, -0.01), (6.0, 5.0, 0.0), "nameplate", "north", "steel")
 LB.collide((0.0, 0.0, 0.0), (10.0, 7.0, 10.0))

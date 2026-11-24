@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "compacted=false": {
       "model": "tailings:block/dry_tails"
+    },
+    "compacted=true": {
+      "model": "tailings:block/dry_tails_compacted"
     }
   }
 }

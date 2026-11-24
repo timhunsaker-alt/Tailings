@@ -143,3 +143,29 @@ Spanish with the same narration (shots swapped and in-points moved, nothing re-v
 agent's filming). The client scenes ran three times: fix run 1 kept five films (its drop, low by the head, hid the cakes behind the
 head and was filmed before the last cake was timed to the count: rejected); fix run 2's drop started too early (its wait timed out
 with the press film skipped); fix run 3: `hi04_drop`. Rejected takes deleted.
+
+## Decided by Tim 2026-11-23 (branch `fix2-hi04`, off main 105dee5e)
+Tim decided four game changes for episode 4; the spec note with each one's real-world counterpart is in
+`docs/multiblocks/open-pit-p4-dry-stack.md`, "Tim's decisions of 2026-11-23". Tim's rule stands: "Let's keep fixing weak spots as we
+find them."
+1. **Dozer autopilot.** Two `DOZE AREA` survey stakes (a new stake kind, yellow flag) mark the area's corners; the survey book with
+   those two stakes clicked on the dozer starts it, and again stops it; a player in the cab takes it over. It pushes the way it faced,
+   squared, in lanes a blade wide: SPREAD to the far end at 3.5 km/h, anything left on the blade left at the end, blade raised, reverse
+   straight back down its own lane, then over to the next lane (across and back), squaring up on its tracks. It waits for anything in its way (not spectators), stops out of fuel,
+   stuck or at a drop behind it, and burns its own diesel (`TrackDozerEntity`, autopilot section).
+2. **Compaction.** `dry_tails` is now `DryTailsBlock` with `compacted=false|true`: placed loose (paler, in clods), compacted by a pass
+   of a moving dozer's tracks (darker, smooth, track marks). The slump rule: loose cake on loose cake at the top of an edge with a
+   drop of 2 m or more beside it slides off and settles below at 37 degrees; anything else stands. Berms on rock, piles on ground and
+   1 m lifts never move.
+3. **Full batch press.** The fill holds at its 2-minute mark ("filling: waiting for a full batch") until the chambers hold 15 t; then
+   the timed squeeze, blow and open; the whole 15 t drops at the end. The scene's own hold (`Hi04Scenes.holdPress`, its selector to
+   OFF) is gone: the game does it. The client stops running the press's plates on while it is held (`press_held`).
+4. **Bin level.** The load-out bin's static "full" fill came out of its model (`tools/models/pit.py`, only `loadout_bin` changed); it
+   draws its dry tails at their level inside and a sight window on each wall with a mark every 100 t (`PlantRenderer.bin`); the
+   server sends the level whenever it moves a 100th (`bin_fill`).
+- **Narration rewritten where it was now wrong** (EN and ES, same voices and settings: Ludo `createSpeechPreset`, Brian, English
+  "calm, measured documentary narration" / Spanish "Venezuelan Spanish accent, calm documentary"): P07 (no longer "It has no
+  autopilot"), P28 (a cycle of at least 15 minutes, filling to a full batch), P29 (every cake 15 t; on the plant's 50 t/h about 18
+  minutes a cycle), P31 (the whole cake at once, output in drops; the bin's level in its windows), P35 (loose and compacted, the slump;
+  "compaction is not modelled" was wrong), and a new paragraph after it (the autopilot; Spanish paragraph 36, the old 36 and 37 moved
+  to 37 and 38 with their takes renamed, not re-voiced).

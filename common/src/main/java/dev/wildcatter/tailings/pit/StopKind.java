@@ -10,7 +10,9 @@ public enum StopKind implements StringRepresentable {
 	LOADOUT("loadout", "LOADOUT"),
 	DUMP_POINT("dump_point", "DUMP POINT"),
 	FUEL("fuel", "FUEL"),
-	PARK("park", "PARK");
+	PARK("park", "PARK"),
+	/** A corner of a track dozer's autopilot area (open-pit-p4-dry-stack.md, Tim 2026-11-23): two mark the rectangle. */
+	DOZE_AREA("doze_area", "DOZE AREA");
 
 	private final String id;
 	private final String label;
