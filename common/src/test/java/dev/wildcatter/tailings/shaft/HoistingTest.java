@@ -142,4 +142,104 @@ class HoistingTest {
 		assertEquals(w.position(), back.position(), 1e-9);
 		assertEquals(w.travel(), back.travel(), 1e-9);
 	}
+
+	// ---- fix3-hi07: the pour over the chute, each rope on its own drum ---------------------------------------------------------------
+
+	/** Every point along the path, every 2 cm, and the chute's top under it: the sheet's underside never below the chute or the scroll. */
+	@Test
+	void thePourRunsOverTheChuteAndIntoTheBin() {
+		// ep 7's yard: the bin's mouth 2 m north of the headframe, x 4, its rim 5 m up; a skip in each compartment (x 3 and 6)
+		for (double skipX : new double[] {3.0, 6.0}) {
+			java.util.List<double[]> path = ShaftGeometry.pourPath(skipX, 4.0, 5.0, -2.0);
+			double lowest = Double.POSITIVE_INFINITY;
+			for (int i = 0; i + 1 < path.size(); i++) {
+				double[] a = path.get(i), b = path.get(i + 1);
+				for (double t = 0; t <= 1; t += 0.01) {
+					double z = a[2] + (b[2] - a[2]) * t, y = a[1] + (b[1] - a[1]) * t;
+					double under = y - ShaftGeometry.STREAM_THICK / 2 - ShaftGeometry.chuteTop(z);
+					lowest = Math.min(lowest, under);
+				}
+			}
+			assertTrue(lowest >= -1e-9, "the stream lies on the chute, never under it: " + lowest);
+			// it lies on the chute, not floating over it: at each step's nose the sheet touches
+			for (double z = 0; z <= 2.25 + 1e-9; z += 0.75) {
+				assertEquals(ShaftGeometry.chuteTop(z + 1e-6), ShaftGeometry.noseLine(z), 1e-9, "the nose at z " + z);
+			}
+			// it leaves the skip under its floor and over the scroll, and starts down from the lip at z 0
+			assertTrue(path.get(0)[1] > ShaftGeometry.SCROLL_TOP && path.get(0)[2] > ShaftGeometry.SCROLL_Z1);
+			double[] lip = path.get(ShaftGeometry.lipIndex());
+			assertEquals(ShaftGeometry.CHUTE_LIP, lip[2], 1e-9);
+			assertEquals(16.05 + ShaftGeometry.STREAM_THICK / 2, lip[1], 1e-9);
+			// after the lip it only falls and only goes north, and it ends in the middle of the bin's mouth
+			for (int i = ShaftGeometry.lipIndex() + 1; i < path.size(); i++) {
+				assertTrue(path.get(i)[1] < path.get(i - 1)[1] && path.get(i)[2] <= 1e-9);
+			}
+			double[] end = path.get(path.size() - 1);
+			assertEquals(4.0, end[0], 1e-9);
+			assertEquals(5.0, end[1], 1e-9);
+			assertEquals(-2.0, end[2], 1e-9);
+			// the door plate's lip clears the scroll
+			assertTrue(ShaftGeometry.DOOR_LIP_Y > ShaftGeometry.SCROLL_TOP && ShaftGeometry.DOOR_LIP_Z > ShaftGeometry.SCROLL_Z0 && ShaftGeometry.DOOR_LIP_Z < ShaftGeometry.SCROLL_Z1);
+			// a particle thrown off the lip at lipVelocity, under 0.04 blocks a tick squared, lands in the mouth
+			double[] v = ShaftGeometry.lipVelocity(lip, end, 0.04);
+			double x = lip[0], y = lip[1], z = lip[2], vy = v[1];
+			while (y > end[1]) {
+				x += v[0];
+				z += v[2];
+				y += vy;
+				vy -= 0.04;
+			}
+			assertEquals(end[0], x, 0.6);
+			assertEquals(end[2], z, 0.6);
+		}
+	}
+
+	/**
+	 * ep 7's hoist house 20 m behind the headframe, facing the same way: the sheaves' tops at x 3 and 6, 29 m up and 5.5 m south of the
+	 * headframe's corner are, in the hoist house's frame, 14.5 m north of it. Each rope meets its own drum at a true tangent, on the
+	 * drum's barrel and never in the gap between the drums; the west over the top, the east under the bottom.
+	 */
+	@Test
+	void eachRopeMeetsItsOwnDrumAtATrueTangent() {
+		double r = ShaftGeometry.HOIST_DRUM_R, rr = r + ShaftGeometry.ROPE_R, cy = ShaftGeometry.HOIST_DRUM_Y, cz = ShaftGeometry.HOIST_DRUM_Z;
+		double travel = 138;
+		for (double h = 0; h <= travel; h += 6) {
+			for (int which = 0; which < 2; which++) {
+				double sx = which == 0 ? 3.0 : 6.0, sy = Hoisting.SHEAVE_HEIGHT + 1.5, sz = 5.5 - 20;
+				double[] d = ShaftGeometry.HOIST_DRUMS[which];
+				double wound = ShaftGeometry.wound(which == 0 ? h : travel - h, r);
+				double[] e = ShaftGeometry.ropeEnd(d[0], d[1], cy, cz, r, sx, sy, sz, wound, which == 0);
+				assertTrue(e != null);
+				assertTrue(e[0] > d[0] && e[0] < d[1], "on its own drum's barrel: x " + e[0] + " of " + d[0] + "-" + d[1]);
+				assertFalse(e[0] > ShaftGeometry.HOIST_DRUMS[0][1] && e[0] < ShaftGeometry.HOIST_DRUMS[1][0], "not in the gap between the drums");
+				assertEquals(rr, Math.hypot(e[1] - cy, e[2] - cz), 1e-9, "on the barrel");
+				// a true tangent: the rope from the sheave is square to the drum's radius there
+				double ru = e[2] - cz, rv = e[1] - cy, pu = sz - e[2], pv = sy - e[1];
+				assertEquals(0, (ru * pu + rv * pv) / Math.hypot(pu, pv), 1e-9);
+				assertTrue(which == 0 ? e[1] > cy + 0.5 : e[1] < cy - 0.5, which == 0 ? "the west rope over the top" : "the east rope under the bottom");
+				// the coil starts at the flange farther from its sheave and fits on the drum
+				double[] c = ShaftGeometry.coil(d[0], d[1], sx, wound, r);
+				assertEquals(which == 0 ? d[0] : d[1], c[0], 0.1);
+				assertTrue(Math.abs(c[2] - c[0]) < d[1] - d[0] - 0.1, "the coil fits");
+			}
+		}
+		// on one shaft one rope pays out as the other takes in: the wound lengths add up to the same at every height
+		assertEquals(ShaftGeometry.wound(0, r) + ShaftGeometry.wound(travel, r), ShaftGeometry.wound(40, r) + ShaftGeometry.wound(travel - 40, r), 1e-9);
+	}
+
+	/** The cage's rope meets the cage winder's 2.5 m drum over its top at a true tangent (the winder 11 m east, 20 m south of the headframe). */
+	@Test
+	void theCageRopeMeetsItsOwnDrum() {
+		double r = ShaftGeometry.CAGE_DRUM_R, cy = ShaftGeometry.CAGE_DRUM_Y, cz = ShaftGeometry.CAGE_DRUM_Z;
+		double sx = 4.0 - 11, sy = 26.95 + Hoisting.CAGE_SHEAVE_DIAMETER / 2, sz = 7.25 - 20;
+		for (double h = 0; h <= 120; h += 10) {
+			double wound = ShaftGeometry.wound(h, r);
+			double[] e = ShaftGeometry.ropeEnd(ShaftGeometry.CAGE_DRUM[0], ShaftGeometry.CAGE_DRUM[1], cy, cz, r, sx, sy, sz, wound, true);
+			assertTrue(e[0] > ShaftGeometry.CAGE_DRUM[0] && e[0] < ShaftGeometry.CAGE_DRUM[1], "on the drum: x " + e[0]);
+			assertEquals(r + ShaftGeometry.ROPE_R, Math.hypot(e[1] - cy, e[2] - cz), 1e-9);
+			assertTrue(e[1] > cy + 0.5, "over its top");
+			double ru = e[2] - cz, rv = e[1] - cy, pu = sz - e[2], pv = sy - e[1];
+			assertEquals(0, (ru * pu + rv * pv) / Math.hypot(pu, pv), 1e-9);
+		}
+	}
 }

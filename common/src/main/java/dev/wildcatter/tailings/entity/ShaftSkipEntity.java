@@ -51,7 +51,21 @@ public class ShaftSkipEntity extends Entity {
 	 * mouth the stream falls to.
 	 */
 	private static final EntityDataAccessor<Float> DATA_POUR = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
-	private static final EntityDataAccessor<Optional<BlockPos>> DATA_POUR_TO = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_POS);
+	/** The bin's mouth the stream falls into (fix3-hi07: the stream follows ShaftLayout.pourPath down the chute to it). */
+	private static final EntityDataAccessor<Float> DATA_MOUTH_X = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Float> DATA_MOUTH_Y = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Float> DATA_MOUTH_Z = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	/** The headframe's main cell and its compartment, for the client to set the pour in the headframe's frame. */
+	private static final EntityDataAccessor<BlockPos> DATA_FRAME = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.BLOCK_POS);
+	private static final EntityDataAccessor<Integer> DATA_COMPARTMENT = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.INT);
+	/**
+	 * Where its rope meets its own drum (fix3-hi07): the true tangent from its sheave's top at the coil's front, from the headframe's
+	 * main cell (NaN for none); and the rope wound on that drum, m, for the drum's coil and its turn.
+	 */
+	private static final EntityDataAccessor<Float> DATA_ROPE_X = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Float> DATA_ROPE_Y = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Float> DATA_ROPE_Z = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
+	private static final EntityDataAccessor<Float> DATA_WOUND = SynchedEntityData.defineId(ShaftSkipEntity.class, EntityDataSerializers.FLOAT);
 
 	/** The headframe's main cell it hangs in, and which compartment (0 west, 1 east, in the headframe's own frame). */
 	private BlockPos headframe = BlockPos.ZERO;
@@ -164,6 +178,49 @@ public class ShaftSkipEntity extends Entity {
 	public void setLoaded(boolean loaded) {
 		if (loaded != entityData.get(DATA_LOADED)) {
 			entityData.set(DATA_LOADED, loaded);
+		}
+	}
+
+	/** Where its rope meets its drum in the world, or null for none. */
+	public @Nullable Vec3 ropeEnd() {
+		float x = entityData.get(DATA_ROPE_X);
+		return Float.isNaN(x) ? null : fromFrame(x, entityData.get(DATA_ROPE_Y), entityData.get(DATA_ROPE_Z));
+	}
+
+	/** The rope wound on its drum, m. */
+	public float wound() {
+		return entityData.get(DATA_WOUND);
+	}
+
+	/** The headframe's main cell, on the client too. */
+	public BlockPos frameMain() {
+		return entityData.get(DATA_FRAME);
+	}
+
+	/** Its compartment, on the client too. */
+	public int syncedCompartment() {
+		return entityData.get(DATA_COMPARTMENT);
+	}
+
+	/** Where its rope runs: up to the sheave at {@code sheaveY}, over it, and back to its own drum at {@code end}, {@code wound} m on it. */
+	public void setRope(float sheaveY, @Nullable BlockPos drum, @Nullable Vec3 end, double wound) {
+		if (!entityData.get(DATA_FRAME).equals(headframe)) {
+			entityData.set(DATA_FRAME, headframe);
+		}
+		setFloat(DATA_ROPE_X, end == null ? Float.NaN : (float) (end.x - headframe.getX()));
+		setFloat(DATA_ROPE_Y, end == null ? Float.NaN : (float) (end.y - headframe.getY()));
+		setFloat(DATA_ROPE_Z, end == null ? Float.NaN : (float) (end.z - headframe.getZ()));
+		setFloat(DATA_WOUND, (float) wound);
+		if (entityData.get(DATA_COMPARTMENT) != compartment) {
+			entityData.set(DATA_COMPARTMENT, compartment);
+		}
+		setRope(sheaveY, drum);
+	}
+
+	private void setFloat(EntityDataAccessor<Float> key, float value) {
+		float was = entityData.get(key);
+		if (Float.isNaN(value) != Float.isNaN(was) || !Float.isNaN(value) && Math.abs(was - value) > 1e-3) {
+			entityData.set(key, value);
 		}
 	}
 
@@ -330,7 +387,15 @@ public class ShaftSkipEntity extends Entity {
 		builder.define(DATA_DRUM, Optional.empty());
 		builder.define(DATA_CAGE, false);
 		builder.define(DATA_POUR, 0f);
-		builder.define(DATA_POUR_TO, Optional.empty());
+		builder.define(DATA_MOUTH_X, Float.NaN);
+		builder.define(DATA_MOUTH_Y, Float.NaN);
+		builder.define(DATA_MOUTH_Z, Float.NaN);
+		builder.define(DATA_FRAME, BlockPos.ZERO);
+		builder.define(DATA_COMPARTMENT, 0);
+		builder.define(DATA_ROPE_X, Float.NaN);
+		builder.define(DATA_ROPE_Y, Float.NaN);
+		builder.define(DATA_ROPE_Z, Float.NaN);
+		builder.define(DATA_WOUND, 0f);
 	}
 
 	/** How much of its load is still to pour out of its open door, 1 to 0; 0 with its door shut. */
@@ -338,19 +403,29 @@ public class ShaftSkipEntity extends Entity {
 		return entityData.get(DATA_POUR);
 	}
 
-	public @Nullable BlockPos pourTo() {
-		return entityData.get(DATA_POUR_TO).orElse(null);
+	/** The bin's mouth it pours into, or null. */
+	public @Nullable Vec3 pourTo() {
+		float x = entityData.get(DATA_MOUTH_X);
+		return Float.isNaN(x) ? null : fromFrame(x, entityData.get(DATA_MOUTH_Y), entityData.get(DATA_MOUTH_Z));
 	}
 
-	/** Opens its door and pours, {@code left} of its load still in it, toward {@code to}; 0 shuts it. */
-	public void setPour(float left, @Nullable BlockPos to) {
+	/** Opens its door and pours, {@code left} of its load still in it, into the bin's mouth at {@code to}; 0 shuts it. */
+	public void setPour(float left, @Nullable Vec3 to) {
 		if (Math.abs(entityData.get(DATA_POUR) - left) > 1e-3) {
 			entityData.set(DATA_POUR, left);
 		}
-		Optional<BlockPos> at = Optional.ofNullable(to);
-		if (!entityData.get(DATA_POUR_TO).equals(at)) {
-			entityData.set(DATA_POUR_TO, at);
+		if (!entityData.get(DATA_FRAME).equals(headframe)) {
+			entityData.set(DATA_FRAME, headframe);
 		}
+		setFloat(DATA_MOUTH_X, to == null ? Float.NaN : (float) (to.x - headframe.getX()));
+		setFloat(DATA_MOUTH_Y, to == null ? Float.NaN : (float) (to.y - headframe.getY()));
+		setFloat(DATA_MOUTH_Z, to == null ? Float.NaN : (float) (to.z - headframe.getZ()));
+	}
+
+	/** A point synced as floats from the headframe's main cell (exact far from the world's origin, where a float is not). */
+	private Vec3 fromFrame(float x, float y, float z) {
+		BlockPos at = entityData.get(DATA_FRAME);
+		return new Vec3(at.getX() + (double) x, at.getY() + (double) y, at.getZ() + (double) z);
 	}
 
 	@Override
@@ -359,6 +434,8 @@ public class ShaftSkipEntity extends Entity {
 		headframe = BlockPos.of(input.getLongOr("headframe", 0L));
 		compartment = input.getIntOr("compartment", 0);
 		entityData.set(DATA_CAGE, compartment == ShaftLayout.CAGE);
+		entityData.set(DATA_FRAME, headframe);
+		entityData.set(DATA_COMPARTMENT, compartment);
 		entityData.set(DATA_LOADED, input.getBooleanOr("loaded", false));
 		deck.clear();
 		input.read("deck", ItemStack.CODEC.listOf()).ifPresent(deck::addAll);

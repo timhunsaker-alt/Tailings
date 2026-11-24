@@ -1,9 +1,11 @@
 package dev.wildcatter.tailings.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.wildcatter.tailings.block.ShaftLayout;
 import dev.wildcatter.tailings.block.SkipPartBlock;
 import dev.wildcatter.tailings.block.TbmMachine;
 import dev.wildcatter.tailings.entity.ShaftSkipEntity;
+import dev.wildcatter.tailings.shaft.ShaftGeometry;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -36,9 +38,16 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		/** The rope's points from the skip's corner: off its bail, up to the sheave, and back to the drum; empty for none. */
 		float[] rope = new float[0];
 		float centreX, centreZ;
-		/** Its pour (films-hi07): the load still to pour (0: door shut), and the bin's mouth from its corner. */
+		/** Its pour (films-hi07): the load still to pour (0: door shut). */
 		float pour;
-		float[] pourTo;
+		/**
+		 * The stream's centre line from its corner (fix3-hi07: ShaftLayout.pourPath, over the door and the chute and into the bin), the
+		 * lip's index in it, the headframe's x axis across the stream, and the open door's hinge and lip from its corner.
+		 */
+		float[] pourPath;
+		int lip;
+		float acrossX, acrossZ;
+		float[] door;
 	}
 
 	@Override
@@ -72,6 +81,10 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 				box = box.minmax(new AABB(drum));
 			}
 		}
+		net.minecraft.world.phys.Vec3 mouth = entity.pourTo();
+		if (mouth != null && entity.pour() > 0) {
+			box = box.minmax(new AABB(mouth, mouth).inflate(1));
+		}
 		return frustum.isVisible(box.inflate(2));
 	}
 
@@ -82,8 +95,29 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 		skip.loaded = entity.loaded();
 		skip.cage = entity.cage();
 		skip.pour = entity.pour();
-		BlockPos to = entity.pourTo();
-		skip.pourTo = to == null ? null : new float[] {(float) (to.getX() + 0.5 - entity.getX()), (float) (to.getY() - entity.getY()), (float) (to.getZ() + 0.5 - entity.getZ())};
+		double ox = entity.getX(), oy = entity.getY(), oz = entity.getZ();
+		net.minecraft.world.phys.Vec3 mouth = entity.pourTo();
+		ShaftLayout.Frame frame = new ShaftLayout.Frame(entity.frameMain(), entity.facing());
+		BlockPos ax = TbmMachine.offset(entity.facing(), 1, 0, 0);
+		skip.acrossX = ax.getX();
+		skip.acrossZ = ax.getZ();
+		if (mouth != null && skip.pour > 0 && !entity.cage()) {
+			List<net.minecraft.world.phys.Vec3> path = ShaftLayout.pourPath(frame, entity.syncedCompartment(), mouth);
+			skip.pourPath = new float[path.size() * 3];
+			for (int i = 0; i < path.size(); i++) {
+				skip.pourPath[3 * i] = (float) (path.get(i).x - ox);
+				skip.pourPath[3 * i + 1] = (float) (path.get(i).y - oy);
+				skip.pourPath[3 * i + 2] = (float) (path.get(i).z - oz);
+			}
+			skip.lip = ShaftGeometry.lipIndex();
+			double sx = entity.syncedCompartment() == 0 ? 3.0 : 6.0;
+			net.minecraft.world.phys.Vec3 hinge = frame.point(sx, ShaftGeometry.DOOR_HINGE_Y, ShaftGeometry.DOOR_HINGE_Z),
+					lip = frame.point(sx, ShaftGeometry.DOOR_LIP_Y, ShaftGeometry.DOOR_LIP_Z);
+			skip.door = new float[] {(float) (hinge.x - ox), (float) (hinge.y - oy), (float) (hinge.z - oz), (float) (lip.x - ox), (float) (lip.y - oy), (float) (lip.z - oz)};
+		} else {
+			skip.pourPath = null;
+			skip.door = null;
+		}
 		float bail = skip.cage ? dev.wildcatter.tailings.shaft.Hoisting.CAGE_HEIGHT : SkipPartBlock.HEIGHT;
 		BlockPos far = TbmMachine.offset(entity.facing(), SkipPartBlock.WIDTH - 1, 0, SkipPartBlock.WIDTH - 1);
 		skip.centreX = (Math.min(0, far.getX()) + Math.max(0, far.getX()) + 1) / 2f;
@@ -92,35 +126,37 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 			skip.rope = new float[0];
 			return;
 		}
-		double ox = entity.getX(), oy = entity.getY(), oz = entity.getZ();
 		float top = (float) (entity.sheaveY() - oy);
+		// the rope up its compartment's centre to the north side of its sheave, over its top, and down to the true tangent on its own
+		// drum (fix3-hi07; cage-winder.md): the sheave stands its radius south of the rope
+		BlockPos south = TbmMachine.offset(entity.facing(), 0, 0, 1);
+		float r = (float) (skip.cage ? dev.wildcatter.tailings.shaft.Hoisting.CAGE_SHEAVE_DIAMETER / 2 : ShaftLayout.SHEAVE_RADIUS), sx = south.getX(), sz = south.getZ();
+		float cx = skip.centreX + sx * r, cz = skip.centreZ + sz * r, cy = top - r;
+		net.minecraft.world.phys.Vec3 end = entity.ropeEnd();
 		BlockPos drum = entity.drum();
-		if (skip.cage && drum != null) {
-			// the cage's rope up its compartment's centre to the north side of its own sheave, over its top, and down to the cage
-			// winder's drum (cage-winder.md): the sheave stands its radius south of the rope
-			BlockPos south = TbmMachine.offset(entity.facing(), 0, 0, 1);
-			float r = (float) (dev.wildcatter.tailings.shaft.Hoisting.CAGE_SHEAVE_DIAMETER / 2), sx = south.getX(), sz = south.getZ();
-			float cx = skip.centreX + sx * r, cz = skip.centreZ + sz * r, cy = top - r;
-			float[] pts = new float[3 * 8];
-			int n = 0;
-			pts[n++] = skip.centreX;
-			pts[n++] = bail;
-			pts[n++] = skip.centreZ;
-			for (int k = 0; k <= 5; k++) {
-				double a = Math.toRadians(90.0 * k / 5);
-				pts[n++] = (float) (cx - sx * r * Math.cos(a));
-				pts[n++] = (float) (cy + r * Math.sin(a));
-				pts[n++] = (float) (cz - sz * r * Math.cos(a));
-			}
+		float[] pts = new float[3 * 8];
+		int n = 0;
+		pts[n++] = skip.centreX;
+		pts[n++] = bail;
+		pts[n++] = skip.centreZ;
+		for (int k = 0; k <= 5; k++) {
+			double a = Math.toRadians(90.0 * k / 5);
+			pts[n++] = (float) (cx - sx * r * Math.cos(a));
+			pts[n++] = (float) (cy + r * Math.sin(a));
+			pts[n++] = (float) (cz - sz * r * Math.cos(a));
+		}
+		if (end != null) {
+			pts[n++] = (float) (end.x - ox);
+			pts[n++] = (float) (end.y - oy);
+			pts[n++] = (float) (end.z - oz);
+		} else if (drum != null) {
 			pts[n++] = (float) (drum.getX() + 0.5 - ox);
 			pts[n++] = (float) (drum.getY() + 0.5 - oy);
 			pts[n++] = (float) (drum.getZ() + 0.5 - oz);
-			skip.rope = pts;
-			return;
+		} else {
+			pts = java.util.Arrays.copyOf(pts, n);
 		}
-		skip.rope = drum == null ? new float[] {skip.centreX, bail, skip.centreZ, skip.centreX, top, skip.centreZ}
-				: new float[] {skip.centreX, bail, skip.centreZ, skip.centreX, top, skip.centreZ,
-						(float) (drum.getX() + 0.5 - ox), (float) (drum.getY() + 0.5 - oy), (float) (drum.getZ() + 0.5 - oz)};
+		skip.rope = pts;
 	}
 
 	@Override
@@ -140,17 +176,30 @@ public class SkipRenderer extends PitchedCellsRenderer<ShaftSkipEntity> {
 			}
 			return;
 		}
-		if (skip.pour > 0 && skip.pourTo != null) {
-			// its bottom door swung open, and the stream of rock falling from it down the chute into the bin, thinning as it empties
+		if (skip.pour > 0 && skip.pourPath != null && skip.door != null) {
+			// its bottom door swung open onto the head of the chute, clear over the scroll, and the stream of rock as a flat sheet over the
+			// door, down the chute's steps and off its lip in a parabola into the bin, thinning as it empties (fix3-hi07)
 			TextureAtlasSprite gravel = sprite("block/gravel"), cobble = sprite("block/cobblestone"), steel = sprite("block/iron_block");
-			float[] to = skip.pourTo;
-			float cx = skip.centreX, cz = skip.centreZ, w = 0.35f + 0.85f * skip.pour;
+			float[] path = skip.pourPath, d = skip.door;
+			float ax = skip.acrossX, az = skip.acrossZ, width = 0.5f + 1.0f * skip.pour;
+			int lip = skip.lip;
 			collector.submitCustomGeometry(pose, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (at, v) -> {
-				GantryRenderer.rod(at, v, steel, cx - 0.9f, -0.05f, cz + 0.9f, cx - 0.9f, -1.1f, cz - 0.2f, 0.1f, light);
-				GantryRenderer.rod(at, v, steel, cx + 0.9f, -0.05f, cz + 0.9f, cx + 0.9f, -1.1f, cz - 0.2f, 0.1f, light);
-				GantryRenderer.rod(at, v, steel, cx, -0.05f, cz + 0.9f, cx, -1.1f, cz - 0.2f, 0.1f, light);
-				GantryRenderer.rod(at, v, gravel, cx, -0.1f, cz, to[0], to[1], to[2], w, light);
-				GantryRenderer.rod(at, v, cobble, cx + 0.15f, -0.3f, cz - 0.1f, to[0] + 0.2f, to[1] + 0.3f, to[2] - 0.1f, w * 0.7f, light);
+				// the door: a plate of rods from its hinge to its lip, 1.8 m wide
+				for (float o = -0.85f; o <= 0.86f; o += 0.17f) {
+					GantryRenderer.rod(at, v, steel, d[0] + ax * o, d[1] - 0.03f, d[2] + az * o, d[3] + ax * o, d[4] - 0.03f, d[5] + az * o, 0.06f, light);
+				}
+				int rods = 5;
+				for (int i = 0; i + 1 < path.length / 3; i++) {
+					// across the chute the sheet keeps its width; in the fall it draws in toward the bin's mouth
+					float w0 = i < lip ? width : width * (1 - 0.5f * (i - lip) / (path.length / 3f - 1 - lip));
+					float w1 = i + 1 <= lip ? width : width * (1 - 0.5f * (i + 1 - lip) / (path.length / 3f - 1 - lip));
+					for (int k = 0; k < rods; k++) {
+						float f = (k - (rods - 1) / 2f) / (rods - 1);
+						TextureAtlasSprite s = k % 2 == 0 ? gravel : cobble;
+						GantryRenderer.rod(at, v, s, path[3 * i] + ax * f * w0, path[3 * i + 1], path[3 * i + 2] + az * f * w0,
+								path[3 * i + 3] + ax * f * w1, path[3 * i + 4], path[3 * i + 5] + az * f * w1, (float) ShaftGeometry.STREAM_THICK, light);
+					}
+				}
 			});
 		}
 		float[] p = skip.rope;

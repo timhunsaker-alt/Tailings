@@ -152,29 +152,28 @@ public final class Shaft {
 			return;
 		}
 		{
-			// its door open and the stream of rock drawn falling into the bin, thinning as it empties (films-hi07)
-			net.minecraft.core.Direction facing = layout.bin.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING);
-			top.setPour((float) Math.max(0.02, 1 - poured / POUR_SECONDS),
-					layout.bin.getBlockPos().offset(dev.wildcatter.tailings.block.TbmMachine.offset(facing, 2, 5, 2)));
-			// out of its bottom door down the headframe's chute into the bin: aimed at the bin's top middle
-			net.minecraft.world.phys.Vec3 c = top.getBoundingBox().getCenter();
-			double y = top.getBoundingBox().minY - 0.2;
-			net.minecraft.core.Direction binFacing = layout.bin.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING);
-			net.minecraft.core.BlockPos mid = layout.bin.getBlockPos().offset(dev.wildcatter.tailings.block.TbmMachine.offset(binFacing, 2, 5, 2));
-			double tx = mid.getX() - c.x, ty = mid.getY() - y, tz = mid.getZ() - c.z;
-			double fall = Math.max(8, Math.sqrt(2 * Math.max(1, -ty) / 0.04));   // ticks to fall that far under a block particle's gravity
-			double vx = tx / fall, vz = tz / fall;
+			// its door open and the stream of rock drawn sliding down the chute and falling into the bin, thinning as it empties
+			// (films-hi07); the stream follows ShaftLayout.pourPath over the door and the chute (fix3-hi07: it ran under the chute)
+			net.minecraft.world.phys.Vec3 mouth = ShaftLayout.binMouth(layout.bin);
+			top.setPour((float) Math.max(0.02, 1 - poured / POUR_SECONDS), mouth);
+			java.util.List<net.minecraft.world.phys.Vec3> path = ShaftLayout.pourPath(layout.frame, winder.top(), mouth);
+			// the particles leave the chute's lip only, on the parabola to the bin (a block particle falls 0.04 blocks a tick squared)
+			net.minecraft.world.phys.Vec3 lip = path.get(dev.wildcatter.tailings.shaft.ShaftGeometry.lipIndex()), end = path.get(path.size() - 1);
+			double[] lv = dev.wildcatter.tailings.shaft.ShaftGeometry.lipVelocity(new double[] {lip.x, lip.y, lip.z}, new double[] {end.x, end.y, end.z}, 0.04);
+			// across the lip: the headframe's x axis
+			net.minecraft.core.BlockPos across = dev.wildcatter.tailings.block.TbmMachine.offset(layout.frame.facing(), 1, 0, 0);
 			double heavy = 1 - poured / POUR_SECONDS;
 			var random = level.getRandom();
-			int n = (int) (20 + 50 * heavy);
+			int n = (int) (12 + 30 * heavy);
 			for (int i = 0; i < n; i++) {
 				var rock = i % 3 == 0 ? net.minecraft.world.level.block.Blocks.GRAVEL : net.minecraft.world.level.block.Blocks.COBBLESTONE;
+				double off = (random.nextDouble() - 0.5) * 1.4, jit = 0.9 + 0.2 * random.nextDouble();
 				level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.BLOCK, rock.defaultBlockState()),
-						c.x + (random.nextDouble() - 0.5) * 1.2, y + random.nextDouble() * 0.4, c.z + (random.nextDouble() - 0.5) * 1.2, 0,
-						vx * (0.8 + 0.4 * random.nextDouble()), -0.05 - 0.1 * random.nextDouble(), vz * (0.8 + 0.4 * random.nextDouble()), 1);
+						lip.x + across.getX() * off, lip.y + (random.nextDouble() - 0.5) * 0.2, lip.z + across.getZ() * off, 0, lv[0] * jit, lv[1] * jit, lv[2] * jit, 1);
 			}
 			level.sendParticles(new net.minecraft.core.particles.BlockParticleOption(net.minecraft.core.particles.ParticleTypes.FALLING_DUST,
-					net.minecraft.world.level.block.Blocks.GRAVEL.defaultBlockState()), c.x + tx * 0.3, y + ty * 0.3, c.z + tz * 0.3, (int) (4 + 8 * heavy), 0.8, 1.5, 0.8, 0);
+					net.minecraft.world.level.block.Blocks.GRAVEL.defaultBlockState()), lip.x + (end.x - lip.x) * 0.3, lip.y + (end.y - lip.y) * 0.3, lip.z + (end.z - lip.z) * 0.3,
+					(int) (4 + 8 * heavy), 0.6, 1.2, 0.6, 0);
 		}
 	}
 
@@ -292,7 +291,8 @@ public final class Shaft {
 				part.say("CAGE at the " + (winder.up() ? "collar" : winder.at() <= 1e-6 ? "bottom landing" : String.format("%.0f m below the collar", winder.rope())));
 			}
 			cage.setAt(layout.frame.skipCorner(ShaftLayout.CAGE, layout.bottomY + winder.at()), layout.frame.facing());
-			cage.setRope((float) ShaftLayout.cageSheaveTop(layout.frame), layout.drum);
+			double wound = dev.wildcatter.tailings.shaft.ShaftGeometry.wound(winder.at(), dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM_R);
+			cage.setRope((float) ShaftLayout.cageSheaveTop(layout.frame), layout.drum, layout.cageRopeEnd(wound), wound);
 		}
 	};
 
@@ -302,7 +302,9 @@ public final class Shaft {
 			ShaftSkipEntity skip = skips[which];
 			skip.setAt(layout.frame.skipCorner(which, layout.bottomY + winder.height(which)), layout.frame.facing());
 			skip.setLoaded(!winder.load(which).isEmpty());
-			skip.setRope((float) layout.frame.sheaveTop(), layout.drum);
+			// each rope to its own drum (fix3-hi07): the rope wound on is the dead wraps and the skip's height over the loading stop
+			double wound = dev.wildcatter.tailings.shaft.ShaftGeometry.wound(winder.height(which), dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_R);
+			skip.setRope((float) layout.frame.sheaveTop(), layout.drum, layout.ropeEnd(which, wound), wound);
 		}
 	}
 

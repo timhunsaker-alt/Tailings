@@ -36,9 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * bottom-dump cars' pocket (L3), and the skips in balance between them.
  */
 final class ShaftGameTests {
-	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore", "shaft_cage_button", "shaft_cage_winder"};
+	static final String[] SCENES = {"shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore", "shaft_cage_button", "shaft_cage_winder", "shaft_pour_path"};
 	static final Set<String> LONG = Set.of("shaft_hoist", "shaft_not_built", "shaft_flask_feed", "shaft_bin_full", "shaft_power", "shaft_cage", "shaft_raise_bore",
-			"shaft_cage_button", "shaft_cage_winder");
+			"shaft_cage_button", "shaft_cage_winder", "shaft_pour_path");
 	private static final Map<String, Integer> TICKS = Map.of("shaft_hoist", 3400);
 	/** The scenes' collar: the headframe's main cell, its shaft going down from here. */
 	private static final int COLLAR = 155;
@@ -56,6 +56,7 @@ final class ShaftGameTests {
 		out.accept("shaft_raise_bore", ShaftGameTests::raiseBore);
 		out.accept("shaft_cage_button", ShaftGameTests::cageButton);
 		out.accept("shaft_cage_winder", ShaftGameTests::cageWinder);
+		out.accept("shaft_pour_path", ShaftGameTests::pourPath);
 	}
 
 	static int ticks(String scene, int otherwise) {
@@ -290,6 +291,61 @@ final class ShaftGameTests {
 				.thenExecute(() -> dev.wildcatter.tailings.Tailings.LOGGER.info("shaft_cage_winder: 60 m, the drum {} turns, fastest {} m/s; hoist {}", turned[0], fastest[0],
 						b.hoist().status()))
 				.thenSucceed();
+	}
+
+	/**
+	 * The pour and the ropes as built (shaft_pour_path, fix3-hi07): while the top skip pours at the dump, its stream (ShaftLayout.pourPath,
+	 * which the renderer draws and the particles follow) lies on the headframe's chute, never under it, and ends in the bin's mouth; and
+	 * each skip's rope meets its own drum in the hoist house, the cage's its own winder's drum, at a true tangent, not the gap between them.
+	 */
+	private static void pourPath(GameTestHelper helper) {
+		Built b = build(helper, 30);
+		ShaftSkipEntity west = hang(helper, b.headframe());
+		ShaftSkipEntity east = hang(helper, b.headframe());
+		ShaftSkipEntity cage = ShaftSkipEntity.hangCage(helper.getLevel(), ShaftLayout.Frame.of(b.headframe()));
+		feed(helper, b.flask());
+		ShaftSkipEntity[] skips = {west, east};
+		helper.succeedWhen(() -> {
+			ShaftSkipEntity pouring = west.pour() > 0 ? west : east.pour() > 0 ? east : null;
+			helper.assertTrue(pouring != null && pouring.pourTo() != null, Component.literal("a skip should pour at the dump: " + b.hoist().status()));
+			ShaftLayout layout = Shaft.layout(b.hoist());
+			ShaftLayout.Frame frame = layout.frame;
+			int which = pouring == west ? 0 : 1;
+			java.util.List<net.minecraft.world.phys.Vec3> path = ShaftLayout.pourPath(frame, which, pouring.pourTo());
+			for (int i = 0; i + 1 < path.size(); i++) {
+				for (double t = 0; t <= 1; t += 0.05) {
+					double[] l = frame.local(path.get(i).lerp(path.get(i + 1), t));
+					double under = l[1] - dev.wildcatter.tailings.shaft.ShaftGeometry.STREAM_THICK / 2 - dev.wildcatter.tailings.shaft.ShaftGeometry.chuteTop(l[2]);
+					helper.assertTrue(under >= -1e-6, Component.literal(String.format("the stream under the chute at z %.2f: %.3f m", l[2], under)));
+				}
+			}
+			// it ends in the bin: inside its 4 x 4 and at its rim
+			net.minecraft.world.phys.Vec3 end = path.get(path.size() - 1);
+			double[] inBin = ShaftLayout.Frame.of(b.bin()).local(end);
+			helper.assertTrue(inBin[0] > 0.1 && inBin[0] < 3.9 && inBin[2] > 0.1 && inBin[2] < 3.9 && Math.abs(inBin[1] - 5.0) < 0.3,
+					Component.literal("the stream ends in the bin's mouth: " + java.util.Arrays.toString(inBin)));
+			// the lip, where the particles start, is the chute's north edge at z 0
+			double[] lip = frame.local(path.get(dev.wildcatter.tailings.shaft.ShaftGeometry.lipIndex()));
+			helper.assertTrue(Math.abs(lip[2]) < 1e-6, Component.literal("the particles start at the lip: " + java.util.Arrays.toString(lip)));
+			// each rope on its own drum, at the coil's front, over (west) or under (east)
+			ShaftLayout.Frame hoist = ShaftLayout.Frame.of(b.hoist());
+			double[][] drums = dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUMS;
+			for (int k = 0; k < 2; k++) {
+				net.minecraft.world.phys.Vec3 e = skips[k].ropeEnd();
+				helper.assertTrue(e != null, Component.literal("the " + (k == 0 ? "west" : "east") + " rope should end on a drum"));
+				double[] l = hoist.local(e);
+				helper.assertTrue(l[0] > drums[k][0] && l[0] < drums[k][1], Component.literal(String.format("rope %d on its own drum (%.1f-%.1f): x %.2f", k, drums[k][0], drums[k][1], l[0])));
+				double r = Math.hypot(l[1] - dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Y, l[2] - dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Z);
+				helper.assertTrue(Math.abs(r - dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_R - dev.wildcatter.tailings.shaft.ShaftGeometry.ROPE_R) < 1e-3,
+						Component.literal("on the barrel: r " + r));
+				helper.assertTrue(k == 0 ? l[1] > dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Y : l[1] < dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Y,
+						Component.literal("the west rope over its drum, the east under: y " + l[1]));
+			}
+			helper.assertTrue(cage != null && cage.ropeEnd() != null, Component.literal("the cage's rope should end on its drum"));
+			double[] c = ShaftLayout.Frame.of(b.cageWinder()).local(cage.ropeEnd());
+			helper.assertTrue(c[0] > dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM[0] && c[0] < dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM[1]
+					&& c[1] > dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM_Y, Component.literal("the cage's rope over its own drum: " + java.util.Arrays.toString(c)));
+		});
 	}
 
 	/**
