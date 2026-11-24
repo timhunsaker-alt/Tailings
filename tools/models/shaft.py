@@ -107,7 +107,11 @@ HH.box((0.0, 0.4, 0.2), (0.2, 7.6, 11.8), "galv")                          # the
 HH.box((9.8, 0.4, 0.2), (10.0, 7.6, 11.8), "galv")
 HH.decal((-0.01, 3.5, 6.0), (0.0, 5.0, 9.0), "louvre", "west", "galv")
 HH.decal((10.0, 3.5, 6.0), (10.01, 5.0, 9.0), "louvre", "east", "galv")
-HH.box((-0.1, 7.6, -0.1), (10.1, 8.0, 12.1), "blue")                       # the roof
+# the roof, open over the west drum's north half where its rope comes in over the drum's top (fix3-hi07: each rope on its own
+# drum, the west one over the top, the east one under the bottom through the wall's opening)
+HH.box((-0.1, 7.6, 2.6), (10.1, 8.0, 12.1), "blue")                        # the roof
+HH.box((4.9, 7.6, -0.1), (10.1, 8.0, 2.6), "blue")                         # and over the east drum
+HH.box((-0.1, 7.6, -0.1), (0.2, 8.0, 2.6), "blue")                         # the west eave beside the opening
 for x1, x2 in ((0.8, 4.3), (5.3, 8.8)):
 	HH.ring("x", (3.4, 3.0), 1.4, x1, x2, 0.2, "iron", sides=16)            # the two 3 m drums, the ropes wound on them
 	HH.ring("x", (3.4, 3.0), 1.7, x1 - 0.1, x1, 0.2, "blue", sides=16)     # their flanges
@@ -127,7 +131,8 @@ HH.collide((0.0, 0.4, 0.0), (10.0, 2.2, 0.2))
 HH.collide((0.0, 0.4, 11.8), (10.0, 8.0, 12.0))
 HH.collide((0.0, 0.4, 0.0), (0.2, 8.0, 12.0))
 HH.collide((9.8, 0.4, 0.0), (10.0, 8.0, 12.0))
-HH.collide((0.0, 7.6, 0.0), (10.0, 8.0, 12.0))
+HH.collide((0.0, 7.6, 2.6), (10.0, 8.0, 12.0))
+HH.collide((4.9, 7.6, 0.0), (10.0, 8.0, 2.6))
 
 # ---- the cage winder (cage-winder.md) -------------------------------------------------------------------------------------------
 # a single-drum service winder for the cage, beside the hoist house: its north wall low and its roof open over the drum where the rope

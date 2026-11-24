@@ -187,3 +187,12 @@ As L4b planned, except where listed (../questions/heavy-iron-fixes.md, 16-19). T
 - **The skip's dump reads:** while a skip pours (the first 4 s of the rest), its bottom door is drawn swung open and a stream of
   rock falls from it to the headframe bin's mouth, thinning as it empties; the heap in the skip sinks as it pours (synced on the skip:
   how much is left and where the bin's mouth is). The load still goes into the bin's count at the rest's end, as before.
+- **Each rope on its own drum, the pour on the chute (fix3-hi07, 2026-11-24):** the west compartment's rope winds over the top of
+  the west drum and the east one's under the bottom of the east drum, so on the one shaft one pays out as the other takes in. Each
+  rope meets its drum at the true tangent from its sheave's top, at the front of its coil, which lays from the flange farther from
+  its sheave (`shaft.ShaftGeometry`, `ShaftLayout.ropeEnd`; synced on the skip as the rope's end and the length wound on); the drum
+  is drawn with its coil and turned by the length wound on over its radius; the hoist house's roof is open over the west drum's
+  north half for the rope coming in over the top. The cage's rope does the same over its winder's 2.5 m drum. The stream follows
+  `ShaftLayout.pourPath`: out over the open door (a plate whose lip rests just over the scroll), down the chute along its steps'
+  noses, off the lip at the north side and in a parabola into the bin's mouth; the particles start at the lip. NeoForge
+  `shaft_pour_path`; `HoistingTest`.

@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import dev.wildcatter.multiblock.BigParts;
 import dev.wildcatter.tailings.block.PlantBlockEntity;
 import dev.wildcatter.tailings.block.ShaftLayout;
+import dev.wildcatter.tailings.shaft.ShaftGeometry;
 import dev.wildcatter.tailings.plant.Machine;
 import dev.wildcatter.tailings.pit.DryStack;
 import dev.wildcatter.tailings.plant.PlantMotion;
@@ -76,6 +77,11 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float rope0 = Float.NaN, rope1 = Float.NaN;
 		/** The cage's height, for its winder's drum and its sheave (cage-winder.md); NaN for none. */
 		float ropeCage = Float.NaN;
+		/**
+		 * Each drum's rope (fix3-hi07), in the part's own frame: {its end on the drum x, y, z; m wound on; its sheave's x along the drum};
+		 * null for none. The hoist house's west and east drums, and the cage winder's one drum.
+		 */
+		float @Nullable [] coil0, coil1, coilCage;
 		/** A raise borer's pilot bit and reamer face, metres below its base (NaN: not in the hole), and their light. */
 		float pilot = Float.NaN, reamer = Float.NaN;
 		int deepLight;
@@ -231,6 +237,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 		float press = state.press;
 		boolean pressed = state.pressed;
 		int light = state.light;
+		float[] coil0 = state.coil0, coil1 = state.coil1, coilCage = state.coilCage;
 		float rope0 = state.rope0, rope1 = state.rope1, ropeCage = state.ropeCage, pilot = state.pilot, reamer = state.reamer;
 		int deepLight = state.deepLight;
 		float flaskFill = state.flaskFill;
@@ -259,8 +266,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 						sheaves(at, v, rope0, rope1, light);
 						cageSheave(at, v, ropeCage, light);
 					}
-					case HOIST_HOUSE -> drums(at, v, rope0, rope1, light);
-					case CAGE_WINDER -> cageDrum(at, v, ropeCage, light);
+					case HOIST_HOUSE -> drums(at, v, coil0, coil1, light);
+					case CAGE_WINDER -> cageDrum(at, v, coilCage, light);
 					case VENT_FAN -> impeller(at, v, angle, 1.5f, 1.5f, 0.75f, 0.85f, 8, 0.3f, light);
 					case BOOSTER_FAN -> impeller(at, v, angle, 1.0f, 1.0f, 0.38f, 0.65f, 6, 0.24f, light);
 					case RAISE_BORER -> raiseTools(at, v, angle, pilot, reamer, light, deepLight);
@@ -666,8 +673,8 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 
 	/** A raise borer's drill string, rpm (proposed: real raise borers turn the reamer at a few to about 20 rpm). */
 	static final float RAISE_RPM = 8;
-	/** The hoist's drums (3 m) and head sheaves (2.9 m): radius, m, as shaft.py draws them. */
-	private static final float DRUM_R = 1.4f, SHEAVE_R = 1.4f;
+	/** The head sheaves (2.9 m): radius, m, as shaft.py draws them (the drums' are in ShaftGeometry). */
+	private static final float SHEAVE_R = 1.4f;
 
 	/**
 	 * Each skip's height on the client, for the drums and sheaves to turn with its rope: the skips hung within this part's reach, west
@@ -676,10 +683,12 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	 */
 	private static void ropes(PlantBlockEntity plant, State state, float partialTick) {
 		state.rope0 = state.rope1 = state.ropeCage = Float.NaN;
+		state.coil0 = state.coil1 = state.coilCage = null;
 		if (plant.getLevel() == null) {
 			return;
 		}
 		BlockPos main = plant.getBlockPos();
+		ShaftLayout.Frame own = new ShaftLayout.Frame(main, plant.getBlockState().getValue(dev.wildcatter.block.BigPartBlock.FACING));
 		boolean frame = plant.machine() == Machine.HEADFRAME;
 		AABB around = frame ? new AABB(main).inflate(10, 0, 10).expandTowards(0, -dev.wildcatter.tailings.shaft.Hoisting.MAX_DEPTH - 10, 0).expandTowards(0, 32, 0)
 				: new AABB(main).inflate(dev.wildcatter.tailings.shaft.Hoisting.ROPE_REACH + 12, 0, dev.wildcatter.tailings.shaft.Hoisting.ROPE_REACH + 12)
@@ -690,6 +699,9 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				boolean mine = frame || plant.machine() == Machine.CAGE_WINDER && skip.drum() != null && skip.drum().distManhattan(main) <= 12;
 				if (mine) {
 					state.ropeCage = (float) net.minecraft.util.Mth.lerp(partialTick, skip.yo, skip.getY());
+					if (plant.machine() == Machine.CAGE_WINDER) {
+						state.coilCage = coil(own, skip);
+					}
 				}
 				continue;
 			}
@@ -713,6 +725,52 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 			} else {
 				state.rope1 = y;
 			}
+			if (!frame) {
+				// each rope on its own drum, by where its end lies along the drums (fix3-hi07)
+				float[] c = coil(own, skip);
+				if (c != null && c[0] < (ShaftGeometry.HOIST_DRUMS[0][1] + ShaftGeometry.HOIST_DRUMS[1][0]) / 2) {
+					state.coil0 = c;
+				} else if (c != null) {
+					state.coil1 = c;
+				}
+			}
+		}
+	}
+
+	/** A conveyance's rope on this part's drum, in its own frame: {end x, y, z; wound; sheave x}; null for none. */
+	private static float @Nullable [] coil(ShaftLayout.Frame own, dev.wildcatter.tailings.entity.ShaftSkipEntity skip) {
+		Vec3 end = skip.ropeEnd();
+		if (end == null) {
+			return null;
+		}
+		double[] e = own.local(end), sheave = own.local(skip.getBoundingBox().getCenter());
+		return new float[] {(float) e[0], (float) e[1], (float) e[2], skip.wound(), (float) sheave[0]};
+	}
+
+	/**
+	 * A rope's coil on a drum from {@code x0} to {@code x1}, centre ({@code cy}, {@code cz}), radius {@code r} (fix3-hi07): a helix from the
+	 * flange farther from its sheave to where it leaves at its end, laid at {@link ShaftGeometry#PITCH} a wrap, the whole length wound on.
+	 */
+	private static void coilOn(PoseStack at, VertexConsumer v, float[] c, float x0, float x1, float cy, float cz, float r, int light) {
+		// a light steel grey, so the wraps read on the dark barrel (fix3-hi07)
+		TextureAtlasSprite rope = vanilla("light_gray_concrete");
+		double rr = r + ShaftGeometry.ROPE_R;
+		double[] k = ShaftGeometry.coil(x0, x1, c[4], c[3], r);
+		double start = k[0], dir = k[1], front = k[2];
+		boolean over = c[1] > cy;
+		double alpha = Math.atan2(c[1] - cy, c[2] - cz);
+		double len = Math.max(0, c[3]);
+		int n = Math.max(1, (int) Math.ceil(len / (2 * Math.PI * rr / 20)));
+		double[] prev = null;
+		for (int i = 0; i <= n; i++) {
+			double sLen = len * i / n;
+			double a = alpha + (over ? -1 : 1) * sLen / rr;
+			double x = front - dir * Math.min(Math.abs(front - start), ShaftGeometry.PITCH * sLen / (2 * Math.PI * rr));
+			double[] pt = {x, cy + rr * Math.sin(a), cz + rr * Math.cos(a)};
+			if (prev != null) {
+				GantryRenderer.rod(at.last(), v, rope, (float) prev[0], (float) prev[1], (float) prev[2], (float) pt[0], (float) pt[1], (float) pt[2], 0.1f, light);
+			}
+			prev = pt;
 		}
 	}
 
@@ -738,25 +796,43 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	}
 
 	/**
-	 * The hoist's two drums (shaft.py: x 0.8-4.3 and 5.3-8.8, centre 3.4 m up, 3 m south): four rope clamps along each drum and four
-	 * spokes on each flange, turned with the drum. One shaft: the west drum winds as its skip goes up, the east one unwinds.
+	 * The hoist's two drums (shaft.py: x 0.8-4.3 and 5.3-8.8, centre 3.4 m up, 3 m south), each with its own rope (fix3-hi07): the rope's
+	 * coil drawn from the flange farther from its sheave to where it leaves for the sheave, and four spokes and a small yellow mark on
+	 * each flange, turned by the rope wound on. One shaft: the west rope winds over its drum's top and the east one under its bottom, so
+	 * one pays out as the other takes in and both drums turn together.
 	 */
-	private static void drums(PoseStack at, VertexConsumer v, float rope0, float rope1, int light) {
-		TextureAtlasSprite clamp = vanilla("black_concrete"), blue = mat("blue");
-		float[][] drums = {{0.8f, 4.3f}, {5.3f, 8.8f}};
-		float turn = !Float.isNaN(rope0) ? (float) -Math.toDegrees(rope0 / DRUM_R) : !Float.isNaN(rope1) ? (float) Math.toDegrees(rope1 / DRUM_R) : 0;
-		for (float[] d : drums) {
+	private static void drums(PoseStack at, VertexConsumer v, float @Nullable [] coil0, float @Nullable [] coil1, int light) {
+		TextureAtlasSprite blue = mat("blue"), mark = vanilla("yellow_concrete");
+		float cy = (float) ShaftGeometry.HOIST_DRUM_Y, cz = (float) ShaftGeometry.HOIST_DRUM_Z;
+		float[][] coils = {coil0, coil1};
+		// the shaft's turn: from whichever rope is known, over (west) and under (east) giving the same turn
+		float r = (float) ShaftGeometry.HOIST_DRUM_R;
+		float turn = coil0 != null ? turnOf(coil0, cy, r) : coil1 != null ? turnOf(coil1, cy, r) : 0;
+		for (int k = 0; k < 2; k++) {
+			float x0 = (float) ShaftGeometry.HOIST_DRUMS[k][0], x1 = (float) ShaftGeometry.HOIST_DRUMS[k][1];
+			if (coils[k] != null) {
+				coilOn(at, v, coils[k], x0, x1, cy, cz, r, light);
+			}
 			for (int b = 0; b < 4; b++) {
 				PoseStack p = new PoseStack();
 				p.last().pose().set(at.last().pose());
 				p.last().normal().set(at.last().normal());
-				p.translate(0, 3.4f, 3.0f);
+				p.translate(0, cy, cz);
 				p.rotateDegrees(Axis.XP, turn + b * 90f);
-				box(p.last(), v, clamp, d[0] + 0.05f, DRUM_R - 0.02f, -0.1f, d[1] - 0.05f, DRUM_R + 0.07f, 0.1f, light);
-				box(p.last(), v, blue, d[0] - 0.14f, 0.25f, -0.12f, d[0] - 0.1f, 1.65f, 0.12f, light);
-				box(p.last(), v, blue, d[1] + 0.1f, 0.25f, -0.12f, d[1] + 0.14f, 1.65f, 0.12f, light);
+				box(p.last(), v, blue, x0 - 0.14f, 0.25f, -0.12f, x0 - 0.1f, 1.65f, 0.12f, light);
+				box(p.last(), v, blue, x1 + 0.1f, 0.25f, -0.12f, x1 + 0.14f, 1.65f, 0.12f, light);
+				if (b == 0) {
+					box(p.last(), v, mark, x0 - 0.16f, 1.3f, -0.15f, x0 - 0.1f, 1.62f, 0.15f, light);
+					box(p.last(), v, mark, x1 + 0.1f, 1.3f, -0.15f, x1 + 0.16f, 1.62f, 0.15f, light);
+				}
 			}
 		}
+	}
+
+	/** A drum's turn about its axis (Axis.XP), degrees, from its rope: deg(wound / r), one way for a rope over its top, the other under. */
+	private static float turnOf(float[] coil, float cy, float r) {
+		float deg = (float) Math.toDegrees(coil[3] / (r + ShaftGeometry.ROPE_R));
+		return coil[1] > cy ? deg : -deg;
 	}
 
 	/** The cage sheave (shaft.py: 2.5 m, x 4, its axle 26.95 m up and 7.25 m south): six spokes and a hub, turned as far as the cage moved. */
@@ -784,22 +860,24 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	}
 
 	/**
-	 * The cage winder's drum (shaft.py: 2.5 m, x 2-5, its centre 2.25 m up and 2.5 m south): four rope clamps along it and four spokes on
-	 * each flange, and a yellow mark on the west flange, turned as far as the cage's rope has run on or off it.
+	 * The cage winder's drum (shaft.py: 2.5 m, x 2-5, its centre 2.25 m up and 2.5 m south): its rope's coil from the flange farther from
+	 * the cage sheave to where it leaves over the drum's top (fix3-hi07), four spokes on each flange and a yellow mark on each, turned
+	 * by the rope wound on.
 	 */
-	private static void cageDrum(PoseStack at, VertexConsumer v, float rope, int light) {
-		// light clamps on the dark rope and yellow marks on the flanges, so its turn reads on camera (fix2-hi07)
-		TextureAtlasSprite clamp = vanilla("iron_block"), blue = mat("blue"), mark = vanilla("yellow_concrete");
-		float r = (float) (dev.wildcatter.tailings.shaft.Hoisting.CAGE_DRUM_DIAMETER / 2);
-		float turn = Float.isNaN(rope) ? 0 : (float) -dev.wildcatter.tailings.shaft.Hoisting.cageDrumDegrees(rope);
-		float x0 = 2.0f, x1 = 5.0f;
+	private static void cageDrum(PoseStack at, VertexConsumer v, float @Nullable [] coil, int light) {
+		TextureAtlasSprite blue = mat("blue"), mark = vanilla("yellow_concrete");
+		float r = (float) ShaftGeometry.CAGE_DRUM_R, cy = (float) ShaftGeometry.CAGE_DRUM_Y, cz = (float) ShaftGeometry.CAGE_DRUM_Z;
+		float x0 = (float) ShaftGeometry.CAGE_DRUM[0], x1 = (float) ShaftGeometry.CAGE_DRUM[1];
+		float turn = coil == null ? 0 : turnOf(coil, cy, r);
+		if (coil != null) {
+			coilOn(at, v, coil, x0, x1, cy, cz, r, light);
+		}
 		for (int b = 0; b < 4; b++) {
 			PoseStack p = new PoseStack();
 			p.last().pose().set(at.last().pose());
 			p.last().normal().set(at.last().normal());
-			p.translate(0, (float) ShaftLayout.CAGE_DRUM_Y, (float) ShaftLayout.CAGE_DRUM_Z);
+			p.translate(0, cy, cz);
 			p.rotateDegrees(Axis.XP, turn + b * 90f);
-			box(p.last(), v, clamp, x0 + 0.05f, r - 0.02f, -0.08f, x1 - 0.05f, r + 0.06f, 0.08f, light);
 			box(p.last(), v, blue, x0 - 0.14f, 0.2f, -0.1f, x0 - 0.1f, r + 0.15f, 0.1f, light);
 			box(p.last(), v, blue, x1 + 0.1f, 0.2f, -0.1f, x1 + 0.14f, r + 0.15f, 0.1f, light);
 			if (b == 0) {

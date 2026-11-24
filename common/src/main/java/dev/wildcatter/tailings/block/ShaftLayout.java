@@ -98,11 +98,31 @@ public final class ShaftLayout {
 			return new int[] {dx, pos.getY() - main.getY(), dz};
 		}
 
+		/** A world point in this frame: {x, y, z} metres from the main cell's corner (the inverse of {@link #point}). */
+		public double[] local(Vec3 world) {
+			BlockPos ax = TbmMachine.offset(facing, 1, 0, 0), az = TbmMachine.offset(facing, 0, 0, 1);
+			double wx = world.x - main.getX() - 0.5, wz = world.z - main.getZ() - 0.5;
+			return new double[] {wx * ax.getX() + wz * ax.getZ() + 0.5, world.y - main.getY(), wx * az.getX() + wz * az.getZ() + 0.5};
+		}
+
 		/** The top of the head sheaves, where the ropes leave them. */
 		public double sheaveTop() {
 			return collarY() + Hoisting.SHEAVE_HEIGHT + SHEAVE_RADIUS;
 		}
+
+		/** The top of compartment {@code which}'s head sheave, where its rope leaves it for the drum (shaft.py: x 3 and 6, 5.5 m south). */
+		public Vec3 sheaveTopPoint(int which) {
+			return point(COMPARTMENT_X[which] + 1.0, Hoisting.SHEAVE_HEIGHT + SHEAVE_RADIUS, SHEAVE_Z);
+		}
+
+		/** The top of the cage sheave. */
+		public Vec3 cageSheaveTopPoint() {
+			return point(CAGE_SHEAVE_X, CAGE_SHEAVE_Y + Hoisting.CAGE_SHEAVE_DIAMETER / 2, CAGE_SHEAVE_Z);
+		}
 	}
+
+	/** The head sheaves' axle, m south of the headframe's main cell's corner (shaft.py). */
+	public static final double SHEAVE_Z = 5.5;
 
 	/** The head sheaves' radius, m (3 m sheaves, as the drums; proposed). */
 	public static final double SHEAVE_RADIUS = 1.5;
@@ -116,6 +136,8 @@ public final class ShaftLayout {
 	public final double travel;
 	/** Where the ropes come off the drums, for drawing them. */
 	public final @Nullable BlockPos drum;
+	/** The hoist house's (or the cage winder's) own frame, where its drums are (fix3-hi07: each rope to its own drum). */
+	public @Nullable Frame drums;
 	/** What is missing, for NOT BUILT; null when the shaft is whole. */
 	public final @Nullable String problem;
 
@@ -182,6 +204,13 @@ public final class ShaftLayout {
 			return missing("needs a Headframe in line with its drums, within " + Hoisting.ROPE_REACH + " m");
 		}
 		Frame frame = Frame.of(headframe);
+		ShaftLayout found = findIn(level, hoist, frame, headframe, toward, cx, cz, minX, maxX, minZ, maxZ, base);
+		found.drums = Frame.of(hoist);
+		return found;
+	}
+
+	private static ShaftLayout findIn(Level level, PlantBlockEntity hoist, Frame frame, PlantBlockEntity headframe, Direction toward, int cx, int cz, int minX, int maxX,
+			int minZ, int maxZ, int base) {
 		int[] at = frame.local(new BlockPos(cx, base, cz));
 		BlockPos drum = new BlockPos(toward.getAxis() == Direction.Axis.X ? (toward.getStepX() > 0 ? maxX : minX) : cx, base + 4,
 				toward.getAxis() == Direction.Axis.Z ? (toward.getStepZ() > 0 ? maxZ : minZ) : cz);
@@ -273,7 +302,9 @@ public final class ShaftLayout {
 					+ CAGE_WINDER_ASIDE + " m of its line");
 		}
 		Frame frame = Frame.of(headframe);
-		return bottom(level, frame, headframe, null, drumCell, new int[] {CAGE}, "the cage needs its compartment clear down to the flask");
+		ShaftLayout found = bottom(level, frame, headframe, null, drumCell, new int[] {CAGE}, "the cage needs its compartment clear down to the flask");
+		found.drums = Frame.of(winder);
+		return found;
 	}
 
 	/** A headframe a cage winder's drum at {@code drum} can serve: behind it on its rope side, in reach and near its line. */
@@ -282,5 +313,65 @@ public final class ShaftLayout {
 		int[] at = frame.local(drum);
 		return at[2] > HOLE_TO + 2 && at[2] - HOLE_TO <= Hoisting.ROPE_REACH && Math.abs(at[0] - CAGE_SHEAVE_X) <= CAGE_WINDER_ASIDE
 				&& Math.abs(at[1]) <= Machine.HOIST_HOUSE.height();
+	}
+
+	// ---- where the rock and the ropes run (fix3-hi07; the figures in shaft.ShaftGeometry) ------------------------------------------
+
+	/** The middle of a headframe bin's mouth, at its rim (shaft.py: the bin 4 x 4, its rim 5 m up). */
+	public static Vec3 binMouth(PlantBlockEntity bin) {
+		return Frame.of(bin).point(2.0, 5.0, 2.0);
+	}
+
+	/**
+	 * The pour's centre line in the world, from the skip in compartment {@code which} at the dump down the chute and into the bin's mouth
+	 * at {@code mouth}: {@link dev.wildcatter.tailings.shaft.ShaftGeometry#pourPath}, set in the headframe. The renderer draws it,
+	 * the server's particles leave its lip, and the tests check it clears the chute.
+	 */
+	public static List<Vec3> pourPath(Frame frame, int which, Vec3 mouth) {
+		double[] m = frame.local(mouth);
+		List<Vec3> out = new ArrayList<>();
+		for (double[] p : dev.wildcatter.tailings.shaft.ShaftGeometry.pourPath(COMPARTMENT_X[which] + 1.0, m[0], m[1], m[2])) {
+			out.add(frame.point(p[0], p[1], p[2]));
+		}
+		return out;
+	}
+
+	/** Which of the hoist house's two drums compartment {@code which}'s rope winds on: the one nearer its sheave, the other rope the other. */
+	public int drumFor(int which) {
+		if (frame == null || drums == null) {
+			return which;
+		}
+		double s0 = drums.local(frame.sheaveTopPoint(0))[0];
+		double[][] d = dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUMS;
+		int nearer0 = Math.abs(s0 - (d[0][0] + d[0][1]) / 2) <= Math.abs(s0 - (d[1][0] + d[1][1]) / 2) ? 0 : 1;
+		return which == 0 ? nearer0 : 1 - nearer0;
+	}
+
+	/**
+	 * Where compartment {@code which}'s rope meets its own drum in the world, with {@code wound} m on it: the true tangent from its
+	 * sheave's top, at the coil's front. The west compartment's rope winds over its drum's top and the east one's under its bottom, so
+	 * on one shaft one pays out while the other takes in. Null without a hoist house.
+	 */
+	public @Nullable Vec3 ropeEnd(int which, double wound) {
+		if (frame == null || drums == null) {
+			return null;
+		}
+		double[] s = drums.local(frame.sheaveTopPoint(which));
+		double[] d = dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUMS[drumFor(which)];
+		double[] e = dev.wildcatter.tailings.shaft.ShaftGeometry.ropeEnd(d[0], d[1], dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Y,
+				dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_Z, dev.wildcatter.tailings.shaft.ShaftGeometry.HOIST_DRUM_R, s[0], s[1], s[2], wound, which == 0);
+		return e == null ? null : drums.point(e[0], e[1], e[2]);
+	}
+
+	/** Where the cage's rope meets the cage winder's drum, over its top, with {@code wound} m on it. Null without a cage winder. */
+	public @Nullable Vec3 cageRopeEnd(double wound) {
+		if (frame == null || drums == null) {
+			return null;
+		}
+		double[] s = drums.local(frame.cageSheaveTopPoint());
+		double[] d = dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM;
+		double[] e = dev.wildcatter.tailings.shaft.ShaftGeometry.ropeEnd(d[0], d[1], dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM_Y,
+				dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM_Z, dev.wildcatter.tailings.shaft.ShaftGeometry.CAGE_DRUM_R, s[0], s[1], s[2], wound, true);
+		return e == null ? null : drums.point(e[0], e[1], e[2]);
 	}
 }
