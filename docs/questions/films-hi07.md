@@ -215,3 +215,74 @@ Branch `fix2-hi07` (off main 105dee5e). Tim's rule: "Let's keep fixing weak spot
 down while the skips wind, the drum 7.64 turns, braked with no power, back up with the drum wound in; `shaft_cage` and
 `shaft_cage_button` on the cage winder). `HoistingTest` adds the cage winder's lift power, the drum's turns and an old hoist save
 still loading.
+
+## Third fix round (fix3-hi07, 2026-11-24)
+Branch `fix3-hi07` (off main 206bdc96). Tim, watching episode 7: "when the chute dumps it goes under the ramp. The cables wind on the
+same spool and a misspeaking of winds on the real it says winds as in blows".
+
+### Fixed
+1. **The pour ran under the chute.** `SkipRenderer` drew it as one straight rod from the skip's bottom to the bin's top middle (13 m
+   down, 5.5 m north) and `Shaft.pour`'s particles aimed the same way; the chute's steps (tops 17.25, 16.85, 16.45, 16.05 m, lip at
+   z 0) stood over it, about 1.4 m above it at z 3. Now one path, `shaft.ShaftGeometry.pourPath` (set in the headframe by
+   `ShaftLayout.pourPath`), used by the renderer, the particles and the tests: out of the skip over its open door, down the chute
+   along its steps' noses (y = 16.05 + 0.533 z, plus half the 0.3 m sheet), off the lip at z 0, and in a parabola into the middle of
+   the bin's mouth, leaving at the chute's slope. The door is a plate from its hinge to a lip at z 3.1, y 17.68, clear of the scroll
+   (17.4-17.6); the stream is a flat sheet of five rods 0.3 m thick that draws in as it falls; the particles start only at the lip,
+   thrown to land in the mouth. The bin's mouth is synced on the skip from the headframe's main cell.
+2. **Both ropes ended on one spot.** `ShaftLayout.find` gave both skips one `drum` cell, `(cx, base + 4, edge)`: the gap between the
+   drums at the north wall. `PlantRenderer.drums` drew full-width black clamp bars that read as rope, and turned both drums one way
+   with no coil. Now each rope has its own drum: the west compartment's winds over the top of the west drum and the east one's under
+   the bottom of the east drum, so on the one shaft one pays out while the other takes in. Each meets its drum at the true tangent
+   from its sheave's top, at the front of its coil; the coil lays from the flange farther from the sheave at 9 cm a wrap, three dead
+   wraps always on (`ShaftGeometry.ropeEnd`, `coil`, `wound`; `ShaftLayout.ropeEnd`). The skip syncs the rope's end (from the
+   headframe's main cell: a float far out in the world is not exact) and the length wound on. `PlantRenderer` draws each coil as a
+   helix in light steel grey (black was lost on the dark barrel) and turns the drum by deg(wound / r); the black clamps are now
+   small yellow flange marks. The cage's rope does the same over the top of its 2.5 m drum. The skips' ropes now go over the top of
+   their sheaves (as the cage's did) before leaving for the drums.
+3. **The hoist house's roof** is open over the west drum's north half (`tools/models/shaft.py`): the rope coming in over the drum's
+   top crossed the roof about 1.5 m in from the north wall. The east rope comes in under, through the wall's opening.
+4. **The narrator said "winds" as in the weather.** The word is gone from the spoken lines rather than respelled (`ep07/tools/narration.py`):
+   P02 "the hoist that lifts it"; P05 "the two ropes coil onto two drums"; P21 "one whole trip"; P23 "and it goes again"; P27 "It has
+   its own hoist:". No other spoken wind, winds, winding, wound, winder or unwind (grep of narration.py). The chapter "The wind" is now
+   "One trip" (`shots.py`; Spanish "Un viaje"); the lower thirds and the hero keep "winds the two ropes" and "This wind, 138 m".
+   Re-voiced: p02_c2, p05_c1, p21_c1, p23_c1, p27_c1, Ludo preset Brian, English, "calm, measured documentary narration" (job ids in
+   `ep07/jobs.txt`, URLs in `urls_r5.txt` and `urls_r5b.txt`). Garble check (`garble5.txt`, `garble5b.txt`): p02, p27 exact; p05's
+   first take heard "four hundred in fifty" and p21's "a loaded skip", so both were voiced again and the second takes kept (p05
+   exact; p21 only whisper's "breaks" for "brakes", as every earlier take); p23 only "head frame" for "headframe", as before. Spanish
+   needs no new voice: its lines say "enrollan", "un viaje", "su propio malacate", with no such word. The fix2 takes are in
+   `ep07/vo_fix2/`, the first fix3 takes of p05 and p21 in `ep07/vo_fix3a/`.
+
+### Films
+Two client runs of the eight films that show the drums or the pour (`hi07_wind`, `dump`, `sheaves`, `hoist`, `scale`, `cagedrum`,
+`cagesheave`, `wide`). The first was rejected: every coil lay inside its barrel (shaft.py's barrel is a ring of 0.2 m plates centred on
+1.4 m, so the rope belongs on 1.5 m; 1.34 m on the cage's), and the dump, filmed from under the chute, had its cheek plates hiding the
+stream. The second (the rope on the barrels' faces; the dump from above the chute's head on its north-west) kept all eight; frames
+checked: the stream lies on the chute and falls off its lip into the bin; each skip's rope meets its own drum, the west over, the east
+under, each at the front of its coil; the cage's rope meets its own drum over the top; no dialog or other window in frame. The fix2
+takes of the eight are in `videos/footage/films-hi07/take3/`. In-points: the dump's door now opens at 24.3 s (DUMP_IN 16.3, was 15.0);
+the wind 0.2 s later throughout. The cold open and the title's footage are cropped tighter and higher (x 0.15-0.68, y 0.29-0.82) so
+the stream reads on the chute.
+
+### Decided while Tim was away (open for review)
+- **The west rope over, the east under** (as asked), and the drum drawn turning by the west rope's wound length when it is known.
+- **The coil drawn light grey** where the running rope is black: black on the dark barrel did not show.
+- **The roof opened** over the west drum rather than the drums moved: the drums keep their place under the shaft.
+- **The description** keeps "winding at 10 m/s" and "its own winder": written words, not spoken.
+
+### Still weak on camera
+- Paragraph 23 ("its door opens over a chute") plays on the riding camera south of the skip; the stream is on the north side and not
+  seen there. The cold open shows it.
+- The coil reads as a grey band from the hoist film's distance; its single wraps show only close.
+
+### Rebuilt
+English 7:38 (458.0 s; preview 21.3 MB), Spanish 8:18 (498.0 s; preview 23.2 MB), written in place: the hard links in
+`videos/ready/youtube/heavy-iron-ep07.*` and `videos/ready/youtube-es/heavy-iron-ep07-es.*` keep their inodes. Subtitles, chapters
+("4:38 One trip", "5:02 Un viaje") and both descriptions refreshed; no brand name in any text or subtitle file. Contact sheets
+`videos/shorts/chk/hi07_fix3_{en,es}.png`.
+
+### Tests (fix3-hi07)
+`build` passes; the full NeoForge suite on this branch: all 313 required tests passed (the first run caught the rope's end synced as
+a world float, inexact 8.6 million blocks out where the game tests stand; it is now synced from the headframe's main cell). New:
+NeoForge `shaft_pour_path` (the stream over the chute everywhere and into the bin's mouth, its lip at z 0; each rope on its own drum,
+over or under; the cage's over its own drum); `HoistingTest` adds the pour path (and a particle off the lip landing in the mouth), each
+rope's true tangent on its own drum and never in the gap, and the cage's.
