@@ -19,35 +19,45 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * The ring's two upper corner segments ({@link #CORNER}) are drawn rounded: a quarter-round fillet of the bore's inside, from the wall's
  * top to the crown's edge, the segment filling the corner toward {@link #FACING} and up. The bore then reads as a round-cornered tunnel
  * from inside instead of a stepped octagon (fix-weak-spots-hi05). Placed set: {@code corner=false} is the plain full segment.
+ * <p>
+ * With {@link #FOOT} it is the bore's foot instead: a cove in the open cell where a wall meets a flat floor, its solid toward
+ * {@link #FACING} and down, the upper fillet turned upside down, so the lower corners read rounded too (fix2-hi05-06). The drill sets it
+ * as the drive's finish behind the track layer, from no stock, so it drops nothing ({@link #getDrops}).
  */
 public class LiningBlock extends Block {
 	public static final BooleanProperty CORNER = BooleanProperty.create("corner");
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+	/** With {@link #CORNER}: the cove at a wall's foot, solid toward the facing and down. */
+	public static final BooleanProperty FOOT = BooleanProperty.create("foot");
 	/** The fillet's strips, as boxes in pixels (along the axis, up, toward the solid side), facing north. */
 	private static final VoxelShape[] FILLET = new VoxelShape[4];
+	/** The same strips upside down: the foot's cove. */
+	private static final VoxelShape[] COVE = new VoxelShape[4];
 
 	static {
 		// a quarter circle of radius 16 px about the cell's inner lower edge; the segment is what lies outside it, in 4 px strips (the model draws 2 px strips)
 		for (int i = 0; i < 4; i++) {
 			Direction to = Direction.from2DDataValue(i);
-			VoxelShape shape = Shapes.empty();
+			VoxelShape shape = Shapes.empty(), cove = Shapes.empty();
 			for (int s = 0; s < 4; s++) {
 				double y0 = s * 4, y1 = y0 + 4;
 				double reach = 16 - Math.sqrt(256 - y1 * y1);   // how far the solid reaches from the outer side at the strip's top
 				shape = Shapes.or(shape, box(to, reach, y0, y1));
+				cove = Shapes.or(cove, box(to, reach, 16 - y1, 16 - y0));
 			}
 			FILLET[i] = shape.optimize();
+			COVE[i] = cove.optimize();
 		}
 	}
 
 	public LiningBlock(Properties properties) {
 		super(properties);
-		registerDefaultState(stateDefinition.any().setValue(CORNER, false).setValue(FACING, Direction.NORTH));
+		registerDefaultState(stateDefinition.any().setValue(CORNER, false).setValue(FACING, Direction.NORTH).setValue(FOOT, false));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(CORNER, FACING);
+		builder.add(CORNER, FACING, FOOT);
 	}
 
 	/** A rounded corner segment whose solid corner lies toward {@code toward} (horizontal) and up. */
@@ -55,9 +65,23 @@ public class LiningBlock extends Block {
 		return defaultBlockState().setValue(CORNER, true).setValue(FACING, toward);
 	}
 
+	/** The cove at a wall's foot, its solid toward {@code toward} (the wall) and down (the floor). */
+	public BlockState foot(Direction toward) {
+		return corner(toward).setValue(FOOT, true);
+	}
+
 	@Override
 	protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return state.getValue(CORNER) ? FILLET[state.getValue(FACING).get2DDataValue()] : Shapes.block();
+		if (!state.getValue(CORNER)) {
+			return Shapes.block();
+		}
+		return (state.getValue(FOOT) ? COVE : FILLET)[state.getValue(FACING).get2DDataValue()];
+	}
+
+	/** The foot's cove is the drive's finish, set from no stock: it drops nothing (a ring segment drops itself). */
+	@Override
+	protected java.util.List<net.minecraft.world.item.ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+		return state.getValue(CORNER) && state.getValue(FOOT) ? java.util.List.of() : super.getDrops(state, params);
 	}
 
 	/** A strip from the {@code to} side, {@code reach} px into the cell, between heights y0 and y1, full along the other axis. */

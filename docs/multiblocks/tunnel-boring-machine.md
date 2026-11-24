@@ -321,6 +321,15 @@ Episode 5 of Heavy Iron films the TBM (../questions/heavy-iron-fixes.md, 9-11).
   placed as `lining[corner=true,facing=<outer side>]`, a quarter-round fillet from the wall's top to the crown's edge
   (`DriveCourse.roundedCorner`, `models/block/lining_corner.json`, its shape in 4 px strips), so from inside the bore reads
   round-cornered rather than stepped. Still one segment each; a ring cut from rock stays square. Drawn only: nothing else changes.
+- **The bore's lower corners are rounded too** (fix2-hi05-06, 2026-11-23): where the floor is flat, the drill sets a cove in the open
+  cell at each wall's foot as it lays the floor behind the track layer (`DriveCourse.roundedFoot`, columns 1 and 6 one up from the
+  floor): `lining[corner=true,foot=true,facing=<the wall>]`, the shoulder's fillet upside down (`models/block/lining_foot.json`, its
+  shape in 4 px strips), so the bore reads round-cornered at the floor as at the crown. Only beside a crafted segment (a ring cut from
+  rock stays square), only into air, never on the decline (the floor slopes under the wall). It is the drive's finish, from no stock:
+  the ring stays 18 and the cove drops nothing (`LiningBlock.getDrops`). It stands at most 0.56 m under the gantries' frame posts
+  at the wall and rises to the cell's top only against the wall; the trailing cable lies on it where it crosses (`GantryRenderer.floorAt`
+  reads the shape under the point). The bore it moves through is checked only ahead of the floor, so the coves never block the machine.
+  Tests: `TunnelDrillTest` (two coves, flat only, not ring segments), NeoForge `tbm_bore_feet`.
 - **The cutting is drawn:** while it cuts, the client throws chips and dust of the rock just ahead off the face, and chips fall
   at the bottom of the wheel where the buckets scoop (`TbmEntity.faceDust`). Drawn only.
 - **Tests:** `TunnelDrillTest` (the ring's 18, the 12 corners, the stone put back, the two rounded shoulders), `drill` (48 muck,

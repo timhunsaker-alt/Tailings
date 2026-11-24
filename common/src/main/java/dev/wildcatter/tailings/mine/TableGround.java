@@ -35,6 +35,25 @@ public final class TableGround implements GroundGrid {
 		rocks.put(key, rock);
 	}
 
+	/** The coves placed at the bore's lower corners: the step toward their wall, as {x, z}. Their cells stay air here. */
+	private final Map<Key, int[]> feet = new HashMap<>();
+
+	@Override
+	public void placeLiningFoot(int x, int y, int z, int towardX, int towardZ) {
+		if (get(x, y, z) == Ground.AIR) {
+			feet.put(new Key(x, y, z), new int[] {towardX, towardZ});
+		}
+	}
+
+	/** The cove's step toward its wall at this cell, or null if there is none. */
+	public int[] foot(int x, int y, int z) {
+		return feet.get(new Key(x, y, z));
+	}
+
+	public int feet() {
+		return feet.size();
+	}
+
 	@Override
 	public FloorPiece floorPiece(int x, int y, int z) {
 		return floors.get(new Key(x, y, z));

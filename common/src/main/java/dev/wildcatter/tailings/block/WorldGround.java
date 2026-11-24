@@ -133,6 +133,18 @@ public final class WorldGround implements GroundGrid {
 		level.setBlock(new BlockPos(x, y, z), ((LiningBlock) TailingsBlocks.LINING).corner(toward), 3);
 	}
 
+	@Override
+	public void placeLiningFoot(int x, int y, int z, int towardX, int towardZ) {
+		BlockPos at = new BlockPos(x, y, z);
+		BlockState wall = level.getBlockState(at.offset(towardX, 0, towardZ));
+		// beside a crafted segment only (a ring cut from rock stays square, as at the crown), into open air only
+		if (!level.getBlockState(at).isAir() || !wall.is(TailingsBlocks.LINING) || wall.getValue(LiningBlock.CORNER)) {
+			return;
+		}
+		Direction toward = Direction.getNearest(towardX, 0, towardZ, Direction.NORTH);
+		level.setBlock(at, ((LiningBlock) TailingsBlocks.LINING).foot(toward), 3);
+	}
+
 	private static BlockState stone(Ground material) {
 		return switch (material) {
 			case STONE -> Blocks.STONE.defaultBlockState();

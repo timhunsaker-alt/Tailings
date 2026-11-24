@@ -30,6 +30,15 @@ class TunnelDrillTest {
 		assertEquals(2, rounded, "only the crown's two shoulders are drawn rounded");
 		assertEquals(-1, DriveCourse.roundedCorner(1, 6), "the west shoulder's solid corner is toward column 0");
 		assertEquals(1, DriveCourse.roundedCorner(6, 6), "the east shoulder's toward column 7");
+		int feet = 0;
+		for (int up = 0; up < DriveCourse.FACE; up++) {
+			for (int across = 0; across < DriveCourse.FACE; across++) {
+				feet += DriveCourse.roundedFoot(across, up) != 0 ? 1 : 0;
+			}
+		}
+		assertEquals(2, feet, "the two lower corners, where the walls meet the floor, take a cove");
+		assertEquals(-1, DriveCourse.roundedFoot(1, 2), "the west foot's solid toward column 0");
+		assertEquals(1, DriveCourse.roundedFoot(6, 2), "the east foot's toward column 7");
 		assertArrayEquals(slope(true), DriveCourse.floor(0, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(false), DriveCourse.floor(1, Grade.ONE_IN_TWO, true));
 		assertArrayEquals(slope(true), DriveCourse.floor(2, Grade.ONE_IN_TWO, true));
@@ -61,6 +70,10 @@ class TunnelDrillTest {
 		assertEquals(FloorPiece.FLAT_ROCK, ground.floorPiece(1, 10, floorZ), "where the machine was built is level");
 		assertEquals(FloorPiece.RAIL_FLAT, ground.floorPiece(2, 10, floorZ));
 		assertEquals(FloorPiece.LANDING, ground.floorPiece(3, 10, floorZ));
+		assertArrayEquals(new int[] {-1, 0}, ground.foot(1, 11, floorZ), "a cove at the west wall's foot, over the flat floor");
+		assertArrayEquals(new int[] {1, 0}, ground.foot(6, 11, floorZ), "and at the east wall's");
+		assertEquals(2, ground.feet(), "nowhere else");
+		assertEquals(18, ground.count(Ground.LINING), "the coves are no ring segments");
 		assertEquals(100 - DriveCourse.SEGMENTS_PER_RING, drill.stock().segments());
 		assertEquals(98, drill.stock().rail());
 		assertEquals(98, drill.stock().gravel());
@@ -91,6 +104,7 @@ class TunnelDrillTest {
 		}
 		assertArrayEquals(slope(false), last.floor());
 		assertEquals(FloorPiece.LANDING, ground.floorPiece(3, 30, -1));
+		assertEquals(null, ground.foot(1, 31, -1), "no cove where the floor slopes under the wall");
 		assertEquals(1000 - 2 * 13, drill.stock().gravel(), "two gravel a block, on the decline too");
 	}
 

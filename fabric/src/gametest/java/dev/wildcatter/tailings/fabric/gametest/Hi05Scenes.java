@@ -962,6 +962,16 @@ final class Hi05Scenes {
 					}
 				}
 			}
+			if (z >= fz) {
+				// the east wall's foot goes with the wall: its cove would stand alone on the floor's edge
+				for (int y = 0; y <= 4; y++) {
+					BlockPos at = c.offset(6, y, z);
+					BlockState s = level.getBlockState(at);
+					if (s.is(TailingsBlocks.LINING) && s.getValue(dev.wildcatter.tailings.block.LiningBlock.FOOT)) {
+						level.setBlock(at, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+					}
+				}
+			}
 		}
 	}
 
@@ -974,7 +984,9 @@ final class Hi05Scenes {
 		showCard(true);
 		Cam a = Cam.of(c, 30, 14, 34, 2, 3, 6);
 		Cam b = Cam.of(c, 12, 9, 10, 1, 3, 2);   // over the beam, not through its cab
-		Cam e = Cam.of(c, -8.5, 2.4, 6.5, 2, 3.4, 0);
+		// ends back from the face, so the whole 8 m head and the villager at its foot are both in the frame, the villager well inside it
+		// (the first takes ended low beside him, the head cut off at the top and him near the edge: fix2-hi05-06)
+		Cam e = Cam.of(c, -4, 4.5, 12, 2.5, 5.2, 0);
 		film("hi05_portal", 1000, via(a, b, e, 1000), (level, t) -> card(card(level)));
 	}
 
@@ -1022,8 +1034,10 @@ final class Hi05Scenes {
 	/** hi05_bore: in the bored drive, lit for the camera, looking in along the twin track to the train and the back-up. */
 	private void boreFilm() {
 		server.runCommand("effect give @p minecraft:night_vision infinite 0 true");
-		Cam a = Cam.of(c, 3.5, 3.6, 4, 3.5, 3.2, -20);
-		Cam b = Cam.of(c, 3.5, 3.4, -6, 3.5, 3.0, -30);
+		// along the east track above the train's height and stopping short of it, so the locomotive no longer fills a corner; the coves
+		// at the walls' feet and the shoulders at the crown show along the drive (fix2-hi05-06)
+		Cam a = Cam.of(c, 5.0, 4.2, 7, 3.2, 3.2, -30);
+		Cam b = Cam.of(c, 4.8, 4.0, 0, 3.0, 3.2, -30);
 		film("hi05_bore", 800, move(a, b, 800), beat());
 		server.runCommand("effect clear @p");
 	}

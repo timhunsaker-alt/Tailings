@@ -28,6 +28,13 @@ public interface GroundGrid {
 		placeLining(x, y, z, null);
 	}
 
+	/**
+	 * The cove at one of the bore's lower corners, in the open cell over a flat floor beside a wall, its solid toward ({@code towardX},
+	 * {@code towardZ}) and down. Drawn finish from no stock: a world places it only beside a crafted segment; elsewhere nothing.
+	 */
+	default void placeLiningFoot(int x, int y, int z, int towardX, int towardZ) {
+	}
+
 	default void placeFloor(int x, int y, int z, FloorPiece piece, Ground rock) {
 		set(x, y, z, Ground.FLOOR);
 	}
