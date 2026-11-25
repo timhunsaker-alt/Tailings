@@ -218,5 +218,9 @@ The art change, all three of the options at once (spec note with the real counte
   preview 2 (north-east) had a column and the thickened-tails pipe across the head-end chambers; preview 3 recorded the desktop, not
   the game (the recorder films the screen rectangle of the game window, and other windows were in front of it): deleted unwatched
   beyond the check.
+- **2026-11-25:** the full suite of 2026-11-24 died unfinished (its log stops at 12:31, no result); nothing of this branch was left
+  running. A filming run started at 10:32 ran as a preview by mistake (the client script passes `HI04_DROP_PREVIEW` empty, and the
+  scene took any set value as on: now a blank value is off), and it too recorded the desktop instead of the game window. Deleted
+  unwatched beyond the check. Filming needs the game window in front and the screen left alone for the run (about an hour).
 - **Not done in this pass:** the real take of `hi04_drop` (and `press`, `thickener`, `bin`, which show the old solid trough), the
   in-points, the EN/ES rebuild and the contact sheets: filming needs the game window in front for about an hour.

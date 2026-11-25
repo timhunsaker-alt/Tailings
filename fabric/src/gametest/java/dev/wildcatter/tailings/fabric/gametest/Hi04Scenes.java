@@ -172,7 +172,7 @@ final class Hi04Scenes {
 			try {
 				stage();
 				power();
-				if (System.getenv("HI04_DROP_PREVIEW") != null) {
+				if (PREVIEW) {
 					previewDrop();   // a camera check only: never a kept take (the scene skips the press's fill and pressing)
 					dropFilm();
 					return;
@@ -1689,7 +1689,7 @@ final class Hi04Scenes {
 	}
 
 	/** A camera check of the drop (HI04_DROP_PREVIEW): only the drop is filmed, the press fed and set near its cycle's end by the scene. */
-	private static final boolean PREVIEW = System.getenv("HI04_DROP_PREVIEW") != null;
+	private static final boolean PREVIEW = System.getenv("HI04_DROP_PREVIEW") != null && !System.getenv("HI04_DROP_PREVIEW").isBlank();
 	/** The drop's camera, from and to (q-relative: x, y, z, then the point looked at); HI04_DROP_CAM overrides it for camera checks. */
 	private static final double[] DROP_CAM = dropCam();
 
