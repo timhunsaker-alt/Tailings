@@ -208,7 +208,8 @@ The art change, all three of the options at once (spec note with the real counte
    stops short of the cylinder's stand.
 3. **Slabs, not specks:** each cake comes away in four slabs (about 1 x 0.8 m, drawn 0.12 m thick), the lower two first, tumbling as
    they fall the full height onto the pan; they gather there till the count. The schedule is `pit/PressOpening` (plain Java).
-- **Tests:** `PressOpeningTest` (new, 4 tests, pass); `ModelLintTest` passes; `pit_filter_batch` checks the drawn last cake has
+- **Tests:** the full NeoForge suite on this branch (2026-11-25): all 317 required tests passed. `PressOpeningTest` (new, 4 tests,
+  pass); `ModelLintTest` passes; `pit_filter_batch` checks the drawn last cake has
   landed by the game's count.
 - **Scene:** `hi04_drop`'s camera is now three-quarter from the east, level with the press's floor, between its columns, at the head
   end (`Hi04Scenes.DROP_CAM`). The head is at the **north** end (its feed pipe), the tail and ram at the south: the old comment had
