@@ -505,13 +505,19 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 	/** A slab's half height: a quarter of the cake (two slabs up, two across). */
 	private static final float SLAB_HALF_H = (PressOpening.CAKE_Y1 - PressOpening.CAKE_Y0) / 4;
 
-	/** A falling slab's centre y and tilt (degrees) {@code tj} s after it came away: it tumbles over as it clears the plates. */
+	/**
+	 * A falling slab's centre y, tilt and turn (degrees) {@code tj} s after it came away: it tilts as it falls and, once its top is
+	 * clear of the plates, turns about the vertical by 60 to 90 degrees, as real cake pieces twist off the cloth, so from the press's
+	 * side its face is seen and not only its edge.
+	 */
 	private static float[] slabAt(int k, int j, float tj) {
 		float drop = 0.5f * PressOpening.G * tj * tj;
 		float y = PressOpening.slabBottom(j) + SLAB_HALF_H - drop;
 		float dir = hash(k, j + 51) < 0.5f ? -1 : 1;
 		float tilt = dir * (35 + 45 * hash(k, j + 53)) * Math.min(1, drop / 2.0f);
-		return new float[] {y, tilt};
+		float clear = drop - (PressOpening.slabBottom(j) + 2 * SLAB_HALF_H - PressOpening.PLATE_BOTTOM);
+		float turn = (hash(k, j + 57) < 0.5f ? -1 : 1) * (60 + 30 * hash(k, j + 59)) * Math.max(0, Math.min(1, clear / 0.6f));
+		return new float[] {y, tilt, turn};
 	}
 
 	/** How far a slab tilted by {@code tilt} degrees reaches below its centre. */
@@ -593,6 +599,7 @@ public class PlantRenderer implements BlockEntityRenderer<PlantBlockEntity, Plan
 				slab.last().pose().set(p.pose());
 				slab.last().normal().set(p.normal());
 				slab.translate((x0 + x1) / 2 + spread, at[0], zc + dz);
+				slab.rotateDegrees(Axis.YP, at[2]);
 				slab.rotateDegrees(Axis.XP, at[1]);
 				float hx = (x1 - x0) / 2;
 				box(slab.last(), v, cake, -hx, -SLAB_HALF_H, -PressOpening.SLAB_T / 2, hx, SLAB_HALF_H, PressOpening.SLAB_T / 2, light);

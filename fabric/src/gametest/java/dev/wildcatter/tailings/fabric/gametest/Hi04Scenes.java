@@ -1701,7 +1701,7 @@ final class Hi04Scenes {
 		// east of the press, between its columns at z 58.3 and 66, level with its floor, looking north-west at the head end (the fixed
 		// head is at the north, z 59-60, with the feed pipe; the tail and ram at the south): previews 1 and 2 had the tail end, and a
 		// column and the slurry pipe across the head end
-		return new double[] {27.5, 21.3, 64.5, 20.2, 20.4, 60.8, 26.8, 21.2, 63.6, 20.2, 20.4, 61.0};
+		return new double[] {25.6, 21.2, 63.6, 20.0, 20.5, 60.6, 25.2, 21.1, 63.0, 20.0, 20.5, 60.8};
 	}
 
 	/** HI04_DROP_PREVIEW: a full batch fed straight into the press and its cycle set to 13:50, so the drop comes within a minute. */

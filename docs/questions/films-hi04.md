@@ -223,5 +223,19 @@ The art change, all three of the options at once (spec note with the real counte
   running. A filming run started at 10:32 ran as a preview by mistake (the client script passes `HI04_DROP_PREVIEW` empty, and the
   scene took any set value as on: now a blank value is off), and it too recorded the desktop instead of the game window. Deleted
   unwatched beyond the check. Filming needs the game window in front and the screen left alone for the run (about an hour).
+- **The recorder reads the game's own frames (2026-11-25, asked by the coordinator: Tim uses the computer while scenes film).**
+  `Filming` (fabric gametest) no longer films the screen. At the start of each client tick (a client game test draws one frame a
+  tick) it copies the main render target (`gameRenderer.mainRenderTarget()`, the frame just drawn with its HUD and card) on the GPU
+  into one of four reused read-back buffers (`copyTextureToBuffer`, MAP_READ | COPY_DST, as `Screenshot` does); when the copy is done
+  the bytes go to a writer thread that pipes them as raw RGBA to ffmpeg (`-f rawvideo -pix_fmt rgba -s 1440x810 -r 20 -i -`, then
+  `vflip`, a 2x nearest-neighbour scale and `fps=60`, x264 CRF 14), the same `build/scene-videos/<scene>.mov` at 2880x1620 and 60 fps
+  as before (the game draws at the window's 1440x810; the screen recordings were that doubled on the Retina screen). Same API, same
+  paths: no scene and no `keep.sh` changed. A film is game time: 20 frames a game second. It logs frames written, dropped and the
+  real rate: the test films wrote 1,421 frames for 71.1 s of game time, none dropped, 19.8-20.0 frames a second by the clock.
+  `TAILINGS_FILM_SCREEN=1` films the screen with `screencapture` as before. Checked: the test takes show the game while other windows
+  covered it. (The client script now runs Gradle online: offline resolution had lost `lwjgl-freetype`.)
+- **The slabs turn as they fall:** seen from the press's side the first test take showed the slabs edge-on (their faces point along
+  the pack); each now also turns 60-90 degrees about the vertical once clear of the plates, as real cake pieces twist off the cloth,
+  so its face shows from the side. The camera moved in to about 5 m (`DROP_CAM`).
 - **Not done in this pass:** the real take of `hi04_drop` (and `press`, `thickener`, `bin`, which show the old solid trough), the
   in-points, the EN/ES rebuild and the contact sheets: filming needs the game window in front for about an hour.

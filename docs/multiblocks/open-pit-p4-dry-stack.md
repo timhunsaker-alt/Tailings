@@ -269,7 +269,7 @@ figures, its timing (fill 2, squeeze 3.5, blow 2, open and drop 7.5 minutes), it
   cylinder's stand. *(Proposed: the top of a real shifter's several hundred mm, unverified for 2.5 m plates.)*
 - **The cake as slabs:** each chamber's cake stands a second on the cloth, then comes away in four slabs (about 1 x 0.8 m, drawn
   0.12 m thick; a real cake is about 40-50 mm), the lower two first, 0.4 s between the first and the last; they part a little and
-  tumble over (35-80 degrees) as they clear the plates, falling at g the full height onto the pan below, where they gather till the
+  tilt (35-80 degrees) and, clear of the plates, turn 60-90 degrees about the vertical (so a slab shows its face from the side), falling at g the full height onto the pan below, where they gather till the
   game counts the whole cake into the bin. The last slab, by the head, lands just before the cycle ends (the last plate's shift now
   starts at 14:57.7; a plate every 5.6 s as before).
 - **Code:** the schedule is `pit/PressOpening` (plain Java), drawn by `PlantRenderer.press`. Tests: `PressOpeningTest` (each
