@@ -208,7 +208,7 @@ The art change, all three of the options at once (spec note with the real counte
    stops short of the cylinder's stand.
 3. **Slabs, not specks:** each cake comes away in four slabs (about 1 x 0.8 m, drawn 0.12 m thick), the lower two first, tumbling as
    they fall the full height onto the pan; they gather there till the count. The schedule is `pit/PressOpening` (plain Java).
-- **Tests:** the full NeoForge suite on this branch (2026-11-25): all 317 required tests passed. `PressOpeningTest` (new, 4 tests,
+- **Tests:** the full NeoForge suite on this branch (2026-11-25, and again on the final code at 13:06): all 317 required tests passed. `PressOpeningTest` (new, 4 tests,
   pass); `ModelLintTest` passes; `pit_filter_batch` checks the drawn last cake has
   landed by the game's count.
 - **Scene:** `hi04_drop`'s camera is now three-quarter from the east, level with the press's floor, between its columns, at the head
@@ -237,5 +237,15 @@ The art change, all three of the options at once (spec note with the real counte
 - **The slabs turn as they fall:** seen from the press's side the first test take showed the slabs edge-on (their faces point along
   the pack); each now also turns 60-90 degrees about the vertical once clear of the plates, as real cake pieces twist off the cloth,
   so its face shows from the side. The camera moved in to about 5 m (`DROP_CAM`).
-- **Not done in this pass:** the real take of `hi04_drop` (and `press`, `thickener`, `bin`, which show the old solid trough), the
-  in-points, the EN/ES rebuild and the contact sheets: filming needs the game window in front for about an hour.
+- **Filmed (2026-11-25, 11:53-12:46, the framebuffer recorder):** `hi04_thickener`, `hi04_bin`, `hi04_press` (each showed the old
+  solid trough) and `hi04_drop`; every film game time, none dropped, about 20 frames a second against the clock. In the drop the slabs
+  are seen falling past the open frame onto the pans, a chamber every 5.6 s (e.g. 40.4-41.4 s; the last, by the head, 46.3-47.0 s,
+  large and tumbling), and the cake is counted into the bin at 47.2 s (84 to 99 t). Other ep 4 films showing the press (`power`,
+  `loadout`, `stackwide`) show it too small or out of frame to look different: kept. Notes in `videos/footage/films-hi04/NOTES.md`.
+- **The episode:** `DROP` stays 47.2; P31's zoom is now crop 0.2, 0.23, 0.55, 0.55 (the gap and the falling slabs, the card kept out);
+  the bin film plays at 1x (`BIN_SP` 1.0: the framebuffer films are game time). Narration unchanged: "the press opens and the whole
+  cake drops into the bin below it at once" now plays over the slabs falling and the count; no line re-voiced.
+- **Rebuilt:** English 9:02 (542.6 s; preview 25.2 MB), Spanish 9:59 (599.8 s; preview 27.9 MB), written in place: the hard links in
+  `videos/ready/youtube/heavy-iron-ep04.*` and `videos/ready/youtube-es/heavy-iron-ep04-es.*` keep their inodes (`youtube.txt`
+  rewritten in place; chapters unchanged). No brand name in any text or subtitle file. Contact sheets
+  `videos/shorts/chk/hi04_fix3_{en,es}.png`.
