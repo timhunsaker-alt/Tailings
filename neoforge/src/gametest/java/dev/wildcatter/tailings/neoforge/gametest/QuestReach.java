@@ -25,14 +25,14 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 
 /**
- * The Built From Scratch check (bfs-check branch, not for main): can every item task in the quest book be made in a fresh survival world
+ * The Built From Scratch check (QUEST_CHECK.md, 2026-11-26): can every item task in the quest book be made in a fresh survival world
  * with only the quests it requires done? It walks the server's real recipe manager (crafting, furnaces, stonecutter; tags resolved as the
  * game resolves them) from every vanilla item, the mods' items that come from the world (ores, animals, crops), and the items the mods'
  * machines make, each counted only once the quest that gives the player that machine is in the prerequisites. Machines make things in code,
  * not in recipe files, so that table is written by hand from the block entities (file:line beside each entry).
  * <p>
  * Two kinds of problem: an item task nothing makes even with every quest done (NO SOURCE), and one that needs a quest outside its
- * prerequisites (ORDER). Shared with the same class in Tailings' bfs-check branch; entries for a mod that is not loaded are skipped.
+ * prerequisites (ORDER). The same class is in Farmings; entries for a mod that is not loaded are skipped.
  */
 final class QuestReach {
 	private QuestReach() {
@@ -55,18 +55,18 @@ final class QuestReach {
 		// Wildcatter (paths under common/src/main/java/dev/wildcatter/block/)
 		MACHINES.put("wildcatter:crude_oil_bucket", "wildcatter:lease");          // StorageTankBlockEntity.java:147; the pumpjack's well fluid needs the separator (lease)
 		MACHINES.put("wildcatter:diesel_bucket", "wildcatter:crude_unit");        // StorageTankBlockEntity.java:150, from ToppingColumnBlockEntity.java:33
-		MACHINES.put("wildcatter:calcined_coke_bag", "wildcatter:crude_unit");    // CokeCoolerBlockEntity.java:36, on crude-unit residue; no quest teaches the coker
+		MACHINES.put("wildcatter:calcined_coke_bag", "wildcatter:aluminium");     // CokeCoolerBlockEntity.java:36, on crude-unit residue; the aluminium quest teaches the coker (0.10.2)
 		MACHINES.put("wildcatter:plastic_sheet", "wildcatter:plastic");           // PelletizerBlockEntity.java:51
-		MACHINES.put("wildcatter:quicklime_bag", "wildcatter:gas_well");          // LimeKilnBlockEntity.java:57; no quest teaches the kiln (gas, 480 V from step_up)
-		MACHINES.put("wildcatter:barite_bag", "wildcatter:gas_well");             // MudMillBlockEntity.java:89; no quest teaches the barite mill (480 V)
-		MACHINES.put("wildcatter:obm_package", "wildcatter:ammonia");             // MudMillBlockEntity.java:87: the bentonite dryer's oil-mud mode takes ammonia
+		MACHINES.put("wildcatter:quicklime_bag", "wildcatter:casing_point");      // LimeKilnBlockEntity.java:57; casing_point teaches the kiln (0.10.2)
+		MACHINES.put("wildcatter:barite_bag", "wildcatter:choke_kill");           // MudMillBlockEntity.java:89; choke_kill teaches the barite mill (0.10.2)
+		MACHINES.put("wildcatter:obm_package", "wildcatter:oil_mud");             // MudMillBlockEntity.java:87: the bentonite dryer's oil-mud mode takes ammonia; oil_mud teaches the dryer and requires ammonia (0.10.2)
 		MACHINES.put("wildcatter:metallurgical_coke", "wildcatter:coke");         // CokeQuenchTowerBlockEntity.java:63
 		MACHINES.put("wildcatter:aluminium_ingot", "wildcatter:aluminium");       // CastingMachineBlockEntity.java:63
 		MACHINES.put("wildcatter:chlorine_ton_container", "wildcatter:chlor_alkali"); // ChlorineFillerBlockEntity.java:53
 		MACHINES.put("wildcatter:dap_bag", "wildcatter:fertilizer");              // GranulationPlantBlockEntity.java:86
 		MACHINES.put("wildcatter:tsp_bag", "wildcatter:fertilizer");              // GranulationPlantBlockEntity.java:86
 		MACHINES.put("wildcatter:mop_bag", "wildcatter:fertilizer");              // PotashDryerBlockEntity.java:69 (no quest of its own)
-		MACHINES.put("wildcatter:ferrosilicon_bag", "wildcatter:coke");           // SubmergedArcFurnaceBlockEntity.java:452; no quest teaches the furnace
+		MACHINES.put("wildcatter:ferrosilicon_bag", "tailings:ferrosilicon");     // SubmergedArcFurnaceBlockEntity.java:452, on coke; tailings:ferrosilicon teaches the furnace and requires wildcatter:coke (0.10.2)
 		MACHINES.put("wildcatter:helium_cylinder", "wildcatter:helium");          // HeliumRecoveryBlockEntity.java:91
 		MACHINES.put("wildcatter:boric_acid", "wildcatter:boron");                // BoronLineBlockEntity.java:227
 		MACHINES.put("wildcatter:b4c_pellets", "wildcatter:boron");               // BoronLineBlockEntity.java:258

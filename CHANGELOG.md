@@ -4,7 +4,17 @@ All notable changes are the merged pull requests on `main`. Dates are the merge 
 
 ## [0.2.1] - unreleased
 
-It requires Wildcatter 0.8.1.
+It requires Wildcatter 0.10.2.
+
+### Quest book (the Built From Scratch check, 2026-11-26)
+
+- Built against Wildcatter 0.10.2, whose book has 70 quests (0.8.1 had 58), and whose item tasks stay met once met.
+- **Prerequisites:** the copper smelter needs `wildcatter:cables` (its furnaces are cabled); blasting needs `wildcatter:diesel` (the
+  emulsion matrix); zircon needs `wildcatter:cables` in place of `wildcatter:chlor_alkali` (the induced-roll separator); watch the wall
+  no longer needs the dragline (the survey station reads any three prisms) and follows the stamp mill.
+- **Machines named and asked for:** the haul truck and wheel loader (gyratory: only a truck tipping fills its dump pocket), the
+  submerged arc furnace (ferrosilicon), and the nitric acid unit and emulsion blender (blasting).
+- New check scene `quest_items_reachable`: every quest's items can be made with only its prerequisites done.
 
 ### Concentrate to metal
 

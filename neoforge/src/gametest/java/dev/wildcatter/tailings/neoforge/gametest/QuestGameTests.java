@@ -386,7 +386,7 @@ final class QuestGameTests {
 	}
 
 	/**
-	 * Built From Scratch check (bfs-check branch): every item task in every loaded chapter can be made in a fresh survival world with only
+	 * Built From Scratch check: every item task in every loaded chapter can be made in a fresh survival world with only
 	 * its prerequisites done ({@link QuestReach}). Logs each problem, then fails if there is any.
 	 */
 	private static void itemsReachable(GameTestHelper helper) {

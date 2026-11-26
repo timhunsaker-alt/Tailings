@@ -122,7 +122,8 @@
       "text": "Set a concentrate dryer against the pressure filter and its copper goes to the smelter, not straight to ingots. The dryer feeds a flash smelting furnace (silica sand by hopper, pipeline gas), which makes matte for a Peirce-Smith converter on medium voltage. Pipe both furnaces' off-gas to an acid plant's converter: a smelter must not vent. The anode furnace fire refines the blister, the casting wheel casts 400 kg anodes, and the tankhouse refines them to cathodes. A blast furnace melts a cathode to two ingots. The line pays 97.5 % of the copper; the filter's direct ingots pay 85 %.",
       "requires": [
         "flotation",
-        "wildcatter:acid_plant"
+        "wildcatter:acid_plant",
+        "wildcatter:cables"
       ],
       "tasks": [
         {
@@ -152,7 +153,7 @@
       "text": "Spirals take the heavy minerals out of the fines. The dry mill splits them: a gas-fired dryer, then roll magnets, high-tension rolls and the induced-roll magnet, which leaves zircon. Zircon concentrate goes by hopper into Wildcatter's chlorinator.",
       "requires": [
         "flotation",
-        "wildcatter:chlor_alkali"
+        "wildcatter:cables"
       ],
       "tasks": [
         {
@@ -173,13 +174,17 @@
       "id": "ferrosilicon",
       "title": "Ferrosilicon and dense media",
       "icon": "tailings:ferrosilicon",
-      "text": "Iron, sand and metallurgical coke make ferrosilicon, the dense medium. In a DMS cyclone module heavy ore sinks and light rock floats off before it is ground; medium recovery wins the ferrosilicon back.",
+      "text": "Iron, sand and metallurgical coke make ferrosilicon, the dense medium: Wildcatter's submerged arc furnace makes the bags. In a DMS cyclone module heavy ore sinks and light rock floats off before it is ground; medium recovery wins the ferrosilicon back.",
       "requires": [
         "crusher_line",
         "wildcatter:coke",
         "wildcatter:cables"
       ],
       "tasks": [
+        {
+          "item": "wildcatter:submerged_arc_furnace",
+          "count": 1
+        },
         {
           "item": "tailings:ferrosilicon",
           "count": 4
@@ -198,12 +203,20 @@
       "id": "gyratory",
       "title": "The gyratory",
       "icon": "tailings:gyratory_crusher",
-      "text": "Haul trucks tip into the gyratory's dump pocket; the crusher takes 2,400 t/h onto a heavy belt to the coarse-ore stockpile, and reclaim feeders draw it to the SAG mill. Its motor runs at medium voltage, and it is built with cable.",
+      "text": "A wheel loader fills a haul truck, and the truck tips into the gyratory's dump pocket; the crusher takes 2,400 t/h onto a heavy belt to the coarse-ore stockpile, and reclaim feeders draw it to the SAG mill. Its motor runs at medium voltage, and it is built with cable.",
       "requires": [
         "crusher_line",
         "wildcatter:cables"
       ],
       "tasks": [
+        {
+          "item": "tailings:haul_truck",
+          "count": 1
+        },
+        {
+          "item": "tailings:wheel_loader",
+          "count": 1
+        },
         {
           "milestone": "tailings:gyratory_running",
           "text": "Run the gyratory"
@@ -236,11 +249,20 @@
       "id": "blasting",
       "title": "Drill and blast",
       "icon": "tailings:blasting_machine",
-      "text": "Drill a pattern with the blasthole drill. Fill the emulsion truck at a matrix fill point from a tank of the ammonia plant's emulsion matrix; prime each hole with a detonator and cast booster, charge and stem it, log the holes, and fire from the blasting machine with its key.",
+      "text": "Drill a pattern with the blasthole drill. The ammonia plant's nitric acid unit and neutraliser make AN solution, and its emulsion blender mixes it with diesel and emulsifier into matrix. Fill the emulsion truck at a matrix fill point from a tank of it; prime each hole with a detonator and cast booster, charge and stem it, log the holes, and fire from the blasting machine with its key.",
       "requires": [
-        "wildcatter:ammonia"
+        "wildcatter:ammonia",
+        "wildcatter:diesel"
       ],
       "tasks": [
+        {
+          "item": "wildcatter:nitric_acid_unit",
+          "count": 1
+        },
+        {
+          "item": "wildcatter:emulsion_blender",
+          "count": 1
+        },
         {
           "item": "tailings:blasthole_drill",
           "count": 1
@@ -314,9 +336,9 @@
       "id": "watch_the_wall",
       "title": "Watch the wall",
       "icon": "tailings:slope_prism",
-      "text": "A highwall cracks before it slides, and a prism on its bench moves before the cracks show. Place slope prisms on the dragline's bench and spoil, and a survey station that can see them; wire its ALARM to stop the dragline. With the world rule slope_failures on, it is what stands between you and a slide.",
+      "text": "A highwall cracks before it slides, and a prism on its bench moves before the cracks show. Place slope prisms on a pit's benches and spoil, and a survey station that can see them; wire its ALARM to stop the dragline or shovel. With the world rule slope_failures on, it is what stands between you and a slide.",
       "requires": [
-        "dragline"
+        "stamp_mill"
       ],
       "tasks": [
         {
