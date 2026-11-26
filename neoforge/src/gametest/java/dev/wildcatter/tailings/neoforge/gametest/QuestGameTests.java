@@ -57,7 +57,7 @@ import net.minecraft.world.level.block.Blocks;
 final class QuestGameTests {
 	static final String[] SCENES = {"quests_valid", "quest_crusher_milestone", "quest_flotation_milestone", "quest_blast_milestone",
 			"quest_dragline_milestone", "quest_zircon_feed", "quest_gyratory_milestone", "quest_shovel_milestone", "quest_leach_milestone",
-			"quest_pit_energised_milestone", "quest_stamp_mill_milestone"};
+			"quest_pit_energised_milestone", "quest_stamp_mill_milestone", "quest_items_reachable"};
 	/** Scenes over a wide area: their chunks are loaded by {@link #reach}. */
 	static final Set<String> WIDE = Set.of("quest_blast_milestone", "quest_dragline_milestone", "quest_gyratory_milestone", "quest_shovel_milestone",
 			"quest_pit_energised_milestone");
@@ -71,6 +71,7 @@ final class QuestGameTests {
 
 	static void register(BiConsumer<String, Consumer<GameTestHelper>> out) {
 		out.accept("quests_valid", QuestGameTests::questsValid);
+		out.accept("quest_items_reachable", QuestGameTests::itemsReachable);
 		out.accept("quest_crusher_milestone", QuestGameTests::crusher);
 		out.accept("quest_flotation_milestone", QuestGameTests::flotation);
 		out.accept("quest_blast_milestone", QuestGameTests::blast);
@@ -382,5 +383,17 @@ final class QuestGameTests {
 					leave(helper, player);
 				})
 				.thenSucceed();
+	}
+
+	/**
+	 * Built From Scratch check (bfs-check branch): every item task in every loaded chapter can be made in a fresh survival world with only
+	 * its prerequisites done ({@link QuestReach}). Logs each problem, then fails if there is any.
+	 */
+	private static void itemsReachable(GameTestHelper helper) {
+		List<String> problems = QuestReach.problems(helper.getLevel());
+		problems.forEach(p -> log("quest_items_reachable", p));
+		check(helper, problems.isEmpty(), problems.size() + " quest items cannot be made in order: " + problems);
+		log("quest_items_reachable", "ok: " + QuestTracker.book(helper.getLevel().getServer()).quests().size() + " quests");
+		helper.succeed();
 	}
 }
