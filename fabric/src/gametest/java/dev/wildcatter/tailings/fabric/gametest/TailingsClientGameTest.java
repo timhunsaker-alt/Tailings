@@ -68,6 +68,11 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		// the 60 fps recorder's proof film (film60): its own world, only when named
+		if ("film60".equals(System.getenv("TAILINGS_ONLY"))) {
+			new Film60Proof(context).run();
+			return;
+		}
 		// the playthrough is its own long run in its own real world: only when named
 		if ("playthrough".equals(System.getenv("TAILINGS_ONLY"))) {
 			new Playthrough(context).run();

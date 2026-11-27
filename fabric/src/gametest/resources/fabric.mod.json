@@ -9,6 +9,9 @@
 			"dev.wildcatter.tailings.fabric.gametest.TailingsClientGameTest"
 		]
 	},
+	"mixins": [
+		"tailings-gametest.mixins.json"
+	],
 	"depends": {
 		"tailings": "*",
 		"wildcatter": "*",
