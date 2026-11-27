@@ -2710,8 +2710,9 @@ public class TailingsClientGameTest implements FabricClientGameTest {
 			var crawlers = (dev.wildcatter.tailings.block.RopeShovelBlockEntity) v[1];
 			java.util.UUID name = crawlers.machine();
 			System.out.println("[tailings-test] pit_big: " + crawlers.run(srv.overworld()));
+			// the face: 10 wide and 4 deep where its dipper reaches the floor, 16.5 m ahead of its centre (27, 46), so z 26 to 29
 			for (int x = 22; x <= 31; x++) {
-				for (int z = 35; z <= 38; z++) {
+				for (int z = 26; z <= 29; z++) {
 					for (int yy = 60; yy <= 72; yy++) {
 						BlockPos p = b.offset(x, yy, z);
 						srv.overworld().setBlock(p, TailingsBlocks.MUCK.defaultBlockState(), Block.UPDATE_ALL);
